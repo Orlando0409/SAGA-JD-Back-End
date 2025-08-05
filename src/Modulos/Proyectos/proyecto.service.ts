@@ -8,10 +8,10 @@ export class ProyectoService
 {
   constructor(
     @InjectRepository(Proyecto_Base)
-    private readonly proyectoRepository: Repository<Proyecto_Base>,
+    private proyectoRepository: Repository<Proyecto_Base>,
   ) {}
 
-  async AllProyects(): Promise<Proyecto_Base[]> 
+   AllProyects(): Promise<Proyecto_Base[]> 
   {
     return this.proyectoRepository.find({ relations: ['estado'],});
   }
