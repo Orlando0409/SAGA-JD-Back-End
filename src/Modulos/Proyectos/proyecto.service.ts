@@ -1,17 +1,17 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { Proyecto_Base } from "./Entidades_proyecto/entidadBase_proyecto";
+import { ProjectEntity } from "./Entidades_proyecto/projectEntity";
 
 @Injectable()
 export class ProyectoService 
 {
   constructor(
-    @InjectRepository(Proyecto_Base)
-    private proyectoRepository: Repository<Proyecto_Base>,
+    @InjectRepository(ProjectEntity)
+    private proyectoRepository: Repository<ProjectEntity>,
   ) {}
 
-   AllProyects(): Promise<Proyecto_Base[]> 
+   AllProyects(): Promise<ProjectEntity[]> 
   {
     return this.proyectoRepository.find({ relations: ['estado'],});
   }
