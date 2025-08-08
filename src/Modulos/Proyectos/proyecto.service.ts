@@ -15,4 +15,14 @@ export class ProyectoService
   {
     return this.proyectoRepository.find({ relations: ['estado'],});
   }
+
+  CreateProyecto(proyecto: Proyecto_Base): Promise<Proyecto_Base> 
+  {
+    return this.proyectoRepository.save(proyecto);
+  }
+
+  DeleteProyecto(id_Proyecto: number): Promise<void> 
+  {
+    return this.proyectoRepository.delete(id_Proyecto).then(() => {});
+  }
 }
