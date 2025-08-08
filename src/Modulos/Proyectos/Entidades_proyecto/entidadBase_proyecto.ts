@@ -1,10 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn,ManyToOne, JoinColumn, UpdateDateColumn  } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { EstadoProyecto } from './estado_proyecto';
 
-
 @Entity('entidad_base_proyecto')
-export class Proyecto_Base {  
-
+export class Proyecto_Base {
   @PrimaryGeneratedColumn()
   id_Proyecto: number;
 
@@ -21,12 +27,9 @@ export class Proyecto_Base {
   fecha_Actualizacion: Date;
 
   @Column()
-  Id_Usuario:number;
+  Id_Usuario: number;
 
-  @ManyToOne(() => EstadoProyecto, estado => estado.proyectos)  //Relacion Muchos A uno
-
-  @JoinColumn({ name: 'id_Estado_Proyecto' })  //LLave Foranea para acceder al estado del proyecto 
+  @ManyToOne(() => EstadoProyecto, (estado) => estado.proyectos) //Relacion Muchos A uno
+  @JoinColumn({ name: 'id_Estado_Proyecto' }) //LLave Foranea para acceder al estado del proyecto
   estado: EstadoProyecto;
-  
 }
-
