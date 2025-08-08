@@ -6,12 +6,12 @@ import { ProjectEntity } from './Modulos/Proyectos/Entidades_proyecto/projectEnt
 import { ProjectStatus } from './Modulos/Proyectos/Entidades_proyecto/projectStatus';
 
 import { AbonadosModule } from './Modulos/Abonados/abonados.module';
-import { ActasModule } from './Modulos/Actas/actas.module';
 import { FacturaModule } from './Modulos/Factura/factura.module';
 import { InventarioModule } from './Modulos/Inventario/inventario.module';
 import { ProveedorModule } from './Modulos/Proveedor/proveedor.module';
 import { ProyectoModule } from './Modulos/Proyectos/proyecto.module';
 import { UsuariosModule } from './Modulos/Usuarios/usuarios.module';
+
 
 
 @Module({
@@ -41,7 +41,6 @@ import { UsuariosModule } from './Modulos/Usuarios/usuarios.module';
     }),
     ProyectoModule,
     AbonadosModule,
-    ActasModule,
     FacturaModule,
     InventarioModule,
     ProveedorModule,

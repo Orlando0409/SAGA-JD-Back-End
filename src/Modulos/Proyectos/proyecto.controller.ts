@@ -12,8 +12,6 @@ export class ProyectoController
     return this.proyectoService.AllProyects();
   }
 
-  
-
   @Post('/create')
   async CreateProyecto(proyecto: any)
   {
