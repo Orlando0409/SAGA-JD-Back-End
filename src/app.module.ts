@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule , ConfigService } from '@nestjs/config';
 
-import { Proyecto_Base } from './Modulos/Proyectos/Entidades_proyecto/entidadBase_proyecto';
-import { EstadoProyecto } from './Modulos/Proyectos/Entidades_proyecto/estado_proyecto';
+import { ProjectEntity } from './Modulos/Proyectos/Entidades_proyecto/projectEntity';
+import { ProjectStatus } from './Modulos/Proyectos/Entidades_proyecto/projectStatus';
 
 import { AbonadosModule } from './Modulos/Abonados/abonados.module';
 import { ActasModule } from './Modulos/Actas/actas.module';
@@ -11,6 +11,7 @@ import { FacturaModule } from './Modulos/Factura/factura.module';
 import { InventarioModule } from './Modulos/Inventario/inventario.module';
 import { ProveedorModule } from './Modulos/Proveedor/proveedor.module';
 import { ProyectoModule } from './Modulos/Proyectos/proyecto.module';
+import { UsuariosModule } from './Modulos/Usuarios/usuarios.module';
 
 
 @Module({
@@ -33,8 +34,8 @@ import { ProyectoModule } from './Modulos/Proyectos/proyecto.module';
         username:  process.env.DB_USERNAME,
         password:  process.env.DB_PASSWORD,
         database:  process.env.DB_DATABASE,
-        entities: [Proyecto_Base, EstadoProyecto],
-        synchronize: true,
+        entities: [ProjectEntity, ProjectStatus],
+        synchronize: false,
         
       }),
     }),
@@ -44,6 +45,9 @@ import { ProyectoModule } from './Modulos/Proyectos/proyecto.module';
     FacturaModule,
     InventarioModule,
     ProveedorModule,
+    UsuariosModule,
   ],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
