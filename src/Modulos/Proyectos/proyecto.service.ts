@@ -16,7 +16,7 @@ export class ProyectoService
     return this.proyectoRepository.find({ relations: ['estado'],});
   }
 
-  CreateProyecto(proyecto: Proyecto_Base): Promise<Proyecto_Base> 
+  CreateProyecto(proyecto: ProjectEntity): Promise<ProjectEntity> 
   {
     return this.proyectoRepository.save(proyecto);
   }
