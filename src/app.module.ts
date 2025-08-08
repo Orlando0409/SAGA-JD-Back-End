@@ -45,6 +45,5 @@ import { ProyectoModule } from './Modulos/Proyectos/proyecto.module';
     InventarioModule,
     ProveedorModule,
   ],
-  
 })
 export class AppModule {}
