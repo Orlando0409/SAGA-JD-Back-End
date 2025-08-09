@@ -3,10 +3,6 @@ import { Type } from 'class-transformer';
 import { ProjectStatus } from '../ProyectoEntities/EstadoProyecto.Entity';
 
 export class CrearProyectoDto {
-    @IsInt()
-    @IsNotEmpty()
-    id_Proyecto: number;
-
     @IsString()
     @IsNotEmpty()
     Titulo: string;
@@ -28,6 +24,6 @@ export class CrearProyectoDto {
     Id_Usuario: number;
 
     @IsInt()
-    @IsOptional()
+    @IsNotEmpty()
     estado: ProjectStatus;
 }

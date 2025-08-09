@@ -14,7 +14,6 @@ import { UsuariosModule } from './Modules/Usuarios/usuarios.module';
 
 @Module({
   imports: [
-
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -31,7 +30,7 @@ import { UsuariosModule } from './Modules/Usuarios/usuarios.module';
         password:  process.env.DB_PASSWORD,
         database:  process.env.DB_DATABASE,
         entities: [ProjectEntity, ProjectStatus],
-        synchronize: false, 
+        synchronize: true, 
       }),
     }),
     ProyectoModule,

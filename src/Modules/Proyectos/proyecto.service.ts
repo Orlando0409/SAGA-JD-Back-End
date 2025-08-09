@@ -8,20 +8,17 @@ import { CrearProyectoDto } from "./ProyectoDTO's/CrearProyecto.dto";
 @Injectable()
 export class ProyectoService 
 {
-  AllProyectos() {
-    throw new Error("Method not implemented.");
-  }
   constructor(
     @InjectRepository(ProjectEntity)
-    private proyectoRepository: Repository<ProjectEntity>,
+    private readonly proyectoRepository: Repository<ProjectEntity>,
 
     @InjectRepository(ProjectStatus)
-    private projectStatusRepository: Repository<ProjectStatus>
+    private readonly projectStatusRepository: Repository<ProjectStatus>
   ) {}
 
   async AllProyects()
   {
-    return this.proyectoRepository.find();
+    return this.proyectoRepository.find({ relations: ['estado'],});
   }
 
   async findProyecto(id_Proyecto: number) {

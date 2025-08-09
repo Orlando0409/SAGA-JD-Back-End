@@ -10,7 +10,7 @@ export class ProyectoController
   @Get('/all')
     AllProyectos() 
     {
-      return this.proyectoService.AllProyectos();
+      return this.proyectoService.AllProyects();
     }
 
   @Get(':id')

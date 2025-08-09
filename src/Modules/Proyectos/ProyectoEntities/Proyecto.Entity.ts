@@ -14,10 +14,10 @@ export class ProjectEntity
   @Column({ type: 'text' })
   descripcion: string;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({ type: 'date', precision: 6 })
   fecha_Creacion: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ type: 'date', precision: 6 })
   fecha_Actualizacion: Date;
 
   @Column()
