@@ -35,3 +35,6 @@ async function bootstrap() {
 bootstrap();
 
 // Usar la URL 'http://localhost:3000/api' para abrir el Swagger UI
+
+// Si los proyectos dan error 500, cambien el synchronize del app.module a true
+// y eliminen la base de datos para que se vuelva a crear con las nuevas entidades

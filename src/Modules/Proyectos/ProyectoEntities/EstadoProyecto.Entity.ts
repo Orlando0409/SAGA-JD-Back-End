@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { ProjectEntity } from './projectEntity';
-
+import { ProjectEntity } from './Proyecto.Entity';
 
 @Entity('projectStatus')
 
