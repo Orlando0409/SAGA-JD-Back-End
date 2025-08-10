@@ -30,7 +30,7 @@ import { UsuariosModule } from './Modules/Usuarios/usuarios.module';
         password:  process.env.DB_PASSWORD,
         database:  process.env.DB_DATABASE,
         entities: [ProjectEntity, ProjectStatus],
-        synchronize: true, 
+        synchronize: false,
       }),
     }),
     ProyectoModule,

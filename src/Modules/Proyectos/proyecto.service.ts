@@ -33,23 +33,29 @@ export class ProyectoService
   async CreateProyecto(dto: CrearProyectoDto)
   {
     const estado = await this.projectStatusRepository.findOne({ 
-        where:
-        { 
-            id_Estado_Proyecto: dto.estado.id_Estado_Proyecto
-        } 
+        where:{ id_Estado_Proyecto: dto.estado.id_Estado_Proyecto } 
     });
     
-    if (!estado)
+    if (!estado) {throw new NotFoundException(`Estado con id ${dto.estado} no encontrado`);}
+
+    const nuevoProyecto = this.proyectoRepository.create({...dto, estado});
+    return this.proyectoRepository.save(nuevoProyecto);
+  }
+
+  async UpdateProyecto(id_Proyecto: number, dto: CrearProyectoDto) 
+  {
+    const proyecto = await this.proyectoRepository.findOne({ where: { id_Proyecto } });
+    if (!proyecto)
       {
-        throw new NotFoundException(`Estado con id ${dto.estado} no encontrado`);
+        throw new NotFoundException(`Proyecto con id ${id_Proyecto} no encontrado`);
       }
 
-    const nuevoProyecto = this.proyectoRepository.create({
-        ...dto,
-        estado
-    });
+    const estado = await this.projectStatusRepository.findOne({ where:{ id_Estado_Proyecto: dto.estado.id_Estado_Proyecto } });
+    
+    if (!estado) {throw new NotFoundException(`Estado con id ${dto.estado} no encontrado`);}
 
-    return this.proyectoRepository.save(nuevoProyecto);
+    Object.assign(proyecto, dto, { estado });
+    return this.proyectoRepository.save(proyecto);
   }
 
   async DeleteProyecto(id_Proyecto: number) 

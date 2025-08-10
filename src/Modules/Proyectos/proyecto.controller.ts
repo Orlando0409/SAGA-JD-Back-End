@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from "@nestjs/common";
 import { ProyectoService } from "./proyecto.service";
 import { CrearProyectoDto } from "./ProyectoDTO's/CrearProyecto.dto";
 
@@ -23,6 +23,12 @@ export class ProyectoController
     CrearProyecto(@Body() CrearProyectoDto: CrearProyectoDto)
     {
       return this.proyectoService.CreateProyecto(CrearProyectoDto);
+    }
+
+  @Put('/update/:id')
+    UpdateProyecto( @Param('id', ParseIntPipe) id_Proyecto: number, @Body() CrearProyectoDto: CrearProyectoDto )
+    {
+      return this.proyectoService.UpdateProyecto(id_Proyecto, CrearProyectoDto);
     }
 
   @Delete('/delete/:id')
