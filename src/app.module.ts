@@ -2,17 +2,15 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { ProjectEntity } from './Modulos/Proyectos/Entidades_proyecto/projectEntity';
-import { ProjectStatus } from './Modulos/Proyectos/Entidades_proyecto/projectStatus';
+import { ProjectEntity } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
+import { ProjectStatus } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 
-import { AbonadosModule } from './Modulos/Abonados/abonados.module';
-import { FacturaModule } from './Modulos/Factura/factura.module';
-import { InventarioModule } from './Modulos/Inventario/inventario.module';
-import { ProveedorModule } from './Modulos/Proveedor/proveedor.module';
-import { ProyectoModule } from './Modulos/Proyectos/proyecto.module';
-import { UsuariosModule } from './Modulos/Usuarios/usuarios.module';
-
-
+import { ProyectoModule } from './Modules/Proyectos/proyecto.module';
+import { AbonadosModule } from './Modules/Abonados/abonados.module';
+import { FacturaModule } from './Modules/Facturas/factura.module';
+import { InventarioModule } from './Modules/Inventario/inventario.module';
+import { ProveedorModule } from './Modules/Proveedores/proveedor.module';
+import { UsuariosModule } from './Modules/Usuarios/usuarios.module';
 
 @Module({
   imports: [
@@ -24,7 +22,7 @@ import { UsuariosModule } from './Modulos/Usuarios/usuarios.module';
       imports: [ConfigModule],
       inject: [ConfigService],
 
-      useFactory: () => ({
+      useFactory: (config: ConfigService) => ({
         type: 'mysql',
         host: process.env.DB_HOST,
         port: Number( process.env.DB_PORT),
@@ -33,7 +31,6 @@ import { UsuariosModule } from './Modulos/Usuarios/usuarios.module';
         database:  process.env.DB_DATABASE,
         entities: [ProjectEntity, ProjectStatus],
         synchronize: false,
-        
       }),
     }),
     ProyectoModule,

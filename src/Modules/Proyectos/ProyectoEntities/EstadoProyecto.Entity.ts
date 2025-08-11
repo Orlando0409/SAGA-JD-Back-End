@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+<<<<<<< HEAD:src/Modulos/Proyectos/Entidades_proyecto/projectStatus.ts
 <<<<<<< HEAD:src/Modulos/Proyectos/Entidades_proyecto/estado_proyecto.ts
 import { Proyecto_Base } from './entidadBase_proyecto';
 
@@ -7,6 +8,9 @@ export class EstadoProyecto {
 =======
 import { ProjectEntity } from './projectEntity';
 
+=======
+import { ProjectEntity } from './Proyecto.Entity';
+>>>>>>> origin/Andres-features:src/Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity.ts
 
 @Entity('projectStatus')
 
