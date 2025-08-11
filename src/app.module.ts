@@ -1,26 +1,21 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule , ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { Proyecto_Base } from './Modulos/Proyectos/Entidades_proyecto/entidadBase_proyecto';
-import { EstadoProyecto } from './Modulos/Proyectos/Entidades_proyecto/estado_proyecto';
+import { ProjectEntity } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
+import { ProjectStatus } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 
-import { AbonadosModule } from './Modulos/Abonados/abonados.module';
-import { ActasModule } from './Modulos/Actas/actas.module';
-import { FacturaModule } from './Modulos/Factura/factura.module';
-import { InventarioModule } from './Modulos/Inventario/inventario.module';
-import { ProveedorModule } from './Modulos/Proveedor/proveedor.module';
-import { ProyectoModule } from './Modulos/Proyectos/proyecto.module';
-
+import { ProyectoModule } from './Modules/Proyectos/proyecto.module';
+import { AbonadosModule } from './Modules/Abonados/abonados.module';
+import { FacturaModule } from './Modules/Facturas/factura.module';
+import { InventarioModule } from './Modules/Inventario/inventario.module';
+import { ProveedorModule } from './Modules/Proveedores/proveedor.module';
+import { UsuariosModule } from './Modules/Usuarios/usuarios.module';
 
 @Module({
   imports: [
-
     ConfigModule.forRoot({
       isGlobal: true,
-
     }),
 
     TypeOrmModule.forRootAsync({
@@ -28,26 +23,24 @@ import { ProyectoModule } from './Modulos/Proyectos/proyecto.module';
       inject:[ConfigService],
 
       useFactory: (config: ConfigService) => ({
-
         type: 'mysql',
         host: process.env.DB_HOST,
         port: Number( process.env.DB_PORT),
         username:  process.env.DB_USERNAME,
         password:  process.env.DB_PASSWORD,
         database:  process.env.DB_DATABASE,
-        entities: [Proyecto_Base, EstadoProyecto],
-        synchronize: true,
-        
+        entities: [ProjectEntity, ProjectStatus],
+        synchronize: false,
       }),
     }),
     ProyectoModule,
     AbonadosModule,
-    ActasModule,
     FacturaModule,
     InventarioModule,
     ProveedorModule,
+    UsuariosModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
