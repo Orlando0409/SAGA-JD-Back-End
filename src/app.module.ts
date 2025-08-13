@@ -16,6 +16,7 @@ import { UsuariosModule } from './Modules/Usuarios/usuarios.module';
 @Module({
   imports: [
 
+    
     ConfigModule.forRoot({
       isGlobal: true,
     }),
