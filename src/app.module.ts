@@ -2,15 +2,15 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { ProjectEntity } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
-import { ProjectStatus } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
+import { ProjectEntity } from './modules/Proyectos/ProyectoEntities/Project.Entity';
+import { ProjectStatus } from './modules/Proyectos/ProyectoEntities/ProjectStatus.Entity';
 
-import { ProyectoModule } from './Modules/Proyectos/proyecto.module';
-import { AbonadosModule } from './Modules/Abonados/abonados.module';
-import { FacturaModule } from './Modules/Facturas/factura.module';
-import { InventarioModule } from './Modules/Inventario/inventario.module';
-import { ProveedorModule } from './Modules/Proveedores/proveedor.module';
-import { UsuariosModule } from './Modules/Usuarios/usuarios.module';
+import { ProyectoModule } from './modules/Proyectos/proyecto.module';
+import { AbonadosModule } from './modules/Abonados/abonados.module';
+import { FacturaModule } from './modules/Facturas/factura.module';
+import { InventarioModule } from './modules/Inventario/inventario.module';
+import { ProveedorModule } from './modules/Proveedores/proveedor.module';
+import { UsuariosModule } from './modules/Usuarios/usuarios.module';
 
 @Module({
   imports: [

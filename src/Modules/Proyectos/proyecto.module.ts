@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProjectEntity } from './ProyectoEntities/Proyecto.Entity';
-import { ProjectStatus } from './ProyectoEntities/EstadoProyecto.Entity';
+import { ProjectEntity } from './ProyectoEntities/Project.Entity';
+import { ProjectStatus } from './ProyectoEntities/ProjectStatus.Entity';
 import { ProyectoService } from './proyecto.service';
 import { ProyectoController } from './proyecto.controller';
 

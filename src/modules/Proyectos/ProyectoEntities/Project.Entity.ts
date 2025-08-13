@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn,ManyToOne, JoinColumn, UpdateDateColumn  } from 'typeorm';
-import { ProjectStatus } from './EstadoProyecto.Entity';
+import { ProjectStatus } from './ProjectStatus.Entity';
 import { Transform } from 'class-transformer';
 
 @Entity('projectEntity')   //Se utiliza en la base de datos para crear la tabla

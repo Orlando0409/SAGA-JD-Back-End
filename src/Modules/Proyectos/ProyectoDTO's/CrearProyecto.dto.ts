@@ -1,6 +1,6 @@
 import { IsString, IsDate, IsNotEmpty, IsInt, isInt, IsBoolean, isString, IsOptional, IsUrl, isNotEmpty, IsDefined } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ProjectStatus } from '../ProyectoEntities/EstadoProyecto.Entity';
+import { ProjectStatus } from '../ProyectoEntities/ProjectStatus.Entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CrearProyectoDto {
