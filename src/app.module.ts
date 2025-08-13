@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { ProjectEntity } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
 import { ProjectStatus } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
+import { UserEntity } from './Modules/Usuarios/UsuarioEntities/User.Entity';
 
 import { ProyectoModule } from './Modules/Proyectos/proyecto.module';
 import { AbonadosModule } from './Modules/Abonados/abonados.module';
@@ -30,8 +31,8 @@ import { UsuariosModule } from './Modules/Usuarios/usuarios.module';
         username:  process.env.DB_USERNAME,
         password:  process.env.DB_PASSWORD,
         database:  process.env.DB_DATABASE,
-        entities: [ProjectEntity, ProjectStatus],
-        synchronize: false, 
+        entities: [UserEntity, ProjectEntity, ProjectStatus],
+        synchronize: true, 
       }),
     }),
     ProyectoModule,
