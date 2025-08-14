@@ -1,5 +1,5 @@
-import {Entity,PrimaryGeneratedColumn,Column, ManyToOne} from 'typeorm';
-//import { UserRol } from './Roles/UserRol';
+import {Entity,PrimaryGeneratedColumn,Column, ManyToOne,JoinColumn} from 'typeorm';
+import { UserRol } from '../Roles/UserRol';
 
 @Entity('user')
 export class UserEntity {
@@ -16,8 +16,8 @@ export class UserEntity {
     @Column()
     Correo_Electronico: string;
 
-    //@ManyToOne(() => UserEntity, user => user.Id_Usuario) 
-    //@JoinColumn({ name: 'id_Usuario' })
-    //rol: UserRol
+    @ManyToOne(() => UserEntity, user => user.Id_Usuario) 
+    @JoinColumn({ name: 'id_Rol' })
+    rol: UserRol
 }
 
