@@ -8,20 +8,17 @@ import { CrearProyectoDto } from "./ProyectoDTO's/CrearProyecto.dto";
 @Injectable()
 export class ProyectoService 
 {
-  AllProyectos() {
-    throw new Error("Method not implemented.");
-  }
   constructor(
     @InjectRepository(ProjectEntity)
-    private proyectoRepository: Repository<ProjectEntity>,
+    private readonly proyectoRepository: Repository<ProjectEntity>,
 
     @InjectRepository(ProjectStatus)
-    private projectStatusRepository: Repository<ProjectStatus>
+    private readonly projectStatusRepository: Repository<ProjectStatus>
   ) {}
 
   async AllProyects()
   {
-    return this.proyectoRepository.find();
+    return this.proyectoRepository.find({ relations: ['estado'],});
   }
 
   async findProyecto(id_Proyecto: number) {
@@ -36,23 +33,29 @@ export class ProyectoService
   async CreateProyecto(dto: CrearProyectoDto)
   {
     const estado = await this.projectStatusRepository.findOne({ 
-        where:
-        { 
-            id_Estado_Proyecto: dto.estado.id_Estado_Proyecto
-        } 
+        where:{ id_Estado_Proyecto: dto.estado.id_Estado_Proyecto } 
     });
     
-    if (!estado)
+    if (!estado) {throw new NotFoundException(`Estado con id ${dto.estado} no encontrado`);}
+
+    const nuevoProyecto = this.proyectoRepository.create({...dto, estado});
+    return this.proyectoRepository.save(nuevoProyecto);
+  }
+
+  async UpdateProyecto(id_Proyecto: number, dto: CrearProyectoDto) 
+  {
+    const proyecto = await this.proyectoRepository.findOne({ where: { id_Proyecto } });
+    if (!proyecto)
       {
-        throw new NotFoundException(`Estado con id ${dto.estado} no encontrado`);
+        throw new NotFoundException(`Proyecto con id ${id_Proyecto} no encontrado`);
       }
 
-    const nuevoProyecto = this.proyectoRepository.create({
-        ...dto,
-        estado
-    });
+    const estado = await this.projectStatusRepository.findOne({ where:{ id_Estado_Proyecto: dto.estado.id_Estado_Proyecto } });
+    
+    if (!estado) {throw new NotFoundException(`Estado con id ${dto.estado} no encontrado`);}
 
-    return this.proyectoRepository.save(nuevoProyecto);
+    Object.assign(proyecto, dto, { estado });
+    return this.proyectoRepository.save(proyecto);
   }
 
   async DeleteProyecto(id_Proyecto: number) 

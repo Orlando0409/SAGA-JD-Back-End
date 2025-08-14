@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder, SwaggerDocumentOptions } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
 
 export interface swaggerCustomOptions {
   customSiteTitle?: string;
@@ -8,9 +9,13 @@ export interface swaggerCustomOptions {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
   app.enableCors();
   app.setGlobalPrefix('api');
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    forbidUnknownValues: true,
+  }));
 
   const config = new DocumentBuilder()
     .setTitle('API SAGA-JD')
@@ -19,7 +24,6 @@ async function bootstrap() {
     .build();
 
     const options: SwaggerDocumentOptions =  {
-
         autoTagControllers: true,
 
         operationIdFactory: (

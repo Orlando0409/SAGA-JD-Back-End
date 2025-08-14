@@ -17,8 +17,11 @@ import { RolesModule } from './Modules/Usuarios/Roles/roles.module';
 
 @Module({
   imports: [
+<<<<<<< HEAD
 
     
+=======
+>>>>>>> main
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -34,8 +37,13 @@ import { RolesModule } from './Modules/Usuarios/Roles/roles.module';
         username:  process.env.DB_USERNAME,
         password:  process.env.DB_PASSWORD,
         database:  process.env.DB_DATABASE,
+<<<<<<< HEAD
         entities: [UserEntity,UserRol],
         synchronize: true, 
+=======
+        entities: [ProjectEntity, ProjectStatus],
+        synchronize: false,
+>>>>>>> main
       }),
     }),
     ProyectoModule,
