@@ -65,8 +65,7 @@ export class ProyectoService
       {
         throw new NotFoundException(`Proyecto con id ${Id_Proyecto} no encontrado`);
       }
-
-    await this.proyectoRepository.delete(Id_Proyecto);
-    return { message: `Proyecto con id ${Id_Proyecto} eliminado exitosamente` };
+    await this.proyectoRepository.remove(proyecto);
+    return { message: `Proyecto con id ${Id_Proyecto} eliminado correctamente` };
   }
 }

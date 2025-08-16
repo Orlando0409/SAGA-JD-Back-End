@@ -1,5 +1,5 @@
 import { ApiProperty, IntersectionType } from "@nestjs/swagger";
-import { IsString, IsEmail, Length, IsDefined, IsInt } from "class-validator";
+import { IsString, IsEmail, Length, IsDefined, IsInt, IsEmpty, IsOptional } from "class-validator";
 
 export class CrearSolicitudDto {
   @ApiProperty({example: '123456789'})
@@ -38,7 +38,6 @@ export class CrearSolicitudDto {
   @IsDefined({message: 'El motivo de la solicitud no puede estar vacio'})
   Motivo_Solicitud: string;
 
-  // El estado inicial lo puedes poner en el service si siempre empieza igual
   @ApiProperty({example: 1})
   @IsInt({message: 'El ID del estado de la solicitud debe ser un numero entero'})
   @IsDefined({message: 'El ID del estado de la solicitud no puede estar vacio'})
@@ -46,15 +45,31 @@ export class CrearSolicitudDto {
 }
 
 export class CrearSolicitudAfiliacionDto extends CrearSolicitudDto {
-  @ApiProperty({example: 'url_o_base64_de_los_planos'})
+  @ApiProperty({example: 'EjemploPlanos.pdf'})
   @IsString({message: 'Los planos del terreno deben ser un string'})
-  @IsDefined({message: 'Los planos del terreno no pueden estar vacios'})
-  PlanosTerreno: string;
+  @IsOptional()
+  //@IsDefined({message: 'Los planos del terreno no pueden estar vacios'})
+  PlanosTerreno?: string;
 
-  @ApiProperty({example: 'url_o_base64_de_la_escritura'})
+  @ApiProperty({example: 'EjemploEscritura.pdf'})
   @IsString({message: 'La escritura del terreno debe ser un string'})
-  @IsDefined({message: 'La escritura del terreno no puede estar vacia'})
-  EscrituraTerreno: string;
+  @IsOptional()
+  //@IsDefined({message: 'La escritura del terreno no puede estar vacia'})
+  EscrituraTerreno?: string;
+}
+
+export class CrearSolicitudDesconexionDto extends CrearSolicitudDto {
+  @ApiProperty({example: 'EjemploPlanos.pdf'})
+  @IsString({message: 'Los planos del terreno deben ser un string'})
+  @IsOptional()
+  //@IsDefined({message: 'Los planos del terreno no pueden estar vacios'})
+  PlanosTerreno?: string;
+
+  @ApiProperty({example: 'EjemploEscritura.pdf'})
+  @IsString({message: 'La escritura del terreno debe ser un string'})
+  @IsOptional()
+  //@IsDefined({message: 'La escritura del terreno no puede estar vacia'})
+  EscrituraTerreno?: string;
 }
 
 export class CrearSolicitudCambioMedidorDto extends CrearSolicitudDto {
@@ -69,23 +84,6 @@ export class CrearSolicitudCambioMedidorDto extends CrearSolicitudDto {
   Numero_Medidor_Anterior: number;
 }
 
-export class CrearSolicitudDesconexionDto extends CrearSolicitudDto {
-  @ApiProperty({example: 'url_o_base64_de_los_planos'})
-  @IsString({message: 'Los planos del terreno deben ser un string'})
-  @IsDefined({message: 'Los planos del terreno no pueden estar vacios'})
-  PlanosTerreno: string;
-
-  @ApiProperty({example: 'url_o_base64_de_la_escritura'})
-  @IsString({message: 'La escritura del terreno debe ser un string'})
-  @IsDefined({message: 'La escritura del terreno no puede estar vacia'})
-  EscrituraTerreno: string;
-}
-
-export class CreateCambioMediadorDto extends IntersectionType(
-  CrearSolicitudDto,
-  CrearSolicitudAfiliacionDto
-) {}
-
 export class CreateAfiliacionDto extends IntersectionType(
   CrearSolicitudDto,
   CrearSolicitudCambioMedidorDto
@@ -94,4 +92,9 @@ export class CreateAfiliacionDto extends IntersectionType(
 export class CreateDesconexionDto extends IntersectionType(
   CrearSolicitudDto,
   CrearSolicitudDesconexionDto
+) {}
+
+export class CreateCambioMediadorDto extends IntersectionType(
+  CrearSolicitudDto,
+  CrearSolicitudAfiliacionDto
 ) {}

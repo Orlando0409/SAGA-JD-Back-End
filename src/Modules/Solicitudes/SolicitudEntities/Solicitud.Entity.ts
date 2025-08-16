@@ -1,13 +1,14 @@
-import { ChildEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { SolicitudEstado } from "./EstadoSolicitud.Entity";
-import { ApiProperty } from "@nestjs/swagger";
 
 @Entity('SolicitudEntity')
 
-export class SolicitudEntity {
+export abstract class SolicitudEntity
+{
   @PrimaryGeneratedColumn()
   Id_Solicitud: number;
 
+  @PrimaryColumn()
   @Column({ type: 'varchar', length: 12 })
   Cedula: string;
 
@@ -29,43 +30,49 @@ export class SolicitudEntity {
   @Column()
   Motivo_Solicitud: string;
 
-  @ManyToOne(() => SolicitudEstado, estado => estado.Solicitudes)
+  @ManyToOne(() => SolicitudEstado, estado => estado.Solicitud)
   @JoinColumn({ name: 'Id_Estado_Solicitud' })
   Estado: SolicitudEstado;
 
-  @CreateDateColumn({ name: 'Fecha Solicitud', type: 'datetime' })
+  @CreateDateColumn({ name: 'Fecha_Solicitud', type: 'datetime' })
   Fecha_Creacion: Date;
+
+  @Column()
+  Id_Tipo_Solicitud: number;
 }
 
-@ChildEntity('SolicitudAfiliacion')
+@Entity('SolicitudesAfiliacion')
 export class SolicitudAfiliacion extends SolicitudEntity {
-  @PrimaryGeneratedColumn()
-  Id_Solicitud_Afiliacion: number;
-  
-  @Column()
-  PlanosTerreno: string;
+  @Column({ nullable: true })
+  Planos_Terreno?: string;
 
-  @Column()
-  EscrituraTerreno: string;
+  @Column({ nullable: true })
+  Escritura_Terreno?: string;
+
+  @BeforeInsert()
+  setTipoSolicitud() { this.Id_Tipo_Solicitud = 1; }
 }
 
-@ChildEntity('SolicitudMedidor')
-export class SolicitudCambioMediador extends SolicitudEntity {
-  @PrimaryGeneratedColumn()
-  Id_Solicitud_Cambio_Medidor: number;
+@Entity('SolicitudesDesconexion')
+export class SolicitudDesconexion extends SolicitudEntity {
+  @Column({ nullable: true })
+  Planos_Terreno?: string;
 
+  @Column({ nullable: true })
+  Escritura_Terreno?: string;
+
+  @BeforeInsert()
+  setTipoSolicitud() { this.Id_Tipo_Solicitud = 2; }
+}
+
+@Entity('SolicitudesMedidor')
+export class SolicitudCambioMedidor extends SolicitudEntity {
   @Column()
   Ubicacion: string;
 
   @Column()
-  Numero_Medidor_Anterior: number;
-}
+  Numero_Anterior_Medidor: number;
 
-@ChildEntity('SolicitudDesconexion')
-export class SolicitudDesconexion extends SolicitudEntity {
-  @PrimaryGeneratedColumn()
-  Id_Solicitud_Desconexion: number;
-
-  @Column()
-  PlanosTerreno: string;
+  @BeforeInsert()
+  setTipoSolicitud() { this.Id_Tipo_Solicitud = 3; }
 }
