@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, ParseIntPipe } from '@nestjs/common';
-import { UsuariosService } from "./usuarios.service";
-import { CreateUserDto } from "./UsuarioDTO'S/CreateUser.dto";
-import { UpdateUserDto } from "./UsuarioDTO'S/UpdateUser.dto";
+import { Controller, Get, Post, Body, Param, Delete, Put,Patch, ParseIntPipe } from '@nestjs/common';
+import { ApiParam } from '@nestjs/swagger';
+import { UsuariosService } from "../Service/usuarios.service";
+import { CreateUserDto } from "../DTO's/CreateUser.dto";
+import { UpdateUserDto } from "../DTO's/UpdateUser.dto";
+
 
 
 @Controller('usuarios')
@@ -33,6 +35,11 @@ export class UsuariosController
 
   @Delete(':id')
   DeleteUser(@Param('id',ParseIntPipe) id: number) {
-    return this.usuariosService.deleteUser(id);
+    return this.usuariosService.softDeleteUser(id);
+  }
+
+  @Patch('restaurar/:id')
+  restoreUser(@Param('id', ParseIntPipe) id: number) {
+    return this.usuariosService.restoreUser(id);
   }
 }

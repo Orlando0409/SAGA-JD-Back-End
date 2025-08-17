@@ -1,5 +1,5 @@
-import{Column, PrimaryGeneratedColumn,Entity, OneToMany} from 'typeorm';
-import { UserEntity } from '../UsuarioEntities/User.Entity';
+import { Column, PrimaryGeneratedColumn, Entity, OneToMany } from 'typeorm';
+import { UserEntity } from './User.Entity';
 
 @Entity('user_rol')
 
@@ -12,4 +12,7 @@ export class UserRol {
 
   @OneToMany(() => UserEntity, user => user.rol)
   usuarios: UserEntity[];
+
+  @Column('json')
+  permisos: any;
 }

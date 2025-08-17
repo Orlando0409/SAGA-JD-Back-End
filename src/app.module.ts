@@ -4,24 +4,20 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { ProjectEntity } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
 import { ProjectStatus } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
-import { UserEntity } from './Modules/Usuarios/UsuarioEntities/User.Entity';
-import { UserRol } from './Modules/Usuarios/Roles/UserRol';
+import { UserEntity } from './Modules/Usuarios/Entity/User.Entity';
+import { UserRol } from './Modules/Usuarios/Entity/UserRol';
 
 import { ProyectoModule } from './Modules/Proyectos/proyecto.module';
 import { AbonadosModule } from './Modules/Abonados/abonados.module';
 import { FacturaModule } from './Modules/Facturas/factura.module';
 import { InventarioModule } from './Modules/Inventario/inventario.module';
 import { ProveedorModule } from './Modules/Proveedores/proveedor.module';
-import { UsuariosModule } from './Modules/Usuarios/usuarios.module';
-import { RolesModule } from './Modules/Usuarios/Roles/roles.module';
+import { UsuariosModule } from './Modules/Usuarios/Module/usuarios.module';
+import { RolesModule } from './Modules/Usuarios/Module/roles.module';
+
 
 @Module({
   imports: [
-<<<<<<< HEAD
-
-    
-=======
->>>>>>> main
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -37,13 +33,8 @@ import { RolesModule } from './Modules/Usuarios/Roles/roles.module';
         username:  process.env.DB_USERNAME,
         password:  process.env.DB_PASSWORD,
         database:  process.env.DB_DATABASE,
-<<<<<<< HEAD
         entities: [UserEntity,UserRol],
         synchronize: true, 
-=======
-        entities: [ProjectEntity, ProjectStatus],
-        synchronize: false,
->>>>>>> main
       }),
     }),
     ProyectoModule,
@@ -53,6 +44,7 @@ import { RolesModule } from './Modules/Usuarios/Roles/roles.module';
     ProveedorModule,
     UsuariosModule,
     RolesModule,
+
 
   ],
   controllers: [],
