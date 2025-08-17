@@ -2,15 +2,19 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { ProjectEntity } from './modules/Proyectos/ProyectoEntities/Project.Entity';
-import { ProjectStatus } from './modules/Proyectos/ProyectoEntities/ProjectStatus.Entity';
+import { ProjectEntity } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
+import { ProjectStatus } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
+import { UserEntity } from './Modules/Usuarios/Entity/User.Entity';
+import { UserRol } from './Modules/Usuarios/Entity/UserRol';
 
-import { ProyectoModule } from './modules/Proyectos/proyecto.module';
-import { AbonadosModule } from './modules/Abonados/abonados.module';
-import { FacturaModule } from './modules/Facturas/factura.module';
-import { InventarioModule } from './modules/Inventario/inventario.module';
-import { ProveedorModule } from './modules/Proveedores/proveedor.module';
-import { UsuariosModule } from './modules/Usuarios/usuarios.module';
+import { ProyectoModule } from './Modules/Proyectos/proyecto.module';
+import { AbonadosModule } from './Modules/Abonados/abonados.module';
+import { FacturaModule } from './Modules/Facturas/factura.module';
+import { InventarioModule } from './Modules/Inventario/inventario.module';
+import { ProveedorModule } from './Modules/Proveedores/proveedor.module';
+import { UsuariosModule } from './Modules/Usuarios/Module/usuarios.module';
+import { RolesModule } from './Modules/Usuarios/Module/roles.module';
+
 
 @Module({
   imports: [
@@ -29,8 +33,8 @@ import { UsuariosModule } from './modules/Usuarios/usuarios.module';
         username:  process.env.DB_USERNAME,
         password:  process.env.DB_PASSWORD,
         database:  process.env.DB_DATABASE,
-        entities: [ProjectEntity, ProjectStatus],
-        synchronize: false,
+        entities: [UserEntity,UserRol],
+        synchronize: true, 
       }),
     }),
     ProyectoModule,
@@ -39,6 +43,9 @@ import { UsuariosModule } from './modules/Usuarios/usuarios.module';
     InventarioModule,
     ProveedorModule,
     UsuariosModule,
+    RolesModule,
+
+
   ],
   controllers: [],
   providers: [],
