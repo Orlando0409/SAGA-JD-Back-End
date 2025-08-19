@@ -12,23 +12,18 @@ import { ProjectEntity } from './projectEntity';
 import { ProjectEntity } from './Proyecto.Entity';
 >>>>>>> origin/Andres-features:src/Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity.ts
 
-@Entity('projectStatus')
+@Entity('ProjectStatus')
 
 export class ProjectStatus
 {
 >>>>>>> Feature/Alondra:src/Modulos/Proyectos/Entidades_proyecto/projectStatus.ts
   @PrimaryGeneratedColumn()
-  id_Estado_Proyecto: number;
+  Id_Estado_Proyecto: number;
 
   @Column({ type: 'varchar', length: 50 })
   Nombre_Estado: string;
 
-<<<<<<< HEAD:src/Modulos/Proyectos/Entidades_proyecto/estado_proyecto.ts
-  @OneToMany(() => Proyecto_Base, (proyecto) => proyecto.estado)
-  proyectos: Proyecto_Base[];
-}
-=======
-  @OneToMany(() => ProjectEntity, proyecto => proyecto.estado)
-  proyectos: ProjectEntity[];
+  @OneToMany(() => ProjectEntity, proyecto => proyecto.Estado)
+  Proyectos: ProjectEntity[];
 }
 >>>>>>> Feature/Alondra:src/Modulos/Proyectos/Entidades_proyecto/projectStatus.ts
