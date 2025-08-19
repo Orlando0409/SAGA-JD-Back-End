@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ProjectEntity } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
-import { ProjectStatus } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 import { UserEntity } from './Modules/Usuarios/Entity/User.Entity';
 import { UserRol } from './Modules/Usuarios/Entity/UserRol';
 
@@ -15,6 +13,8 @@ import { UsuariosModule } from './Modules/Usuarios/Module/usuarios.module';
 import { RolesModule } from './Modules/Usuarios/Module/roles.module';
 import { SolicitudAfiliacionModule } from './Modules/Solicitudes/Modules/solicitudAfiliacion.module';
 import { SolicitudEstado } from './Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
+import { ProjectStatus } from './Modules/Proyectos/ProyectoEntities/ProjectStatus.Entity';
+import { ProjectEntity } from './Modules/Proyectos/ProyectoEntities/Project.Entity';
 
 
 @Module({
