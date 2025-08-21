@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from "@nestjs/common";
 import { SolicitudesAfiliacionService } from "../Services/solicitudAfiliacion.service";
-import { CrearSolicitudAfiliacionDto } from "../SolicitudDTO's/CrearSolicitud.dto";
+import { CreateSolicitudAfiliacionDto } from "../SolicitudDTO's/CreateSolicitud.dto";
 
 
 @Controller('solicitud-afiliacion')
@@ -18,15 +18,12 @@ export class SolicitudAfiliacionController {
   }
 
   @Post('/create')
-    async createSolicitudAfiliacion(@Body() dto: CrearSolicitudAfiliacionDto) {
+    async createSolicitudAfiliacion(@Body() dto: CreateSolicitudAfiliacionDto) {
         return this.solicitudAfiliacionService.createSolicitudAfiliacion(dto);
     }
 
   @Put(':id')
-    async updateSolicitudAfiliacion(
-        @Param('id', ParseIntPipe) id: number,
-        @Body() dto: CrearSolicitudAfiliacionDto
-    ) {
+    async updateSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateSolicitudAfiliacionDto) {
         return this.solicitudAfiliacionService.updateSolicitudAfiliacion(id, dto);
     }
 
