@@ -1,5 +1,5 @@
 import {Entity,PrimaryGeneratedColumn,Column, ManyToOne,JoinColumn,DeleteDateColumn} from 'typeorm';
-import { UserRol } from './UserRol';
+import { UserRol } from './UserRol.Entity';
 
 @Entity('user')
 export class UserEntity {

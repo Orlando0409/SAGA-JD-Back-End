@@ -1,9 +1,8 @@
-import { IsString, IsDate, IsNotEmpty, IsInt, isInt, IsBoolean, isString, IsOptional, IsUrl, isNotEmpty, IsDefined } from 'class-validator';
+import { IsString, IsDate, IsInt, IsUrl, IsDefined } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ProjectStatus } from '../ProyectoEntities/EstadoProyecto.Entity';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CrearProyectoDto {
+export class CreateProyectoDto {
     @ApiProperty({example: 'Ejemplo'})
     @IsString({message: 'El titulo debe ser un string'})
     @IsDefined({message: 'El titulo no puede estar vacio'})
@@ -12,19 +11,19 @@ export class CrearProyectoDto {
     @ApiProperty({example: 'Ejemplo'})
     @IsString({message: 'La descripcion debe ser un string'})
     @IsDefined({message: 'La descripcion no puede estar vacia'})
-    descripcion: string;
+    Descripcion: string;
 
     @ApiProperty({example: '2023-10-01'})
     @Type(() => Date)
     @IsDate({message: 'La fecha de creacion debe ser una fecha valida'})
     @IsDefined({message: 'La fecha de creacion no puede estar vacia'})
-    fecha_Creacion: Date;
+    Fecha_Creacion: Date;
 
     @ApiProperty({example: '2023-10-15'})
     @Type(() => Date)
     @IsDate({message: 'La fecha de actualizacion debe ser una fecha valida'})
     @IsDefined({message: 'La fecha de creacion no puede estar vacia'})
-    fecha_Actualizacion: Date;
+    Fecha_Actualizacion: Date;
 
     @ApiProperty({example: 1})
     @IsInt({message: 'El ID del usuario debe ser un numero entero'})
@@ -32,13 +31,13 @@ export class CrearProyectoDto {
     Id_Usuario: number;
 
     @ApiProperty({example: 1})
-    @IsInt({message: 'El estado del proyecto debe ser un numero entero'})
-    @IsDefined({message: 'El estado del proyecto no puede estar vacio'})
-    estado: ProjectStatus;
+    @IsInt({message: 'El ID del estado del proyecto debe ser un numero entero'})
+    @IsDefined({message: 'El ID del estado del proyecto no puede estar vacio'})
+    Id_Estado_Proyecto: number;
 
     @ApiProperty({example: 'https://imagen.jpg'})
     @IsString({message: 'La URL de la imagen debe ser un string'})
     @IsDefined({message: 'La URL de la imagen no puede estar vacia'})
     @IsUrl()
-    imagenUrl: string;
+    ImagenUrl: string;
 }

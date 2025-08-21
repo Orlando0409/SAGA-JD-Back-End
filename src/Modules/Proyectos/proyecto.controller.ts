@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from "@nestjs/common";
 import { ProyectoService } from "./proyecto.service";
-import { CrearProyectoDto } from "./ProyectoDTO's/CrearProyecto.dto";
+import { CreateProyectoDto } from "./ProyectoDTO's/CrearProyecto.dto";
 
 @Controller('proyectos')
 export class ProyectoController
@@ -10,25 +10,25 @@ export class ProyectoController
   @Get('/all')
     AllProyectos() 
     {
-      return this.proyectoService.AllProyects();
+      return this.proyectoService.getAllProyects();
     }
 
   @Get(':id')
     findProyecto(@Param('id', ParseIntPipe) id: number)
     {
-      return this.proyectoService.findProyecto(id);
+      return this.proyectoService.findProyectobyId(id);
     }
 
   @Post('/create')
-    CrearProyecto(@Body() CrearProyectoDto: CrearProyectoDto)
+    CrearProyecto(@Body() CreateProyectoDto: CreateProyectoDto)
     {
-      return this.proyectoService.CreateProyecto(CrearProyectoDto);
+      return this.proyectoService.CreateProyecto(CreateProyectoDto);
     }
 
   @Put('/update/:id')
-    UpdateProyecto( @Param('id', ParseIntPipe) id_Proyecto: number, @Body() CrearProyectoDto: CrearProyectoDto )
+    UpdateProyecto( @Param('id', ParseIntPipe) id_Proyecto: number, @Body() CreateProyectoDto: CreateProyectoDto )
     {
-      return this.proyectoService.UpdateProyecto(id_Proyecto, CrearProyectoDto);
+      return this.proyectoService.UpdateProyecto(id_Proyecto, CreateProyectoDto);
     }
 
   @Delete('/delete/:id')

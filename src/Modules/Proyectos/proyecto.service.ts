@@ -2,8 +2,8 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { ProjectEntity } from "./ProyectoEntities/Proyecto.Entity";
-import { ProjectStatus } from "./ProyectoEntities/EstadoProyecto.Entity";
-import { CrearProyectoDto } from "./ProyectoDTO's/CrearProyecto.dto";
+import { ProyectoEstado } from "./ProyectoEntities/EstadoProyecto.Entity";
+import { CreateProyectoDto } from "./ProyectoDTO's/CrearProyecto.dto";
 
 @Injectable()
 export class ProyectoService 
@@ -12,61 +12,60 @@ export class ProyectoService
     @InjectRepository(ProjectEntity)
     private readonly proyectoRepository: Repository<ProjectEntity>,
 
-    @InjectRepository(ProjectStatus)
-    private readonly projectStatusRepository: Repository<ProjectStatus>
+    @InjectRepository(ProyectoEstado)
+    private readonly projectStatusRepository: Repository<ProyectoEstado>
   ) {}
 
-  async AllProyects()
+  async getAllProyects()
   {
-    return this.proyectoRepository.find({ relations: ['estado'],});
+    return this.proyectoRepository.find({ relations: ['Estado'],});
   }
 
-  async findProyecto(id_Proyecto: number) {
-    const proyecto = await this.proyectoRepository.findOne({ where: { id_Proyecto } });
+  async findProyectobyId(Id_Proyecto: number) {
+    const proyecto = await this.proyectoRepository.findOne({ where: { Id_Proyecto } });
     if (!proyecto)
       {
-        throw new NotFoundException(`Proyecto con id ${id_Proyecto} no encontrado`);
+        throw new NotFoundException(`Proyecto con id ${Id_Proyecto} no encontrado`);
       }
     return proyecto;
   }
 
-  async CreateProyecto(dto: CrearProyectoDto)
+  async CreateProyecto(dto: CreateProyectoDto)
   {
     const estado = await this.projectStatusRepository.findOne({ 
-        where:{ id_Estado_Proyecto: dto.estado.id_Estado_Proyecto } 
+        where:{ Id_Estado_Proyecto: dto.Id_Estado_Proyecto } 
     });
     
-    if (!estado) {throw new NotFoundException(`Estado con id ${dto.estado} no encontrado`);}
+    if (!estado) {throw new NotFoundException(`Estado con id ${dto.Id_Estado_Proyecto} no encontrado`);}
 
-    const nuevoProyecto = this.proyectoRepository.create({...dto, estado});
+    const nuevoProyecto = this.proyectoRepository.create({...dto, Estado: estado});
     return this.proyectoRepository.save(nuevoProyecto);
   }
 
-  async UpdateProyecto(id_Proyecto: number, dto: CrearProyectoDto) 
+  async UpdateProyecto(Id_Proyecto: number, dto: CreateProyectoDto) 
   {
-    const proyecto = await this.proyectoRepository.findOne({ where: { id_Proyecto } });
+    const proyecto = await this.proyectoRepository.findOne({ where: { Id_Proyecto } });
     if (!proyecto)
       {
-        throw new NotFoundException(`Proyecto con id ${id_Proyecto} no encontrado`);
+        throw new NotFoundException(`Proyecto con id ${Id_Proyecto} no encontrado`);
       }
 
-    const estado = await this.projectStatusRepository.findOne({ where:{ id_Estado_Proyecto: dto.estado.id_Estado_Proyecto } });
+    const estado = await this.projectStatusRepository.findOne({ where:{ Id_Estado_Proyecto: dto.Id_Estado_Proyecto } });
     
-    if (!estado) {throw new NotFoundException(`Estado con id ${dto.estado} no encontrado`);}
+    if (!estado) {throw new NotFoundException(`Estado con id ${dto.Id_Estado_Proyecto} no encontrado`);}
 
-    Object.assign(proyecto, dto, { estado });
+    Object.assign(proyecto, dto, { Estado: estado});
     return this.proyectoRepository.save(proyecto);
   }
 
-  async DeleteProyecto(id_Proyecto: number) 
+  async DeleteProyecto(Id_Proyecto: number) 
   {
-    const proyecto = await this.proyectoRepository.findOne({ where: { id_Proyecto } });
+    const proyecto = await this.proyectoRepository.findOne({ where: { Id_Proyecto } });
     if (!proyecto)
       {
-        throw new NotFoundException(`Proyecto con id ${id_Proyecto} no encontrado`);
+        throw new NotFoundException(`Proyecto con id ${Id_Proyecto} no encontrado`);
       }
-
-    await this.proyectoRepository.delete(id_Proyecto);
-    return { message: `Proyecto con id ${id_Proyecto} eliminado exitosamente` };
+    await this.proyectoRepository.remove(proyecto);
+    return { message: `Proyecto con id ${Id_Proyecto} eliminado correctamente` };
   }
 }
