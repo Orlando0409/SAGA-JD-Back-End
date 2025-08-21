@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { SolicitudAfiliacion } from "../SolicitudEntities/Solicitud.Entity";
 import { SolicitudEstado } from "../SolicitudEntities/EstadoSolicitud.Entity";
-import { CrearSolicitudAfiliacionDto } from "../SolicitudDTO's/CrearSolicitud.dto";
+import { CreateSolicitudAfiliacionDto } from "../SolicitudDTO's/CreateSolicitud.dto";
 
 @Injectable()
 export class SolicitudesAfiliacionService
@@ -17,7 +17,7 @@ export class SolicitudesAfiliacionService
         private readonly solicitudEstadoRepository: Repository<SolicitudEstado>
     ) {}
 
-    async findAllSolicitudesAfiliacion()
+    async getAllSolicitudesAfiliacion()
     {
         return this.solicitudAfiliacionRepository.find({ relations: ['Estado'] });
     }
@@ -31,18 +31,20 @@ export class SolicitudesAfiliacionService
         return solicitud;
     }
 
-    async createSolicitudAfiliacion(dto: CrearSolicitudAfiliacionDto)
+    async createSolicitudAfiliacion(dto: CreateSolicitudAfiliacionDto)
     {
         const estado = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: dto.Id_Estado_Solicitud } });
         if (!estado) {
             throw new Error(`Estado de solicitud con id ${dto.Id_Estado_Solicitud} no encontrado`);
         }
 
+        const now = new Date();
+        now.setSeconds(0, 0);
         const nuevaSolicitud = this.solicitudAfiliacionRepository.create({ ...dto, Estado: estado });
         return this.solicitudAfiliacionRepository.save(nuevaSolicitud);
     }
 
-    async updateSolicitudAfiliacion(id: number, dto: CrearSolicitudAfiliacionDto)
+    async updateSolicitudAfiliacion(id: number, dto: CreateSolicitudAfiliacionDto)
     {
         const solicitud = await this.solicitudAfiliacionRepository.findOne({ where: { Id_Solicitud: id } });
         if (!solicitud) {

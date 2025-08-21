@@ -1,7 +1,7 @@
 import { ApiProperty, IntersectionType } from "@nestjs/swagger";
-import { IsString, IsEmail, Length, IsDefined, IsInt, IsEmpty, IsOptional } from "class-validator";
+import { IsString, IsEmail, Length, IsDefined, IsInt, IsOptional } from "class-validator";
 
-export class CrearSolicitudDto {
+export class CreateSolicitudDto {
   @ApiProperty({example: '123456789'})
   @IsString({message: 'La cedula debe ser tener entre 9 y 12 caracteres'})
   @IsDefined({message: 'La cedula no puede estar vacia'})
@@ -44,7 +44,7 @@ export class CrearSolicitudDto {
   Id_Estado_Solicitud: number;
 }
 
-export class CrearSolicitudAfiliacionDto extends CrearSolicitudDto {
+export class CreateSolicitudAfiliacionDto extends CreateSolicitudDto {
   @ApiProperty({example: 'EjemploPlanos.pdf'})
   @IsString({message: 'Los planos del terreno deben ser un string'})
   @IsOptional()
@@ -58,7 +58,7 @@ export class CrearSolicitudAfiliacionDto extends CrearSolicitudDto {
   EscrituraTerreno?: string;
 }
 
-export class CrearSolicitudDesconexionDto extends CrearSolicitudDto {
+export class CreateSolicitudDesconexionDto extends CreateSolicitudDto {
   @ApiProperty({example: 'EjemploPlanos.pdf'})
   @IsString({message: 'Los planos del terreno deben ser un string'})
   @IsOptional()
@@ -72,7 +72,7 @@ export class CrearSolicitudDesconexionDto extends CrearSolicitudDto {
   EscrituraTerreno?: string;
 }
 
-export class CrearSolicitudCambioMedidorDto extends CrearSolicitudDto {
+export class CreateSolicitudCambioMedidorDto extends CreateSolicitudDto {
   @ApiProperty({example: 'Calle 123, Ciudad'})
   @IsString({message: 'La ubicacion debe ser un string'})
   @IsDefined({message: 'La ubicacion no puede estar vacia'})
@@ -85,16 +85,16 @@ export class CrearSolicitudCambioMedidorDto extends CrearSolicitudDto {
 }
 
 export class CreateAfiliacionDto extends IntersectionType(
-  CrearSolicitudDto,
-  CrearSolicitudCambioMedidorDto
+  CreateSolicitudDto,
+  CreateSolicitudCambioMedidorDto
 ) {}
 
 export class CreateDesconexionDto extends IntersectionType(
-  CrearSolicitudDto,
-  CrearSolicitudDesconexionDto
+  CreateSolicitudDto,
+  CreateSolicitudDesconexionDto
 ) {}
 
 export class CreateCambioMediadorDto extends IntersectionType(
-  CrearSolicitudDto,
-  CrearSolicitudAfiliacionDto
+  CreateSolicitudDto,
+  CreateSolicitudAfiliacionDto
 ) {}

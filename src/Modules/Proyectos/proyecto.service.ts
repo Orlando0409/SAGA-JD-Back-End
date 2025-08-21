@@ -2,8 +2,8 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { ProjectEntity } from "./ProyectoEntities/Proyecto.Entity";
-import { ProjectStatus } from "./ProyectoEntities/EstadoProyecto.Entity";
-import { CrearProyectoDto } from "./ProyectoDTO's/CrearProyecto.dto";
+import { ProyectoEstado } from "./ProyectoEntities/EstadoProyecto.Entity";
+import { CreateProyectoDto } from "./ProyectoDTO's/CrearProyecto.dto";
 
 @Injectable()
 export class ProyectoService 
@@ -12,16 +12,16 @@ export class ProyectoService
     @InjectRepository(ProjectEntity)
     private readonly proyectoRepository: Repository<ProjectEntity>,
 
-    @InjectRepository(ProjectStatus)
-    private readonly projectStatusRepository: Repository<ProjectStatus>
+    @InjectRepository(ProyectoEstado)
+    private readonly projectStatusRepository: Repository<ProyectoEstado>
   ) {}
 
-  async AllProyects()
+  async getAllProyects()
   {
     return this.proyectoRepository.find({ relations: ['Estado'],});
   }
 
-  async findProyecto(Id_Proyecto: number) {
+  async findProyectobyId(Id_Proyecto: number) {
     const proyecto = await this.proyectoRepository.findOne({ where: { Id_Proyecto } });
     if (!proyecto)
       {
@@ -30,7 +30,7 @@ export class ProyectoService
     return proyecto;
   }
 
-  async CreateProyecto(dto: CrearProyectoDto)
+  async CreateProyecto(dto: CreateProyectoDto)
   {
     const estado = await this.projectStatusRepository.findOne({ 
         where:{ Id_Estado_Proyecto: dto.Id_Estado_Proyecto } 
@@ -42,7 +42,7 @@ export class ProyectoService
     return this.proyectoRepository.save(nuevoProyecto);
   }
 
-  async UpdateProyecto(Id_Proyecto: number, dto: CrearProyectoDto) 
+  async UpdateProyecto(Id_Proyecto: number, dto: CreateProyectoDto) 
   {
     const proyecto = await this.proyectoRepository.findOne({ where: { Id_Proyecto } });
     if (!proyecto)

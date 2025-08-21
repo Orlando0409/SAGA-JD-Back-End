@@ -34,7 +34,7 @@ export abstract class SolicitudEntity
   @JoinColumn({ name: 'Id_Estado_Solicitud' })
   Estado: SolicitudEstado;
 
-  @CreateDateColumn({ name: 'Fecha_Solicitud', type: 'datetime' })
+  @CreateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
   Fecha_Creacion: Date;
 
   @Column()
@@ -71,7 +71,7 @@ export class SolicitudCambioMedidor extends SolicitudEntity {
   Ubicacion: string;
 
   @Column()
-  Numero_Anterior_Medidor: number;
+  Numero_Medidor_Anterior: number;
 
   @BeforeInsert()
   setTipoSolicitud() { this.Id_Tipo_Solicitud = 3; }

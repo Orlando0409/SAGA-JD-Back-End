@@ -2,7 +2,7 @@ import { IsString, IsDate, IsInt, IsUrl, IsDefined } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CrearProyectoDto {
+export class CreateProyectoDto {
     @ApiProperty({example: 'Ejemplo'})
     @IsString({message: 'El titulo debe ser un string'})
     @IsDefined({message: 'El titulo no puede estar vacio'})

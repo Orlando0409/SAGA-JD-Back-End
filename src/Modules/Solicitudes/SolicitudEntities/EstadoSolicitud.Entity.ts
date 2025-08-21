@@ -10,5 +10,5 @@ export class SolicitudEstado {
   Nombre_Estado: string;
 
   @OneToMany(() => SolicitudEntity, solicitud => solicitud.Estado)
-  Solicitud: SolicitudEntity[];
+  Solicitud: SolicitudEntity[]; 
 }
