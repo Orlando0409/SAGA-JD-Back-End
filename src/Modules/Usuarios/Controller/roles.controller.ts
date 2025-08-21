@@ -2,6 +2,7 @@ import {Controller , Get, Post, Body, Param, Delete, Put, ParseIntPipe} from '@n
 import {RolesService} from "../Service/roles.service";
 import {CreateRolesDto} from "../DTO's/CreateRoles.dto";
 import {UpdateRolesDto} from "../DTO's/UpdateRoles.dto";
+import { RequiereRoles } from 'src/auth/Decorator/Rol.decorator';
 
 @Controller('roles')
 export class RolesController {
@@ -18,6 +19,7 @@ export class RolesController {
     }
     
     @Post()
+    @RequiereRoles('Administrador')
     CreateRoles(@Body() createRolesDto: CreateRolesDto) {
         return this.rolesService.createRoles(createRolesDto);
     }

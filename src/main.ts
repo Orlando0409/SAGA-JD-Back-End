@@ -2,14 +2,25 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder, SwaggerDocumentOptions } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import * as cookieParser from 'cookie-parser';
 
-export interface swaggerCustomOptions {
+export interface SwaggerCustomOptions {
   customSiteTitle?: string;
 }
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors();
+  // Configurar cookie parser
+  app.use(cookieParser());
+  
+  // Configurar CORS correctamente para cookies
+  app.enableCors({
+    origin: process.env.CORS_ORIGINS, // URLs del frontend
+    credentials: true, //  IMPORTANTE: Permitir cookies
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'cookie'],
+    exposedHeaders: ['Set-Cookie'], // Exponer la cabecera Set-Cookie
+  });
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
@@ -33,10 +44,11 @@ async function bootstrap() {
       };
   const documentFactory = () => SwaggerModule.createDocument(app, config, options);
 
-  SwaggerModule.setup('api', app, documentFactory);
+  SwaggerModule.setup(`${process.env.API_PREFIX}`, app, documentFactory);
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
+
 
 // Usar la URL 'http://localhost:3000/api' para abrir el Swagger UI
 

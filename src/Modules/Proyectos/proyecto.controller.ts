@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from "@nestjs/common";
 import { ProyectoService } from "./proyecto.service";
-import { CrearProyectoDto } from "./ProyectoDTO's/CrearProyecto.dto";
+import { CrearProyectoDto } from "./ProyectoDTO's/CreaProyecto.dto";
 
 @Controller('proyectos')
 export class ProyectoController
