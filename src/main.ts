@@ -21,6 +21,15 @@ async function bootstrap() {
     .setTitle('API SAGA-JD')
     .setDescription('API documentation for the SAGA-JD project')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        in: 'header',
+      },
+      'Authorization' 
+    )
     .build();
 
     const options: SwaggerDocumentOptions =  {

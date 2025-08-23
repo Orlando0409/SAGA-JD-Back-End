@@ -5,6 +5,7 @@ import { UserEntity } from '../Entity/User.Entity';
 import { UserRol } from '../Entity/UserRol';
 import { CreateUserDto } from "../DTO's/CreateUser.dto";
 import { UpdateUserDto } from "../DTO's/UpdateUser.dto";
+import * as bcryptjs from 'bcryptjs';
 
 @Injectable()
 export class UsuariosService {
@@ -17,6 +18,16 @@ export class UsuariosService {
 	){}
 
 	async createUser(createUserDto: CreateUserDto) {
+		
+		const existingUser = await this.userRepository.findOne({
+            where: { Correo_Electronico: createUserDto.Correo_Electronico },
+        });
+
+        if (existingUser) {
+            throw new BadRequestException('Este usuario ya existe, porfavor ingrese uno nuevo');
+        }
+		
+	
 		const { Id_Rol, ...userData } = createUserDto;  
 		let rol: UserRol | null = null;
 
@@ -26,25 +37,32 @@ export class UsuariosService {
 				throw new NotFoundException('Rol no encontrado');
 			}
 		}
-		const user = this.userRepository.create({ ...userData, ...(rol && { rol }) });
+
+		const hashedPassword = await bcryptjs.hash(userData.Contraseña, 10);
+
+
+		const user = this.userRepository.create({ ...userData,  Contraseña: hashedPassword, ...(rol && { rol }) });
 		return await this.userRepository.save(user);
 	}
 
 	async AllUser() {
 	const users = await this.userRepository.find({ relations: ['rol'], withDeleted: true });
 		return users.map(user => {
-			if (!user.rol) {
+
+			 const { Contraseña, ...userWithoutPassword } = user;
+
+			if (!userWithoutPassword.rol) {
 				return {
-					...user,
+					...userWithoutPassword,
 					rol: 'Este usuario no posee rol'
 				};
 			}
 			return {
-				...user,
+				...userWithoutPassword,
 				rol: {
-					...user.rol,
-					permisos: user.rol.permisos && Object.keys(user.rol.permisos).length > 0
-						? user.rol.permisos
+					...userWithoutPassword.rol,
+					permisos: userWithoutPassword.rol.permisos && Object.keys(userWithoutPassword.rol.permisos).length > 0
+						? userWithoutPassword.rol.permisos
 						: 'Este rol no posee permisos'
 				}
 			};
@@ -123,8 +141,9 @@ export class UsuariosService {
       }
 
       await this.userRepository.softDelete(id);
+
       return {
-        message: 'El usuario ha sido desactivado correctamente.',
+        message: 'El usuario ha sido desactivado correctamente',
       };
     }
 
@@ -148,6 +167,14 @@ export class UsuariosService {
         message: 'El usuario ha sido restaurado correctamente.',
       };
     }
+
+	findOneUserByEmail(email: string) {
+		return this.userRepository.findOne({
+			where: { Correo_Electronico: email },
+			select: ['Id_Usuario', 'Nombre_Usuario', 'Correo_Electronico', 'Contraseña', 'Fecha_Eliminacion'],
+			relations: ['rol'],
+		});
+	}
 
 	
 }

@@ -8,6 +8,7 @@ import { InventarioModule } from './Modules/Inventario/inventario.module';
 import { ProveedorModule } from './Modules/Proveedores/proveedor.module';
 import { UsuariosModule } from './Modules/Usuarios/Module/usuarios.module';
 import { RolesModule } from './Modules/Usuarios/Module/roles.module';
+import { AutenticacionModule } from './Modules/Autenticacion/autenticacion.module';
 
 
 
@@ -19,6 +20,7 @@ import { ProjectEntity } from './Modules/Proyectos/ProyectoEntities/Proyecto.Ent
 import { ProjectStatus } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 import { UserEntity } from './Modules/Usuarios/Entity/User.Entity';
 import { UserRol } from './Modules/Usuarios/Entity/UserRol';
+
 
 @Module({
   imports: [
@@ -38,13 +40,7 @@ import { UserRol } from './Modules/Usuarios/Entity/UserRol';
         password:  process.env.DB_PASSWORD,
         database:  process.env.DB_DATABASE,
         synchronize: true, 
-        entities: [ProjectEntity,
-                  ProjectStatus,
-                  SolicitudEntity,
-                  SolicitudAfiliacion,
-                  SolicitudCambioMedidor,
-                  SolicitudDesconexion,
-                  SolicitudEstado,
+        entities: [
                   UserEntity,
                   UserRol],
       
@@ -58,8 +54,7 @@ import { UserRol } from './Modules/Usuarios/Entity/UserRol';
     UsuariosModule,
     RolesModule,
     SolicitudAfiliacionModule,
+    AutenticacionModule,
   ],
-  controllers: [],
-  providers: [],
 })
 export class AppModule {}
