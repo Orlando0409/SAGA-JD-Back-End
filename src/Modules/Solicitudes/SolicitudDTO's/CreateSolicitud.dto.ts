@@ -1,5 +1,5 @@
 import { ApiProperty, IntersectionType } from "@nestjs/swagger";
-import { IsString, IsEmail, Length, IsDefined, IsInt, IsUrl } from "class-validator";
+import { IsString, IsEmail, Length, IsDefined, IsInt, IsUrl, Min } from "class-validator";
 
 export class CreateSolicitudDto {
   @ApiProperty({example: '123456789'})
@@ -40,6 +40,13 @@ export class CreateSolicitudDto {
 }
 
 export class CreateSolicitudAfiliacionDto extends CreateSolicitudDto {
+
+  @ApiProperty({example: 18})
+  @IsInt({message: 'La edad debe ser un numero entero'})
+  @IsDefined({message: 'La edad no puede estar vacia'})
+  @Min(18, ({message: 'La edad mínima para realizar la solicitud es 18 años'}))
+  Edad: number;
+
   @ApiProperty({example: 'https://EjemploPlanos.pdf'})
   @IsString({message: 'Los planos del terreno deben ser un string'})
   @IsUrl()

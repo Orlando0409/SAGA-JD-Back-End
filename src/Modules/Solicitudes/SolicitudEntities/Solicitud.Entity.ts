@@ -30,6 +30,9 @@ export abstract class SolicitudEntity
   @Column()
   Motivo_Solicitud: string;
 
+  @Column()
+  Edad: number;
+
   @ManyToOne(() => SolicitudEstado, estado => estado.Solicitud)
   @JoinColumn({ name: 'Id_Estado_Solicitud' })
   Estado: SolicitudEstado;
