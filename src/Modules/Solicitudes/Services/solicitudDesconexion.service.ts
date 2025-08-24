@@ -4,6 +4,7 @@ import { SolicitudDesconexion } from "../SolicitudEntities/Solicitud.Entity";
 import { Repository } from "typeorm";
 import { SolicitudEstado } from "../SolicitudEntities/EstadoSolicitud.Entity";
 import { CreateSolicitudDesconexionDto } from "../SolicitudDTO's/CreateSolicitud.dto";
+import { UpdateSolicitudDesconexionDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
 
 @Injectable()
 export class SolicitudesDesconexionService
@@ -33,30 +34,41 @@ export class SolicitudesDesconexionService
 
     async createSolicitudDesconexion(dto: CreateSolicitudDesconexionDto)
     {
-        const estado = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: dto.Id_Estado_Solicitud } });
-        if (!estado) {
-            throw new Error(`Estado de solicitud con id ${dto.Id_Estado_Solicitud} no encontrado`);
-        }
-
+        const estadoInicial = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
+        if (!estadoInicial) {throw new Error(`Estado inicial de solicitud no configurado`);}
+        
         const now = new Date();
         now.setSeconds(0, 0);
-        const nuevaSolicitud = this.solicitudDesconexionRepository.create({ ...dto, Estado: estado });
+        
+        const nuevaSolicitud = this.solicitudDesconexionRepository.create({...dto, Estado: estadoInicial});
         return this.solicitudDesconexionRepository.save(nuevaSolicitud);
     }
-
-    async updateSolicitudDesconexion(id: number, dto: CreateSolicitudDesconexionDto)
+    
+    async updateSolicitudDesconexion(id: number, dto: UpdateSolicitudDesconexionDto)
     {
-        const solicitud = await this.solicitudDesconexionRepository.findOne({ where: { Id_Solicitud: id } });
+        const solicitud = await this.solicitudDesconexionRepository.findOne({
+            where: { Id_Solicitud: id }
+        });
+        
         if (!solicitud) {
-            throw new Error(`Solicitud de desconexión con id ${id} no encontrada`);
+            throw new Error(`Solicitud de afiliación con id ${id} no encontrada`);
         }
-
-        const estado = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: dto.Id_Estado_Solicitud } });
-        if (!estado) {
-            throw new Error(`Estado de solicitud con id ${dto.Id_Estado_Solicitud} no encontrado`);
-        }
-
-        Object.assign(solicitud, dto, { Estado: estado });
+        
+        Object.assign(solicitud, dto);
+        return this.solicitudDesconexionRepository.save(solicitud);
+    }
+        
+    async UpdateEstadoSolicitudDesconexion(id: number, nuevoEstadoId: number)
+    {
+        const solicitud = await this.solicitudDesconexionRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
+        
+        if (!solicitud) {throw new Error(`Solicitud con id ${id} no encontrada`);}
+        
+        const nuevoEstado = await this.solicitudEstadoRepository.findOne({where: { Id_Estado_Solicitud: nuevoEstadoId }});
+        
+        if (!nuevoEstado) {throw new Error(`Estado con id ${nuevoEstadoId} no encontrado`);}
+        
+        solicitud.Estado = nuevoEstado;
         return this.solicitudDesconexionRepository.save(solicitud);
     }
 

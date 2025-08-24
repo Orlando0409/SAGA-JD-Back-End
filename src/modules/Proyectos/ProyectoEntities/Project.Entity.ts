@@ -1,9 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn,ManyToOne, JoinColumn, UpdateDateColumn  } from 'typeorm';
-import { ProyectoEstado } from './EstadoProyecto.Entity';
+import { ProyectoEstado } from './ProjectStatus.Entity';
 
-@Entity('ProjectEntity')   //Se utiliza en la base de datos para crear la tabla
+@Entity('Proyecto')   //Se utiliza en la base de datos para crear la tabla
 
-export class ProjectEntity 
+export class Proyecto
 {
   @PrimaryGeneratedColumn()
   Id_Proyecto: number;

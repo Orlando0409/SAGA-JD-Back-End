@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsObject } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateRolesDto {
   @ApiProperty({
@@ -11,14 +11,12 @@ export class CreateRolesDto {
   Nombre_Rol: string;
 
   @ApiProperty({
-    example: {
-      "Usuarios": { "ver": true, "editar": false },
-      "Reportes": { "ver": true, "editar": true },
-      "Configuracion": { "ver": false, "editar": false }
-    },
-    description: 'Permisos en formato JSON por módulo'
+    example: [1, 2, 3],
+    description: 'Array de IDs de permisos a asignar al rol',
+    type: [Number]
   })
-  @IsObject()
-  @IsNotEmpty()
-  permisos: any;
+  @IsArray()
+  @IsOptional()
+  @IsNumber({}, { each: true })
+  permisosIds?: number[];
 }
