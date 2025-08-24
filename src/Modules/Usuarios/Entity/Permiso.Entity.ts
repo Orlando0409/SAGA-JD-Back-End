@@ -9,10 +9,10 @@ export class Permiso {
   @Column()
   modulo: string;
 
-  @Column()
+  @Column({default: true})
   Ver: boolean;
 
-  @Column()
+  @Column({default: false})
   Editar: boolean;
 
   @ManyToMany(() => UserRol, rol => rol.permisos)

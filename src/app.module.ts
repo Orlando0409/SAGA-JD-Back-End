@@ -17,7 +17,7 @@ import { ProjectEntity } from './Modules/Proyectos/ProyectoEntities/Project.Enti
 import { Permiso } from './Modules/Usuarios/Entity/Permiso.Entity';
 import { SolicitudAfiliacionModule } from './Modules/Solicitudes/Modules/solicitudAfiliacion.module';
 import { SolicitudEntity } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
-import { AuthModule } from './auth/module/Auth.module';
+import { AuthModule } from './auth/Auth.module';
 import { JwtAuthGuard } from './auth/Guard/JwtGuard';
 import { RolesGuard } from './auth/Guard/RolesGuards';
 import { PermisosGuard } from './auth/Guard/PermisosGuard';

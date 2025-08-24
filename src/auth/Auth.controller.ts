@@ -3,18 +3,17 @@ import {
   Controller,
   Get,
   Post,
-  Query,
   Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Response, Request } from 'express';
-import { Public } from '../Decorator/Public.decorator';
-import { ForgotPasswordDto } from '../DTO/ForgotPasswordDto';
-import { LoginDto } from '../DTO/LoginDto';
-import { JwtAuthGuard } from '../Guard/JwtGuard';
-import { AuthService } from '../Service/Auth.service';
+import { Public } from './Decorator/Public.decorator';
+import { ForgotPasswordDto } from './DTO/ForgotPasswordDto';
+import { LoginDto } from './DTO/LoginDto';
+import { JwtAuthGuard } from './Guard/JwtGuard';
+import { AuthService } from './Auth.service';
 
 @ApiTags('Autenticación')
 @Controller('auth')
@@ -31,7 +30,7 @@ export class AuthController {
     return await this.authService.login(loginDto, response);
   }
 
-  @Public()
+  @UseGuards(JwtAuthGuard)
   @Post('refresh')
   @ApiOperation({ summary: 'Renovar token de acceso' })
   async refresh(

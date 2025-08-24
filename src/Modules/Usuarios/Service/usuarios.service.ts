@@ -5,7 +5,7 @@ import { UserEntity } from '../Entity/User.Entity';
 import { UserRol } from '../Entity/UserRol';
 import { CreateUserDto } from "../DTO's/CreateUser.dto";
 import { UpdateUserDto } from "../DTO's/UpdateUser.dto";
-import * as bcrypt from 'bcrypt'; // ✅ Importar bcrypt
+import * as bcrypt from 'bcrypt'; 
 
 @Injectable()
 export class UsuariosService {

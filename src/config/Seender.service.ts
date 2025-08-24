@@ -57,6 +57,14 @@ export class SeederService implements OnModuleInit {
                 descripcion: `Permiso de lectura para ${modulo}`
             });
 
+            // Sin permisos
+            await this.createPermisoIfNotExists({
+                modulo,
+                Ver: false,
+                Editar: false,
+                descripcion: `Sin permisos para ${modulo}`
+            });
+
             // Permiso completo (ver y editar)
             await this.createPermisoIfNotExists({
                 modulo,
@@ -116,7 +124,14 @@ export class SeederService implements OnModuleInit {
         }
 
         // Obtener todos los permisos disponibles
-        const todosLosPermisos = await this.permisoRepository.find();
+        const todosLosPermisos = await this.permisoRepository.find(
+            {
+                where: {
+                    Ver: true,
+                    Editar: true
+                },
+            }
+        );
 
         // Verificar si ya tiene permisos asignados
         if (adminRole.permisos && adminRole.permisos.length > 0) {
@@ -126,7 +141,7 @@ export class SeederService implements OnModuleInit {
             }
         }
 
-        // Asignar TODOS los permisos al rol Administrador
+        // Asignar los permisos al rol Administrador
         adminRole.permisos = todosLosPermisos;
         await this.rolRepository.save(adminRole);
         
