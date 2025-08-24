@@ -1,7 +1,7 @@
 import {Entity,PrimaryGeneratedColumn,Column, ManyToOne,JoinColumn,DeleteDateColumn} from 'typeorm';
-import { UserRol } from './UserRol.Entity';
+import { UserRol } from './UsuarioRol.Entity';
 
-@Entity('user')
+@Entity('usuario')
 export class UserEntity {
   
     @PrimaryGeneratedColumn()

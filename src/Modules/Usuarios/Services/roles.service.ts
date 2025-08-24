@@ -1,7 +1,7 @@
 import{Injectable} from '@nestjs/common';
 import{InjectRepository}from'@nestjs/typeorm';
 import{Repository}from'typeorm';
-import{UserRol}from "../UsuarioEntities/UserRol.Entity";
+import{UserRol}from "../UsuarioEntities/UsuarioRol.Entity";
 import{ CreateRolesDto }from "../UsuarioDTO's/CreateRoles.dto";
 import { UpdateRolesDto } from "../UsuarioDTO's/UpdateRoles.dto";
 

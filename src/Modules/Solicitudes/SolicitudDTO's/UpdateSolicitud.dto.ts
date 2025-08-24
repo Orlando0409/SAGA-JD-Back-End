@@ -1,4 +1,10 @@
 import { PartialType } from "@nestjs/swagger";
-import { CreateSolicitudDto } from "./CreateSolicitud.dto";
+import { CreateSolicitudAfiliacionDto, CreateSolicitudCambioMedidorDto, CreateSolicitudDesconexionDto, CreateSolicitudDto } from "./CreateSolicitud.dto";
 
-export class UpdateProyectoDto extends PartialType(CreateSolicitudDto){}
+export class UpdateSolicitudDto extends PartialType(CreateSolicitudDto) {}
+
+export class UpdateSolicitudAfiliacionDto extends PartialType(CreateSolicitudAfiliacionDto){}
+
+export class UpdateSolicitudCambioMediadorDto extends PartialType(CreateSolicitudCambioMedidorDto){}
+
+export class UpdateSolicitudDesconexionDto extends PartialType(CreateSolicitudDesconexionDto){}
