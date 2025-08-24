@@ -54,13 +54,15 @@ export class CreateSolicitudAfiliacionDto extends CreateSolicitudDto {
 
   @ApiProperty({example: 'https://EjemploPlanos.pdf'})
   @IsString({message: 'Los planos del terreno deben ser un string'})
-  @IsUrl()
+  //@IsUrl()  // CAMBIAR LUEGO
+  @IsString()
   @IsDefined({message: 'Los planos del terreno no pueden estar vacios'})
   Planos_Terreno: string;
 
   @ApiProperty({example: 'https://EjemploEscritura.pdf'})
   @IsString({message: 'La escritura del terreno debe ser un string'})
-  @IsUrl()
+  //@IsUrl()  // CAMBIAR LUEGO
+  @IsString()
   @IsDefined({message: 'La escritura del terreno no puede estar vacia'})
   Escritura_Terreno: string;
 }
