@@ -28,6 +28,11 @@ export class CreateSolicitudDto {
   @IsDefined({message: 'El correo no puede estar vacio'})
   Correo: string;
 
+  @ApiProperty({example: 12345678})
+  @IsString({message: 'El numero de telefono debe ser un string'})
+  @IsDefined({message: 'El numero de telefono no puede estar vacio'})
+  Numero_Telefono: string;
+
   @ApiProperty({example: '200 metros del perro echado'})
   @IsString()
   @IsDefined({message: 'La direccion no puede estar vacia'})
