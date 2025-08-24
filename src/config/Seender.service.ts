@@ -27,7 +27,7 @@ export class SeederService implements OnModuleInit {
             // Crear en orden: rol → permisos → asignar permisos → usuario
             await this.createAdminRole();
             await this.createPermisos();
-            await this.assignPermisosToAdminRole(); // ✅ NUEVO: Asignar permisos
+            await this.assignPermisosToAdminRole(); //  NUEVO: Asignar permisos
             await this.createAdminUser();
 
         } 
