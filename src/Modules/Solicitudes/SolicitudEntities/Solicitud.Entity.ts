@@ -1,7 +1,7 @@
 import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { SolicitudEstado } from "./EstadoSolicitud.Entity";
 
-@Entity('SolicitudEntity')
+@Entity('Solicitud')
 
 export abstract class SolicitudEntity
 {
@@ -41,7 +41,7 @@ export abstract class SolicitudEntity
   Id_Tipo_Solicitud: number;
 }
 
-@Entity('SolicitudesAfiliacion')
+@Entity('Solicitudes_Afiliacion')
 export class SolicitudAfiliacion extends SolicitudEntity {
   @Column({ nullable: true })
   Planos_Terreno?: string;
@@ -51,9 +51,12 @@ export class SolicitudAfiliacion extends SolicitudEntity {
 
   @BeforeInsert()
   setTipoSolicitud() { this.Id_Tipo_Solicitud = 1; }
+
+  @BeforeInsert()
+  setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1 } as SolicitudEstado; } 
 }
 
-@Entity('SolicitudesDesconexion')
+@Entity('Solicitudes_Desconexion')
 export class SolicitudDesconexion extends SolicitudEntity {
   @Column({ nullable: true })
   Planos_Terreno?: string;
@@ -63,9 +66,12 @@ export class SolicitudDesconexion extends SolicitudEntity {
 
   @BeforeInsert()
   setTipoSolicitud() { this.Id_Tipo_Solicitud = 2; }
+
+  @BeforeInsert()
+  setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1 } as SolicitudEstado; } 
 }
 
-@Entity('SolicitudesMedidor')
+@Entity('Solicitudes_Cambio_Medidor')
 export class SolicitudCambioMedidor extends SolicitudEntity {
   @Column()
   Ubicacion: string;
@@ -75,4 +81,7 @@ export class SolicitudCambioMedidor extends SolicitudEntity {
 
   @BeforeInsert()
   setTipoSolicitud() { this.Id_Tipo_Solicitud = 3; }
+
+  @BeforeInsert()
+  setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1 } as SolicitudEstado; } 
 }

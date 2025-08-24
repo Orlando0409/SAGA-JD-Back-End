@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { ProjectEntity } from './Proyecto.Entity';
+import { Proyecto } from './Proyecto.Entity';
 
-@Entity('ProyectoEstado')
+@Entity('Proyecto_Estado')
 
 export class ProyectoEstado
 {
@@ -11,6 +11,6 @@ export class ProyectoEstado
   @Column({ type: 'varchar', length: 50 })
   Nombre_Estado: string;
 
-  @OneToMany(() => ProjectEntity, proyecto => proyecto.Estado)
-  Proyectos: ProjectEntity[];
+  @OneToMany(() => Proyecto, proyecto => proyecto.Estado)
+  Proyectos: Proyecto[];
 }

@@ -33,7 +33,15 @@ async function bootstrap() {
       };
   const documentFactory = () => SwaggerModule.createDocument(app, config, options);
 
-  SwaggerModule.setup('api', app, documentFactory);
+  SwaggerModule.setup('api', app, documentFactory, {
+    swaggerOptions: {
+      operationsSorter: (a: any, b: any) => {
+        const order = { get: 1, post: 2, put: 3, delete: 4, patch: 5 };
+        return order[a.get("method")] - order[b.get("method")];
+      }
+    },
+  });
+  
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
