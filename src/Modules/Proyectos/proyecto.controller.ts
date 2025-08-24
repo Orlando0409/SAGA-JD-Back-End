@@ -33,7 +33,7 @@ export class ProyectoController
     return this.proyectoService.UpdateProyecto(id_Proyecto, UpdateProyectoDto);
   }
 
-  @Put('/update/estado/:nuevoEstadoId')
+  @Put(':id/update/estado/:nuevoEstadoId')
   @ApiOperation({ summary: 'Actualizar el estado de proyecto por ID' })
   updateEstadoProyecto(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
     return this.proyectoService.updateEstadoProyecto(id, nuevoEstadoId);

@@ -43,32 +43,32 @@ export abstract class SolicitudEntity
 
 @Entity('Solicitudes_Afiliacion')
 export class SolicitudAfiliacion extends SolicitudEntity {
-  @Column({ nullable: true })
-  Planos_Terreno?: string;
+  @Column()
+  Planos_Terreno: string;
 
-  @Column({ nullable: true })
-  Escritura_Terreno?: string;
+  @Column()
+  Escritura_Terreno: string;
 
   @BeforeInsert()
   setTipoSolicitud() { this.Id_Tipo_Solicitud = 1; }
 
   @BeforeInsert()
-  setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1 } as SolicitudEstado; } 
+  setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as SolicitudEstado; } 
 }
 
 @Entity('Solicitudes_Desconexion')
 export class SolicitudDesconexion extends SolicitudEntity {
-  @Column({ nullable: true })
-  Planos_Terreno?: string;
+  @Column()
+  Planos_Terreno: string;
 
-  @Column({ nullable: true })
-  Escritura_Terreno?: string;
+  @Column()
+  Escritura_Terreno: string;
 
   @BeforeInsert()
   setTipoSolicitud() { this.Id_Tipo_Solicitud = 2; }
 
   @BeforeInsert()
-  setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1 } as SolicitudEstado; } 
+  setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as SolicitudEstado; } 
 }
 
 @Entity('Solicitudes_Cambio_Medidor')
@@ -83,5 +83,5 @@ export class SolicitudCambioMedidor extends SolicitudEntity {
   setTipoSolicitud() { this.Id_Tipo_Solicitud = 3; }
 
   @BeforeInsert()
-  setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1 } as SolicitudEstado; } 
+  setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as SolicitudEstado; } 
 }

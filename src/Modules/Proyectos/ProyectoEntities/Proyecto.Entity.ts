@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn,ManyToOne, JoinColumn, UpdateDateColumn  } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn,ManyToOne, JoinColumn, UpdateDateColumn, BeforeInsert, BeforeUpdate  } from 'typeorm';
 import { ProyectoEstado } from './EstadoProyecto.Entity';
 
 @Entity('Proyecto')   //Se utiliza en la base de datos para crear la tabla
@@ -14,11 +14,14 @@ export class Proyecto
   @Column({ type: 'text' })
   Descripcion: string;
 
-  @CreateDateColumn({ type: 'datetime' })
+  @CreateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
   Fecha_Creacion: Date;
 
-  @UpdateDateColumn({ type: 'datetime' })
+  @UpdateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
   Fecha_Actualizacion: Date;
+
+  @BeforeUpdate()
+  updateTimestamp() { this.Fecha_Actualizacion = new Date(); }
 
   @Column()
   Id_Usuario:number;
@@ -27,6 +30,9 @@ export class Proyecto
   @JoinColumn({ name: 'Id_Estado_Proyecto' })  //LLave Foranea para acceder al estado del proyecto 
   Estado: ProyectoEstado; //Este campo puede ser un ID o un enum dependiendo de la implementación
 
+  @BeforeInsert()
+  setDefaultEstado() { this.Estado = { Id_Estado_Proyecto: 1, Nombre_Estado: 'En planeamiento' } as ProyectoEstado; }
+
   @Column()
-  ImagenUrl: string;
+  Imagen_Url: string;
 }
