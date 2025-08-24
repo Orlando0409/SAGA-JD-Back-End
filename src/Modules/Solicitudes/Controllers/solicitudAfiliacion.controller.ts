@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from "@nestjs/common";
 import { SolicitudesAfiliacionService } from "../Services/solicitudAfiliacion.service";
 import { CrearSolicitudAfiliacionDto } from "../SolicitudDTO's/CrearSolicitud.dto";
-import { Public } from "src/auth/Decorator/Public.decorator";
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 
 
 @Controller('solicitud-afiliacion')

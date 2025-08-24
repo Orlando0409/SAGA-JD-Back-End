@@ -3,8 +3,8 @@ import { ApiParam } from '@nestjs/swagger';
 import { UsuariosService } from "../Service/usuarios.service";
 import { CreateUserDto } from "../DTO's/CreateUser.dto";
 import { UpdateUserDto } from "../DTO's/UpdateUser.dto";
-import { RequierePermisos } from 'src/auth/Decorator/Permiso.decorator';
-import { RequiereRoles } from 'src/auth/Decorator/Rol.decorator';
+import { RequierePermisos } from 'src/Modules/auth/Decorator/Permiso.decorator';
+import { RequiereRoles } from 'src/Modules/auth/Decorator/Rol.decorator';
 
 
 

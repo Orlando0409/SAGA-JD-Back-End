@@ -6,9 +6,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 
 // Entities
-import { UserEntity } from '../Modules/Usuarios/Entity/User.Entity';
-import { UserRol } from '../Modules/Usuarios/Entity/UserRol';
-import { Permiso } from '../Modules/Usuarios/Entity/Permiso.Entity';
+import { UserEntity } from '../Usuarios/Entity/User.Entity';
+import { UserRol } from '../Usuarios/Entity/UserRol';
+import { Permiso } from '../Usuarios/Entity/Permiso.Entity';
 
 // Controller
 import { AuthController } from './Auth.controller';

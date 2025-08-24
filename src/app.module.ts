@@ -17,10 +17,10 @@ import { ProjectEntity } from './Modules/Proyectos/ProyectoEntities/Project.Enti
 import { Permiso } from './Modules/Usuarios/Entity/Permiso.Entity';
 import { SolicitudAfiliacionModule } from './Modules/Solicitudes/Modules/solicitudAfiliacion.module';
 import { SolicitudEntity } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
-import { AuthModule } from './auth/Auth.module';
-import { JwtAuthGuard } from './auth/Guard/JwtGuard';
-import { RolesGuard } from './auth/Guard/RolesGuards';
-import { PermisosGuard } from './auth/Guard/PermisosGuard';
+import { AuthModule } from './Modules/auth/Auth.module';
+import { JwtAuthGuard } from './Modules/auth/Guard/JwtGuard';
+import { RolesGuard } from './Modules/auth/Guard/RolesGuards';
+import { PermisosGuard } from './Modules/auth/Guard/PermisosGuard';
 import { SeenderModule } from './config/Seender.module';
 
 @Module({
