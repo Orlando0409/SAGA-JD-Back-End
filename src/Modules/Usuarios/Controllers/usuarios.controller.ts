@@ -1,12 +1,9 @@
 import { Controller, Get, Post, Body, Param, Delete, Put,Patch, ParseIntPipe } from '@nestjs/common';
-import { ApiParam } from '@nestjs/swagger';
-import { UsuariosService } from "../Service/usuarios.service";
-import { CreateUserDto } from "../DTO's/CreateUser.dto";
-import { UpdateUserDto } from "../DTO's/UpdateUser.dto";
 import { RequierePermisos } from 'src/Modules/auth/Decorator/Permiso.decorator';
 import { RequiereRoles } from 'src/Modules/auth/Decorator/Rol.decorator';
-
-
+import { UsuariosService } from "../Services/usuarios.service";
+import { CreateUserDto } from "../UsuarioDTO's/CreateUser.dto";
+import { UpdateUserDto } from "../UsuarioDTO's/UpdateUser.dto";
 
 @Controller('usuarios')
 

@@ -1,8 +1,8 @@
 import { Column, PrimaryGeneratedColumn, Entity, OneToMany, ManyToMany, JoinTable } from 'typeorm';
-import { UserEntity } from './User.Entity';
+import { UserEntity } from './Usuario.Entity';
 import { Permiso } from './Permiso.Entity';
 
-@Entity('user_rol')
+@Entity('usuario_rol')
 
 export class UserRol {
   @PrimaryGeneratedColumn()

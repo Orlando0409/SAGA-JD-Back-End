@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from '../Entity/User.Entity';
-import { UserRol } from '../Entity/UserRol';
-import { CreateUserDto } from "../DTO's/CreateUser.dto";
-import { UpdateUserDto } from "../DTO's/UpdateUser.dto";
 import * as bcrypt from 'bcrypt'; 
+import { UserEntity } from '../UsuarioEntities/Usuario.Entity';
+import { UserRol } from '../UsuarioEntities/UsuarioRol.Entity';
+import { CreateUserDto } from "../UsuarioDTO's/CreateUser.dto";
+import { UpdateUserDto } from "../UsuarioDTO's/UpdateUser.dto";
 
 @Injectable()
 export class UsuariosService {
@@ -34,7 +34,7 @@ export class UsuariosService {
             
             const user = this.userRepository.create({ 
                 ...userData, 
-                Contraseña: hashedPassword, // ✅ Usar contraseña hasheada
+                Contraseña: hashedPassword, //  Usar contraseña hasheada
                 id_rol: Id_Rol 
             });
             return await this.userRepository.save(user);
@@ -42,7 +42,7 @@ export class UsuariosService {
         
         const user = this.userRepository.create({
             ...userData,
-            Contraseña: hashedPassword // ✅ Usar contraseña hasheada
+            Contraseña: hashedPassword //  Usar contraseña hasheada
         });
         return await this.userRepository.save(user);
     }
@@ -73,7 +73,7 @@ export class UsuariosService {
             throw new NotFoundException('Usuario no encontrado');
         }
         
-        // ✅ Remover contraseña de la respuesta
+        //  Remover contraseña de la respuesta
         const { Contraseña, ...userWithoutPassword } = user;
         
         return {

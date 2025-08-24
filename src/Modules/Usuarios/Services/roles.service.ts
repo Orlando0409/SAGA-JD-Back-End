@@ -1,10 +1,11 @@
 import{Injectable, NotFoundException} from '@nestjs/common';
 import{InjectRepository}from'@nestjs/typeorm';
 import{Repository, In}from'typeorm';
-import{UserRol}from "../Entity/UserRol";
-import{Permiso}from "../Entity/Permiso.Entity";
-import{ CreateRolesDto }from "../DTO's/CreateRoles.dto";
-import { UpdateRolesDto } from "../DTO's/UpdateRoles.dto";
+import { CreateRolesDto } from '../UsuarioDTO\'s/CreateRoles.dto';
+import { UpdateRolesDto } from '../UsuarioDTO\'s/UpdateRoles.dto';
+import { Permiso } from '../UsuarioEntities/Permiso.Entity';
+import { UserRol } from '../UsuarioEntities/UsuarioRol.Entity';
+
 
 @Injectable()
 export class RolesService {

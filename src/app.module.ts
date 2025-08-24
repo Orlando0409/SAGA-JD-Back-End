@@ -2,26 +2,26 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { UserEntity } from './Modules/Usuarios/Entity/User.Entity';
-import { UserRol } from './Modules/Usuarios/Entity/UserRol';
 import { ProyectoModule } from './Modules/Proyectos/proyecto.module';
 import { AbonadosModule } from './Modules/Abonados/abonados.module';
 import { FacturaModule } from './Modules/Facturas/factura.module';
 import { InventarioModule } from './Modules/Inventario/inventario.module';
 import { ProveedorModule } from './Modules/Proveedores/proveedor.module';
-import { UsuariosModule } from './Modules/Usuarios/Module/usuarios.module';
-import { RolesModule } from './Modules/Usuarios/Module/roles.module';
-import { SolicitudEstado } from './Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
-import { ProjectStatus } from './Modules/Proyectos/ProyectoEntities/ProjectStatus.Entity';
-import { ProjectEntity } from './Modules/Proyectos/ProyectoEntities/Project.Entity';
-import { Permiso } from './Modules/Usuarios/Entity/Permiso.Entity';
 import { SolicitudAfiliacionModule } from './Modules/Solicitudes/Modules/solicitudAfiliacion.module';
-import { SolicitudEntity } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
+import { SolicitudCambioMediadorModule } from './Modules/Solicitudes/Modules/solicitudCambioMedidor.module';
+import { SolicitudDesconexionModule } from './Modules/Solicitudes/Modules/solicitudDesconexion.module';
 import { AuthModule } from './Modules/auth/Auth.module';
 import { JwtAuthGuard } from './Modules/auth/Guard/JwtGuard';
 import { RolesGuard } from './Modules/auth/Guard/RolesGuards';
 import { PermisosGuard } from './Modules/auth/Guard/PermisosGuard';
 import { SeenderModule } from './config/Seender.module';
+import { SolicitudEstado } from './Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
+import { SolicitudEntity } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
+import { RolesModule } from './Modules/Usuarios/Modules/roles.module';
+import { UsuariosModule } from './Modules/Usuarios/Modules/usuarios.module';
+import { Permiso } from './Modules/Usuarios/UsuarioEntities/Permiso.Entity';
+import { UserEntity } from './Modules/Usuarios/UsuarioEntities/Usuario.Entity';
+import { UserRol } from './Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
 
 @Module({
   imports: [
@@ -51,6 +51,8 @@ import { SeenderModule } from './config/Seender.module';
     ProveedorModule,
     UsuariosModule,
     SolicitudAfiliacionModule,
+    SolicitudDesconexionModule,
+    SolicitudCambioMediadorModule,
     RolesModule,
     AuthModule,
     SeenderModule,
