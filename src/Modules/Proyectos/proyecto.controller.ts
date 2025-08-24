@@ -1,12 +1,14 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from "@nestjs/common";
 import { ProyectoService } from "./proyecto.service";
 import { CrearProyectoDto } from "./ProyectoDTO's/CreaProyecto.dto";
+import { Public } from "src/auth/Decorator/Public.decorator";
 
 @Controller('proyectos')
 export class ProyectoController
 {
   constructor(private readonly proyectoService: ProyectoService) {}
 
+  @Public()
   @Get('/all')
     AllProyectos() 
     {

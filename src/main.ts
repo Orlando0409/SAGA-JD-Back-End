@@ -18,8 +18,7 @@ async function bootstrap() {
     origin: process.env.CORS_ORIGINS, // URLs del frontend
     credentials: true, //  IMPORTANTE: Permitir cookies
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'cookie'],
-    exposedHeaders: ['Set-Cookie'], // Exponer la cabecera Set-Cookie
+    allowedHeaders: ['Content-Type', 'Authorization', 'cookie']
   });
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({

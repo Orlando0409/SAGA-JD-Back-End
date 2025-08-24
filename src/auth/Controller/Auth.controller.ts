@@ -47,6 +47,7 @@ export class AuthController {
     return this.authService.refresh(refreshToken, response);
   }
 
+  @Public()
   @Post('logout')
   @ApiOperation({ summary: 'Cerrar sesión' })
   logout(@Res({ passthrough: true }) response: Response) {
@@ -58,14 +59,6 @@ export class AuthController {
   @ApiOperation({ summary: 'Recuperar contraseña' })
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     return this.authService.forgotPassword(forgotPasswordDto.Email);
-  }
-
-  @Public()
-  @Get('check-email')
-  @ApiOperation({ summary: 'Verificar si el email existe' })
-  async checkEmail(@Query('email') email: string) {
-    const exists = await this.authService.emailExists(email);
-    return { exists };
   }
 
 

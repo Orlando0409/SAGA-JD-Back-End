@@ -151,13 +151,6 @@ export class AuthService {
     };
   }
 
-  async emailExists(email: string): Promise<boolean> {
-    const usuario = await this.userRepository.findOne({
-      where: { Correo_Electronico: email }
-    });
-    return !!usuario;
-  }
-
   async getUserProfile(userId: number) {
     const usuario = await this.userRepository.findOne({
       where: { Id_Usuario: userId },
