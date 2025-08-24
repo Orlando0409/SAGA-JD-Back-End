@@ -2,9 +2,10 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { UserRol } from 'src/Modules/Usuarios/Entity/UserRol';
-import { Permiso } from 'src/Modules/Usuarios/Entity/Permiso.Entity';
-import { UserEntity } from 'src/Modules/Usuarios/Entity/User.Entity';
+import { Permiso } from 'src/Modules/Usuarios/UsuarioEntities/Permiso.Entity';
+import { UserEntity } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
+import { UserRol } from 'src/Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
+
 
 @Injectable()
 export class SeederService implements OnModuleInit {

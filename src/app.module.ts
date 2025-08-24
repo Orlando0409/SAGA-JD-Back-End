@@ -40,7 +40,7 @@ import { UserRol } from './Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
         username: config.get<string>('DB_USERNAME'),
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
-        entities: [ProjectEntity, ProjectStatus, UserEntity,UserRol,Permiso, SolicitudEntity, SolicitudEstado],
+        entities: [UserEntity,UserRol,Permiso, SolicitudEntity, SolicitudEstado],
         synchronize: false, 
       }),
     }),
