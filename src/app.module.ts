@@ -36,7 +36,7 @@ import { RolesModule } from './Modules/Usuarios/Modules/roles.module';
         password:  process.env.DB_PASSWORD,
         database:  process.env.DB_DATABASE,
         entities: [Proyecto, ProyectoEstado, UserEntity,UserRol, SolicitudEntity, SolicitudAfiliacion, SolicitudDesconexion, SolicitudCambioMedidor, SolicitudEstado],
-        synchronize: true
+        synchronize: false
       }),
     }),
     ProyectoModule,
