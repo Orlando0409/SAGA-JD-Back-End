@@ -9,11 +9,11 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Response, Request } from 'express';
-import { Public } from './Decorator/Public.decorator';
-import { ForgotPasswordDto } from './DTO/ForgotPasswordDto';
-import { LoginDto } from './DTO/LoginDto';
-import { JwtAuthGuard } from './Guard/JwtGuard';
-import { AuthService } from './Auth.service';
+import { Public } from '../Decorator/Public.decorator';
+import { ForgotPasswordDto } from '../DTO/ForgotPasswordDto';
+import { LoginDto } from '../DTO/LoginDto';
+import { JwtAuthGuard } from '../Guard/JwtGuard';
+import { AuthService } from '../Auth.service';
 
 @ApiTags('Autenticación')
 @Controller('auth')
