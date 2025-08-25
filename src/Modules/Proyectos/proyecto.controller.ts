@@ -1,14 +1,16 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from "@nestjs/common";
 import { ProyectoService } from "./proyecto.service";
-import { CreateProyectoDto } from "./ProyectoDTO's/CrearProyecto.dto";
 import { ApiOperation } from "@nestjs/swagger";
 import { UpdateProyectoDto } from "./ProyectoDTO's/UpdateProyecto.dto";
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
+import { CreateProyectoDto } from "./ProyectoDTO's/CreaProyecto.dto";
 
 @Controller('proyectos')
 export class ProyectoController
 {
   constructor(private readonly proyectoService: ProyectoService) {}
 
+  @Public()
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todos los proyectos' })
   getProyectos() {

@@ -3,10 +3,12 @@ import { SolicitudesAfiliacionService } from "../Services/solicitudAfiliacion.se
 import { CreateSolicitudAfiliacionDto } from "../SolicitudDTO's/CreateSolicitud.dto";
 import { ApiOperation } from "@nestjs/swagger";
 import { UpdateSolicitudAfiliacionDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 
 @Controller('solicitud-afiliacion')
 export class SolicitudAfiliacionController {
   constructor(private readonly solicitudAfiliacionService: SolicitudesAfiliacionService) {}
+
 
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todas las solicitudes de afiliación' })
@@ -20,6 +22,7 @@ export class SolicitudAfiliacionController {
     return this.solicitudAfiliacionService.findSolicitudAfiliacionById(id);
   }
 
+  @Public()
   @Post('/create')
   @ApiOperation({ summary: 'Crear una nueva solicitud de afiliación' })
   createSolicitudAfiliacion(@Body() dto: CreateSolicitudAfiliacionDto) {

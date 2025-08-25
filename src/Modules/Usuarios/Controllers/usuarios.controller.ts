@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Param, Delete, Put,Patch, ParseIntPipe } from '@nestjs/common';
-import { ApiParam } from '@nestjs/swagger';
+import { RequierePermisos } from 'src/Modules/auth/Decorator/Permiso.decorator';
+import { RequiereRoles } from 'src/Modules/auth/Decorator/Rol.decorator';
 import { UsuariosService } from "../Services/usuarios.service";
 import { CreateUserDto } from "../UsuarioDTO's/CreateUser.dto";
 import { UpdateUserDto } from "../UsuarioDTO's/UpdateUser.dto";
@@ -11,6 +12,8 @@ export class UsuariosController
   constructor(private readonly usuariosService: UsuariosService) {}
 
   @Get()
+  @RequierePermisos('usuarios', 'ver')
+  
   AllUsuario()
    {
     return this.usuariosService.AllUser();
@@ -22,6 +25,7 @@ export class UsuariosController
   }
 
    @Post()
+  @RequiereRoles('Administrador')
   CreateUsuario(@Body() createUserDto: CreateUserDto) {
     return this.usuariosService.createUser(createUserDto);
   }
