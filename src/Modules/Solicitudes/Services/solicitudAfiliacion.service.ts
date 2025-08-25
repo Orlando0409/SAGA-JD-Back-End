@@ -3,7 +3,8 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { SolicitudAfiliacion } from "../SolicitudEntities/Solicitud.Entity";
 import { SolicitudEstado } from "../SolicitudEntities/EstadoSolicitud.Entity";
-import { CrearSolicitudAfiliacionDto } from "../SolicitudDTO's/CrearSolicitud.dto";
+import { CreateSolicitudAfiliacionDto } from "../SolicitudDTO's/CreateSolicitud.dto";
+import { UpdateSolicitudAfiliacionDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
 
 @Injectable()
 export class SolicitudesAfiliacionService
@@ -17,7 +18,7 @@ export class SolicitudesAfiliacionService
         private readonly solicitudEstadoRepository: Repository<SolicitudEstado>
     ) {}
 
-    async findAllSolicitudesAfiliacion()
+    async getAllSolicitudesAfiliacion()
     {
         return this.solicitudAfiliacionRepository.find({ relations: ['Estado'] });
     }
@@ -25,36 +26,47 @@ export class SolicitudesAfiliacionService
     async findSolicitudAfiliacionById(id: number)
     {
         const solicitud = await this.solicitudAfiliacionRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
-        if (!solicitud) {
-            throw new Error(`Solicitud de afiliación con id ${id} no encontrada`);
-        }
+        if (!solicitud) {throw new Error(`Solicitud de afiliación con id ${id} no encontrada`);}
         return solicitud;
     }
 
-    async createSolicitudAfiliacion(dto: CrearSolicitudAfiliacionDto)
+    async createSolicitudAfiliacion(dto: CreateSolicitudAfiliacionDto)
     {
-        const estado = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: dto.Id_Estado_Solicitud } });
-        if (!estado) {
-            throw new Error(`Estado de solicitud con id ${dto.Id_Estado_Solicitud} no encontrado`);
-        }
+        const estadoInicial = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
+        if (!estadoInicial) {throw new Error(`Estado inicial de solicitud no configurado`);}
 
-        const nuevaSolicitud = this.solicitudAfiliacionRepository.create({ ...dto, Estado: estado });
+        const now = new Date();
+        now.setSeconds(0, 0);
+
+        const nuevaSolicitud = this.solicitudAfiliacionRepository.create({...dto, Estado: estadoInicial});
         return this.solicitudAfiliacionRepository.save(nuevaSolicitud);
     }
 
-    async updateSolicitudAfiliacion(id: number, dto: CrearSolicitudAfiliacionDto)
+    async updateSolicitudAfiliacion(id: number, dto: UpdateSolicitudAfiliacionDto)
     {
-        const solicitud = await this.solicitudAfiliacionRepository.findOne({ where: { Id_Solicitud: id } });
+        const solicitud = await this.solicitudAfiliacionRepository.findOne({
+            where: { Id_Solicitud: id }
+        });
+
         if (!solicitud) {
             throw new Error(`Solicitud de afiliación con id ${id} no encontrada`);
         }
 
-        const estado = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: dto.Id_Estado_Solicitud } });
-        if (!estado) {
-            throw new Error(`Estado de solicitud con id ${dto.Id_Estado_Solicitud} no encontrado`);
-        }
+        Object.assign(solicitud, dto);
+        return this.solicitudAfiliacionRepository.save(solicitud);
+    }
 
-        Object.assign(solicitud, dto, { Estado: estado });
+    async UpdateEstadoSolicitudAfiliacion(id: number, nuevoEstadoId: number)
+    {
+        const solicitud = await this.solicitudAfiliacionRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
+
+        if (!solicitud) {throw new Error(`Solicitud con id ${id} no encontrada`);}
+
+        const nuevoEstado = await this.solicitudEstadoRepository.findOne({where: { Id_Estado_Solicitud: nuevoEstadoId }});
+
+        if (!nuevoEstado) {throw new Error(`Estado con id ${nuevoEstadoId} no encontrado`);}
+
+        solicitud.Estado = nuevoEstado;
         return this.solicitudAfiliacionRepository.save(solicitud);
     }
 

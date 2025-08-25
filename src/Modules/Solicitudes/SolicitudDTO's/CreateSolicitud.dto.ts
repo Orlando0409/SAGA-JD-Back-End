@@ -1,7 +1,7 @@
 import { ApiProperty, IntersectionType } from "@nestjs/swagger";
-import { IsString, IsEmail, Length, IsDefined, IsInt, IsEmpty, IsOptional } from "class-validator";
+import { IsString, IsEmail, Length, IsDefined, IsInt, IsOptional, IsUrl } from "class-validator";
 
-export class CrearSolicitudDto {
+export class CreateSolicitudDto {
   @ApiProperty({example: '123456789'})
   @IsString({message: 'La cedula debe ser tener entre 9 y 12 caracteres'})
   @IsDefined({message: 'La cedula no puede estar vacia'})
@@ -37,42 +37,41 @@ export class CrearSolicitudDto {
   @IsString({message: 'El motivo de la solicitud debe ser un string'})
   @IsDefined({message: 'El motivo de la solicitud no puede estar vacio'})
   Motivo_Solicitud: string;
-
-  @ApiProperty({example: 1})
-  @IsInt({message: 'El ID del estado de la solicitud debe ser un numero entero'})
-  @IsDefined({message: 'El ID del estado de la solicitud no puede estar vacio'})
-  Id_Estado_Solicitud: number;
 }
 
-export class CrearSolicitudAfiliacionDto extends CrearSolicitudDto {
+export class CreateSolicitudAfiliacionDto extends CreateSolicitudDto {
   @ApiProperty({example: 'EjemploPlanos.pdf'})
   @IsString({message: 'Los planos del terreno deben ser un string'})
   @IsOptional()
+  @IsUrl()
   //@IsDefined({message: 'Los planos del terreno no pueden estar vacios'})
   PlanosTerreno?: string;
 
   @ApiProperty({example: 'EjemploEscritura.pdf'})
   @IsString({message: 'La escritura del terreno debe ser un string'})
   @IsOptional()
+  @IsUrl()
   //@IsDefined({message: 'La escritura del terreno no puede estar vacia'})
   EscrituraTerreno?: string;
 }
 
-export class CrearSolicitudDesconexionDto extends CrearSolicitudDto {
+export class CreateSolicitudDesconexionDto extends CreateSolicitudDto {
   @ApiProperty({example: 'EjemploPlanos.pdf'})
   @IsString({message: 'Los planos del terreno deben ser un string'})
   @IsOptional()
+  @IsUrl()
   //@IsDefined({message: 'Los planos del terreno no pueden estar vacios'})
   PlanosTerreno?: string;
 
   @ApiProperty({example: 'EjemploEscritura.pdf'})
   @IsString({message: 'La escritura del terreno debe ser un string'})
   @IsOptional()
+  @IsUrl()
   //@IsDefined({message: 'La escritura del terreno no puede estar vacia'})
   EscrituraTerreno?: string;
 }
 
-export class CrearSolicitudCambioMedidorDto extends CrearSolicitudDto {
+export class CreateSolicitudCambioMedidorDto extends CreateSolicitudDto {
   @ApiProperty({example: 'Calle 123, Ciudad'})
   @IsString({message: 'La ubicacion debe ser un string'})
   @IsDefined({message: 'La ubicacion no puede estar vacia'})
@@ -85,16 +84,16 @@ export class CrearSolicitudCambioMedidorDto extends CrearSolicitudDto {
 }
 
 export class CreateAfiliacionDto extends IntersectionType(
-  CrearSolicitudDto,
-  CrearSolicitudCambioMedidorDto
+  CreateSolicitudDto,
+  CreateSolicitudAfiliacionDto
 ) {}
 
 export class CreateDesconexionDto extends IntersectionType(
-  CrearSolicitudDto,
-  CrearSolicitudDesconexionDto
+  CreateSolicitudDto,
+  CreateSolicitudDesconexionDto
 ) {}
 
 export class CreateCambioMediadorDto extends IntersectionType(
-  CrearSolicitudDto,
-  CrearSolicitudAfiliacionDto
+  CreateSolicitudDto,
+  CreateSolicitudCambioMedidorDto
 ) {}

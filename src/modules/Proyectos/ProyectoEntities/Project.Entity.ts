@@ -1,9 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn,ManyToOne, JoinColumn, UpdateDateColumn  } from 'typeorm';
-import { ProjectStatus } from './EstadoProyecto.Entity';
+import { ProyectoEstado } from './EstadoProyecto.Entity';
 
-@Entity('ProjectEntity')   //Se utiliza en la base de datos para crear la tabla
+@Entity('Proyecto')   //Se utiliza en la base de datos para crear la tabla
 
-export class ProjectEntity 
+export class Proyecto
 {
   @PrimaryGeneratedColumn()
   Id_Proyecto: number;
@@ -23,9 +23,9 @@ export class ProjectEntity
   @Column()
   Id_Usuario:number;
 
-  @ManyToOne(() => ProjectStatus, Estado => Estado.Proyectos)  //Relacion Muchos A uno
+  @ManyToOne(() => ProyectoEstado, Estado => Estado.Proyectos)  //Relacion Muchos A uno
   @JoinColumn({ name: 'Id_Estado_Proyecto' })  //LLave Foranea para acceder al estado del proyecto 
-  Estado: ProjectStatus; //Este campo puede ser un ID o un enum dependiendo de la implementación
+  Estado: ProyectoEstado; //Este campo puede ser un ID o un enum dependiendo de la implementación
 
   @Column()
   ImagenUrl: string;

@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Param, Delete, Put,Patch, ParseIntPipe,UseGuards,} from '@nestjs/common';
-import { UsuariosService } from "../Service/usuarios.service";
-import { CreateUserDto } from "../DTO's/CreateUser.dto";
-import { UpdateUserDto } from "../DTO's/UpdateUser.dto";
+import { Controller, Get, Post, Body, Param, Delete, Put,Patch, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { RequierePermisos } from 'src/Modules/auth/Decorator/Permiso.decorator';
+import { RequiereRoles } from 'src/Modules/auth/Decorator/Rol.decorator';
+import { UsuariosService } from "../Services/usuarios.service";
+import { CreateUserDto } from "../UsuarioDTO's/CreateUser.dto";
+import { UpdateUserDto } from "../UsuarioDTO's/UpdateUser.dto";
 import {AuthGuard} from "../../Autenticacion/Guards/auth.guard";
-import { Permisos } from "../../Autenticacion/Guards/permisos.decorator";
+import { Permisos } from 'src/Modules/Autenticacion/Guards/permisos.decorator';
 
 @Controller('usuarios')
 @UseGuards(AuthGuard)
@@ -13,11 +15,12 @@ export class UsuariosController
   constructor(private readonly usuariosService: UsuariosService) {}
 
   @Get()
-  @Permisos('Usuarios.ver')
+  @RequierePermisos('usuarios', 'ver')
   AllUsuario()
    {
     return this.usuariosService.AllUser();
    }
+
 
   @Get(':id')
   @Permisos('Usuarios.ver')
@@ -26,8 +29,8 @@ export class UsuariosController
   }
 
    @Post()
-   @Permisos('Usuarios.editar')
-   CreateUsuario(@Body() createUserDto: CreateUserDto) {
+  @RequiereRoles('Administrador')
+  CreateUsuario(@Body() createUserDto: CreateUserDto) {
     return this.usuariosService.createUser(createUserDto);
   }
 

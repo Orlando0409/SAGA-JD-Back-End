@@ -1,7 +1,7 @@
 import {Entity,PrimaryGeneratedColumn,Column, ManyToOne,JoinColumn,DeleteDateColumn} from 'typeorm';
-import { UserRol } from './UserRol';
+import { UserRol } from './UsuarioRol.Entity';
 
-@Entity('user')
+@Entity('usuario')
 export class UserEntity {
   
     @PrimaryGeneratedColumn()
@@ -16,8 +16,14 @@ export class UserEntity {
     @Column()
     Correo_Electronico: string;
 
+    @Column({ nullable: true })
+    Refresh_Token: string;
+
     @DeleteDateColumn({ name: 'Fecha_Eliminacion', nullable: true })
     Fecha_Eliminacion: Date;
+
+    @Column({ nullable: true })
+    id_rol: number; 
 
     @ManyToOne(() => UserRol, rol => rol.usuarios, { nullable: true })
     @JoinColumn({ name: 'id_rol' })
