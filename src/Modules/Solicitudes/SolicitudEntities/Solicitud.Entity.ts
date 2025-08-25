@@ -8,29 +8,29 @@ export abstract class SolicitudEntity
   @PrimaryGeneratedColumn()
   Id_Solicitud: number;
 
-  @PrimaryColumn()
+  @PrimaryColumn({ nullable: false })
   @Column({ type: 'varchar', length: 12 })
   Cedula: string;
 
-  @Column()
+  @Column({ nullable: false })
   Nombre: string;
 
-  @Column()
+  @Column({ nullable: false })
   Apellido1: string;
 
   @Column()
   Apellido2: string;
 
-  @Column()
+  @Column({ nullable: false })
   Correo: string;
 
-  @Column()
+  @Column({ nullable: false })
   Direccion_Exacta: string;
 
-  @Column()
+  @Column({ nullable: false })
   Motivo_Solicitud: string;
 
-  @Column()
+  @Column({ nullable: false })
   Numero_Telefono: string;
 
   @ManyToOne(() => SolicitudEstado, estado => estado.Solicitud)
@@ -40,19 +40,19 @@ export abstract class SolicitudEntity
   @CreateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
   Fecha_Creacion: Date;
 
-  @Column()
+  @Column({ nullable: false })
   Id_Tipo_Solicitud: number;
 }
 
 @Entity('Solicitudes_Afiliacion')
 export class SolicitudAfiliacion extends SolicitudEntity {
-  @Column()
+  @Column({ nullable: false })
   Edad: number;
 
-  @Column()
+  @Column({ nullable: false })
   Planos_Terreno: string;
 
-  @Column()
+  @Column({ nullable: false })
   Escritura_Terreno: string;
 
   @BeforeInsert()
@@ -64,10 +64,10 @@ export class SolicitudAfiliacion extends SolicitudEntity {
 
 @Entity('Solicitudes_Desconexion')
 export class SolicitudDesconexion extends SolicitudEntity {
-  @Column()
+  @Column({ nullable: false })
   Planos_Terreno: string;
 
-  @Column()
+  @Column({ nullable: false })
   Escritura_Terreno: string;
 
   @BeforeInsert()
@@ -79,10 +79,10 @@ export class SolicitudDesconexion extends SolicitudEntity {
 
 @Entity('Solicitudes_Cambio_Medidor')
 export class SolicitudCambioMedidor extends SolicitudEntity {
-  @Column()
+  @Column({ nullable: false })
   Ubicacion: string;
 
-  @Column()
+  @Column({ nullable: false })
   Numero_Medidor_Anterior: number;
 
   @BeforeInsert()

@@ -17,6 +17,7 @@ import { SolicitudCambioMediadorModule } from './Modules/Solicitudes/Modules/sol
 import { SolicitudDesconexionModule } from './Modules/Solicitudes/Modules/solicitudDesconexion.module';
 import { UsuariosModule } from './Modules/Usuarios/Modules/usuarios.module';
 import { RolesModule } from './Modules/Usuarios/Modules/roles.module';
+import { GoogleDriveModule } from './Google Drive/Archivos/googleDriveFiles.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { RolesModule } from './Modules/Usuarios/Modules/roles.module';
     SolicitudDesconexionModule,
     SolicitudCambioMediadorModule,
     RolesModule,
+    GoogleDriveModule
   ],
   controllers: [],
   providers: [],

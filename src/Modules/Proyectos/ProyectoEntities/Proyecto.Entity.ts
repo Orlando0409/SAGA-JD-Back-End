@@ -8,7 +8,7 @@ export class Proyecto
   @PrimaryGeneratedColumn()
   Id_Proyecto: number;
 
-  @Column()
+  @Column({ nullable: false })
   Titulo: string;
 
   @Column({ type: 'text' })
@@ -23,8 +23,8 @@ export class Proyecto
   @BeforeUpdate()
   updateTimestamp() { this.Fecha_Actualizacion = new Date(); }
 
-  @Column()
-  Id_Usuario:number;
+  @Column({ nullable: false })
+  Id_Usuario: number;
 
   @ManyToOne(() => ProyectoEstado, Estado => Estado.Proyectos)  //Relacion Muchos A uno
   @JoinColumn({ name: 'Id_Estado_Proyecto' })  //LLave Foranea para acceder al estado del proyecto 

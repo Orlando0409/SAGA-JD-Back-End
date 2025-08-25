@@ -6,7 +6,7 @@ export class SolicitudEstado {
   @PrimaryGeneratedColumn()
   Id_Estado_Solicitud: number;
 
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ type: 'varchar', length: 50, nullable: false })
   Nombre_Estado: string;
 
   @OneToMany(() => SolicitudEntity, solicitud => solicitud.Estado)
