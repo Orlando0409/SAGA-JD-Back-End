@@ -1,4 +1,5 @@
 import {Controller , Get, Post, Body, Param, Delete, Put, ParseIntPipe} from '@nestjs/common';
+import { RequiereRoles } from 'src/Modules/auth/Decorator/Rol.decorator';
 import {RolesService} from "../Services/roles.service";
 import {CreateRolesDto} from "../UsuarioDTO's/CreateRoles.dto";
 import {UpdateRolesDto} from "../UsuarioDTO's/UpdateRoles.dto";
@@ -18,6 +19,7 @@ export class RolesController {
     }
     
     @Post()
+    @RequiereRoles('Administrador')
     CreateRoles(@Body() createRolesDto: CreateRolesDto) {
         return this.rolesService.createRoles(createRolesDto);
     }
