@@ -3,7 +3,7 @@ import { ProyectoService } from "./proyecto.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { UpdateProyectoDto } from "./ProyectoDTO's/UpdateProyecto.dto";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
-import { CreateProyectoDto } from "./ProyectoDTO's/CreaProyecto.dto";
+import { CreateProyectoDto } from "./ProyectoDTO's/CreateProyecto.dto";
 
 @Controller('proyectos')
 export class ProyectoController
