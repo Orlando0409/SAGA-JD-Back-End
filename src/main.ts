@@ -15,7 +15,7 @@ async function bootstrap() {
   
   // Configurar CORS correctamente para cookies
   app.enableCors({
-    origin: process.env.CORS_ORIGINS, // URLs del frontend
+    origin: ['http://localhost:5173'], // URLs del frontend
     credentials: true, //  IMPORTANTE: Permitir cookies
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'cookie']
@@ -31,15 +31,6 @@ async function bootstrap() {
     .setTitle('API SAGA-JD')
     .setDescription('API documentation for the SAGA-JD project')
     .setVersion('1.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        in: 'header',
-      },
-      'Authorization' 
-    )
     .build();
 
     const options: SwaggerDocumentOptions =  {
@@ -58,7 +49,7 @@ async function bootstrap() {
         const order = { get: 1, post: 2, put: 3, delete: 4, patch: 5 };
         return order[a.get("method")] - order[b.get("method")];
       }
-    },
+    }, 
   });
   
   await app.listen(process.env.PORT ?? 3000);

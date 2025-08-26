@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from '../Modules/Usuarios/Entity/User.Entity';
-import { UserRol } from '../Modules/Usuarios/Entity/UserRol';
-import { Permiso } from '../Modules/Usuarios/Entity/Permiso.Entity';
 import { SeederService } from './Seender.service';
+import { Permiso } from 'src/Modules/Usuarios/UsuarioEntities/Permiso.Entity';
+import { UserEntity } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
+import { UserRol } from 'src/Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
 
 
 

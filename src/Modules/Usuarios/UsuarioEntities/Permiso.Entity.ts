@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from "typeorm";
-import { UserRol } from "./UserRol";
+import { UserRol } from "./UsuarioRol.Entity";
 
 @Entity("permisos")
 export class Permiso {
