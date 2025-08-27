@@ -49,9 +49,9 @@ export class ProyectoService
             throw new NotFoundException(`Proyecto con id ${Id_Proyecto} no encontrado`);
           }
 
-        const estado = await this.proyectoEstadoRepository.findOne({ where:{ Id_Estado_Proyecto: 1 } });
-        
-        if (!estado) {throw new NotFoundException(`Estado inicial de proyecto no configurado`);}
+    const estado = await this.proyectoEstadoRepository.findOne({ where:{ Id_Estado_Proyecto: dto.Id_Estado_Proyecto } });
+
+    if (!estado) {throw new NotFoundException(`Estado con id ${dto.Id_Estado_Proyecto} no encontrado`);}
 
         Object.assign(proyecto, dto, { Estado: estado});
         return this.proyectoRepository.save(proyecto);

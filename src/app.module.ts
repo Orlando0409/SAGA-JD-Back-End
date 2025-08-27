@@ -23,6 +23,8 @@ import { UsuariosModule } from './Modules/Usuarios/Modules/usuarios.module';
 import { Permiso } from './Modules/Usuarios/UsuarioEntities/Permiso.Entity';
 import { UserEntity } from './Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { UserRol } from './Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
+import {ProyectoEstado} from "./Modules/Proyectos/ProyectoEntities/ProjectStatus.Entity";
+import{Proyecto} from "./Modules/Proyectos/ProyectoEntities/Project.Entity";
 
 @Module({
   imports: [
