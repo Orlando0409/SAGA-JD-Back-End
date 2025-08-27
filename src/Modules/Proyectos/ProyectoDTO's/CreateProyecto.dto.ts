@@ -1,5 +1,5 @@
-import { IsString, IsDate, IsInt, IsUrl, IsDefined, IsOptional, IsNotEmpty, MinLength, MaxLength, Matches, IsPositive, Min, Max } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { IsString, IsInt, IsUrl, IsDefined, IsNotEmpty, MinLength, MaxLength, Matches, IsPositive, Min, Max } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateProyectoDto {
