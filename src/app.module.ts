@@ -23,6 +23,8 @@ import { UsuariosModule } from './Modules/Usuarios/Modules/usuarios.module';
 import { Permiso } from './Modules/Usuarios/UsuarioEntities/Permiso.Entity';
 import { UserEntity } from './Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { UserRol } from './Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
+import { Proyecto } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
+import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 
 @Module({
   imports: [
@@ -41,8 +43,8 @@ import { UserRol } from './Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
         username: config.get<string>('DB_USERNAME'),
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
-        entities: [UserEntity,UserRol,Permiso, SolicitudEntity, SolicitudEstado],
-        synchronize: false, 
+        entities: [UserEntity,UserRol,Permiso, SolicitudEntity, SolicitudEstado, Proyecto, ProyectoEstado],
+        synchronize: true, 
       }),
     }),
     ProyectoModule,
