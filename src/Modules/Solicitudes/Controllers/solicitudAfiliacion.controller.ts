@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put} from "@nestjs/common";
 import { SolicitudesAfiliacionService } from "../Services/solicitudAfiliacion.service";
 import { CreateSolicitudAfiliacionDto } from "../SolicitudDTO's/CreateSolicitud.dto";
 import { ApiOperation } from "@nestjs/swagger";
@@ -29,19 +29,19 @@ export class SolicitudAfiliacionController {
     return this.solicitudAfiliacionService.createSolicitudAfiliacion(dto);
   }
 
-  @Put(':id')
+  @Put('/update/:id')
   @ApiOperation({ summary: 'Actualizar una solicitud de afiliación por ID' })
   updateSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSolicitudAfiliacionDto) {
     return this.solicitudAfiliacionService.updateSolicitudAfiliacion(id, dto);
   }
 
-  @Put(':id/estado/:nuevoEstadoId')
+  @Put(':id/update/estado/:nuevoEstadoId')
   @ApiOperation({ summary: 'Actualizar el estado de una solicitud de afiliación por ID' })
   updateEstadoSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
     return this.solicitudAfiliacionService.UpdateEstadoSolicitudAfiliacion(id, nuevoEstadoId);
   }
 
-  @Delete(':id')
+  @Delete('/delete/:id')
   @ApiOperation({ summary: 'Eliminar una solicitud de afiliación por ID' })
   deleteSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number) {
     return this.solicitudAfiliacionService.deleteSolicitudAfiliacion(id);

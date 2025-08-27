@@ -27,19 +27,19 @@ export class SolicitudCambioMedidorController {
     return this.solicitudCambioMedidorService.createSolicitudCambioMedidor(dto);
   }
 
-  @Put(':id')
+  @Put('/update/:id')
   @ApiOperation({ summary: 'Actualizar una solicitud de cambio de medidor por ID' })
   updateSolicitudCambioMedidor(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSolicitudCambioMediadorDto) {
     return this.solicitudCambioMedidorService.updateSolicitudCambioMedidor(id, dto);
   }
 
-  @Put(':id/estado/:nuevoEstadoId')
+  @Put(':id/update/estado/:nuevoEstadoId')
   @ApiOperation({ summary: 'Actualizar el estado de una solicitud de cambio de medidor por ID' })
   updateEstadoSolicitudCambioMedidor(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
     return this.solicitudCambioMedidorService.UpdateEstadoSolicitudCambioMedidor(id, nuevoEstadoId);
   }
 
-  @Delete(':id')
+  @Delete('/delete/:id')
   @ApiOperation({ summary: 'Eliminar una solicitud de cambio de medidor por ID' })
   deleteSolicitudCambioMedidor(@Param('id', ParseIntPipe) id: number) {
     return this.solicitudCambioMedidorService.deleteSolicitudCambioMedidor(id);

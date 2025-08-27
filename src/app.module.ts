@@ -18,6 +18,7 @@ import { SeederModule } from './config/Seeder.module';
 import { SolicitudEstado } from './Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
 import { SolicitudEntity } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { RolesModule } from './Modules/Usuarios/Modules/roles.module';
+import { GoogleDriveModule } from './Google Drive/Archivos/googleDriveFiles.module';
 import { UsuariosModule } from './Modules/Usuarios/Modules/usuarios.module';
 import { Permiso } from './Modules/Usuarios/UsuarioEntities/Permiso.Entity';
 import { UserEntity } from './Modules/Usuarios/UsuarioEntities/Usuario.Entity';
@@ -56,7 +57,7 @@ import { UserRol } from './Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
     RolesModule,
     AuthModule,
     SeederModule,
-
+    GoogleDriveModule
   ],
   controllers: [],
   providers: [

@@ -59,12 +59,10 @@ export class SolicitudesAfiliacionService
     async UpdateEstadoSolicitudAfiliacion(id: number, nuevoEstadoId: number)
     {
         const solicitud = await this.solicitudAfiliacionRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
-
-        if (!solicitud) {throw new Error(`Solicitud con id ${id} no encontrada`);}
+        if (!solicitud) { throw new Error(`Solicitud con id ${id} no encontrada`); }
 
         const nuevoEstado = await this.solicitudEstadoRepository.findOne({where: { Id_Estado_Solicitud: nuevoEstadoId }});
-
-        if (!nuevoEstado) {throw new Error(`Estado con id ${nuevoEstadoId} no encontrado`);}
+        if (!nuevoEstado) { throw new Error(`Estado con id ${nuevoEstadoId} no encontrado`); }
 
         solicitud.Estado = nuevoEstado;
         return this.solicitudAfiliacionRepository.save(solicitud);

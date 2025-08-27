@@ -22,9 +22,13 @@ async function bootstrap() {
   });
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({
+    transform: true,
     whitelist: true,
     forbidNonWhitelisted: true,
     forbidUnknownValues: true,
+    transformOptions: {
+      enableImplicitConversion: true,
+    },
   }));
 
   const config = new DocumentBuilder()
