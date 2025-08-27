@@ -16,13 +16,14 @@ import { RolesGuard } from './Modules/auth/Guard/RolesGuards';
 import { PermisosGuard } from './Modules/auth/Guard/PermisosGuard';
 import { SeenderModule } from './config/Seender.module';
 import { SolicitudEstado } from './Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
-import { SolicitudEntity } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
+import { SolicitudAfiliacion, SolicitudCambioMedidor, SolicitudDesconexion, SolicitudEntity } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { RolesModule } from './Modules/Usuarios/Modules/roles.module';
-import { GoogleDriveModule } from './Google Drive/Archivos/googleDriveFiles.module';
 import { UsuariosModule } from './Modules/Usuarios/Modules/usuarios.module';
 import { Permiso } from './Modules/Usuarios/UsuarioEntities/Permiso.Entity';
 import { UserEntity } from './Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { UserRol } from './Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
+import { Proyecto } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
+import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 
 @Module({
   imports: [
@@ -41,8 +42,8 @@ import { UserRol } from './Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
         username: config.get<string>('DB_USERNAME'),
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
-        entities: [UserEntity,UserRol,Permiso, SolicitudEntity, SolicitudEstado],
-        synchronize: false, 
+        entities: [UserEntity, UserRol, Permiso, SolicitudEntity, SolicitudAfiliacion, SolicitudCambioMedidor, SolicitudDesconexion, SolicitudEstado, Proyecto, ProyectoEstado],
+        synchronize: false,
       }),
     }),
     ProyectoModule,
@@ -57,7 +58,6 @@ import { UserRol } from './Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
     RolesModule,
     AuthModule,
     SeenderModule,
-    GoogleDriveModule
   ],
   controllers: [],
   providers: [

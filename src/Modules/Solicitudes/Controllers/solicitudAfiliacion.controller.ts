@@ -9,13 +9,13 @@ import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 export class SolicitudAfiliacionController {
   constructor(private readonly solicitudAfiliacionService: SolicitudesAfiliacionService) {}
 
-
+  @Public()
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todas las solicitudes de afiliación' })
   getAllSolicitudesAfiliacion() {
     return this.solicitudAfiliacionService.getAllSolicitudesAfiliacion();
   }
-
+  @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Obtener solicitud por ID' })
   getsolicitudAfiliacionById(@Param('id', ParseIntPipe) id: number) {
@@ -28,19 +28,19 @@ export class SolicitudAfiliacionController {
   createSolicitudAfiliacion(@Body() dto: CreateSolicitudAfiliacionDto) {
     return this.solicitudAfiliacionService.createSolicitudAfiliacion(dto);
   }
-
+  @Public()
   @Put('/update/:id')
   @ApiOperation({ summary: 'Actualizar una solicitud de afiliación por ID' })
   updateSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSolicitudAfiliacionDto) {
     return this.solicitudAfiliacionService.updateSolicitudAfiliacion(id, dto);
   }
-
+   @Public()
   @Put(':id/update/estado/:nuevoEstadoId')
   @ApiOperation({ summary: 'Actualizar el estado de una solicitud de afiliación por ID' })
   updateEstadoSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
     return this.solicitudAfiliacionService.UpdateEstadoSolicitudAfiliacion(id, nuevoEstadoId);
   }
-
+  @Public()
   @Delete('/delete/:id')
   @ApiOperation({ summary: 'Eliminar una solicitud de afiliación por ID' })
   deleteSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number) {
