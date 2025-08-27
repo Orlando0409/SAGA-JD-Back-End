@@ -14,7 +14,7 @@ import { AuthModule } from './Modules/auth/Auth.module';
 import { JwtAuthGuard } from './Modules/auth/Guard/JwtGuard';
 import { RolesGuard } from './Modules/auth/Guard/RolesGuards';
 import { PermisosGuard } from './Modules/auth/Guard/PermisosGuard';
-import { SeenderModule } from './config/Seender.module';
+import { SeederModule } from './config/Seeder.module';
 import { SolicitudEstado } from './Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
 import { SolicitudEntity } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { RolesModule } from './Modules/Usuarios/Modules/roles.module';
@@ -55,7 +55,7 @@ import { UserRol } from './Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
     SolicitudCambioMediadorModule,
     RolesModule,
     AuthModule,
-    SeenderModule,
+    SeederModule,
 
   ],
   controllers: [],

@@ -49,8 +49,8 @@ export class AuthController {
   @Public()
   @Post('logout')
   @ApiOperation({ summary: 'Cerrar sesión' })
-  logout(@Res({ passthrough: true }) response: Response) {
-    return this.authService.logout(response);
+  async logout(@Res({ passthrough: true }) response: Response) {
+    await this.authService.logout(response);
   }
 
   @Public()
@@ -59,7 +59,6 @@ export class AuthController {
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     return this.authService.forgotPassword(forgotPasswordDto.Email);
   }
-
 
   @UseGuards(JwtAuthGuard)
   @Get('me')

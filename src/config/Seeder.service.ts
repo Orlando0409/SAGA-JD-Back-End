@@ -40,13 +40,16 @@ export class SeederService implements OnModuleInit {
         
         const modulos = [
             'usuarios',
-            'roles',
+            'actas',
+            'contacto',
+            'faq',
+            'imagenes',
             'proyectos',
             'abonados',
-            'facturas',
             'inventario',
             'proveedores',
-            'solicitudes'
+            'solicitudes',
+            'manuales'
         ];
 
         for (const modulo of modulos) {
@@ -55,7 +58,6 @@ export class SeederService implements OnModuleInit {
                 modulo,
                 Ver: true,
                 Editar: false,
-                descripcion: `Permiso de lectura para ${modulo}`
             });
 
             // Sin permisos
@@ -63,7 +65,6 @@ export class SeederService implements OnModuleInit {
                 modulo,
                 Ver: false,
                 Editar: false,
-                descripcion: `Sin permisos para ${modulo}`
             });
 
             // Permiso completo (ver y editar)
@@ -71,7 +72,13 @@ export class SeederService implements OnModuleInit {
                 modulo,
                 Ver: true,
                 Editar: true,
-                descripcion: `Permiso completo para ${modulo}`
+            });
+
+            // Permiso de lectura para bitacora
+            await this.createPermisoIfNotExists({
+            modulo: 'bitacora',
+            Ver: true,        
+            Editar: false,
             });
         }
     }
@@ -80,7 +87,6 @@ export class SeederService implements OnModuleInit {
         modulo: string;
         Ver: boolean;
         Editar: boolean;
-        descripcion: string;
     }) {
         const permisoExistente = await this.permisoRepository.findOne({
             where: {
@@ -125,14 +131,12 @@ export class SeederService implements OnModuleInit {
         }
 
         // Obtener todos los permisos disponibles
-        const todosLosPermisos = await this.permisoRepository.find(
-            {
-                where: {
-                    Ver: true,
-                    Editar: true
-                },
-            }
-        );
+        const todosLosPermisos = await this.permisoRepository.find({
+            where: [
+                { Ver: true, Editar: true },
+                { modulo: 'bitacora', Ver: true, Editar: false }
+            ]
+        });
 
         // Verificar si ya tiene permisos asignados
         if (adminRole.permisos && adminRole.permisos.length > 0) {

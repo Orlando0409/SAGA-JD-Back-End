@@ -123,13 +123,9 @@ export class AuthService {
     }
   }
 
-  async logout(response: Response) {
+   async logout(response: Response) {
     response.clearCookie('accessToken');
     response.clearCookie('refreshToken');
-
-    return {
-      mensaje: 'Logout exitoso'
-    };
   }
 
   async forgotPassword(email: string) {
