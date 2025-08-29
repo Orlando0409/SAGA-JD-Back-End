@@ -44,7 +44,7 @@ import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProye
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
         entities: [UserEntity,UserRol,Permiso, SolicitudEntity, SolicitudEstado, Proyecto, ProyectoEstado],
-        synchronize: true, 
+        synchronize: false, 
       }),
     }),
     ProyectoModule,
