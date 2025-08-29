@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { google } from 'googleapis';
+import { drive } from 'googleapis/build/src/apis/drive';
 import * as path from 'path';
 import * as stream from 'stream';
 
@@ -8,10 +9,11 @@ export class GoogleDriveFilesService {
   private driveClient;
 
   constructor() {
-    const auth = new google.auth.JWT({
-      key: process.env.DRIVE_PRIVATE_KEY,
-      scopes: ['https://www.googleapis.com/auth/drive'],
-    });
+  const auth = new google.auth.JWT({
+    email: process.env.GOOGLE_CLIENT_EMAIL,
+    key: process.env.DRIVE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    scopes: ['https://www.googleapis.com/auth/drive'],
+  });
     
     this.driveClient = google.drive({ version: 'v3', auth });
   } 
@@ -29,6 +31,7 @@ export class GoogleDriveFilesService {
       requestBody: {
         name: file.originalname,
         parents: [folderId],
+        driveId: folderId,
       },
       media: {
         mimeType: file.mimetype,
