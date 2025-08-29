@@ -1,26 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { google } from 'googleapis';
+import * as path from 'path';
 import * as stream from 'stream';
 
 @Injectable()
-export class GoogleDriveService {
+export class GoogleDriveFilesService {
   private driveClient;
 
   constructor() {
-    const auth = new google.auth.GoogleAuth({
-      keyFile: 'C:\Users\andre\Desktop\Cursos UNA\Ciclo II 2025\Ingenieria II\Claves-Google-Drive.json',
+    const auth = new google.auth.JWT({
+      key: process.env.DRIVE_PRIVATE_KEY,
       scopes: ['https://www.googleapis.com/auth/drive'],
     });
-
+    
     this.driveClient = google.drive({ version: 'v3', auth });
-  }
+  } 
 
   async uploadFile(file: Express.Multer.File) {
     const folderId = process.env.SAGA_JD_FOLDER_ID;
 
-    // Convertir buffer del archivo a stream
     const bufferStream = new stream.PassThrough();
     bufferStream.end(file.buffer);
+
+    await this.driveClient.files.list({ pageSize: 1 });
+    console.log('Autenticación correcta');
 
     const response = await this.driveClient.files.create({
       requestBody: {
@@ -34,7 +37,6 @@ export class GoogleDriveService {
       fields: 'id, webViewLink',
     });
 
-    // Hacer que el archivo sea accesible públicamente (opcional)
     await this.driveClient.permissions.create({
       fileId: response.data.id,
       requestBody: { role: 'reader', type: 'anyone' },

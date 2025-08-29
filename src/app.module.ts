@@ -16,7 +16,7 @@ import { RolesGuard } from './Modules/auth/Guard/RolesGuards';
 import { PermisosGuard } from './Modules/auth/Guard/PermisosGuard';
 import { SeederModule } from './config/Seeder.module';
 import { SolicitudEstado } from './Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
-import { SolicitudEntity } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
+import { SolicitudAfiliacion, SolicitudCambioMedidor, SolicitudDesconexion, SolicitudEntity } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { RolesModule } from './Modules/Usuarios/Modules/roles.module';
 import { GoogleDriveModule } from './Google Drive/Archivos/googleDriveFiles.module';
 import { UsuariosModule } from './Modules/Usuarios/Modules/usuarios.module';
@@ -25,6 +25,10 @@ import { UserEntity } from './Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { UserRol } from './Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
 import { Proyecto } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
 import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
+import { Proyecto } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
+import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
+import { CalidadAguaModule } from './Modules/CalidadAgua/calidadAgua.module';
+import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity';
 
 @Module({
   imports: [
@@ -43,8 +47,11 @@ import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProye
         username: config.get<string>('DB_USERNAME'),
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
-        entities: [UserEntity,UserRol,Permiso, SolicitudEntity, SolicitudEstado, Proyecto, ProyectoEstado],
-        synchronize: false, 
+        entities: [UserEntity, UserRol ,Permiso,
+        SolicitudEntity, SolicitudAfiliacion, SolicitudCambioMedidor,
+        SolicitudDesconexion, SolicitudEstado, Proyecto, ProyectoEstado,
+        CalidadAgua],
+        synchronize: false,
       }),
     }),
     ProyectoModule,
@@ -58,12 +65,13 @@ import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProye
     SolicitudCambioMediadorModule,
     RolesModule,
     AuthModule,
-    SeederModule,
-    GoogleDriveModule
+    SeenderModule,
+    GoogleDriveModule,
+    CalidadAguaModule
   ],
   controllers: [],
   providers: [
-        {
+    {
       provide: APP_GUARD,
       useClass: JwtAuthGuard, //  Autenticación JWT global
     },
