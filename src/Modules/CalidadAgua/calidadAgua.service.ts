@@ -2,8 +2,8 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { CalidadAgua } from "./CalidadAguaEntities/CalidadAgua.Entity";
-import { CreateCalidadAguaDto } from "./CalidadAguaDTO's/CreateCalidadAgua";
-import { UpdateCalidadAguaDto } from "./CalidadAguaDTO's/UpdateCalidadAgua";
+import { CreateCalidadAguaDto } from "./CalidadAguaDTO's/CreateCalidadAgua.dto";
+import { UpdateCalidadAguaDto } from "./CalidadAguaDTO's/UpdateCalidadAgua.dto";
 
 @Injectable()
 export class CalidadAguaService

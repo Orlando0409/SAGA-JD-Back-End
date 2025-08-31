@@ -26,6 +26,7 @@ import { Proyecto } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
 import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 import { CalidadAguaModule } from './Modules/CalidadAgua/calidadAgua.module';
 import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity';
+import { DropboxModule } from './Dropbox/Files/DropboxFiles.module';
 
 @Module({
   imports: [
@@ -63,7 +64,8 @@ import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAg
     RolesModule,
     AuthModule,
     SeenderModule,
-    GoogleDriveModule
+    DropboxModule,
+    CalidadAguaModule
   ],
   controllers: [],
   providers: [

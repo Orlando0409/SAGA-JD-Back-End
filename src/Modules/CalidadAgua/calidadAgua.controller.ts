@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Post } from "@nestjs/common";
 import { CalidadAguaService } from "./calidadAgua.service";
 import { ApiOperation } from "@nestjs/swagger";
-import { CreateCalidadAguaDto } from "./CalidadAguaDTO's/CreateCalidadAgua";
+import { CreateCalidadAguaDto } from "./CalidadAguaDTO's/CreateCalidadAgua.dto";
 
 @Controller('CalidadAgua')
 export class CalidadAguaController
