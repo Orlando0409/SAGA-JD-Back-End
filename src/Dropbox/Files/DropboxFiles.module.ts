@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { DropboxService } from './DropboxFiles.service';
+import { DropboxFilesService } from './DropboxFiles.service';
 import { DropboxController } from './DropboxFiles.controller';
 
 @Module({
-  providers: [DropboxService],
+  providers: [DropboxFilesService],
   controllers: [DropboxController],
 })
 

@@ -40,7 +40,7 @@ export class SolicitudesDesconexionService
         const now = new Date();
         now.setSeconds(0, 0);
         
-        const nuevaSolicitud = this.solicitudDesconexionRepository.create({...dto, Estado: estadoInicial});
+        const nuevaSolicitud = this.solicitudDesconexionRepository.create({...dto, Estado: estadoInicial, Fecha_Creacion: now});
         return this.solicitudDesconexionRepository.save(nuevaSolicitud);
     }
     

@@ -40,7 +40,7 @@ export class SolicitudesMedidorService
         const now = new Date();
         now.setSeconds(0, 0);
     
-        const nuevaSolicitud = this.solicitudCambioMedidorRepository.create({...dto, Estado: estadoInicial});
+        const nuevaSolicitud = this.solicitudCambioMedidorRepository.create({...dto, Estado: estadoInicial, Fecha_Creacion: now});
         return this.solicitudCambioMedidorRepository.save(nuevaSolicitud);
     }
 

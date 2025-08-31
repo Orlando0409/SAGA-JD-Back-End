@@ -1,25 +1,22 @@
 import {
+  Body,
   Controller,
+  Get,
   Post,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { DropboxService } from './DropboxFiles.service';
+import { DropboxFilesService } from './DropboxFiles.service';
+import { CreateDropboxFileDto } from '../DropboxFilesDTO\'s/CreateDropboxFile.dto';
 
 @Controller('dropbox')
 export class DropboxController {
-  constructor(private readonly DropboxService: DropboxService) {}
+  constructor(private readonly DropboxFilesService: DropboxFilesService) {}
 
-@Post('upload/planos')
-  @UseInterceptors(FileInterceptor('planos'))
-  async uploadFilePlanos(@UploadedFile() file: Express.Multer.File) {
-    return this.DropboxService.uploadFilePlanos(file);
-  }
-    
-  @Post('upload/escrituras')
-  @UseInterceptors(FileInterceptor('escrituras'))
-  async uploadFileEscrituras(@UploadedFile() file: Express.Multer.File) {
-    return this.DropboxService.uploadFileEscrituras(file);
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile( @UploadedFile() file: Express.Multer.File, @Body() body: CreateDropboxFileDto) {
+    return this.DropboxFilesService.uploadFile(file, body);
   }
 }
