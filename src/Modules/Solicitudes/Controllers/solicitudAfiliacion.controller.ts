@@ -9,7 +9,6 @@ import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 export class SolicitudAfiliacionController {
   constructor(private readonly solicitudAfiliacionService: SolicitudesAfiliacionService) {}
 
-  @Public()
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todas las solicitudes de afiliación' })
   getAllSolicitudesAfiliacion() {

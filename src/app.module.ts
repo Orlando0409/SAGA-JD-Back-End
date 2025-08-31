@@ -24,6 +24,8 @@ import { UserEntity } from './Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { UserRol } from './Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
 import { Proyecto } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
 import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
+import { CalidadAguaModule } from './Modules/CalidadAgua/calidadAgua.module';
+import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity';
 
 @Module({
   imports: [
@@ -42,7 +44,10 @@ import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProye
         username: config.get<string>('DB_USERNAME'),
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
-        entities: [UserEntity, UserRol, Permiso, SolicitudEntity, SolicitudAfiliacion, SolicitudCambioMedidor, SolicitudDesconexion, SolicitudEstado, Proyecto, ProyectoEstado],
+        entities: [UserEntity, UserRol ,Permiso,
+        SolicitudEntity, SolicitudAfiliacion, SolicitudCambioMedidor,
+        SolicitudDesconexion, SolicitudEstado, Proyecto, ProyectoEstado,
+        CalidadAgua],
         synchronize: false,
       }),
     }),
@@ -58,10 +63,11 @@ import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProye
     RolesModule,
     AuthModule,
     SeenderModule,
+    GoogleDriveModule
   ],
   controllers: [],
   providers: [
-        {
+    {
       provide: APP_GUARD,
       useClass: JwtAuthGuard, //  Autenticación JWT global
     },

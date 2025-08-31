@@ -99,7 +99,6 @@ export class CreateSolicitudAfiliacionDto extends CreateSolicitudDto {
   @IsDefined({ message: 'Los planos del terreno no pueden estar vacios' })
   @IsUrl()
   @MaxLength(500, { message: 'La URL de planos no puede tener más de 500 caracteres' })
-  @Matches(/\.(pdf|doc|docx|jpg|jpeg|png|webp)$/i, { message: 'La URL debe apuntar a un archivo PDF, documento o imagen' })
   Planos_Terreno: string;
 
   @ApiProperty({ example: 'https://EjemploEscritura.pdf' })
@@ -108,7 +107,6 @@ export class CreateSolicitudAfiliacionDto extends CreateSolicitudDto {
   @IsDefined({ message: 'Los planos del terreno no pueden estar vacios' })
   @IsUrl()
   @MaxLength(500, { message: 'La URL de planos no puede tener más de 500 caracteres' })
-  @Matches(/\.(pdf|doc|docx|jpg|jpeg|png|webp)$/i, { message: 'La URL debe apuntar a un archivo PDF, documento o imagen' })
   Escritura_Terreno: string;
 }
 
@@ -119,7 +117,6 @@ export class CreateSolicitudDesconexionDto extends CreateSolicitudDto {
   @IsDefined({ message: 'Los planos del terreno no pueden estar vacios' })
   @IsUrl()
   @MaxLength(500, { message: 'La URL de planos no puede tener más de 500 caracteres' })
-  @Matches(/\.(pdf|doc|docx|jpg|jpeg|png|webp)$/i, { message: 'La URL debe apuntar a un archivo PDF, documento o imagen' })
   Planos_Terreno: string;
 
   @ApiProperty({example: 'https://EjemploEscritura.pdf'})
@@ -128,7 +125,6 @@ export class CreateSolicitudDesconexionDto extends CreateSolicitudDto {
   @IsDefined({ message: 'Los planos del terreno no pueden estar vacios' })
   @IsUrl()
   @MaxLength(500, { message: 'La URL de planos no puede tener más de 500 caracteres' })
-  @Matches(/\.(pdf|doc|docx|jpg|jpeg|png|webp)$/i, { message: 'La URL debe apuntar a un archivo PDF, documento o imagen' })
   Escritura_Terreno: string;
 }
 
