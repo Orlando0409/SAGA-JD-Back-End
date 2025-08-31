@@ -18,7 +18,6 @@ import { SeenderModule } from './config/Seender.module';
 import { SolicitudEstado } from './Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
 import { SolicitudAfiliacion, SolicitudCambioMedidor, SolicitudDesconexion, SolicitudEntity } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { RolesModule } from './Modules/Usuarios/Modules/roles.module';
-import { GoogleDriveModule } from './Google Drive/Archivos/googleDriveFiles.module';
 import { UsuariosModule } from './Modules/Usuarios/Modules/usuarios.module';
 import { Permiso } from './Modules/Usuarios/UsuarioEntities/Permiso.Entity';
 import { UserEntity } from './Modules/Usuarios/UsuarioEntities/Usuario.Entity';
@@ -27,6 +26,7 @@ import { Proyecto } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
 import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 import { CalidadAguaModule } from './Modules/CalidadAgua/calidadAgua.module';
 import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity';
+import { DropboxModule } from './Dropbox/Files/DropboxFiles.module';
 
 @Module({
   imports: [
@@ -64,7 +64,7 @@ import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAg
     RolesModule,
     AuthModule,
     SeenderModule,
-    GoogleDriveModule,
+    DropboxModule,
     CalidadAguaModule
   ],
   controllers: [],
