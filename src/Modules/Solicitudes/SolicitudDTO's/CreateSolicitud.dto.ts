@@ -157,7 +157,7 @@ export class CreateDesconexionDto extends IntersectionType(
   CreateSolicitudDesconexionDto
 ) {}
 
-export class CreateCambioMediadorDto extends IntersectionType(
+export class CreateCambioMedidorDto extends IntersectionType(
   CreateSolicitudDto,
   CreateSolicitudCambioMedidorDto
 ) {}

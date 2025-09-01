@@ -5,8 +5,6 @@ import { SolicitudAfiliacion } from "../SolicitudEntities/Solicitud.Entity";
 import { SolicitudEstado } from "../SolicitudEntities/EstadoSolicitud.Entity";
 import { CreateSolicitudAfiliacionDto } from "../SolicitudDTO's/CreateSolicitud.dto";
 import { UpdateSolicitudAfiliacionDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
-import { DropboxFilesService } from "../../../Dropbox/Files/DropboxFiles.service";
-import { OmitType } from "@nestjs/swagger";
 
 @Injectable()
 export class SolicitudesAfiliacionService
