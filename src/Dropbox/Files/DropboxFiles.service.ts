@@ -1,7 +1,6 @@
 import { Body, Injectable } from '@nestjs/common';
 import { Dropbox } from 'dropbox';
 import fetch from 'node-fetch';
-import { CreateDropboxFileDto } from '../DropboxFilesDTO\'s/CreateDropboxFile.dto';
 
 @Injectable()
 export class DropboxFilesService {
@@ -14,24 +13,11 @@ export class DropboxFilesService {
     });
   }
 
-  async uploadFile(file: Express.Multer.File, @Body() body: CreateDropboxFileDto) {
+  async uploadFile(file: Express.Multer.File, carpeta: string, cedula: string) {
     try {
-        // 1. Subir archivo a la carpeta indicada
+        // 1. Subir archivo a la carpeta indicada a
         const folderPath = process.env.DROPBOX_FOLDER_PATH;
-        let dropboxPath = '';
-
-        // 2. Definir la carpeta según el tipo
-        if (body.Tipo === 'plano') {
-            dropboxPath = `${folderPath}/Planos-Terrenos/${file.originalname}`;
-        }
-
-        else if (body.Tipo === 'escritura') {
-            dropboxPath = `${folderPath}/Escrituras-Terrenos/${file.originalname}`;
-        }
-
-        else {
-            throw new Error(`Tipo de archivo no soportado: ${body.Tipo}`);
-        }
+        let dropboxPath = `${folderPath}/${carpeta}/${cedula}/${file.originalname}`;
 
         // 3. Subir archivo
         const uploadRes = await this.dbx.filesUpload({
@@ -47,7 +33,7 @@ export class DropboxFilesService {
             path: dropboxPath,
         });
         }
-        
+
         catch (error: any) {
         // Caso especial: si ya existe el link
         if (error?.error?.error?.['.tag'] === 'shared_link_already_exists') {

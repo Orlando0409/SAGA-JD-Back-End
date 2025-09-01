@@ -52,9 +52,6 @@ export class SolicitudAfiliacion extends SolicitudEntity {
     Escritura_Terreno: string;
 
     @BeforeInsert()
-    setTipoSolicitud() { this.Id_Tipo_Solicitud = 1; }
-
-    @BeforeInsert()
     setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as SolicitudEstado; } 
 }
 
@@ -68,9 +65,6 @@ export class SolicitudDesconexion extends SolicitudEntity {
 
     @Column({ nullable: false })
     Escritura_Terreno: string;
-
-    @BeforeInsert()
-    setTipoSolicitud() { this.Id_Tipo_Solicitud = 2; }
 
     @BeforeInsert()
     setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as SolicitudEstado; } 

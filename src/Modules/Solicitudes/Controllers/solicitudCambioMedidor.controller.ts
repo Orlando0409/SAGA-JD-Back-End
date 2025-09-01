@@ -6,8 +6,10 @@ import { UpdateSolicitudCambioMedidorDto } from "../SolicitudDTO's/UpdateSolicit
 
 @Controller('solicitud-cambio-medidor')
 export class SolicitudCambioMedidorController {
-  
-  constructor(private readonly solicitudCambioMedidorService: SolicitudesMedidorService) {}
+  constructor
+  (
+    private readonly solicitudCambioMedidorService: SolicitudesMedidorService
+  ) {}
 
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todas las solicitudes de cambio de medidor' })
