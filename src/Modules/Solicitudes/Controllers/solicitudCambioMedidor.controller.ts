@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from "@
 import { CreateSolicitudCambioMedidorDto } from "../SolicitudDTO's/CreateSolicitud.dto";
 import { SolicitudesMedidorService } from "../Services/solicitudCambioMedidor.service";
 import { ApiOperation } from "@nestjs/swagger";
-import { UpdateSolicitudCambioMediadorDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
+import { UpdateSolicitudCambioMedidorDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
 
 @Controller('solicitud-cambio-mediador')
 export class SolicitudCambioMedidorController {
@@ -29,7 +29,7 @@ export class SolicitudCambioMedidorController {
 
   @Put('/update/:id')
   @ApiOperation({ summary: 'Actualizar una solicitud de cambio de medidor por ID' })
-  updateSolicitudCambioMedidor(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSolicitudCambioMediadorDto) {
+  updateSolicitudCambioMedidor(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSolicitudCambioMedidorDto) {
     return this.solicitudCambioMedidorService.updateSolicitudCambioMedidor(id, dto);
   }
 

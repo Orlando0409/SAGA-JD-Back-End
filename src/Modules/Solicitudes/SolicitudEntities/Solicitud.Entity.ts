@@ -27,9 +27,6 @@ export abstract class SolicitudEntity
     Direccion_Exacta: string;
 
     @Column({ nullable: false })
-    Motivo_Solicitud: string;
-
-    @Column({ nullable: false })
     Numero_Telefono: string;
 
     @ManyToOne(() => SolicitudEstado, estado => estado.Solicitud)
@@ -64,6 +61,9 @@ export class SolicitudAfiliacion extends SolicitudEntity {
 @Entity('Solicitudes_Desconexion')
 export class SolicitudDesconexion extends SolicitudEntity {
     @Column({ nullable: false })
+    Motivo_Solicitud: string;
+
+    @Column({ nullable: false })
     Planos_Terreno: string;
 
     @Column({ nullable: false })
@@ -79,7 +79,7 @@ export class SolicitudDesconexion extends SolicitudEntity {
 @Entity('Solicitudes_Cambio_Medidor')
 export class SolicitudCambioMedidor extends SolicitudEntity {
     @Column({ nullable: false })
-    Ubicacion: string;
+    Motivo_Solicitud: string;
 
     @Column({ nullable: false })
     Numero_Medidor_Anterior: number;
