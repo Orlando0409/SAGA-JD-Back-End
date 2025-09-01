@@ -23,15 +23,15 @@ export class DropboxFilesService {
 
         // 2. Definir la carpeta según el tipo
         if (body.Tipo === 'plano') {
-        dropboxPath = `${folderPath}/Planos-Terrenos/${file.originalname}`;
+            dropboxPath = `${folderPath}/Planos-Terrenos/${file.originalname}`;
         }
 
         else if (body.Tipo === 'escritura') {
-        dropboxPath = `${folderPath}/Escrituras-Terrenos/${file.originalname}`;
+            dropboxPath = `${folderPath}/Escrituras-Terrenos/${file.originalname}`;
         }
 
         else {
-        throw new Error(`Tipo de archivo no soportado: ${body.Tipo}`);
+            throw new Error(`Tipo de archivo no soportado: ${body.Tipo}`);
         }
 
         // 3. Subir archivo
@@ -47,7 +47,7 @@ export class DropboxFilesService {
         sharedLink = await this.dbx.sharingCreateSharedLinkWithSettings({
             path: dropboxPath,
         });
-        } 
+        }
         
         catch (error: any) {
         // Caso especial: si ya existe el link
