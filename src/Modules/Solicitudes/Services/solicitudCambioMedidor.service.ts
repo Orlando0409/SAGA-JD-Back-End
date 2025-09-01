@@ -5,6 +5,7 @@ import { SolicitudEstado } from "../SolicitudEntities/EstadoSolicitud.Entity";
 import { SolicitudCambioMedidor } from "../SolicitudEntities/Solicitud.Entity";
 import { CreateCambioMedidorDto } from "../SolicitudDTO's/CreateSolicitud.dto";
 import { UpdateSolicitudCambioMedidorDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 
 @Injectable()
 export class SolicitudesMedidorService
@@ -32,6 +33,7 @@ export class SolicitudesMedidorService
         return solicitud;
     }
 
+    @Public()
     async createSolicitudCambioMedidor(dto: CreateCambioMedidorDto)
     {
         const estadoInicial = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });

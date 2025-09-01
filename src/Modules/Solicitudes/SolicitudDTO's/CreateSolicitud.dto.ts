@@ -82,24 +82,6 @@ export class CreateSolicitudAfiliacionDto extends CreateSolicitudDto {
   @Max(120, { message: 'La edad máxima permitida es 120 años' })
   @IsPositive({ message: 'La edad debe ser un número positivo' })
   Edad: number;
-
-  /*
-  @ApiProperty({ example: 'https://EjemploPlanos.pdf' })
-  @IsString({ message: 'Los planos del terreno deben ser un string' })
-  @Transform(({ value }) => value?.trim())
-  @IsDefined({ message: 'Los planos del terreno no pueden estar vacios' })
-  @IsUrl()
-  @MaxLength(500, { message: 'La URL de planos no puede tener más de 500 caracteres' })
-  Planos_Terreno: string;
-
-  @ApiProperty({ example: 'https://EjemploEscritura.pdf' })
-  @IsString({message: 'La escritura del terreno debe ser un string'})
-  @Transform(({ value }) => value?.trim())
-  @IsDefined({ message: 'Los planos del terreno no pueden estar vacios' })
-  @IsUrl()
-  @MaxLength(500, { message: 'La URL de planos no puede tener más de 500 caracteres' })
-  Escritura_Terreno: string;
-  */
 }
 
 export class CreateSolicitudDesconexionDto extends CreateSolicitudDto {
@@ -112,24 +94,6 @@ export class CreateSolicitudDesconexionDto extends CreateSolicitudDto {
   @MaxLength(500, { message: 'El motivo de la solicitud no puede tener más de 500 caracteres' })
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,!?¿¡()-]+$/, { message: 'El motivo de la solicitud solo puede contener letras, números, espacios y los caracteres .,!?¿¡()-' })
   Motivo_Solicitud: string;
-
-  /*
-  @ApiProperty({ example: 'https://EjemploPlanos.pdf' })
-  @IsString({message: 'Los planos del terreno deben ser un string'})
-  @Transform(({ value }) => value?.trim())
-  @IsDefined({ message: 'Los planos del terreno no pueden estar vacios' })
-  @IsUrl()
-  @MaxLength(500, { message: 'La URL de planos no puede tener más de 500 caracteres' })
-  Planos_Terreno: string;
-
-  @ApiProperty({example: 'https://EjemploEscritura.pdf'})
-  @IsString({message: 'La escritura del terreno debe ser un string'})
-  @Transform(({ value }) => value?.trim())
-  @IsDefined({ message: 'Los planos del terreno no pueden estar vacios' })
-  @IsUrl()
-  @MaxLength(500, { message: 'La URL de planos no puede tener más de 500 caracteres' })
-  Escritura_Terreno: string;
-  */
 }
 
 export class CreateSolicitudCambioMedidorDto extends CreateSolicitudDto {
