@@ -5,6 +5,6 @@ export class UpdateSolicitudDto extends PartialType(CreateSolicitudDto) {}
 
 export class UpdateSolicitudAfiliacionDto extends PartialType(CreateSolicitudAfiliacionDto){}
 
-export class UpdateSolicitudCambioMediadorDto extends PartialType(CreateSolicitudCambioMedidorDto){}
+export class UpdateSolicitudCambioMedidorDto extends PartialType(CreateSolicitudCambioMedidorDto){}
 
 export class UpdateSolicitudDesconexionDto extends PartialType(CreateSolicitudDesconexionDto){}

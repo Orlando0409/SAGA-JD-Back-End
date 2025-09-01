@@ -3,7 +3,7 @@ import { ProyectoService } from "./proyecto.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { UpdateProyectoDto } from "./ProyectoDTO's/UpdateProyecto.dto";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
-import { CreateProyectoDto } from "./ProyectoDTO's/CreaProyecto.dto";
+import { CreateProyectoDto } from "./ProyectoDTO's/CreateProyecto.dto";
 
 @Controller('proyectos')
 export class ProyectoController
@@ -35,7 +35,7 @@ export class ProyectoController
     return this.proyectoService.UpdateProyecto(id_Proyecto, UpdateProyectoDto);
   }
 
-  @Put('/update/estado/:nuevoEstadoId')
+  @Put(':id/update/estado/:nuevoEstadoId')
   @ApiOperation({ summary: 'Actualizar el estado de proyecto por ID' })
   updateEstadoProyecto(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
     return this.proyectoService.updateEstadoProyecto(id, nuevoEstadoId);

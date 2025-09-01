@@ -15,7 +15,7 @@ export class SolicitudesAfiliacionService
         private readonly solicitudAfiliacionRepository: Repository<SolicitudAfiliacion>,
 
         @InjectRepository(SolicitudEstado)
-        private readonly solicitudEstadoRepository: Repository<SolicitudEstado>
+        private readonly solicitudEstadoRepository: Repository<SolicitudEstado>,
     ) {}
 
     async getAllSolicitudesAfiliacion()
@@ -31,14 +31,14 @@ export class SolicitudesAfiliacionService
     }
 
     async createSolicitudAfiliacion(dto: CreateSolicitudAfiliacionDto)
-    {
+    { 
         const estadoInicial = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
-        if (!estadoInicial) {throw new Error(`Estado inicial de solicitud no configurado`);}
+        if (!estadoInicial) { throw new Error(`Estado inicial de solicitud no configurado`); }
 
         const now = new Date();
         now.setSeconds(0, 0);
 
-        const nuevaSolicitud = this.solicitudAfiliacionRepository.create({...dto, Estado: estadoInicial});
+        const nuevaSolicitud = this.solicitudAfiliacionRepository.create({...dto, Estado: estadoInicial, Fecha_Creacion: now });
         return this.solicitudAfiliacionRepository.save(nuevaSolicitud);
     }
 
@@ -59,12 +59,10 @@ export class SolicitudesAfiliacionService
     async UpdateEstadoSolicitudAfiliacion(id: number, nuevoEstadoId: number)
     {
         const solicitud = await this.solicitudAfiliacionRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
-
-        if (!solicitud) {throw new Error(`Solicitud con id ${id} no encontrada`);}
+        if (!solicitud) { throw new Error(`Solicitud con id ${id} no encontrada`); }
 
         const nuevoEstado = await this.solicitudEstadoRepository.findOne({where: { Id_Estado_Solicitud: nuevoEstadoId }});
-
-        if (!nuevoEstado) {throw new Error(`Estado con id ${nuevoEstadoId} no encontrado`);}
+        if (!nuevoEstado) { throw new Error(`Estado con id ${nuevoEstadoId} no encontrado`); }
 
         solicitud.Estado = nuevoEstado;
         return this.solicitudAfiliacionRepository.save(solicitud);
@@ -73,9 +71,7 @@ export class SolicitudesAfiliacionService
     async deleteSolicitudAfiliacion(id: number)
     {
         const solicitud = await this.solicitudAfiliacionRepository.findOne({ where: { Id_Solicitud: id } });
-        if (!solicitud) {
-            throw new Error(`Solicitud de afiliación con id ${id} no encontrada`);
-        }
+        if (!solicitud) { throw new Error(`Solicitud de afiliación con id ${id} no encontrada`); }
         return this.solicitudAfiliacionRepository.remove(solicitud);
     }
 }

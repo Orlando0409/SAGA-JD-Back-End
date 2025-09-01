@@ -27,19 +27,19 @@ export class SolicitudDesconexionController {
     return this.solicitudDesconexionService.createSolicitudDesconexion(dto);
   }
 
-  @Put(':id')
+  @Put('/update/:id')
   @ApiOperation({ summary: 'Actualizar una solicitud de desconexion por ID' })
   updateSolicitudDesconexion(@Param('ID Solicitud', ParseIntPipe) id: number, @Body() dto: UpdateSolicitudDesconexionDto) {
     return this.solicitudDesconexionService.updateSolicitudDesconexion(id, dto);
   }
 
-  @Put('id/estado/:nuevoEstadoId')
+  @Put(':id/update/estado/:nuevoEstadoId')
   @ApiOperation({ summary: 'Actualizar el estado de una solicitud de desconexion por ID' })
   updateEstadoSolicitudDesconexion(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
     return this.solicitudDesconexionService.UpdateEstadoSolicitudDesconexion(id, nuevoEstadoId);
   }
 
-  @Delete(':id')
+  @Delete('/delete/:id')
   @ApiOperation({ summary: 'Eliminar una solicitud de desconexion por ID' })
   deleteSolicitudDesconexion(@Param('id', ParseIntPipe) id: number) {
     return this.solicitudDesconexionService.deleteSolicitudDesconexion(id);
