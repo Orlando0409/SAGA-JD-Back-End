@@ -4,9 +4,10 @@ import { Module } from "@nestjs/common";
 import { SolicitudAfiliacionController } from "../Controllers/solicitudAfiliacion.controller";
 import { SolicitudesAfiliacionService } from "../Services/solicitudAfiliacion.service";
 import { SolicitudEstado } from "../SolicitudEntities/EstadoSolicitud.Entity";
+import { DropboxModule } from "src/Dropbox/Files/DropboxFiles.module";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([SolicitudAfiliacion, SolicitudEstado])],
+    imports: [TypeOrmModule.forFeature([SolicitudAfiliacion, SolicitudEstado]), DropboxModule],
     controllers: [SolicitudAfiliacionController],
     providers: [SolicitudesAfiliacionService],
 })

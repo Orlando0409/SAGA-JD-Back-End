@@ -83,6 +83,7 @@ export class CreateSolicitudAfiliacionDto extends CreateSolicitudDto {
   @IsPositive({ message: 'La edad debe ser un número positivo' })
   Edad: number;
 
+  /*
   @ApiProperty({ example: 'https://EjemploPlanos.pdf' })
   @IsString({ message: 'Los planos del terreno deben ser un string' })
   @Transform(({ value }) => value?.trim())
@@ -98,6 +99,7 @@ export class CreateSolicitudAfiliacionDto extends CreateSolicitudDto {
   @IsUrl()
   @MaxLength(500, { message: 'La URL de planos no puede tener más de 500 caracteres' })
   Escritura_Terreno: string;
+  */
 }
 
 export class CreateSolicitudDesconexionDto extends CreateSolicitudDto {
@@ -111,6 +113,7 @@ export class CreateSolicitudDesconexionDto extends CreateSolicitudDto {
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,!?¿¡()-]+$/, { message: 'El motivo de la solicitud solo puede contener letras, números, espacios y los caracteres .,!?¿¡()-' })
   Motivo_Solicitud: string;
 
+  /*
   @ApiProperty({ example: 'https://EjemploPlanos.pdf' })
   @IsString({message: 'Los planos del terreno deben ser un string'})
   @Transform(({ value }) => value?.trim())
@@ -126,6 +129,7 @@ export class CreateSolicitudDesconexionDto extends CreateSolicitudDto {
   @IsUrl()
   @MaxLength(500, { message: 'La URL de planos no puede tener más de 500 caracteres' })
   Escritura_Terreno: string;
+  */
 }
 
 export class CreateSolicitudCambioMedidorDto extends CreateSolicitudDto {
@@ -138,14 +142,6 @@ export class CreateSolicitudCambioMedidorDto extends CreateSolicitudDto {
   @MaxLength(500, { message: 'El motivo de la solicitud no puede tener más de 500 caracteres' })
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,!?¿¡()-]+$/, { message: 'El motivo de la solicitud solo puede contener letras, números, espacios y los caracteres .,!?¿¡()-' })
   Motivo_Solicitud: string;
-
-  @ApiProperty({ example: 'Calle 123, Ciudad' })
-  @IsString({ message: 'La ubicacion debe ser un string' })
-  @IsDefined({ message: 'La ubicacion no puede estar vacia' })
-  @MinLength(10, { message: 'La ubicación debe tener al menos 10 caracteres' })
-  @MaxLength(255, { message: 'La ubicación no puede tener más de 255 caracteres' })
-  @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#-]+$/, { message: 'La ubicación solo puede contener letras, números, espacios y los caracteres .,-#' })
-  Ubicacion: string;
 
   @ApiProperty({example: 456789})
   @IsInt({message: 'El numero de medidor anterior debe ser un numero entero'})

@@ -2,7 +2,6 @@ import { Body, Injectable } from '@nestjs/common';
 import { Dropbox } from 'dropbox';
 import fetch from 'node-fetch';
 import { CreateDropboxFileDto } from '../DropboxFilesDTO\'s/CreateDropboxFile.dto';
-import { response } from 'express';
 
 @Injectable()
 export class DropboxFilesService {
