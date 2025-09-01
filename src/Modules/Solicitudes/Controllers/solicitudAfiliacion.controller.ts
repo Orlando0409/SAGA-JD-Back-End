@@ -5,6 +5,7 @@ import { ApiOperation } from "@nestjs/swagger";
 import { UpdateSolicitudAfiliacionDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
 import { FileFieldsInterceptor, FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 
 @Controller('solicitud-afiliacion')
 export class SolicitudAfiliacionController {

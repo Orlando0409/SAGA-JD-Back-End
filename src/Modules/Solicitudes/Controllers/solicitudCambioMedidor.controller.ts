@@ -3,7 +3,7 @@ import { CreateSolicitudCambioMedidorDto } from "../SolicitudDTO's/CreateSolicit
 import { SolicitudesMedidorService } from "../Services/solicitudCambioMedidor.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { UpdateSolicitudCambioMedidorDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
-
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 @Controller('solicitud-cambio-medidor')
 export class SolicitudCambioMedidorController {
   

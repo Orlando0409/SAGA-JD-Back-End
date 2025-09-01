@@ -69,7 +69,13 @@ import { DropboxModule } from './Dropbox/Files/DropboxFiles.module';
   ],
   controllers: [],
   providers: [
-    {
+    
+  ],
+})
+export class AppModule {}
+
+/*
+{
       provide: APP_GUARD,
       useClass: JwtAuthGuard, //  Autenticación JWT global
     },
@@ -81,6 +87,4 @@ import { DropboxModule } from './Dropbox/Files/DropboxFiles.module';
       provide: APP_GUARD,
       useClass: PermisosGuard, //  Verificación de permisos global
     },
-  ],
-})
-export class AppModule {}
+*/
