@@ -46,8 +46,8 @@ export class SolicitudesDesconexionService
         const escrituraFile = files.Escritura_Terreno?.[0];
         const cedula = dto.Cedula;
     
-        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes Desconexion', cedula) : null;
-        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes Desconexion', cedula) : null;
+        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Desconexion', cedula) : null;
+        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Desconexion', cedula) : null;
     
         const now = new Date();
         now.setSeconds(0, 0);
