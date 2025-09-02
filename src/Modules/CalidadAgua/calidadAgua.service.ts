@@ -21,7 +21,7 @@ export class CalidadAguaService
     @Public()
     async getCalidadAgua()
     {
-        return this.calidadAguaRepository.find
+        return this.calidadAguaRepository.find()
     }
 
     async getCalidadAguaById(Id_Calidad_Agua: number)
