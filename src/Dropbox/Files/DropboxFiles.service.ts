@@ -1,19 +1,24 @@
 import { Body, Injectable } from '@nestjs/common';
 import { Dropbox } from 'dropbox';
-import fetch from 'node-fetch';
+import { DropboxAuthService } from '../DropboxAuth.service';
 
 @Injectable()
 export class DropboxFilesService {
-  private dbx: Dropbox;
-
-  constructor() {
-    this.dbx = new Dropbox({
-      accessToken: process.env.DROPBOX_ACCESS_TOKEN,
-      fetch
-    });
-  }
+  constructor
+  (
+    private readonly dropboxAuthService: DropboxAuthService,
+  ) {}
 
   async uploadFile(file: Express.Multer.File, carpeta: string, cedula?: string) {
+
+    const accessToken = await this.dropboxAuthService.getAccessToken();
+    const dbx = new Dropbox({ accessToken });
+
+    if (!accessToken) {
+      throw new Error('Dropbox access token is not available');
+    }
+
+
     try {
       if (!file) {
         throw new Error('No se ha recibido ningún archivo');
@@ -27,7 +32,7 @@ export class DropboxFilesService {
         : `${folderPath}/${carpeta}/${file.originalname}`;
 
       // 🚀 Subir archivo a Dropbox
-      const uploadRes = await this.dbx.filesUpload({
+      const uploadRes = await dbx.filesUpload({
         path: dropboxPath,
         contents: file.buffer,
         mode: { '.tag': 'overwrite' },
@@ -36,13 +41,13 @@ export class DropboxFilesService {
       // 🔗 Intentar crear un link compartido
       let sharedLink;
       try {
-        sharedLink = await this.dbx.sharingCreateSharedLinkWithSettings({
+        sharedLink = await dbx.sharingCreateSharedLinkWithSettings({
           path: dropboxPath,
         });
       } catch (error: any) {
         // Caso especial: si ya existe el link
         if (error?.error?.error?.['.tag'] === 'shared_link_already_exists') {
-          const listLinks = await this.dbx.sharingListSharedLinks({
+          const listLinks = await dbx.sharingListSharedLinks({
             path: dropboxPath,
             direct_only: true,
           });
