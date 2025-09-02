@@ -4,8 +4,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
-import { LoginDto } from './DTO/LoginDto';
 import { UserEntity } from '../Usuarios/UsuarioEntities/Usuario.Entity';
+import { LoginDto } from './DTO/LoginDto';
+import { v4 as uuidv4 } from 'uuid';
+import { ConfigService } from '@nestjs/config';
+import { EmailService } from '../Emails/email.service';
+import { ResetPasswordDto } from './DTO/ResetPasswordDto';
 
 @Injectable()
 export class AuthService {
@@ -13,7 +17,9 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>
+    private readonly userRepository: Repository<UserEntity>,
+    private readonly configService: ConfigService,
+    private readonly emailService: EmailService,
   ) {}
 
   async login(loginDto: LoginDto, response: Response) {
@@ -129,23 +135,45 @@ export class AuthService {
   }
 
   async forgotPassword(email: string) {
+
     const usuario = await this.userRepository.findOne({
       where: { Correo_Electronico: email }
     });
 
     if (!usuario) {
-      // Por seguridad, no revelar si el email existe o no
       return {
         mensaje: 'Si el email existe, recibirás instrucciones para recuperar tu contraseña'
       };
     }
 
-    // Aquí se implementará el envío de email con token de recuperación
-    // Por ahora solo retornamos un mensaje
+    const payload = {
+      email: usuario.Correo_Electronico,
+      id: usuario.Id_Usuario,
+      jti: uuidv4(), // identificador único del token
+    };
+
+   
+    const token = await this.jwtService.signAsync(payload, { expiresIn: '10m' });
+
+    const FrontendRecoverURL = `${this.configService.get('FRONTEND_URL')}/auth/reset-password`;
+    const url = `${FrontendRecoverURL}?token=${token}`;
+
+    
+    try {
+      await this.emailService.sendRecoverPasswordMail({
+        to: email,
+        subject: 'Recuperación de contraseña',
+        RecoverPasswordURL: url,
+      });
+      console.log('Correo de recuperación enviado correctamente a', email);
+    } catch (error) {
+      console.error('Error al enviar el correo de recuperación:', error);
+    }
+
     return {
       mensaje: 'Si el email existe, recibirás instrucciones para recuperar tu contraseña'
     };
-  }
+}
 
   async getUserProfile(userId: number) {
     const usuario = await this.userRepository.findOne({
@@ -181,6 +209,40 @@ export class AuthService {
       ...usuarioSeguro,
       permisos: permisosOrganizados
     };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    try {
+     
+      if (dto.nuevaContraseña !== dto.confirmarContraseña) {
+        throw new UnauthorizedException('Las contraseñas no coinciden');
+      }
+
+     
+      const payload = await this.jwtService.verifyAsync(dto.token);
+
+      
+      const usuario = await this.userRepository.findOne({
+        where: { Id_Usuario: payload.id }
+      });
+
+      if (!usuario) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+
+  
+      const hashedPassword = await bcrypt.hash(dto.nuevaContraseña, 10);
+
+     
+      await this.userRepository.update(usuario.Id_Usuario, { Contraseña: hashedPassword });
+
+      return { mensaje: 'Contraseña actualizada correctamente' };
+
+    } catch (error) {
+
+      console.error('Error al cambiar la contraseña:', error);
+      throw new UnauthorizedException('Token inválido, expirado o contraseñas no coinciden');
+    }
   }
 
   private setTokenCookies(response: Response, accessToken: string, refreshToken: string) {

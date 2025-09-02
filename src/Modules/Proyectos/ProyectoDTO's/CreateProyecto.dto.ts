@@ -31,14 +31,5 @@ export class CreateProyectoDto {
     @Min(1, { message: 'El ID del usuario debe ser mayor a 0' })
     @Max(999999, { message: 'El ID del usuario no puede ser mayor a 999,999' })
     Id_Usuario: number;
-
-    @ApiProperty({ example: 'https://imagen.jpg' })
-    @IsString({ message: 'La URL de la imagen debe ser un string' })
-    @IsDefined({ message: 'La URL de la imagen no puede estar vacia' })
-    @Transform(({ value }) => value?.trim())
-    @IsNotEmpty({ message: 'La URL de la imagen no puede estar vacía' })
-    @MaxLength(500, { message: 'La URL de la imagen no puede tener más de 500 caracteres' })
-    @Matches(/\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i, { message: 'La URL debe apuntar a una imagen válida (JPG, JPEG, PNG, GIF, WEBP, SVG, BMP)' })
-    @IsUrl()
-    Imagen_Url: string;
+    // CAMBIAR A USUARIO RELACION
 }

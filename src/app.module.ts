@@ -22,6 +22,8 @@ import { UsuariosModule } from './Modules/Usuarios/Modules/usuarios.module';
 import { Permiso } from './Modules/Usuarios/UsuarioEntities/Permiso.Entity';
 import { UserEntity } from './Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { UserRol } from './Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
+
+
 import { Proyecto } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
 import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 import { CalidadAguaModule } from './Modules/CalidadAgua/calidadAgua.module';

@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseIntPipe, Post, UploadedFile, UseInterceptors } from "@nestjs/common";
 import { CalidadAguaService } from "./calidadAgua.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { CreateCalidadAguaDto } from "./CalidadAguaDTO's/CreateCalidadAgua.dto";
+import { FileInterceptor } from "@nestjs/platform-express";
 
-@Controller('CalidadAgua')
+@Controller('calidad-agua')
 export class CalidadAguaController
 {
     constructor (private readonly calidadAguaService: CalidadAguaService) {}
@@ -20,9 +21,13 @@ export class CalidadAguaController
         return this.calidadAguaService.getCalidadAguaById(id);
     }
 
-    @Post()
-    @ApiOperation({ summary: 'Crear un nuevo registro de calidad de agua' })
-    CreateCalidadAgua(@Body() CreateCalidadAguaDto: CreateCalidadAguaDto) {
-        return this.calidadAguaService.CreateCalidadAgua(CreateCalidadAguaDto)
+    @Post('/create')
+    @UseInterceptors(FileInterceptor("Archivo_Calidad_Agua"))
+    @ApiOperation({ summary: "Crear un nuevo registro de calidad de agua" })
+    CreateCalidadAgua(
+        @Body() createCalidadAguaDto: CreateCalidadAguaDto,
+        @UploadedFile() Archivo_Calidad_Agua: Express.Multer.File,
+    ) {
+        return this.calidadAguaService.CreateCalidadAgua(createCalidadAguaDto, Archivo_Calidad_Agua);
     }
 }

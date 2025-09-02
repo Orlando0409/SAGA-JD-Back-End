@@ -12,8 +12,10 @@ import { Response, Request } from 'express';
 import { Public } from './Decorator/Public.decorator';
 import { ForgotPasswordDto } from './DTO/ForgotPasswordDto';
 import { LoginDto } from './DTO/LoginDto';
+import { ResetPasswordDto } from './DTO/ResetPasswordDto';
 import { JwtAuthGuard } from './Guard/JwtGuard';
 import { AuthService } from './Auth.service';
+
 
 @ApiTags('Autenticación')
 @Controller('auth')
@@ -58,6 +60,13 @@ export class AuthController {
   @ApiOperation({ summary: 'Recuperar contraseña' })
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     return this.authService.forgotPassword(forgotPasswordDto.Email);
+  }
+
+  @Public()
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Restablecer contraseña' })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return await this.authService.resetPassword(dto);
   }
 
   @UseGuards(JwtAuthGuard)
