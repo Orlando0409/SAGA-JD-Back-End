@@ -40,6 +40,9 @@ export class CalidadAguaService
         // Subir archivo a Dropbox
         const fileRes = await this.dropboxFilesService.uploadFile(file, 'Calidad-de-Agua');
 
+        const now = new Date();
+        now.setSeconds(0, 0);
+
         // Crear objeto entidad
         const calidadAgua = this.calidadAguaRepository.create({
             Titulo: dto.Titulo,
