@@ -129,7 +129,7 @@ export class AuthService {
     }
   }
 
-  logout(response: Response) {
+  async logout(response: Response) {
     response.clearCookie('accessToken');
     response.clearCookie('refreshToken');
 

@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { UserEntity } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
 import { Request } from 'express';
 
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(

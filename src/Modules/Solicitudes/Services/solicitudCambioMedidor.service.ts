@@ -3,8 +3,9 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { SolicitudEstado } from "../SolicitudEntities/EstadoSolicitud.Entity";
 import { SolicitudCambioMedidor } from "../SolicitudEntities/Solicitud.Entity";
-import { CreateCambioMediadorDto } from "../SolicitudDTO's/CreateSolicitud.dto";
-import { UpdateSolicitudCambioMediadorDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
+import { CreateCambioMedidorDto } from "../SolicitudDTO's/CreateSolicitud.dto";
+import { UpdateSolicitudCambioMedidorDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 
 @Injectable()
 export class SolicitudesMedidorService
@@ -32,7 +33,8 @@ export class SolicitudesMedidorService
         return solicitud;
     }
 
-    async createSolicitudCambioMedidor(dto: CreateCambioMediadorDto)
+    @Public()
+    async createSolicitudCambioMedidor(dto: CreateCambioMedidorDto)
     {
         const estadoInicial = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) {throw new Error(`Estado inicial de solicitud no configurado`);}
@@ -40,11 +42,11 @@ export class SolicitudesMedidorService
         const now = new Date();
         now.setSeconds(0, 0);
     
-        const nuevaSolicitud = this.solicitudCambioMedidorRepository.create({...dto, Estado: estadoInicial});
+        const nuevaSolicitud = this.solicitudCambioMedidorRepository.create({...dto, Estado: estadoInicial, Fecha_Creacion: now});
         return this.solicitudCambioMedidorRepository.save(nuevaSolicitud);
     }
 
-    async updateSolicitudCambioMedidor(id: number, dto: UpdateSolicitudCambioMediadorDto)
+    async updateSolicitudCambioMedidor(id: number, dto: UpdateSolicitudCambioMedidorDto)
     {
         const solicitud = await this.solicitudCambioMedidorRepository.findOne({
             where: { Id_Solicitud: id }

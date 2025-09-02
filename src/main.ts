@@ -3,6 +3,7 @@ import { SwaggerModule, DocumentBuilder, SwaggerDocumentOptions } from '@nestjs/
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
+import 'dotenv/config';
 
 export interface SwaggerCustomOptions {
   customSiteTitle?: string;
@@ -22,9 +23,13 @@ async function bootstrap() {
   });
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({
+    transform: true,
     whitelist: true,
     forbidNonWhitelisted: true,
     forbidUnknownValues: true,
+    transformOptions: {
+      enableImplicitConversion: true,
+    },
   }));
 
   const config = new DocumentBuilder()

@@ -5,6 +5,8 @@ import { Repository } from "typeorm";
 import { SolicitudEstado } from "../SolicitudEntities/EstadoSolicitud.Entity";
 import { CreateSolicitudDesconexionDto } from "../SolicitudDTO's/CreateSolicitud.dto";
 import { UpdateSolicitudDesconexionDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
+import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 
 @Injectable()
 export class SolicitudesDesconexionService
@@ -15,7 +17,9 @@ export class SolicitudesDesconexionService
         private readonly solicitudDesconexionRepository: Repository<SolicitudDesconexion>,
 
         @InjectRepository(SolicitudEstado)
-        private readonly solicitudEstadoRepository: Repository<SolicitudEstado>
+        private readonly solicitudEstadoRepository: Repository<SolicitudEstado>,
+        
+        private readonly dropboxFilesService: DropboxFilesService,
     ) {}
 
     async findAllSolicitudesDesconexion()
@@ -32,16 +36,32 @@ export class SolicitudesDesconexionService
         return solicitud;
     }
 
-    async createSolicitudDesconexion(dto: CreateSolicitudDesconexionDto)
+    @Public()
+    async createSolicitudDesconexion(dto: CreateSolicitudDesconexionDto, files: any)
     {
         const estadoInicial = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) {throw new Error(`Estado inicial de solicitud no configurado`);}
         
+        const planoFile = files.Planos_Terreno?.[0];
+        const escrituraFile = files.Escritura_Terreno?.[0];
+        const cedula = dto.Cedula;
+    
+        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Desconexion', cedula) : null;
+        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Desconexion', cedula) : null;
+    
         const now = new Date();
         now.setSeconds(0, 0);
-        
-        const nuevaSolicitud = this.solicitudDesconexionRepository.create({...dto, Estado: estadoInicial});
-        return this.solicitudDesconexionRepository.save(nuevaSolicitud);
+
+        // Guarda SOLO las URLs en tu BD
+        const solicitudDesconexion = {
+            ...dto,
+            Planos_Terreno: planoRes?.url ?? null,
+            Escritura_Terreno: escrituraRes?.url ?? null,
+            Estado: estadoInicial,
+            Id_Tipo_Solicitud: 2
+        };
+
+        return this.solicitudDesconexionRepository.save(solicitudDesconexion);
     }
     
     async updateSolicitudDesconexion(id: number, dto: UpdateSolicitudDesconexionDto)

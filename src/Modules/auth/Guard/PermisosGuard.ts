@@ -39,10 +39,10 @@ export class PermisosGuard implements CanActivate {
         let tienePermiso = false;
         switch (permisoRequerido.accion) {
             case 'ver':
-                tienePermiso = permisoDelModulo.Ver === true || permisoDelModulo.Editar === true;
+                tienePermiso = permisoDelModulo.Ver === true;
                 break;
             case 'editar':
-                tienePermiso = permisoDelModulo.Editar === true;
+                tienePermiso = permisoDelModulo.ver === true && permisoDelModulo.Editar === true;
                 break;
         }
 
