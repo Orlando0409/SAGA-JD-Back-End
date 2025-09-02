@@ -159,7 +159,7 @@ export class AuthService {
    
     const token = await this.jwtService.signAsync(payload, { expiresIn: '10m' });
 
-    const FrontendRecoverURL = `${this.configService.get('FRONTEND_URL')}/auth/reset-password`;
+    const FrontendRecoverURL = `${this.configService.get('FRONTEND_URL')}/auth/ResetPassword`;
     const url = `${FrontendRecoverURL}?token=${token}`;
 
     
@@ -221,7 +221,6 @@ export class AuthService {
       if (dto.nuevaContraseña !== dto.confirmarContraseña) {
         throw new UnauthorizedException('Las contraseñas no coinciden');
       }
-
      
       const payload = await this.jwtService.verifyAsync(dto.token);
 
@@ -234,7 +233,6 @@ export class AuthService {
         throw new NotFoundException('Usuario no encontrado');
       }
 
-  
       const hashedPassword = await bcrypt.hash(dto.nuevaContraseña, 10);
 
      
