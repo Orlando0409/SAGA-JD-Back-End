@@ -25,6 +25,7 @@ import { UserRol } from './Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
 import {ProyectoEstado} from "./Modules/Proyectos/ProyectoEntities/ProjectStatus.Entity";
 import{Proyecto} from "./Modules/Proyectos/ProyectoEntities/Project.Entity";
 
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -42,7 +43,7 @@ import{Proyecto} from "./Modules/Proyectos/ProyectoEntities/Project.Entity";
         username: config.get<string>('DB_USERNAME'),
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
-        entities: [UserEntity,UserRol,Permiso, SolicitudEntity, SolicitudEstado],
+        entities: [UserEntity,UserRol,Permiso, SolicitudEntity, SolicitudEstado,],
         synchronize: false, 
       }),
     }),

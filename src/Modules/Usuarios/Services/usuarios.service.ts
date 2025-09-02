@@ -18,8 +18,21 @@ export class UsuariosService {
     ){}
 
     async createUser(createUserDto: CreateUserDto) {
-        const { Id_Rol, Contraseña, ...userData } = createUserDto;  
-        
+        const { Id_Rol, Contraseña, Correo_Electronico, Nombre_Usuario, ...userData } = createUserDto;  
+        // Validar correo existente
+        const correoExistente = await this.userRepository.findOne({where : {Correo_Electronico}, withDeleted : true});
+        if(correoExistente)
+        {
+            throw new BadRequestException('El correo electrónico ya está registrado');
+        }
+        // Validar nombre de usuario existente
+        if (Nombre_Usuario) {
+            const nombreExistente = await this.userRepository.findOne({where : {Nombre_Usuario}, withDeleted : true});
+            if(nombreExistente) {
+                throw new BadRequestException('El nombre de usuario ya está registrado');
+            }
+        }
+
         //  Hashear la contraseña antes de guardar
         let hashedPassword = Contraseña;
         if (Contraseña) {
@@ -31,17 +44,19 @@ export class UsuariosService {
             if (!rol) {
                 throw new NotFoundException('Rol no encontrado');
             }
-            
             const user = this.userRepository.create({ 
                 ...userData, 
+                Nombre_Usuario,
                 Contraseña: hashedPassword, //  Usar contraseña hasheada
-                id_rol: Id_Rol 
+                id_rol: Id_Rol,
+                Correo_Electronico
             });
             return await this.userRepository.save(user);
         }
-        
         const user = this.userRepository.create({
             ...userData,
+            Nombre_Usuario,
+            Correo_Electronico,
             Contraseña: hashedPassword //  Usar contraseña hasheada
         });
         return await this.userRepository.save(user);
