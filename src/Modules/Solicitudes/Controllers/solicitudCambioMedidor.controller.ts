@@ -4,10 +4,12 @@ import { SolicitudesMedidorService } from "../Services/solicitudCambioMedidor.se
 import { ApiOperation } from "@nestjs/swagger";
 import { UpdateSolicitudCambioMedidorDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
 
-@Controller('solicitud-cambio-mediador')
+@Controller('solicitud-cambio-medidor')
 export class SolicitudCambioMedidorController {
-  
-  constructor(private readonly solicitudCambioMedidorService: SolicitudesMedidorService) {}
+  constructor
+  (
+    private readonly solicitudCambioMedidorService: SolicitudesMedidorService
+  ) {}
 
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todas las solicitudes de cambio de medidor' })

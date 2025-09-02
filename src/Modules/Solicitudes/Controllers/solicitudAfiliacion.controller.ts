@@ -1,13 +1,16 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UploadedFiles, UseInterceptors} from "@nestjs/common";
 import { SolicitudesAfiliacionService } from "../Services/solicitudAfiliacion.service";
 import { CreateSolicitudAfiliacionDto } from "../SolicitudDTO's/CreateSolicitud.dto";
 import { ApiOperation } from "@nestjs/swagger";
 import { UpdateSolicitudAfiliacionDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
-import { Public } from "src/Modules/auth/Decorator/Public.decorator";
+import { FileFieldsInterceptor } from "@nestjs/platform-express";
 
 @Controller('solicitud-afiliacion')
 export class SolicitudAfiliacionController {
-  constructor(private readonly solicitudAfiliacionService: SolicitudesAfiliacionService) {}
+  constructor
+  (
+    private readonly solicitudAfiliacionService: SolicitudesAfiliacionService,
+  ) {}
 
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todas las solicitudes de afiliación' })
@@ -21,11 +24,15 @@ export class SolicitudAfiliacionController {
     return this.solicitudAfiliacionService.findSolicitudAfiliacionById(id);
   }
 
-  @Public()
   @Post('/create')
-  @ApiOperation({ summary: 'Crear una nueva solicitud de afiliación' })
-  createSolicitudAfiliacion(@Body() dto: CreateSolicitudAfiliacionDto) {
-    return this.solicitudAfiliacionService.createSolicitudAfiliacion(dto);
+  @UseInterceptors(FileFieldsInterceptor([ 
+    { name: 'Planos_Terreno', maxCount: 1 }, 
+    { name: 'Escritura_Terreno', maxCount: 1 }, 
+  ]),)
+  async createSolicitudAfiliacion(
+  @Body() solicitudAfiliacion: CreateSolicitudAfiliacionDto,
+  @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; } ) {
+    return this.solicitudAfiliacionService.createSolicitudAfiliacion(solicitudAfiliacion, files);
   }
 
   @Put('/update/:id')
