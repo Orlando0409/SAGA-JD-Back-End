@@ -5,6 +5,7 @@ import { UpdateProyectoDto } from "./ProyectoDTO's/UpdateProyecto.dto";
 import { CreateProyectoDto } from "./ProyectoDTO's/CreateProyecto.dto";
 import { Proyecto } from "./ProyectoEntities/Proyecto.Entity";
 import { ProyectoEstado } from "./ProyectoEntities/EstadoProyecto.Entity";
+import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 
 @Injectable()
 export class ProyectoService 
@@ -15,7 +16,9 @@ export class ProyectoService
         private readonly proyectoRepository: Repository<Proyecto>,
 
         @InjectRepository(ProyectoEstado)
-        private readonly proyectoEstadoRepository: Repository<ProyectoEstado>
+        private readonly proyectoEstadoRepository: Repository<ProyectoEstado>,
+
+        private readonly dropboxFilesService: DropboxFilesService,
     ) {}
 
     async getProyectos()
@@ -29,16 +32,30 @@ export class ProyectoService
         return proyecto;
     }
 
-    async CreateProyecto(dto: CreateProyectoDto)
+    async CreateProyecto(dto: CreateProyectoDto, file?: Express.Multer.File)
     {
+        if (!file) {
+            throw new Error('Debe subir una imagen para el proyecto');
+        }
+
         const estadoinicial = await this.proyectoEstadoRepository.findOne({ where:{ Id_Estado_Proyecto: 1 } });
         if (!estadoinicial) {throw new NotFoundException(`Estado inicial de proyecto no configurado`);}
+
+        // Subir archivo a Dropbox
+        const fileRes = await this.dropboxFilesService.uploadFile(file, 'Imagenes-Proyectos');
 
         const now = new Date();
         now.setSeconds(0, 0);
 
-        const nuevoProyecto = this.proyectoRepository.create({...dto, Estado: estadoinicial});
-        return this.proyectoRepository.save(nuevoProyecto);
+        // Crear objeto entidad
+        const proyecto = ({
+            ...dto,
+            Imagen_Url: fileRes.url,
+            Estado: estadoinicial
+        });
+
+        // Guardar en BD
+        return await this.proyectoRepository.save(proyecto);
     }
 
     async UpdateProyecto(Id_Proyecto: number, dto: UpdateProyectoDto) 
