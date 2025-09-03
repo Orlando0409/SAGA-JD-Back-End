@@ -6,6 +6,7 @@ import { CreateProyectoDto } from "./ProyectoDTO's/CreateProyecto.dto";
 import { Proyecto } from "./ProyectoEntities/Proyecto.Entity";
 import { ProyectoEstado } from "./ProyectoEntities/EstadoProyecto.Entity";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
+import { Public } from "../auth/Decorator/Public.decorator";
 
 @Injectable()
 export class ProyectoService 
@@ -21,6 +22,7 @@ export class ProyectoService
         private readonly dropboxFilesService: DropboxFilesService,
     ) {}
 
+    @Public()
     async getProyectos()
     {
         return this.proyectoRepository.find({ relations: ['Estado'],});

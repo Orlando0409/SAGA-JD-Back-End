@@ -3,6 +3,7 @@ import { CreateSolicitudCambioMedidorDto } from "../SolicitudDTO's/CreateSolicit
 import { SolicitudesMedidorService } from "../Services/solicitudCambioMedidor.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { UpdateSolicitudCambioMedidorDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 
 @Controller('solicitud-cambio-medidor')
 export class SolicitudCambioMedidorController {
@@ -23,6 +24,7 @@ export class SolicitudCambioMedidorController {
     return this.solicitudCambioMedidorService.findSolicitudCambioMedidorById(id);
   }
 
+  @Public()
   @Post('/create')
   @ApiOperation({ summary: 'Crear una nueva solicitud de cambio de medidor' })
   createSolicitudCambioMedidor(@Body() dto: CreateSolicitudCambioMedidorDto) {

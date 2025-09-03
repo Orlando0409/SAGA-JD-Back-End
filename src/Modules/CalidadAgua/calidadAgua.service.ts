@@ -53,15 +53,24 @@ export class CalidadAguaService
         return await this.calidadAguaRepository.save(calidadAgua);
     }
 
-    async updateCalidadAgua(Id_Calidad_Agua: number, dto: UpdateCalidadAguaDto)
+    async updateCalidadAgua(Id_Calidad_Agua: number, dto: UpdateCalidadAguaDto, file?: Express.Multer.File)
     {
         const CalidadAgua = await this.calidadAguaRepository.findOne({ where: { Id_Calidad_Agua } });
-        if(!CalidadAgua)
-        {
-            throw new NotFoundException(`Archivo de calidad de agua con id ${Id_Calidad_Agua} no encontrado`);
+        if (!CalidadAgua) {
+            throw new NotFoundException(`Registro con ID ${Id_Calidad_Agua} no encontrado`);
         }
 
-        Object.assign(CalidadAgua, dto);
+        // Si llega un archivo, subimos uno nuevo
+        if (file) {
+            const fileRes = await this.dropboxFilesService.uploadFile(file, 'Calidad-de-Agua');
+            CalidadAgua.Url_Archivo = fileRes.url;
+        }
+
+        // Actualizar título si lo mandan
+        if (dto.Titulo) {
+            CalidadAgua.Titulo = dto.Titulo;
+        }
+
         return this.calidadAguaRepository.save(CalidadAgua);
     }
 }
