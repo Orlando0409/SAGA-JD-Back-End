@@ -50,7 +50,7 @@ import { DropboxModule } from './Dropbox/Files/DropboxFiles.module';
         SolicitudEntity, SolicitudAfiliacion, SolicitudCambioMedidor,
         SolicitudDesconexion, SolicitudAsociado, SolicitudEstado, Proyecto,
         ProyectoEstado, CalidadAgua],
-        synchronize: false,
+        synchronize: true,
       }),
     }),
     ProyectoModule,
