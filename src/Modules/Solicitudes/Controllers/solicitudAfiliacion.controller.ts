@@ -27,6 +27,7 @@ export class SolicitudAfiliacionController {
 
   @Public()
   @Post('/create')
+  @ApiOperation({ summary: 'Crear una nueva solicitud de afiliacion' })
   @UseInterceptors(FileFieldsInterceptor([ 
     { name: 'Planos_Terreno', maxCount: 1 }, 
     { name: 'Escritura_Terreno', maxCount: 1 }, 

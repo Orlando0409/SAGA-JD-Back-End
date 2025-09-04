@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from "@nestjs/common";
 import { CreateSolicitudCambioMedidorDto } from "../SolicitudDTO's/CreateSolicitud.dto";
-import { SolicitudesMedidorService } from "../Services/solicitudCambioMedidor.service";
+import { SolicitudesCambioMedidorService } from "../Services/solicitudCambioMedidor.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { UpdateSolicitudCambioMedidorDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
@@ -9,7 +9,7 @@ import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 export class SolicitudCambioMedidorController {
   constructor
   (
-    private readonly solicitudCambioMedidorService: SolicitudesMedidorService
+    private readonly solicitudCambioMedidorService: SolicitudesCambioMedidorService
   ) {}
 
   @Get('/all')
