@@ -61,7 +61,9 @@ export class CreateSolicitudDto {
   @MinLength(8, { message: 'El número de teléfono debe tener al menos 8 dígitos' })
   @MaxLength(15, { message: 'El número de teléfono no puede tener más de 15 caracteres' })
   Numero_Telefono: string;
+}
 
+export class CreateSolicitudAfiliacionDto extends CreateSolicitudDto {
   @ApiProperty({ example: '200 metros del perro echado' })
   @Transform(({ value }) => value?.trim())
   @IsString({ message: 'La dirección debe ser un string' })
@@ -71,9 +73,7 @@ export class CreateSolicitudDto {
   @MaxLength(255, { message: 'La dirección no puede tener más de 255 caracteres' })
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#-]+$/, { message: 'La dirección solo puede contener letras, números, espacios y los caracteres .,-#' })
   Direccion_Exacta: string;
-}
 
-export class CreateSolicitudAfiliacionDto extends CreateSolicitudDto {
   @ApiProperty({ example: 18 })
   @IsInt({ message: 'La edad debe ser un numero entero' })
   @IsDefined({ message: 'La edad no puede estar vacia' })
@@ -85,6 +85,16 @@ export class CreateSolicitudAfiliacionDto extends CreateSolicitudDto {
 }
 
 export class CreateSolicitudDesconexionDto extends CreateSolicitudDto {
+  @ApiProperty({ example: '200 metros del perro echado' })
+  @Transform(({ value }) => value?.trim())
+  @IsString({ message: 'La dirección debe ser un string' })
+  @IsDefined({ message: 'La dirección no puede estar vacía' })
+  @IsNotEmpty({ message: 'La dirección no puede estar vacía' })
+  @MinLength(10, { message: 'La dirección debe tener al menos 10 caracteres' })
+  @MaxLength(255, { message: 'La dirección no puede tener más de 255 caracteres' })
+  @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#-]+$/, { message: 'La dirección solo puede contener letras, números, espacios y los caracteres .,-#' })
+  Direccion_Exacta: string;
+
   @ApiProperty({ example: 'Para mi casa de campo nueva' })
   @Transform(({ value }) => value?.trim())
   @IsString({ message: 'El motivo de la solicitud debe ser un string' })
@@ -97,6 +107,16 @@ export class CreateSolicitudDesconexionDto extends CreateSolicitudDto {
 }
 
 export class CreateSolicitudCambioMedidorDto extends CreateSolicitudDto {
+  @ApiProperty({ example: '200 metros del perro echado' })
+  @Transform(({ value }) => value?.trim())
+  @IsString({ message: 'La dirección debe ser un string' })
+  @IsDefined({ message: 'La dirección no puede estar vacía' })
+  @IsNotEmpty({ message: 'La dirección no puede estar vacía' })
+  @MinLength(10, { message: 'La dirección debe tener al menos 10 caracteres' })
+  @MaxLength(255, { message: 'La dirección no puede tener más de 255 caracteres' })
+  @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#-]+$/, { message: 'La dirección solo puede contener letras, números, espacios y los caracteres .,-#' })
+  Direccion_Exacta: string;
+
   @ApiProperty({ example: 'Para mi casa de campo nueva' })
   @Transform(({ value }) => value?.trim())
   @IsString({ message: 'El motivo de la solicitud debe ser un string' })
@@ -117,6 +137,18 @@ export class CreateSolicitudCambioMedidorDto extends CreateSolicitudDto {
   Numero_Medidor_Anterior: number;
 }
 
+export class CreateSolicitudAsociadoDto extends CreateSolicitudDto {
+  @ApiProperty({ example: 'Para mi casa de campo nueva' })
+  @Transform(({ value }) => value?.trim())
+  @IsString({ message: 'El motivo de la solicitud debe ser un string' })
+  @IsDefined({ message: 'El motivo de la solicitud no puede estar vacío' })
+  @IsNotEmpty({ message: 'El motivo de la solicitud no puede estar vacío' })
+  @MinLength(10, { message: 'El motivo de la solicitud debe tener al menos 10 caracteres' })
+  @MaxLength(500, { message: 'El motivo de la solicitud no puede tener más de 500 caracteres' })
+  @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,!?¿¡()-]+$/, { message: 'El motivo de la solicitud solo puede contener letras, números, espacios y los caracteres .,!?¿¡()-' })
+  Motivo_Solicitud: string;
+}
+
 export class CreateAfiliacionDto extends IntersectionType(
   CreateSolicitudDto,
   CreateSolicitudAfiliacionDto
@@ -130,4 +162,9 @@ export class CreateDesconexionDto extends IntersectionType(
 export class CreateCambioMedidorDto extends IntersectionType(
   CreateSolicitudDto,
   CreateSolicitudCambioMedidorDto
+) {}
+
+export class CreateAsociadoDto extends IntersectionType(
+  CreateSolicitudDto,
+  CreateSolicitudAsociadoDto
 ) {}
