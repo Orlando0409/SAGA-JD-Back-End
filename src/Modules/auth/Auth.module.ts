@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { EmailModule } from '../Emails/email.module';
 
 
 // Entities
@@ -27,9 +28,10 @@ import { AuthService } from './Auth.service';
 
 @Module({
     imports: [
+        EmailModule,
         PassportModule.register({ defaultStrategy: 'jwt' }),
         JwtModule.registerAsync({
-            imports: [ConfigModule],
+            imports: [ConfigModule, EmailModule],
             inject: [ConfigService],
             useFactory: (configService: ConfigService) => ({
                 secret: configService.get<string>('JWT_SECRET'),

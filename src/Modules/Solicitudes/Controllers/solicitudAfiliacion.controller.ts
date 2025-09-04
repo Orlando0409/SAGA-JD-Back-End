@@ -25,6 +25,7 @@ export class SolicitudAfiliacionController {
     return this.solicitudAfiliacionService.findSolicitudAfiliacionById(id);
   }
 
+  @Public()
   @Post('/create')
   @UseInterceptors(FileFieldsInterceptor([ 
     { name: 'Planos_Terreno', maxCount: 1 }, 

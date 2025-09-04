@@ -18,7 +18,6 @@ export class DropboxFilesService {
       throw new Error('Dropbox access token is not available');
     }
 
-
     try {
       if (!file) {
         throw new Error('No se ha recibido ningún archivo');

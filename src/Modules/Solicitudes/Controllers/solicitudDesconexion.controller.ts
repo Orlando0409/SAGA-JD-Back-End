@@ -25,6 +25,7 @@ export class SolicitudDesconexionController {
   getSolicitudDesconexionById(@Param('id', ParseIntPipe) id: number) {
     return this.solicitudDesconexionService.findSolicitudDesconexionById(id);
   }
+
   @Public()
   @Post('/create')
   @UseInterceptors(FileFieldsInterceptor([ 
