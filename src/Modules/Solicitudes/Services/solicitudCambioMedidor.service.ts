@@ -8,7 +8,7 @@ import { UpdateSolicitudCambioMedidorDto } from "../SolicitudDTO's/UpdateSolicit
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 
 @Injectable()
-export class SolicitudesMedidorService
+export class SolicitudesCambioMedidorService
 {
     constructor
     (
@@ -26,11 +26,11 @@ export class SolicitudesMedidorService
 
     async findSolicitudCambioMedidorById(id: number)
     {
-        const solicitud = await this.solicitudCambioMedidorRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
-        if (!solicitud) {
+        const solicitudCambioMedidor = await this.solicitudCambioMedidorRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
+        if (!solicitudCambioMedidor) {
             throw new Error(`Solicitud de cambio de medidor con id ${id} no encontrada`);
         }
-        return solicitud;
+        return solicitudCambioMedidor;
     }
 
     @Public()
@@ -42,44 +42,44 @@ export class SolicitudesMedidorService
         const now = new Date();
         now.setSeconds(0, 0);
     
-        const nuevaSolicitud = this.solicitudCambioMedidorRepository.create({...dto, Estado: estadoInicial, Fecha_Creacion: now});
-        return this.solicitudCambioMedidorRepository.save(nuevaSolicitud);
+        const solicitudCambioMedidor = this.solicitudCambioMedidorRepository.create({...dto, Estado: estadoInicial, Fecha_Creacion: now});
+        return this.solicitudCambioMedidorRepository.save(solicitudCambioMedidor);
     }
 
     async updateSolicitudCambioMedidor(id: number, dto: UpdateSolicitudCambioMedidorDto)
     {
-        const solicitud = await this.solicitudCambioMedidorRepository.findOne({
+        const solicitudCambioMedidor = await this.solicitudCambioMedidorRepository.findOne({
             where: { Id_Solicitud: id }
         });
     
-        if (!solicitud) {
+        if (!solicitudCambioMedidor) {
             throw new Error(`Solicitud de afiliación con id ${id} no encontrada`);
         }
     
-        Object.assign(solicitud, dto);
-        return this.solicitudCambioMedidorRepository.save(solicitud);
+        Object.assign(solicitudCambioMedidor, dto);
+        return this.solicitudCambioMedidorRepository.save(solicitudCambioMedidor);
     }
     
     async UpdateEstadoSolicitudCambioMedidor(id: number, nuevoEstadoId: number)
     {
-        const solicitud = await this.solicitudCambioMedidorRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
+        const solicitudCambioMedidor = await this.solicitudCambioMedidorRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
     
-        if (!solicitud) {throw new Error(`Solicitud con id ${id} no encontrada`);}
+        if (!solicitudCambioMedidor) {throw new Error(`Solicitud con id ${id} no encontrada`);}
     
         const nuevoEstado = await this.solicitudEstadoRepository.findOne({where: { Id_Estado_Solicitud: nuevoEstadoId }});
     
         if (!nuevoEstado) {throw new Error(`Estado con id ${nuevoEstadoId} no encontrado`);}
     
-        solicitud.Estado = nuevoEstado;
-        return this.solicitudCambioMedidorRepository.save(solicitud);
+        solicitudCambioMedidor.Estado = nuevoEstado;
+        return this.solicitudCambioMedidorRepository.save(solicitudCambioMedidor);
     }
 
     async deleteSolicitudCambioMedidor(id: number)
     {
-        const solicitud = await this.solicitudCambioMedidorRepository.findOne({ where: { Id_Solicitud: id } });
-        if (!solicitud) {
+        const solicitudCambioMedidor = await this.solicitudCambioMedidorRepository.findOne({ where: { Id_Solicitud: id } });
+        if (!solicitudCambioMedidor) {
             throw new Error(`Solicitud de cambio de medidor con id ${id} no encontrada`);
         }
-        return this.solicitudCambioMedidorRepository.remove(solicitud);
+        return this.solicitudCambioMedidorRepository.remove(solicitudCambioMedidor);
     }
 }

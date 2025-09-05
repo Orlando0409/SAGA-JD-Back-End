@@ -5,6 +5,7 @@ import { ApiOperation } from "@nestjs/swagger";
 import { UpdateSolicitudDesconexionDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 
 @Controller('solicitud-desconexion')
 export class SolicitudDesconexionController {
@@ -25,6 +26,7 @@ export class SolicitudDesconexionController {
     return this.solicitudDesconexionService.findSolicitudDesconexionById(id);
   }
 
+  @Public()
   @Post('/create')
   @UseInterceptors(FileFieldsInterceptor([ 
       { name: 'Planos_Terreno', maxCount: 1 }, 
