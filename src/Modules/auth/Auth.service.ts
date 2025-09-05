@@ -218,10 +218,6 @@ export class AuthService {
   async resetPassword(dto: ResetPasswordDto) {
     try {
      
-      if (dto.nuevaContraseña !== dto.confirmarContraseña) {
-        throw new UnauthorizedException('Las contraseñas no coinciden');
-      }
-     
       const payload = await this.jwtService.verifyAsync(dto.token);
 
       
