@@ -4,6 +4,7 @@ import { CreateSolicitudAfiliacionDto } from "../SolicitudDTO's/CreateSolicitud.
 import { ApiOperation } from "@nestjs/swagger";
 import { UpdateSolicitudAfiliacionDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 
 @Controller('solicitud-afiliacion')
 export class SolicitudAfiliacionController {
@@ -24,7 +25,9 @@ export class SolicitudAfiliacionController {
     return this.solicitudAfiliacionService.findSolicitudAfiliacionById(id);
   }
 
+  @Public()
   @Post('/create')
+  @ApiOperation({ summary: 'Crear una nueva solicitud de afiliacion' })
   @UseInterceptors(FileFieldsInterceptor([ 
     { name: 'Planos_Terreno', maxCount: 1 }, 
     { name: 'Escritura_Terreno', maxCount: 1 }, 
