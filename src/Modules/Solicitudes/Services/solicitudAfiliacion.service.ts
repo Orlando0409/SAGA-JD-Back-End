@@ -40,6 +40,10 @@ export class SolicitudesAfiliacionService
         const estadoInicial = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) { throw new Error(`Estado inicial de solicitud no configurado`); }
 
+        const validacionCedula = await this.solicitudAfiliacionRepository.findOne({ where: { Cedula: dto.Cedula }, });
+        const validacionTipoSolicitud = await this.solicitudAfiliacionRepository.findOne({ where: { Id_Tipo_Solicitud: 1 }, });
+        if (validacionCedula && validacionTipoSolicitud) { throw new Error(`Ya existe una solicitud de afiliacion con la cédula ${dto.Cedula}`); }
+
         const planoFile = files.Planos_Terreno?.[0];
         const escrituraFile = files.Escritura_Terreno?.[0];
         const cedula = dto.Cedula;
@@ -94,4 +98,8 @@ export class SolicitudesAfiliacionService
         if (!solicitud) { throw new Error(`Solicitud de afiliación con id ${id} no encontrada`); }
         return this.solicitudAfiliacionRepository.remove(solicitud);
     }
+}
+
+function validarEstadoInicialSolicitudes() {
+    throw new Error("Function not implemented.");
 }

@@ -1,4 +1,4 @@
-import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { SolicitudEstado } from "./EstadoSolicitud.Entity";
 
 @Entity('Solicitud')
@@ -32,6 +32,9 @@ export abstract class SolicitudEntity
 
     @CreateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Creacion: Date;
+
+    @UpdateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
+    Fecha_Actualizacion: Date;
 
     @Column({ nullable: false })
     Id_Tipo_Solicitud: number;
