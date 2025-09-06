@@ -35,7 +35,11 @@ export class SolicitudesAsociadoService
     {
         const estadoInicial = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) {throw new Error(`Estado inicial de solicitud no configurado`);}
-    
+        
+        const validacionCedula = await this.solicitudAsociadoRepository.findOne({ where: { Cedula: dto.Cedula }, });
+        const validacionTipoSolicitud = await this.solicitudAsociadoRepository.findOne({ where: { Id_Tipo_Solicitud: 4 }, });
+        if (validacionCedula && validacionTipoSolicitud) { throw new Error(`Ya existe una solicitud de asociado con la cédula ${dto.Cedula}`); }
+
         const now = new Date();
         now.setSeconds(0, 0);
     

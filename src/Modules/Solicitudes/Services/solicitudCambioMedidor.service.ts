@@ -38,10 +38,14 @@ export class SolicitudesCambioMedidorService
     {
         const estadoInicial = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) {throw new Error(`Estado inicial de solicitud no configurado`);}
-    
+        
+        const validacionCedula = await this.solicitudCambioMedidorRepository.findOne({ where: { Cedula: dto.Cedula }, });
+        const validacionTipoSolicitud = await this.solicitudCambioMedidorRepository.findOne({ where: { Id_Tipo_Solicitud: 3 }, });
+        if (validacionCedula && validacionTipoSolicitud) { throw new Error(`Ya existe una solicitud de cambio de medidor con la cédula ${dto.Cedula}`); }
+
         const now = new Date();
         now.setSeconds(0, 0);
-    
+
         const solicitudCambioMedidor = this.solicitudCambioMedidorRepository.create({...dto, Estado: estadoInicial, Fecha_Creacion: now});
         return this.solicitudCambioMedidorRepository.save(solicitudCambioMedidor);
     }

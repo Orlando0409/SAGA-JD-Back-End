@@ -4,20 +4,18 @@ import { CreateSolicitudDesconexionDto } from "../SolicitudDTO's/CreateSolicitud
 import { ApiOperation } from "@nestjs/swagger";
 import { UpdateSolicitudDesconexionDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
-import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 
 @Controller('solicitud-desconexion')
 export class SolicitudDesconexionController {
   constructor(
     private readonly solicitudDesconexionService: SolicitudesDesconexionService,
-    private readonly dropboxFilesService: DropboxFilesService
   ) {}
 
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todas las solicitudes de desconexion' })
   getAllSolicitudesDesconexion() {
-    return this.getAllSolicitudesDesconexion();
+    return this.solicitudDesconexionService.getAllSolicitudesDesconexion();
   }
 
   @Get(':id')
