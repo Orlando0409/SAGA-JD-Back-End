@@ -22,7 +22,7 @@ export class SolicitudesDesconexionService
         private readonly dropboxFilesService: DropboxFilesService,
     ) {}
 
-    async findAllSolicitudesDesconexion()
+    async getAllSolicitudesDesconexion()
     {
         return this.solicitudDesconexionRepository.find({ relations: ['Estado'] });
     }
@@ -41,6 +41,10 @@ export class SolicitudesDesconexionService
     {
         const estadoInicial = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) {throw new Error(`Estado inicial de solicitud no configurado`);}
+
+        const validacionCedula = await this.solicitudDesconexionRepository.findOne({ where: { Cedula: dto.Cedula }, });
+        const validacionTipoSolicitud = await this.solicitudDesconexionRepository.findOne({ where: { Id_Tipo_Solicitud: 2 }, });
+        if (validacionCedula && validacionTipoSolicitud) { throw new Error(`Ya existe una solicitud de desconexion con la cédula ${dto.Cedula}`); }
         
         const planoFile = files.Planos_Terreno?.[0];
         const escrituraFile = files.Escritura_Terreno?.[0];
