@@ -155,7 +155,7 @@ export class AuthService {
    
     const token = await this.jwtService.signAsync(payload, { expiresIn: '10m' });
 
-    const FrontendRecoverURL = `${this.configService.get('FRONTEND_URL')}/auth/ResetPassword`;
+    const FrontendRecoverURL = `${this.configService.get('FRONTEND_URL')}/ResetPassword`;
     const url = `${FrontendRecoverURL}?token=${token}`;
 
     

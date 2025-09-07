@@ -48,7 +48,7 @@ export class UsuariosService {
                 ...userData, 
                 Nombre_Usuario,
                 Contraseña: hashedPassword, //  Usar contraseña hasheada
-                id_rol: Id_Rol,
+                id_Rol: Id_Rol,
                 Correo_Electronico
             });
             return await this.userRepository.save(user);
@@ -114,13 +114,13 @@ export class UsuariosService {
 
         if (updateUserDto.Id_Rol !== undefined) {
             if (updateUserDto.Id_Rol === 0) {
-                user.id_rol = 0; 
+                user.id_Rol = 0; 
             } else {
                 const nuevoRol = await this.rolRepository.findOneBy({ Id_Rol: updateUserDto.Id_Rol});
                 if (!nuevoRol){
                     throw new NotFoundException('Rol no encontrado');
                 } 
-                user.id_rol = updateUserDto.Id_Rol;
+                user.id_Rol = updateUserDto.Id_Rol;
             }
         }
 

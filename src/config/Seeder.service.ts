@@ -171,7 +171,7 @@ export class SeederService implements OnModuleInit {
                     Nombre_Usuario: 'admin',
                     Correo_Electronico: 'admin@saga.com',
                     Contraseña: hashedPassword,
-                    id_rol: adminRole.Id_Rol
+                    id_Rol: adminRole.Id_Rol
                 });
 
                 await this.userRepository.save(adminUser);
