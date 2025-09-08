@@ -65,7 +65,7 @@ export class UsuariosService {
     async AllUser() {
         const users = await this.userRepository.find({ 
             relations: ['rol', 'rol.permisos'], 
-            withDeleted: true 
+            withDeleted: true  
         });
         
         //  Remover contraseñas de la respuesta
@@ -82,6 +82,7 @@ export class UsuariosService {
         const user = await this.userRepository.findOne({
             where: { Id_Usuario: id },
             relations: ['rol', 'rol.permisos'],
+            withDeleted: true
         });
         
         if (!user) {
