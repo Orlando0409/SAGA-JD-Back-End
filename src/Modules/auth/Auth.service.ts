@@ -28,11 +28,15 @@ export class AuthService {
     // Buscar usuario por nombre de usuario
     const usuario = await this.userRepository.findOne({
       where: { Nombre_Usuario },
-      relations: ['rol', 'rol.permisos']
+      relations: ['rol', 'rol.permisos'],
+      withDeleted: true
     });
 
     if (!usuario) {
         throw new UnauthorizedException('Credenciales inválidas');
+    }
+    if (usuario.Fecha_Eliminacion) {
+      throw new UnauthorizedException('Usuario deshabilitado');
     }
 
     let contraseñaValida = false;
