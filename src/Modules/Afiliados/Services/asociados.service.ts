@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { SolicitudAsociado } from '../../Solicitudes/SolicitudEntities/Solicitud.Entity';
+import { SolicitudAsociadoFisica } from '../../Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { Asociado } from '../AfiliadoEntities/Asociado.Entity';
 import { CreateAsociadoDto } from '../AfiliadoDTO\'s/CreateAsociado.dto';
 import { UpdateAsociadoDto } from '../AfiliadoDTO\'s/UpdateAsociado.dto';
@@ -16,8 +16,8 @@ export class AsociadosService {
     @InjectRepository(EstadoAfiliado)
     private readonly estadoAfiliadoRepository: Repository<EstadoAfiliado>,
 
-    @InjectRepository(SolicitudAsociado)
-    private readonly solicitudAsociadoRepository: Repository<SolicitudAsociado>,
+    @InjectRepository(SolicitudAsociadoFisica)
+    private readonly solicitudAsociadoFisicaRepository: Repository<SolicitudAsociadoFisica>,
   ) {}
 
   async getAllAsociados() {
@@ -50,7 +50,7 @@ export class AsociadosService {
     }
 
     // Verificar que existe una solicitud de asociado aprobada para esta cédula
-    const solicitudAprobada = await this.solicitudAsociadoRepository.findOne({
+    const solicitudAprobada = await this.solicitudAsociadoFisicaRepository.findOne({
       where: { 
         Cedula: dto.Cedula,
         Estado: { Id_Estado_Solicitud: 3 } // Estado aprobada

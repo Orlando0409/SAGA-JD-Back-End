@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Abonado } from '../AfiliadoEntities/Abonado.Entity';
 import { EstadoAfiliado } from '../AfiliadoEntities/EstadoAfiliado.Entity';
-import { SolicitudAfiliacion } from '../../Solicitudes/SolicitudEntities/Solicitud.Entity';
+import { SolicitudAfiliacionFisica } from '../../Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { CreateAbonadoDto } from '../AfiliadoDTO\'s/CreateAbonado.dto';
 import { UpdateAbonadoDto } from '../AfiliadoDTO\'s/UpdateAbonado.dto';
 
@@ -16,8 +16,8 @@ export class AbonadosService {
     @InjectRepository(EstadoAfiliado)
     private readonly estadoAfiliadoRepository: Repository<EstadoAfiliado>,
 
-    @InjectRepository(SolicitudAfiliacion)
-    private readonly solicitudAfiliacionRepository: Repository<SolicitudAfiliacion>,
+    @InjectRepository(SolicitudAfiliacionFisica)
+    private readonly solicitudAfiliacionFisicaRepository: Repository<SolicitudAfiliacionFisica>,
   ) {}
 
   async getAllAbonados() {
@@ -57,7 +57,7 @@ export class AbonadosService {
     }
 
     // Verificar que existe una solicitud de afiliación aprobada para esta cédula
-    const solicitudAprobada = await this.solicitudAfiliacionRepository.findOne({ where: { Cedula: dto.Cedula, Estado: { Id_Estado_Solicitud: 3 } }, relations: ['Estado'] });
+    const solicitudAprobada = await this.solicitudAfiliacionFisicaRepository.findOne({ where: { Cedula: dto.Cedula, Estado: { Id_Estado_Solicitud: 3 } }, relations: ['Estado'] });
     if (!solicitudAprobada) { throw new BadRequestException(`No existe una solicitud de afiliación aprobada para la cédula ${dto.Cedula}`); }
 
     // Obtener estado inicial (asumiendo que 1 es "Activo")

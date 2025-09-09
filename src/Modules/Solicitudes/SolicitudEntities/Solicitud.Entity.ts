@@ -1,6 +1,7 @@
 import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, TableInheritance, UpdateDateColumn } from "typeorm";
 import { EstadoSolicitud } from "./EstadoSolicitud.Entity";
 
+@Entity('Solicitud')
 @TableInheritance({ column: { type: "int", name: "Id_Tipo_Solicitud" } })
 export abstract class Solicitud
 {
@@ -13,7 +14,7 @@ export abstract class Solicitud
     @Column({ nullable: false })
     Numero_Telefono: string;
 
-    @ManyToOne(() => EstadoSolicitud, estado => estado.Solicitud)
+    @ManyToOne(() => EstadoSolicitud, estado => estado.Solicitudes)
     @JoinColumn({ name: 'Id_Estado_Solicitud' })
     Estado: EstadoSolicitud;
 
@@ -49,7 +50,7 @@ export class SolicitudJuridica extends Solicitud {
     Razon_Social: string;
 }
 
-@Entity('Solicitud_Afiliacion_Fisica')
+@Entity('Solicitudes_Afiliacion_Fisica')
 export class SolicitudAfiliacionFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Direccion_Exacta: string;
@@ -68,7 +69,7 @@ export class SolicitudAfiliacionFisica extends SolicitudFisica {
 }
 
 @Entity('Solicitudes_Desconexion_Fisica')
-export class SolicitudDesconexionFisica extends Solicitud {
+export class SolicitudDesconexionFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Direccion_Exacta: string;
 
@@ -86,7 +87,7 @@ export class SolicitudDesconexionFisica extends Solicitud {
 }
 
 @Entity('Solicitudes_Cambio_Medidor_Fisica')
-export class SolicitudCambioMedidorFisica extends Solicitud {
+export class SolicitudCambioMedidorFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Direccion_Exacta: string;
 
@@ -104,7 +105,7 @@ export class SolicitudCambioMedidorFisica extends Solicitud {
 }
 
 @Entity('Solicitudes_Asociado_Fisica')
-export class SolicitudAsociadoFisica extends Solicitud {
+export class SolicitudAsociadoFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Motivo_Solicitud: string;
 

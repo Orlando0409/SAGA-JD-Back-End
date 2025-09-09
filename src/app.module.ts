@@ -27,11 +27,15 @@ import { DropboxModule } from './Dropbox/Files/DropboxFiles.module';
 import { Abonado } from './Modules/Afiliados/AfiliadoEntities/Abonado.Entity';
 import { Asociado } from './Modules/Afiliados/AfiliadoEntities/Asociado.Entity';
 import { EstadoAfiliado } from './Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
-import { SolicitudAfiliacionFisica, SolicitudAsociadoFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudFisica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
+import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica, SolicitudFisica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { SolicitudAsociadoFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAsociado.module';
 import { SolicitudCambioMedidorFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudCambioMedidor.module';
 import { SolicitudDesconexionFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudDesconexion.module';
 import { SolicitudAfiliacionFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAfiliacion.module';
+import { SolicitudAfiliacionJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudAfiliacion.module';
+import { SolicitudDesconexionJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudDesconexion.module';
+import { SolicitudCambioMedidorJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudCambioMedidor.module';
+import { SolicitudAsociadoJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudAsociado.module';
 
 @Module({
   imports: [
@@ -50,10 +54,11 @@ import { SolicitudAfiliacionFisicaModule } from './Modules/Solicitudes/Fisica/Mo
         username: config.get<string>('DB_USERNAME'),
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
-        entities: [UserEntity, UserRol, Permiso,
+        entities: [UserEntity, UserRol, Permiso, Solicitud,
         SolicitudFisica, SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica,
-        SolicitudDesconexionFisica, SolicitudAsociadoFisica, EstadoSolicitud, Proyecto,
-        ProyectoEstado, CalidadAgua, Abonado, Asociado, EstadoAfiliado],
+        SolicitudDesconexionFisica, SolicitudAsociadoFisica, SolicitudAfiliacionJuridica,
+        SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
+        EstadoSolicitud, Proyecto, ProyectoEstado, CalidadAgua, Abonado, Asociado, EstadoAfiliado],
         synchronize: false,
       }),
     }),
@@ -65,9 +70,13 @@ import { SolicitudAfiliacionFisicaModule } from './Modules/Solicitudes/Fisica/Mo
     ProveedorModule,
     UsuariosModule,
     SolicitudAfiliacionFisicaModule,
+    SolicitudAfiliacionJuridicaModule,
     SolicitudDesconexionFisicaModule,
+    SolicitudDesconexionJuridicaModule,
     SolicitudCambioMedidorFisicaModule,
+    SolicitudCambioMedidorJuridicaModule,
     SolicitudAsociadoFisicaModule,
+    SolicitudAsociadoJuridicaModule,
     RolesModule,
     AuthModule,
     SeenderModule,

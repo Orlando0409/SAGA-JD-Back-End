@@ -14,7 +14,7 @@ export class SolicitudAfiliacionFisicaController {
   ) {}
 
   @Get('/all')
-  @ApiOperation({ summary: 'Obtener todas las solicitudes de afiliación' })
+  @ApiOperation({ summary: 'Obtener todas las solicitudes de afiliación físicas' })
   getAllSolicitudesAfiliacion() {
     return this.solicitudAfiliacionFisicaService.getAllSolicitudesAfiliacion();
   }
@@ -27,7 +27,7 @@ export class SolicitudAfiliacionFisicaController {
 
   @Public()
   @Post('/create')
-  @ApiOperation({ summary: 'Crear una nueva solicitud de afiliacion' })
+  @ApiOperation({ summary: 'Crear una nueva solicitud de afiliacion fisica' })
   @UseInterceptors(FileFieldsInterceptor([ 
     { name: 'Planos_Terreno', maxCount: 1 }, 
     { name: 'Escritura_Terreno', maxCount: 1 }, 
@@ -39,19 +39,19 @@ export class SolicitudAfiliacionFisicaController {
   }
 
   @Put('/update/:id')
-  @ApiOperation({ summary: 'Actualizar una solicitud de afiliación por ID' })
+  @ApiOperation({ summary: 'Actualizar una solicitud de afiliación fisica por ID' })
   updateSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSolicitudAfiliacionFisicaDto) {
     return this.solicitudAfiliacionFisicaService.updateSolicitudAfiliacion(id, dto);
   }
 
   @Put(':id/update/estado/:nuevoEstadoId')
-  @ApiOperation({ summary: 'Actualizar el estado de una solicitud de afiliación por ID' })
+  @ApiOperation({ summary: 'Actualizar el estado de una solicitud de afiliación fisica por ID' })
   updateEstadoSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
     return this.solicitudAfiliacionFisicaService.UpdateEstadoSolicitudAfiliacion(id, nuevoEstadoId);
   }
 
   @Delete('/delete/:id')
-  @ApiOperation({ summary: 'Eliminar una solicitud de afiliación por ID' })
+  @ApiOperation({ summary: 'Eliminar una solicitud de afiliación fisica por ID' })
   deleteSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number) {
     return this.solicitudAfiliacionFisicaService.deleteSolicitudAfiliacion(id);
   }

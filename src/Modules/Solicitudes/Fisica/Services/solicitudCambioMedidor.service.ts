@@ -42,7 +42,7 @@ export class SolicitudesCambioMedidorFisicaService
         const estadoInicial = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) {throw new BadRequestException(`Estado inicial de solicitud no configurado`);}
         
-        const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesActivas(dto.Cedula);
+        const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Cedula);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
         const now = new Date();

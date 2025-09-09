@@ -9,7 +9,7 @@ export class DropboxFilesService {
     private readonly dropboxAuthService: DropboxAuthService,
   ) {}
 
-  async uploadFile(file: Express.Multer.File, carpeta: string, cedula?: string) {
+  async uploadFile(file: Express.Multer.File, carpetaPrincipal: string, carpetaSecundaria?: string, cedula?: string) {
 
     const accessToken = await this.dropboxAuthService.getAccessToken();
     const dbx = new Dropbox({ accessToken });
@@ -27,8 +27,8 @@ export class DropboxFilesService {
 
       // 📂 Construcción de la ruta en Dropbox
       let dropboxPath = cedula
-        ? `${folderPath}/${carpeta}/${cedula}/${file.originalname}`
-        : `${folderPath}/${carpeta}/${file.originalname}`;
+        ? `${folderPath}/${carpetaPrincipal}/${carpetaSecundaria}/${cedula}/${file.originalname}`
+        : `${folderPath}/${carpetaPrincipal}/${file.originalname}`;
 
       // 🚀 Subir archivo a Dropbox
       const uploadRes = await dbx.filesUpload({
