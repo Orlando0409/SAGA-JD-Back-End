@@ -35,6 +35,9 @@ export class RolesService {
     AllRoles() {
         return this.rolesRepository.find({ relations: ['permisos'] });
     }
+    AllPermission(){
+        return this.permisosRepository.find();
+    }
     
     findOneRoles(id: number) {
         return this.rolesRepository.findOne({ 

@@ -8,9 +8,14 @@ import {UpdateRolesDto} from "../UsuarioDTO's/UpdateRoles.dto";
 export class RolesController {
     constructor(private readonly rolesService: RolesService) {}
     
-    @Get()
+    @Get('allRoles')
     AllRoles() {
         return this.rolesService.AllRoles();
+    }
+
+    @Get('allPermissions')
+    AllPermission(){
+        return this.rolesService.AllPermission();
     }
     
     @Get(':id')

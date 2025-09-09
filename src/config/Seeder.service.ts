@@ -80,6 +80,12 @@ export class SeederService implements OnModuleInit {
             Ver: true,        
             Editar: false,
             });
+            // Sin permisos para bitacora
+            await this.createPermisoIfNotExists({
+                modulo: 'bitacora',
+                Ver: false,
+                Editar: false,
+            });
         }
     }
 
