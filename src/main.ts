@@ -56,11 +56,10 @@ async function bootstrap() {
       }
     }, 
   });
-  
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
-
 
 // Usar la URL 'http://localhost:3000/api' para abrir el Swagger UI
 

@@ -1,0 +1,16 @@
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { Module } from "@nestjs/common";
+import { SolicitudDesconexionFisicaController } from "../Controllers/solicitudDesconexion.controller";
+import { EstadoSolicitud } from "../../SolicitudEntities/EstadoSolicitud.Entity";
+import { DropboxModule } from "src/Dropbox/Files/DropboxFiles.module";
+import { ValidationsModule } from "src/Validations/Validations.module";
+import { SolicitudesDesconexionFisicaService } from "../Services/solicitudDesconexion.service";
+import { SolicitudDesconexionFisica } from "../../SolicitudEntities/Solicitud.Entity";
+
+@Module({
+    imports: [TypeOrmModule.forFeature([SolicitudDesconexionFisica, EstadoSolicitud]), DropboxModule, ValidationsModule],
+    controllers: [SolicitudDesconexionFisicaController],
+    providers: [SolicitudesDesconexionFisicaService],
+})
+
+export class SolicitudDesconexionFisicaModule {}
