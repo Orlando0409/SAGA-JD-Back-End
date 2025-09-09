@@ -62,7 +62,7 @@ export class DropboxFilesService {
       }
 
       // 🔄 Convertir link en descarga directa
-      const url = sharedLink.result.url.replace('?dl=0', '?dl=1');
+      const url = sharedLink.result.url.replace('?dl=1', '?raw=1').replace('www.dropbox.com', 'dl.dropboxusercontent.com');
 
       // 📦 Respuesta final
       return {
@@ -70,7 +70,7 @@ export class DropboxFilesService {
         name: uploadRes.result.name,
         size: uploadRes.result.size,
         path: dropboxPath,
-        url, // 👈 directo para guardar en BD
+        url // 👈 directo para guardar en BD
       };
     } catch (error) {
       console.error('Error subiendo archivo a Dropbox:', error);

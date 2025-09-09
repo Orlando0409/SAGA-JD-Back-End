@@ -1,12 +1,14 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { SolicitudAfiliacion } from "../SolicitudEntities/Solicitud.Entity";
-import { SolicitudEstado } from "../SolicitudEntities/EstadoSolicitud.Entity";
+import { EstadoSolicitud } from "../SolicitudEntities/EstadoSolicitud.Entity";
 import { CreateSolicitudAfiliacionDto } from "../SolicitudDTO's/CreateSolicitud.dto";
 import { UpdateSolicitudAfiliacionDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
+import { ValidationsService } from "src/Validations/Validations.service";
+import { AbonadosService } from "src/Modules/Afiliados/Services/abonados.service";
 
 @Injectable()
 export class SolicitudesAfiliacionService
@@ -16,10 +18,14 @@ export class SolicitudesAfiliacionService
         @InjectRepository(SolicitudAfiliacion)
         private readonly solicitudAfiliacionRepository: Repository<SolicitudAfiliacion>,
 
-        @InjectRepository(SolicitudEstado)
-        private readonly solicitudEstadoRepository: Repository<SolicitudEstado>,
+        @InjectRepository(EstadoSolicitud)
+        private readonly estadoSolicitudRepository: Repository<EstadoSolicitud>,
 
         private readonly dropboxFilesService: DropboxFilesService,
+
+        private readonly validationsService: ValidationsService,
+
+        private readonly abonadosService: AbonadosService,
     ) {}
 
     async getAllSolicitudesAfiliacion()
@@ -30,19 +36,18 @@ export class SolicitudesAfiliacionService
     async findSolicitudAfiliacionById(id: number)
     {
         const solicitud = await this.solicitudAfiliacionRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
-        if (!solicitud) {throw new Error(`Solicitud de afiliación con id ${id} no encontrada`);}
+        if (!solicitud) {throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`);}
         return solicitud;
     }
 
     @Public()
     async createSolicitudAfiliacion(dto: CreateSolicitudAfiliacionDto, files: any)
     {
-        const estadoInicial = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
-        if (!estadoInicial) { throw new Error(`Estado inicial de solicitud no configurado`); }
+        const estadoInicial = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
+        if (!estadoInicial) { throw new BadRequestException(`Estado inicial de solicitud no configurado`); }
 
-        const validacionCedula = await this.solicitudAfiliacionRepository.findOne({ where: { Cedula: dto.Cedula }, });
-        const validacionTipoSolicitud = await this.solicitudAfiliacionRepository.findOne({ where: { Id_Tipo_Solicitud: 1 }, });
-        if (validacionCedula && validacionTipoSolicitud) { throw new Error(`Ya existe una solicitud de afiliacion con la cédula ${dto.Cedula}`); }
+        const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesActivas(dto.Cedula);
+        if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
         const planoFile = files.Planos_Terreno?.[0];
         const escrituraFile = files.Escritura_Terreno?.[0];
@@ -57,8 +62,8 @@ export class SolicitudesAfiliacionService
         // Guarda SOLO las URLs en tu BD
         const solicitudAfiliacion = {
             ...dto,
-            Planos_Terreno: planoRes?.url ?? null,
-            Escritura_Terreno: escrituraRes?.url ?? null,
+            Planos_Terreno: planoRes?.url,
+            Escritura_Terreno: escrituraRes?.url,
             Estado: estadoInicial,
             Id_Tipo_Solicitud: 1
         };
@@ -73,7 +78,7 @@ export class SolicitudesAfiliacionService
         });
 
         if (!solicitud) {
-            throw new Error(`Solicitud de afiliación con id ${id} no encontrada`);
+            throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`);
         }
 
         Object.assign(solicitud, dto);
@@ -83,23 +88,33 @@ export class SolicitudesAfiliacionService
     async UpdateEstadoSolicitudAfiliacion(id: number, nuevoEstadoId: number)
     {
         const solicitud = await this.solicitudAfiliacionRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
-        if (!solicitud) { throw new Error(`Solicitud con id ${id} no encontrada`); }
+        if (!solicitud) { throw new BadRequestException(`Solicitud con id ${id} no encontrada`); }
 
-        const nuevoEstado = await this.solicitudEstadoRepository.findOne({where: { Id_Estado_Solicitud: nuevoEstadoId }});
-        if (!nuevoEstado) { throw new Error(`Estado con id ${nuevoEstadoId} no encontrado`); }
+        const nuevoEstado = await this.estadoSolicitudRepository.findOne({where: { Id_Estado_Solicitud: nuevoEstadoId }});
+        if (!nuevoEstado) { throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`); }
 
         solicitud.Estado = nuevoEstado;
-        return this.solicitudAfiliacionRepository.save(solicitud);
+        const solicitudActualizada = await this.solicitudAfiliacionRepository.save(solicitud);
+
+        // Si el estado cambia a 3 (Aprobada), crear automáticamente el abonado
+        if (nuevoEstadoId === 3) {
+            try {
+                await this.abonadosService.createAbonadoFromSolicitud(solicitudActualizada);
+            } catch (error) {
+                // Si ya existe el abonado, no lanzar error, solo continuar
+                if (!error.message.includes('Ya existe un abonado')) {
+                    throw error;
+                }
+            }
+        }
+
+        return solicitudActualizada;
     }
 
     async deleteSolicitudAfiliacion(id: number)
     {
         const solicitud = await this.solicitudAfiliacionRepository.findOne({ where: { Id_Solicitud: id } });
-        if (!solicitud) { throw new Error(`Solicitud de afiliación con id ${id} no encontrada`); }
+        if (!solicitud) { throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`); }
         return this.solicitudAfiliacionRepository.remove(solicitud);
     }
-}
-
-function validarEstadoInicialSolicitudes() {
-    throw new Error("Function not implemented.");
 }

@@ -1,7 +1,7 @@
 import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { SolicitudEstado } from "./EstadoSolicitud.Entity";
+import { EstadoSolicitud } from "./EstadoSolicitud.Entity";
 
-@Entity('Solicitud')
+@Entity('Solicitud_Fisica')
 export abstract class SolicitudEntity
 {
     @PrimaryGeneratedColumn()
@@ -26,9 +26,9 @@ export abstract class SolicitudEntity
     @Column({ nullable: false })
     Numero_Telefono: string;
 
-    @ManyToOne(() => SolicitudEstado, estado => estado.Solicitud)
+    @ManyToOne(() => EstadoSolicitud, estado => estado.Solicitud)
     @JoinColumn({ name: 'Id_Estado_Solicitud' })
-    Estado: SolicitudEstado;
+    Estado: EstadoSolicitud;
 
     @CreateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Creacion: Date;
@@ -55,7 +55,7 @@ export class SolicitudAfiliacion extends SolicitudEntity {
     Escritura_Terreno: string;
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as SolicitudEstado; } 
+    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; } 
 }
 
 @Entity('Solicitudes_Desconexion')
@@ -73,7 +73,7 @@ export class SolicitudDesconexion extends SolicitudEntity {
     Escritura_Terreno: string;
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as SolicitudEstado; } 
+    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; } 
 }
 
 @Entity('Solicitudes_Cambio_Medidor')
@@ -91,7 +91,7 @@ export class SolicitudCambioMedidor extends SolicitudEntity {
     setTipoSolicitud() { this.Id_Tipo_Solicitud = 3; }
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as SolicitudEstado; } 
+    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; } 
 }
 
 @Entity('Solicitudes_Asociado')
@@ -103,5 +103,5 @@ export class SolicitudAsociado extends SolicitudEntity {
     setTipoSolicitud() { this.Id_Tipo_Solicitud = 4; }
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as SolicitudEstado; }
+    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; }
 }
