@@ -8,17 +8,12 @@ import { AsociadosModule } from './Modules/Afiliados/Modules/asociados.module';
 import { FacturaModule } from './Modules/Facturas/factura.module';
 import { InventarioModule } from './Modules/Inventario/inventario.module';
 import { ProveedorModule } from './Modules/Proveedores/proveedor.module';
-import { SolicitudAfiliacionModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAfiliacion.module';
-import { SolicitudCambioMedidorModule } from './Modules/Solicitudes/Fisica/Modules/solicitudCambioMedidor.module';
-import { SolicitudDesconexionModule } from './Modules/Solicitudes/Fisica/Modules/solicitudDesconexion.module';
-import { SolicitudAsociadoModule } from './Modules/Solicitudes/Fisica/Modules/solicitudesAsociado.module';
 import { AuthModule } from './Modules/auth/Auth.module';
 import { JwtAuthGuard } from './Modules/auth/Guard/JwtGuard';
 import { RolesGuard } from './Modules/auth/Guard/RolesGuards';
 import { PermisosGuard } from './Modules/auth/Guard/PermisosGuard';
 import { SeenderModule } from './config/Seender.module';
 import { EstadoSolicitud } from './Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
-import { SolicitudAfiliacion, SolicitudAsociado, SolicitudCambioMedidor, SolicitudDesconexion, SolicitudEntity } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { RolesModule } from './Modules/Usuarios/Modules/roles.module';
 import { UsuariosModule } from './Modules/Usuarios/Modules/usuarios.module';
 import { Permiso } from './Modules/Usuarios/UsuarioEntities/Permiso.Entity';
@@ -32,6 +27,11 @@ import { DropboxModule } from './Dropbox/Files/DropboxFiles.module';
 import { Abonado } from './Modules/Afiliados/AfiliadoEntities/Abonado.Entity';
 import { Asociado } from './Modules/Afiliados/AfiliadoEntities/Asociado.Entity';
 import { EstadoAfiliado } from './Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
+import { SolicitudAfiliacionFisica, SolicitudAsociadoFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudFisica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
+import { SolicitudAsociadoFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAsociado.module';
+import { SolicitudCambioMedidorFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudCambioMedidor.module';
+import { SolicitudDesconexionFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudDesconexion.module';
+import { SolicitudAfiliacionFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAfiliacion.module';
 
 @Module({
   imports: [
@@ -51,8 +51,8 @@ import { EstadoAfiliado } from './Modules/Afiliados/AfiliadoEntities/EstadoAfili
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
         entities: [UserEntity, UserRol, Permiso,
-        SolicitudEntity, SolicitudAfiliacion, SolicitudCambioMedidor,
-        SolicitudDesconexion, SolicitudAsociado, EstadoSolicitud, Proyecto,
+        SolicitudFisica, SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica,
+        SolicitudDesconexionFisica, SolicitudAsociadoFisica, EstadoSolicitud, Proyecto,
         ProyectoEstado, CalidadAgua, Abonado, Asociado, EstadoAfiliado],
         synchronize: false,
       }),
@@ -64,10 +64,10 @@ import { EstadoAfiliado } from './Modules/Afiliados/AfiliadoEntities/EstadoAfili
     InventarioModule,
     ProveedorModule,
     UsuariosModule,
-    SolicitudAfiliacionModule,
-    SolicitudDesconexionModule,
-    SolicitudCambioMedidorModule,
-    SolicitudAsociadoModule,
+    SolicitudAfiliacionFisicaModule,
+    SolicitudDesconexionFisicaModule,
+    SolicitudCambioMedidorFisicaModule,
+    SolicitudAsociadoFisicaModule,
     RolesModule,
     AuthModule,
     SeenderModule,

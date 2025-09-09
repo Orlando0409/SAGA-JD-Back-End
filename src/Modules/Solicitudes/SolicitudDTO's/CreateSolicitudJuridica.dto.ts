@@ -1,53 +1,35 @@
 import { ApiProperty, IntersectionType } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsString, IsEmail, IsDefined, IsInt, IsUrl, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive } from "class-validator";
+import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive } from "class-validator";
 
-export class CreateSolicitudDto {
-  @ApiProperty({ example: '123456789' })
+export class CreateSolicitudJuridicaDto {
+  @ApiProperty({ example: '3101234567' })
   @Transform(({ value }) => value?.trim())
-  @IsString({message: 'La cedula debe ser tener entre 9 y 12 caracteres'})
-  @IsDefined({message: 'La cedula no puede estar vacia'})
-  @Transform(({ value }) => value?.toUpperCase())
-  @Matches(/^([A]?\d{9,12})$/, {message: 'La cédula debe tener 9-12 dígitos o comenzar con A seguido de 9-11 dígitos'})
-  @MinLength(9)
+  @IsString({ message: 'La cédula jurídica debe ser un string' })
+  @IsDefined({ message: 'La cédula jurídica no puede estar vacía' })
+  @IsNotEmpty({ message: 'La cédula jurídica no puede estar vacía' })
+  @Matches(/^3-\d{3}-\d{6}$/, { message: 'La cédula jurídica debe tener el formato 3-XXX-XXXXXX' })
+  @MinLength(12)
   @MaxLength(12)
-  Cedula: string;
+  Cedula_Juridica: string;
 
-  @ApiProperty({ example: 'Mario' })
+  @ApiProperty({ example: 'Empresa Ejemplo S.A.' })
   @Transform(({ value }) => value?.trim())
-  @IsString({ message: 'El nombre debe ser un string' })
-  @IsDefined({ message: 'El nombre no puede estar vacío' })
-  @IsNotEmpty({ message: 'El nombre no puede estar vacío' })
-  @MinLength(2, { message: 'El nombre debe tener al menos 2 caracteres' })
-  @MaxLength(50, { message: 'El nombre no puede tener más de 50 caracteres' })
-  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'El nombre solo puede contener letras y espacios' })
-  Nombre: string;
+  @IsString({ message: 'La razón social debe ser un string' })
+  @IsDefined({ message: 'La razón social no puede estar vacía' })
+  @IsNotEmpty({ message: 'La razón social no puede estar vacía' })
+  @MinLength(2, { message: 'La razón social debe tener al menos 2 caracteres' })
+  @MaxLength(100, { message: 'La razón social no puede tener más de 100 caracteres' })
+  @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,&()-]+$/, { message: 'La razón social solo puede contener letras, números, espacios y los caracteres .,&()-' })
+  Razon_Social: string;
 
-  @ApiProperty({ example: 'Perez' })
-  @Transform(({ value }) => value?.trim())
-  @IsString({ message: 'El primer apellido debe ser un string' })
-  @IsDefined({ message: 'El primer apellido no puede estar vacío' })
-  @IsNotEmpty({ message: 'El primer apellido no puede estar vacío' })
-  @MinLength(2, { message: 'El primer apellido debe tener al menos 2 caracteres' })
-  @MaxLength(50, { message: 'El primer apellido no puede tener más de 50 caracteres' })
-  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'El primer apellido solo puede contener letras y espacios' })
-  Apellido1: string;
-
-  @ApiProperty({ example: 'Lopez' })
-  @Transform(({ value }) => value?.trim())
-  @IsString({ message: 'El segundo apellido debe ser un string' })
-  @MinLength(2, { message: 'El segundo apellido debe tener al menos 2 caracteres' })
-  @MaxLength(50, { message: 'El segundo apellido no puede tener más de 50 caracteres' })
-  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'El segundo apellido solo puede contener letras y espacios' })
-  Apellido2: string;
-
-  @ApiProperty({ example: 'ejemplo@gmail.com' })
+  @ApiProperty({ example: 'ejemplo@empresa.com' })
   @Transform(({ value }) => value?.trim())
   @IsEmail({}, { message: 'El correo electrónico debe tener un formato válido' })
   @IsDefined({ message: 'El correo no puede estar vacío' })
   @IsNotEmpty({ message: 'El correo no puede estar vacío' })
   @MaxLength(100, { message: 'El correo no puede tener más de 100 caracteres' })
-  @Matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, {message: 'El formato del correo electrónico no es válido' })
+  @Matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, { message: 'El formato del correo electrónico no es válido' })
   Correo: string;
 
   @ApiProperty({ example: '12345678' })
@@ -61,8 +43,8 @@ export class CreateSolicitudDto {
   Numero_Telefono: string;
 }
 
-export class CreateSolicitudAfiliacionDto extends CreateSolicitudDto {
-  @ApiProperty({ example: '200 metros del perro echado' })
+export class CreateSolicitudAfiliacionJuridicaDto extends CreateSolicitudJuridicaDto {
+  @ApiProperty({ example: '200 metros del centro comercial' })
   @Transform(({ value }) => value?.trim())
   @IsString({ message: 'La dirección debe ser un string' })
   @IsDefined({ message: 'La dirección no puede estar vacía' })
@@ -71,19 +53,10 @@ export class CreateSolicitudAfiliacionDto extends CreateSolicitudDto {
   @MaxLength(255, { message: 'La dirección no puede tener más de 255 caracteres' })
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#-]+$/, { message: 'La dirección solo puede contener letras, números, espacios y los caracteres .,-#' })
   Direccion_Exacta: string;
-
-  @ApiProperty({ example: 18 })
-  @IsInt({ message: 'La edad debe ser un numero entero' })
-  @IsDefined({ message: 'La edad no puede estar vacia' })
-  @IsNotEmpty({ message: 'La edad no puede estar vacía' })
-  @Min(18, { message: 'La edad mínima para realizar la solicitud es 18 años' })
-  @Max(120, { message: 'La edad máxima permitida es 120 años' })
-  @IsPositive({ message: 'La edad debe ser un número positivo' })
-  Edad: number;
 }
 
-export class CreateSolicitudDesconexionDto extends CreateSolicitudDto {
-  @ApiProperty({ example: '200 metros del perro echado' })
+export class CreateSolicitudDesconexionJuridicaDto extends CreateSolicitudJuridicaDto {
+  @ApiProperty({ example: '200 metros del centro comercial' })
   @Transform(({ value }) => value?.trim())
   @IsString({ message: 'La dirección debe ser un string' })
   @IsDefined({ message: 'La dirección no puede estar vacía' })
@@ -93,7 +66,7 @@ export class CreateSolicitudDesconexionDto extends CreateSolicitudDto {
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#-]+$/, { message: 'La dirección solo puede contener letras, números, espacios y los caracteres .,-#' })
   Direccion_Exacta: string;
 
-  @ApiProperty({ example: 'Para mi casa de campo nueva' })
+  @ApiProperty({ example: 'Cierre de oficinas en esa ubicación' })
   @Transform(({ value }) => value?.trim())
   @IsString({ message: 'El motivo de la solicitud debe ser un string' })
   @IsDefined({ message: 'El motivo de la solicitud no puede estar vacío' })
@@ -104,8 +77,8 @@ export class CreateSolicitudDesconexionDto extends CreateSolicitudDto {
   Motivo_Solicitud: string;
 }
 
-export class CreateSolicitudCambioMedidorDto extends CreateSolicitudDto {
-  @ApiProperty({ example: '200 metros del perro echado' })
+export class CreateSolicitudCambioMedidorJuridicaDto extends CreateSolicitudJuridicaDto {
+  @ApiProperty({ example: '200 metros del centro comercial' })
   @Transform(({ value }) => value?.trim())
   @IsString({ message: 'La dirección debe ser un string' })
   @IsDefined({ message: 'La dirección no puede estar vacía' })
@@ -115,7 +88,7 @@ export class CreateSolicitudCambioMedidorDto extends CreateSolicitudDto {
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#-]+$/, { message: 'La dirección solo puede contener letras, números, espacios y los caracteres .,-#' })
   Direccion_Exacta: string;
 
-  @ApiProperty({ example: 'Para mi casa de campo nueva' })
+  @ApiProperty({ example: 'Medidor dañado por remodelación de oficinas' })
   @Transform(({ value }) => value?.trim())
   @IsString({ message: 'El motivo de la solicitud debe ser un string' })
   @IsDefined({ message: 'El motivo de la solicitud no puede estar vacío' })
@@ -125,9 +98,9 @@ export class CreateSolicitudCambioMedidorDto extends CreateSolicitudDto {
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,!?¿¡()-]+$/, { message: 'El motivo de la solicitud solo puede contener letras, números, espacios y los caracteres .,!?¿¡()-' })
   Motivo_Solicitud: string;
 
-  @ApiProperty({example: 456789})
-  @IsInt({message: 'El numero de medidor anterior debe ser un numero entero'})
-  @IsDefined({message: 'El numero de medidor anterior no puede estar vacio'})
+  @ApiProperty({ example: 456789 })
+  @IsInt({ message: 'El número de medidor anterior debe ser un número entero' })
+  @IsDefined({ message: 'El número de medidor anterior no puede estar vacío' })
   @IsNotEmpty({ message: 'El número de medidor anterior no puede estar vacío' })
   @IsPositive({ message: 'El número de medidor anterior debe ser positivo' })
   @Min(1, { message: 'El número de medidor anterior debe ser mayor a 0' })
@@ -135,8 +108,8 @@ export class CreateSolicitudCambioMedidorDto extends CreateSolicitudDto {
   Numero_Medidor_Anterior: number;
 }
 
-export class CreateSolicitudAsociadoDto extends CreateSolicitudDto {
-  @ApiProperty({ example: 'Para mi casa de campo nueva' })
+export class CreateSolicitudAsociadoJuridicaDto extends CreateSolicitudJuridicaDto {
+  @ApiProperty({ example: 'Queremos ser parte de la asociación para contribuir al desarrollo comunitario' })
   @Transform(({ value }) => value?.trim())
   @IsString({ message: 'El motivo de la solicitud debe ser un string' })
   @IsDefined({ message: 'El motivo de la solicitud no puede estar vacío' })
@@ -147,22 +120,22 @@ export class CreateSolicitudAsociadoDto extends CreateSolicitudDto {
   Motivo_Solicitud: string;
 }
 
-export class CreateAfiliacionDto extends IntersectionType(
-  CreateSolicitudDto,
-  CreateSolicitudAfiliacionDto
+export class CreateAfiliacionJuridicaDto extends IntersectionType(
+  CreateSolicitudJuridicaDto,
+  CreateSolicitudAfiliacionJuridicaDto
 ) {}
 
-export class CreateDesconexionDto extends IntersectionType(
-  CreateSolicitudDto,
-  CreateSolicitudDesconexionDto
+export class CreateDesconexionJuridicaDto extends IntersectionType(
+  CreateSolicitudJuridicaDto,
+  CreateSolicitudDesconexionJuridicaDto
 ) {}
 
-export class CreateCambioMedidorDto extends IntersectionType(
-  CreateSolicitudDto,
-  CreateSolicitudCambioMedidorDto
+export class CreateCambioMedidorJuridicaDto extends IntersectionType(
+  CreateSolicitudJuridicaDto,
+  CreateSolicitudCambioMedidorJuridicaDto
 ) {}
 
-export class CreateAsociadoDto extends IntersectionType(
-  CreateSolicitudDto,
-  CreateSolicitudAsociadoDto
+export class CreateAsociadoJuridicaDto extends IntersectionType(
+  CreateSolicitudJuridicaDto,
+  CreateSolicitudAsociadoJuridicaDto
 ) {}

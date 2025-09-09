@@ -1,5 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { SolicitudEntity } from "./Solicitud.Entity";
+import { Solicitud } from "./Solicitud.Entity";
 
 @Entity('Estado_Solicitud')
 export class EstadoSolicitud {
@@ -9,6 +9,6 @@ export class EstadoSolicitud {
   @Column({ type: 'varchar', length: 50, nullable: false })
   Nombre_Estado: string;
 
-  @OneToMany(() => SolicitudEntity, solicitud => solicitud.Estado)
-  Solicitud: SolicitudEntity[]; 
+  @OneToMany(() => Solicitud, solicitud => solicitud.Estado)
+  Solicitud: Solicitud[];
 }

@@ -1,21 +1,21 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { SolicitudDesconexion } from "../SolicitudEntities/Solicitud.Entity";
 import { Repository } from "typeorm";
-import { EstadoSolicitud } from "../SolicitudEntities/EstadoSolicitud.Entity";
-import { CreateSolicitudDesconexionDto } from "../SolicitudDTO's/CreateSolicitud.dto";
-import { UpdateSolicitudDesconexionDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 import { ValidationsService } from "src/Validations/Validations.service";
+import { SolicitudDesconexionFisica } from "../../SolicitudEntities/Solicitud.Entity";
+import { EstadoSolicitud } from "../../SolicitudEntities/EstadoSolicitud.Entity";
+import { CreateSolicitudDesconexionFisicaDto } from "../../SolicitudDTO's/CreateSolicitudFisica.dto";
+import { UpdateSolicitudDesconexionFisicaDto } from "../../SolicitudDTO's/UpdateSolicitudFisica.dto";
 
 @Injectable()
-export class SolicitudesDesconexionService
+export class SolicitudesDesconexionFisicaService
 {
     constructor
     (
-        @InjectRepository(SolicitudDesconexion)
-        private readonly solicitudDesconexionRepository: Repository<SolicitudDesconexion>,
+        @InjectRepository(SolicitudDesconexionFisica)
+        private readonly solicitudDesconexionFisicaRepository: Repository<SolicitudDesconexionFisica>,
 
         @InjectRepository(EstadoSolicitud)
         private readonly solicitudEstadoRepository: Repository<EstadoSolicitud>,
@@ -27,12 +27,12 @@ export class SolicitudesDesconexionService
 
     async getAllSolicitudesDesconexion()
     {
-        return this.solicitudDesconexionRepository.find({ relations: ['Estado'] });
+        return this.solicitudDesconexionFisicaRepository.find({ relations: ['Estado'] });
     }
 
     async findSolicitudDesconexionById(id: number)
     {
-        const solicitud = await this.solicitudDesconexionRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
+        const solicitud = await this.solicitudDesconexionFisicaRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
         if (!solicitud) {
             throw new BadRequestException(`Solicitud de desconexión con id ${id} no encontrada`);
         }
@@ -40,7 +40,7 @@ export class SolicitudesDesconexionService
     }
 
     @Public()
-    async createSolicitudDesconexion(dto: CreateSolicitudDesconexionDto, files: any)
+    async createSolicitudDesconexion(dto: CreateSolicitudDesconexionFisicaDto, files: any)
     {
         const estadoInicial = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) {throw new BadRequestException(`Estado inicial de solicitud no configurado`);}
@@ -67,12 +67,12 @@ export class SolicitudesDesconexionService
             Id_Tipo_Solicitud: 2
         };
 
-        return this.solicitudDesconexionRepository.save(solicitudDesconexion);
+        return this.solicitudDesconexionFisicaRepository.save(solicitudDesconexion);
     }
-    
-    async updateSolicitudDesconexion(id: number, dto: UpdateSolicitudDesconexionDto)
+
+    async updateSolicitudDesconexion(id: number, dto: UpdateSolicitudDesconexionFisicaDto)
     {
-        const solicitud = await this.solicitudDesconexionRepository.findOne({
+        const solicitud = await this.solicitudDesconexionFisicaRepository.findOne({
             where: { Id_Solicitud: id }
         });
         
@@ -81,12 +81,12 @@ export class SolicitudesDesconexionService
         }
         
         Object.assign(solicitud, dto);
-        return this.solicitudDesconexionRepository.save(solicitud);
+        return this.solicitudDesconexionFisicaRepository.save(solicitud);
     }
         
     async UpdateEstadoSolicitudDesconexion(id: number, nuevoEstadoId: number)
     {
-        const solicitud = await this.solicitudDesconexionRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
+        const solicitud = await this.solicitudDesconexionFisicaRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
         
         if (!solicitud) {throw new BadRequestException(`Solicitud con id ${id} no encontrada`);}
         
@@ -95,15 +95,15 @@ export class SolicitudesDesconexionService
         if (!nuevoEstado) {throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);}
         
         solicitud.Estado = nuevoEstado;
-        return this.solicitudDesconexionRepository.save(solicitud);
+        return this.solicitudDesconexionFisicaRepository.save(solicitud);
     }
 
     async deleteSolicitudDesconexion(id: number)
     {
-        const solicitud = await this.solicitudDesconexionRepository.findOne({ where: { Id_Solicitud: id } });
+        const solicitud = await this.solicitudDesconexionFisicaRepository.findOne({ where: { Id_Solicitud: id } });
         if (!solicitud) {
             throw new BadRequestException(`Solicitud de desconexión con id ${id} no encontrada`);
         }
-        return this.solicitudDesconexionRepository.remove(solicitud);
+        return this.solicitudDesconexionFisicaRepository.remove(solicitud);
     }
 }

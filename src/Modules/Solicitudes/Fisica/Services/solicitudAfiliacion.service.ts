@@ -1,22 +1,22 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { SolicitudAfiliacion } from "../SolicitudEntities/Solicitud.Entity";
-import { EstadoSolicitud } from "../SolicitudEntities/EstadoSolicitud.Entity";
-import { CreateSolicitudAfiliacionDto } from "../SolicitudDTO's/CreateSolicitud.dto";
-import { UpdateSolicitudAfiliacionDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 import { ValidationsService } from "src/Validations/Validations.service";
 import { AbonadosService } from "src/Modules/Afiliados/Services/abonados.service";
+import { SolicitudAfiliacionFisica } from "../../SolicitudEntities/Solicitud.Entity";
+import { EstadoSolicitud } from "../../SolicitudEntities/EstadoSolicitud.Entity";
+import { CreateSolicitudAfiliacionFisicaDto } from "../../SolicitudDTO's/CreateSolicitudFisica.dto";
+import { UpdateSolicitudAfiliacionFisicaDto } from "../../SolicitudDTO's/UpdateSolicitudFisica.dto";
 
 @Injectable()
-export class SolicitudesAfiliacionService
+export class SolicitudAfiliacionFisicaService
 {
     constructor
     (
-        @InjectRepository(SolicitudAfiliacion)
-        private readonly solicitudAfiliacionRepository: Repository<SolicitudAfiliacion>,
+        @InjectRepository(SolicitudAfiliacionFisica)
+        private readonly solicitudAfiliacionFisicaRepository: Repository<SolicitudAfiliacionFisica>,
 
         @InjectRepository(EstadoSolicitud)
         private readonly estadoSolicitudRepository: Repository<EstadoSolicitud>,
@@ -30,18 +30,18 @@ export class SolicitudesAfiliacionService
 
     async getAllSolicitudesAfiliacion()
     {
-        return this.solicitudAfiliacionRepository.find({ relations: ['Estado'] });
+        return this.solicitudAfiliacionFisicaRepository.find({ relations: ['Estado'] });
     }
 
     async findSolicitudAfiliacionById(id: number)
     {
-        const solicitud = await this.solicitudAfiliacionRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
+        const solicitud = await this.solicitudAfiliacionFisicaRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
         if (!solicitud) {throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`);}
         return solicitud;
     }
 
     @Public()
-    async createSolicitudAfiliacion(dto: CreateSolicitudAfiliacionDto, files: any)
+    async createSolicitudAfiliacion(dto: CreateSolicitudAfiliacionFisicaDto, files: any)
     {
         const estadoInicial = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) { throw new BadRequestException(`Estado inicial de solicitud no configurado`); }
@@ -68,12 +68,12 @@ export class SolicitudesAfiliacionService
             Id_Tipo_Solicitud: 1
         };
 
-        return this.solicitudAfiliacionRepository.save(solicitudAfiliacion);
+        return this.solicitudAfiliacionFisicaRepository.save(solicitudAfiliacion);
     }
 
-    async updateSolicitudAfiliacion(id: number, dto: UpdateSolicitudAfiliacionDto)
+    async updateSolicitudAfiliacion(id: number, dto: UpdateSolicitudAfiliacionFisicaDto)
     {
-        const solicitud = await this.solicitudAfiliacionRepository.findOne({
+        const solicitud = await this.solicitudAfiliacionFisicaRepository.findOne({
             where: { Id_Solicitud: id }
         });
 
@@ -82,19 +82,19 @@ export class SolicitudesAfiliacionService
         }
 
         Object.assign(solicitud, dto);
-        return this.solicitudAfiliacionRepository.save(solicitud);
+        return this.solicitudAfiliacionFisicaRepository.save(solicitud);
     }
 
     async UpdateEstadoSolicitudAfiliacion(id: number, nuevoEstadoId: number)
     {
-        const solicitud = await this.solicitudAfiliacionRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
+        const solicitud = await this.solicitudAfiliacionFisicaRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
         if (!solicitud) { throw new BadRequestException(`Solicitud con id ${id} no encontrada`); }
 
         const nuevoEstado = await this.estadoSolicitudRepository.findOne({where: { Id_Estado_Solicitud: nuevoEstadoId }});
         if (!nuevoEstado) { throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`); }
 
         solicitud.Estado = nuevoEstado;
-        const solicitudActualizada = await this.solicitudAfiliacionRepository.save(solicitud);
+        const solicitudActualizada = await this.solicitudAfiliacionFisicaRepository.save(solicitud);
 
         // Si el estado cambia a 3 (Aprobada), crear automáticamente el abonado
         if (nuevoEstadoId === 3) {
@@ -113,8 +113,8 @@ export class SolicitudesAfiliacionService
 
     async deleteSolicitudAfiliacion(id: number)
     {
-        const solicitud = await this.solicitudAfiliacionRepository.findOne({ where: { Id_Solicitud: id } });
+        const solicitud = await this.solicitudAfiliacionFisicaRepository.findOne({ where: { Id_Solicitud: id } });
         if (!solicitud) { throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`); }
-        return this.solicitudAfiliacionRepository.remove(solicitud);
+        return this.solicitudAfiliacionFisicaRepository.remove(solicitud);
     }
 }

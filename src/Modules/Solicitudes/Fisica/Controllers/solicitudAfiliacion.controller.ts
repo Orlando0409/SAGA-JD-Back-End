@@ -1,28 +1,28 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UploadedFiles, UseInterceptors} from "@nestjs/common";
-import { SolicitudesAfiliacionService } from "../Services/solicitudAfiliacion.service";
-import { CreateSolicitudAfiliacionDto } from "../SolicitudDTO's/CreateSolicitud.dto";
 import { ApiOperation } from "@nestjs/swagger";
-import { UpdateSolicitudAfiliacionDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
+import { CreateSolicitudAfiliacionFisicaDto } from "../../SolicitudDTO's/CreateSolicitudFisica.dto";
+import { UpdateSolicitudAfiliacionFisicaDto } from "../../SolicitudDTO's/UpdateSolicitudFisica.dto";
+import { SolicitudAfiliacionFisicaService } from "../Services/solicitudAfiliacion.service";
 
-@Controller('solicitud-afiliacion')
-export class SolicitudAfiliacionController {
+@Controller('solicitud-afiliacion-fisica')
+export class SolicitudAfiliacionFisicaController {
   constructor
   (
-    private readonly solicitudAfiliacionService: SolicitudesAfiliacionService,
+    private readonly solicitudAfiliacionFisicaService: SolicitudAfiliacionFisicaService,
   ) {}
 
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todas las solicitudes de afiliación' })
   getAllSolicitudesAfiliacion() {
-    return this.solicitudAfiliacionService.getAllSolicitudesAfiliacion();
+    return this.solicitudAfiliacionFisicaService.getAllSolicitudesAfiliacion();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtener solicitud por ID' })
   getsolicitudAfiliacionById(@Param('id', ParseIntPipe) id: number) {
-    return this.solicitudAfiliacionService.findSolicitudAfiliacionById(id);
+    return this.solicitudAfiliacionFisicaService.findSolicitudAfiliacionById(id);
   }
 
   @Public()
@@ -33,26 +33,26 @@ export class SolicitudAfiliacionController {
     { name: 'Escritura_Terreno', maxCount: 1 }, 
   ]),)
   async createSolicitudAfiliacion(
-  @Body() solicitudAfiliacion: CreateSolicitudAfiliacionDto,
+  @Body() solicitudAfiliacion: CreateSolicitudAfiliacionFisicaDto,
   @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; } ) {
-    return this.solicitudAfiliacionService.createSolicitudAfiliacion(solicitudAfiliacion, files);
+    return this.solicitudAfiliacionFisicaService.createSolicitudAfiliacion(solicitudAfiliacion, files);
   }
 
   @Put('/update/:id')
   @ApiOperation({ summary: 'Actualizar una solicitud de afiliación por ID' })
-  updateSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSolicitudAfiliacionDto) {
-    return this.solicitudAfiliacionService.updateSolicitudAfiliacion(id, dto);
+  updateSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSolicitudAfiliacionFisicaDto) {
+    return this.solicitudAfiliacionFisicaService.updateSolicitudAfiliacion(id, dto);
   }
 
   @Put(':id/update/estado/:nuevoEstadoId')
   @ApiOperation({ summary: 'Actualizar el estado de una solicitud de afiliación por ID' })
   updateEstadoSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
-    return this.solicitudAfiliacionService.UpdateEstadoSolicitudAfiliacion(id, nuevoEstadoId);
+    return this.solicitudAfiliacionFisicaService.UpdateEstadoSolicitudAfiliacion(id, nuevoEstadoId);
   }
 
   @Delete('/delete/:id')
   @ApiOperation({ summary: 'Eliminar una solicitud de afiliación por ID' })
   deleteSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number) {
-    return this.solicitudAfiliacionService.deleteSolicitudAfiliacion(id);
+    return this.solicitudAfiliacionFisicaService.deleteSolicitudAfiliacion(id);
   }
 }

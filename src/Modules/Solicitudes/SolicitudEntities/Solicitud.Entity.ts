@@ -1,24 +1,11 @@
-import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, TableInheritance, UpdateDateColumn } from "typeorm";
 import { EstadoSolicitud } from "./EstadoSolicitud.Entity";
 
-@Entity('Solicitud_Fisica')
-export abstract class SolicitudEntity
+@TableInheritance({ column: { type: "int", name: "Id_Tipo_Solicitud" } })
+export abstract class Solicitud
 {
     @PrimaryGeneratedColumn()
     Id_Solicitud: number;
-
-    @PrimaryColumn({ nullable: false })
-    @Column({ type: 'varchar', length: 12 })
-    Cedula: string;
-
-    @Column({ nullable: false })
-    Nombre: string;
-
-    @Column({ nullable: false })
-    Apellido1: string;
-
-    @Column()
-    Apellido2: string;
 
     @Column({ nullable: false })
     Correo: string;
@@ -40,8 +27,30 @@ export abstract class SolicitudEntity
     Id_Tipo_Solicitud: number;
 }
 
-@Entity('Solicitudes_Afiliacion')
-export class SolicitudAfiliacion extends SolicitudEntity {
+export abstract class SolicitudFisica extends Solicitud {
+    @Column({ type: 'varchar', length: 12, unique: true })
+    Cedula: string;
+
+    @Column({ nullable: false })
+    Nombre: string;
+
+    @Column({ nullable: false })
+    Apellido1: string;
+
+    @Column()
+    Apellido2: string;
+}
+
+export class SolicitudJuridica extends Solicitud {
+    @Column({ type: 'varchar', length: 15, unique: true })
+    Cedula_Juridica: string;
+
+    @Column({ nullable: false })
+    Razon_Social: string;
+}
+
+@Entity('Solicitud_Afiliacion_Fisica')
+export class SolicitudAfiliacionFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Direccion_Exacta: string;
 
@@ -58,8 +67,8 @@ export class SolicitudAfiliacion extends SolicitudEntity {
     setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; } 
 }
 
-@Entity('Solicitudes_Desconexion')
-export class SolicitudDesconexion extends SolicitudEntity {
+@Entity('Solicitudes_Desconexion_Fisica')
+export class SolicitudDesconexionFisica extends Solicitud {
     @Column({ nullable: false })
     Direccion_Exacta: string;
 
@@ -76,8 +85,8 @@ export class SolicitudDesconexion extends SolicitudEntity {
     setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; } 
 }
 
-@Entity('Solicitudes_Cambio_Medidor')
-export class SolicitudCambioMedidor extends SolicitudEntity {
+@Entity('Solicitudes_Cambio_Medidor_Fisica')
+export class SolicitudCambioMedidorFisica extends Solicitud {
     @Column({ nullable: false })
     Direccion_Exacta: string;
 
@@ -94,8 +103,71 @@ export class SolicitudCambioMedidor extends SolicitudEntity {
     setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; } 
 }
 
-@Entity('Solicitudes_Asociado')
-export class SolicitudAsociado extends SolicitudEntity {
+@Entity('Solicitudes_Asociado_Fisica')
+export class SolicitudAsociadoFisica extends Solicitud {
+    @Column({ nullable: false })
+    Motivo_Solicitud: string;
+
+    @BeforeInsert()
+    setTipoSolicitud() { this.Id_Tipo_Solicitud = 4; }
+
+    @BeforeInsert()
+    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; }
+}
+
+@Entity('Solicitudes_Afiliacion_Juridica')
+export class SolicitudAfiliacionJuridica extends SolicitudJuridica {
+    @Column({ nullable: false })
+    Direccion_Exacta: string;
+
+    @Column({ nullable: false })
+    Planos_Terreno: string;
+
+    @Column({ nullable: false })
+    Escritura_Terreno: string;
+
+    @BeforeInsert()
+    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; }
+}
+
+@Entity('Solicitudes_Desconexion_Juridica')
+export class SolicitudDesconexionJuridica extends SolicitudJuridica {
+    @Column({ nullable: false })
+    Direccion_Exacta: string;
+
+    @Column({ nullable: false })
+    Motivo_Solicitud: string;
+
+    @Column({ nullable: false })
+    Planos_Terreno: string;
+
+    @Column({ nullable: false })
+    Escritura_Terreno: string;
+
+    @BeforeInsert()
+    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; }
+}
+
+@Entity('Solicitudes_Cambio_Medidor_Juridica')
+export class SolicitudCambioMedidorJuridica extends SolicitudJuridica {
+    @Column({ nullable: false })
+    Direccion_Exacta: string;
+
+    @Column({ nullable: false })
+    Motivo_Solicitud: string;
+
+    @Column({ nullable: false })
+    Numero_Medidor_Anterior: number;
+
+    @BeforeInsert()
+    setTipoSolicitud() { this.Id_Tipo_Solicitud = 3; }
+
+    @BeforeInsert()
+    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; }
+}
+
+@Entity('Solicitudes_Asociado_Juridica')
+export class SolicitudAsociadoJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Motivo_Solicitud: string;
 

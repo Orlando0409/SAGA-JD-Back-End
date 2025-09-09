@@ -1,20 +1,20 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { EstadoSolicitud } from "../SolicitudEntities/EstadoSolicitud.Entity";
-import { SolicitudCambioMedidor } from "../SolicitudEntities/Solicitud.Entity";
-import { CreateCambioMedidorDto } from "../SolicitudDTO's/CreateSolicitud.dto";
-import { UpdateSolicitudCambioMedidorDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 import { ValidationsService } from "src/Validations/Validations.service";
+import { SolicitudCambioMedidorFisica } from "../../SolicitudEntities/Solicitud.Entity";
+import { EstadoSolicitud } from "../../SolicitudEntities/EstadoSolicitud.Entity";
+import { CreateCambioMedidorFisicaDto } from "../../SolicitudDTO's/CreateSolicitudFisica.dto";
+import { UpdateSolicitudCambioMedidorFisicaDto } from "../../SolicitudDTO's/UpdateSolicitudFisica.dto";
 
 @Injectable()
-export class SolicitudesCambioMedidorService
+export class SolicitudesCambioMedidorFisicaService
 {
     constructor
     (
-        @InjectRepository(SolicitudCambioMedidor)
-        private readonly solicitudCambioMedidorRepository: Repository<SolicitudCambioMedidor>,
+        @InjectRepository(SolicitudCambioMedidorFisica)
+        private readonly solicitudCambioMedidorFisicaRepository: Repository<SolicitudCambioMedidorFisica>,
 
         @InjectRepository(EstadoSolicitud)
         private readonly estadoSolicitudRepository: Repository<EstadoSolicitud>,
@@ -24,12 +24,12 @@ export class SolicitudesCambioMedidorService
 
     async findAllSolicitudesCambioMedidor()
     {
-        return this.solicitudCambioMedidorRepository.find({ relations: ['Estado'] });
+        return this.solicitudCambioMedidorFisicaRepository.find({ relations: ['Estado'] });
     }
 
     async findSolicitudCambioMedidorById(id: number)
     {
-        const solicitudCambioMedidor = await this.solicitudCambioMedidorRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
+        const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
         if (!solicitudCambioMedidor) {
             throw new BadRequestException(`Solicitud de cambio de medidor con id ${id} no encontrada`);
         }
@@ -37,7 +37,7 @@ export class SolicitudesCambioMedidorService
     }
 
     @Public()
-    async createSolicitudCambioMedidor(dto: CreateCambioMedidorDto)
+    async createSolicitudCambioMedidor(dto: CreateCambioMedidorFisicaDto)
     {
         const estadoInicial = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) {throw new BadRequestException(`Estado inicial de solicitud no configurado`);}
@@ -48,13 +48,13 @@ export class SolicitudesCambioMedidorService
         const now = new Date();
         now.setSeconds(0, 0);
 
-        const solicitudCambioMedidor = this.solicitudCambioMedidorRepository.create({...dto, Estado: estadoInicial, Fecha_Creacion: now});
-        return this.solicitudCambioMedidorRepository.save(solicitudCambioMedidor);
+        const solicitudCambioMedidor = this.solicitudCambioMedidorFisicaRepository.create({...dto, Estado: estadoInicial, Fecha_Creacion: now});
+        return this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
     }
 
-    async updateSolicitudCambioMedidor(id: number, dto: UpdateSolicitudCambioMedidorDto)
+    async updateSolicitudCambioMedidor(id: number, dto: UpdateSolicitudCambioMedidorFisicaDto)
     {
-        const solicitudCambioMedidor = await this.solicitudCambioMedidorRepository.findOne({
+        const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({
             where: { Id_Solicitud: id }
         });
     
@@ -63,27 +63,27 @@ export class SolicitudesCambioMedidorService
         }
     
         Object.assign(solicitudCambioMedidor, dto);
-        return this.solicitudCambioMedidorRepository.save(solicitudCambioMedidor);
+        return this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
     }
     
     async UpdateEstadoSolicitudCambioMedidor(id: number, nuevoEstadoId: number)
     {
-        const solicitudCambioMedidor = await this.solicitudCambioMedidorRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
+        const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
         if (!solicitudCambioMedidor) {throw new BadRequestException(`Solicitud con id ${id} no encontrada`);}
     
         const nuevoEstado = await this.estadoSolicitudRepository.findOne({where: { Id_Estado_Solicitud: nuevoEstadoId }});
         if (!nuevoEstado) {throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);}
     
         solicitudCambioMedidor.Estado = nuevoEstado;
-        return this.solicitudCambioMedidorRepository.save(solicitudCambioMedidor);
+        return this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
     }
 
     async deleteSolicitudCambioMedidor(id: number)
     {
-        const solicitudCambioMedidor = await this.solicitudCambioMedidorRepository.findOne({ where: { Id_Solicitud: id } });
+        const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({ where: { Id_Solicitud: id } });
         if (!solicitudCambioMedidor) {
             throw new BadRequestException(`Solicitud de cambio de medidor con id ${id} no encontrada`);
         }
-        return this.solicitudCambioMedidorRepository.remove(solicitudCambioMedidor);
+        return this.solicitudCambioMedidorFisicaRepository.remove(solicitudCambioMedidor);
     }
 }

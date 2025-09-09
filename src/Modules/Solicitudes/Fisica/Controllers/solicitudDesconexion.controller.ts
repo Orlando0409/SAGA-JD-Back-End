@@ -1,27 +1,27 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UploadedFiles, UseInterceptors } from "@nestjs/common";
-import { SolicitudesDesconexionService } from "../Services/solicitudDesconexion.service";
-import { CreateSolicitudDesconexionDto } from "../SolicitudDTO's/CreateSolicitud.dto";
 import { ApiOperation } from "@nestjs/swagger";
-import { UpdateSolicitudDesconexionDto } from "../SolicitudDTO's/UpdateSolicitud.dto";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
+import { SolicitudesDesconexionFisicaService } from "../Services/solicitudDesconexion.service";
+import { CreateSolicitudDesconexionFisicaDto } from "../../SolicitudDTO's/CreateSolicitudFisica.dto";
+import { UpdateSolicitudDesconexionFisicaDto } from "../../SolicitudDTO's/UpdateSolicitudFisica.dto";
 
-@Controller('solicitud-desconexion')
-export class SolicitudDesconexionController {
+@Controller('solicitud-desconexion-fisica')
+export class SolicitudDesconexionFisicaController {
   constructor(
-    private readonly solicitudDesconexionService: SolicitudesDesconexionService,
+    private readonly solicitudDesconexionFisicaService: SolicitudesDesconexionFisicaService,
   ) {}
 
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todas las solicitudes de desconexion' })
   getAllSolicitudesDesconexion() {
-    return this.solicitudDesconexionService.getAllSolicitudesDesconexion();
+    return this.solicitudDesconexionFisicaService.getAllSolicitudesDesconexion();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtener una solicitud de desconexion por ID' })
   getSolicitudDesconexionById(@Param('id', ParseIntPipe) id: number) {
-    return this.solicitudDesconexionService.findSolicitudDesconexionById(id);
+    return this.solicitudDesconexionFisicaService.findSolicitudDesconexionById(id);
   }
 
   @Public()
@@ -31,26 +31,26 @@ export class SolicitudDesconexionController {
       { name: 'Escritura_Terreno', maxCount: 1 }, 
     ]),)
     async createSolicitudDesconexion(
-    @Body() solicitudDesconexion: CreateSolicitudDesconexionDto,
+    @Body() solicitudDesconexion: CreateSolicitudDesconexionFisicaDto,
     @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; } ) {
-      return this.solicitudDesconexionService.createSolicitudDesconexion(solicitudDesconexion, files);
+      return this.solicitudDesconexionFisicaService.createSolicitudDesconexion(solicitudDesconexion, files);
     }
 
   @Put('/update/:id')
   @ApiOperation({ summary: 'Actualizar una solicitud de desconexion por ID' })
-  updateSolicitudDesconexion(@Param('ID Solicitud', ParseIntPipe) id: number, @Body() dto: UpdateSolicitudDesconexionDto) {
-    return this.solicitudDesconexionService.updateSolicitudDesconexion(id, dto);
+  updateSolicitudDesconexion(@Param('ID Solicitud', ParseIntPipe) id: number, @Body() dto: UpdateSolicitudDesconexionFisicaDto) {
+    return this.solicitudDesconexionFisicaService.updateSolicitudDesconexion(id, dto);
   }
 
   @Put(':id/update/estado/:nuevoEstadoId')
   @ApiOperation({ summary: 'Actualizar el estado de una solicitud de desconexion por ID' })
   updateEstadoSolicitudDesconexion(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
-    return this.solicitudDesconexionService.UpdateEstadoSolicitudDesconexion(id, nuevoEstadoId);
+    return this.solicitudDesconexionFisicaService.UpdateEstadoSolicitudDesconexion(id, nuevoEstadoId);
   }
 
   @Delete('/delete/:id')
   @ApiOperation({ summary: 'Eliminar una solicitud de desconexion por ID' })
   deleteSolicitudDesconexion(@Param('id', ParseIntPipe) id: number) {
-    return this.solicitudDesconexionService.deleteSolicitudDesconexion(id);
+    return this.solicitudDesconexionFisicaService.deleteSolicitudDesconexion(id);
   }
 }
