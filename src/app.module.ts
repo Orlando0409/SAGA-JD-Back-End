@@ -3,21 +3,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ProyectoModule } from './Modules/Proyectos/proyecto.module';
-import { AbonadosModule } from './Modules/Afiliados/abonados.module';
+import { AbonadosModule } from './Modules/Afiliados/Modules/abonados.module';
+import { AsociadosModule } from './Modules/Afiliados/Modules/asociados.module';
 import { FacturaModule } from './Modules/Facturas/factura.module';
 import { InventarioModule } from './Modules/Inventario/inventario.module';
 import { ProveedorModule } from './Modules/Proveedores/proveedor.module';
-import { SolicitudAfiliacionModule } from './Modules/Solicitudes/Modules/solicitudAfiliacion.module';
-import { SolicitudCambioMedidorModule } from './Modules/Solicitudes/Modules/solicitudCambioMedidor.module';
-import { SolicitudDesconexionModule } from './Modules/Solicitudes/Modules/solicitudDesconexion.module';
-import { SolicitudAsociadoModule } from './Modules/Solicitudes/Modules/solicitudesAsociado.module';
 import { AuthModule } from './Modules/auth/Auth.module';
 import { JwtAuthGuard } from './Modules/auth/Guard/JwtGuard';
 import { RolesGuard } from './Modules/auth/Guard/RolesGuards';
 import { PermisosGuard } from './Modules/auth/Guard/PermisosGuard';
 import { SeenderModule } from './config/Seender.module';
-import { SolicitudEstado } from './Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
-import { SolicitudAfiliacion, SolicitudAsociado, SolicitudCambioMedidor, SolicitudDesconexion, SolicitudEntity } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
+import { EstadoSolicitud } from './Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
 import { RolesModule } from './Modules/Usuarios/Modules/roles.module';
 import { UsuariosModule } from './Modules/Usuarios/Modules/usuarios.module';
 import { Permiso } from './Modules/Usuarios/UsuarioEntities/Permiso.Entity';
@@ -28,6 +24,18 @@ import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProye
 import { CalidadAguaModule } from './Modules/CalidadAgua/calidadAgua.module';
 import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity';
 import { DropboxModule } from './Dropbox/Files/DropboxFiles.module';
+import { Abonado } from './Modules/Afiliados/AfiliadoEntities/Abonado.Entity';
+import { Asociado } from './Modules/Afiliados/AfiliadoEntities/Asociado.Entity';
+import { EstadoAfiliado } from './Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
+import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica, SolicitudFisica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
+import { SolicitudAsociadoFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAsociado.module';
+import { SolicitudCambioMedidorFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudCambioMedidor.module';
+import { SolicitudDesconexionFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudDesconexion.module';
+import { SolicitudAfiliacionFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAfiliacion.module';
+import { SolicitudAfiliacionJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudAfiliacion.module';
+import { SolicitudDesconexionJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudDesconexion.module';
+import { SolicitudCambioMedidorJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudCambioMedidor.module';
+import { SolicitudAsociadoJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudAsociado.module';
 
 @Module({
   imports: [
@@ -46,23 +54,29 @@ import { DropboxModule } from './Dropbox/Files/DropboxFiles.module';
         username: config.get<string>('DB_USERNAME'),
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
-        entities: [UserEntity, UserRol, Permiso,
-        SolicitudEntity, SolicitudAfiliacion, SolicitudCambioMedidor,
-        SolicitudDesconexion, SolicitudAsociado, SolicitudEstado, Proyecto,
-        ProyectoEstado, CalidadAgua],
+        entities: [UserEntity, UserRol, Permiso, Solicitud,
+        SolicitudFisica, SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica,
+        SolicitudDesconexionFisica, SolicitudAsociadoFisica, SolicitudAfiliacionJuridica,
+        SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
+        EstadoSolicitud, Proyecto, ProyectoEstado, CalidadAgua, Abonado, Asociado, EstadoAfiliado],
         synchronize: false,
       }),
     }),
     ProyectoModule,
     AbonadosModule,
+    AsociadosModule,
     FacturaModule,
     InventarioModule,
     ProveedorModule,
     UsuariosModule,
-    SolicitudAfiliacionModule,
-    SolicitudDesconexionModule,
-    SolicitudCambioMedidorModule,
-    SolicitudAsociadoModule,
+    SolicitudAfiliacionFisicaModule,
+    SolicitudAfiliacionJuridicaModule,
+    SolicitudDesconexionFisicaModule,
+    SolicitudDesconexionJuridicaModule,
+    SolicitudCambioMedidorFisicaModule,
+    SolicitudCambioMedidorJuridicaModule,
+    SolicitudAsociadoFisicaModule,
+    SolicitudAsociadoJuridicaModule,
     RolesModule,
     AuthModule,
     SeenderModule,
