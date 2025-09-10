@@ -28,8 +28,6 @@ export class EmailService {
   } catch (error) {
     console.error('Error al enviar el correo electrónico:', error);
   }
-}
-
-  
+}  
 }
 

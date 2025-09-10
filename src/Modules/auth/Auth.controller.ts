@@ -51,8 +51,8 @@ export class AuthController {
   @Public()
   @Post('logout')
   @ApiOperation({ summary: 'Cerrar sesión' })
-  logout(@Res({ passthrough: true }) response: Response) {
-    return this.authService.logout(response);
+  async logout(@Res({ passthrough: true }) response: Response) {
+    await this.authService.logout(response);
   }
 
   @Public()

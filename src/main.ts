@@ -16,7 +16,7 @@ async function bootstrap() {
   
   // Configurar CORS correctamente para cookies
   app.enableCors({
-    origin: ['http://localhost:5173','http://localhost:5174'], // URLs del frontend
+    origin: ['http://localhost:5173', 'http://localhost:5174'], // URLs del frontend
     credentials: true, //  IMPORTANTE: Permitir cookies
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'cookie']
@@ -24,7 +24,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({
     transform: true,
-    whitelist: true,
+    whitelist: true, 
     forbidNonWhitelisted: true,
     forbidUnknownValues: true,
     transformOptions: {

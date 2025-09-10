@@ -23,10 +23,10 @@ export class UserEntity {
     Fecha_Eliminacion: Date;
 
     @Column({ nullable: true })
-    id_rol: number; 
+    id_Rol: number; 
 
     @ManyToOne(() => UserRol, rol => rol.usuarios, { nullable: true })
-    @JoinColumn({ name: 'id_rol' })
+    @JoinColumn({ name: 'id_Rol' })
     rol: UserRol | null ;
 }
 

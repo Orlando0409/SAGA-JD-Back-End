@@ -12,7 +12,7 @@ import { AuthModule } from './Modules/auth/Auth.module';
 import { JwtAuthGuard } from './Modules/auth/Guard/JwtGuard';
 import { RolesGuard } from './Modules/auth/Guard/RolesGuards';
 import { PermisosGuard } from './Modules/auth/Guard/PermisosGuard';
-import { SeenderModule } from './config/Seender.module';
+import { SeederModule } from './config/Seeder.module';
 import { EstadoSolicitud } from './Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
 import { RolesModule } from './Modules/Usuarios/Modules/roles.module';
 import { UsuariosModule } from './Modules/Usuarios/Modules/usuarios.module';
@@ -81,7 +81,7 @@ import { TipoAfiliado } from './Modules/Afiliados/AfiliadoEntities/TipoAfiliado.
     SolicitudAsociadoJuridicaModule,
     RolesModule,
     AuthModule,
-    SeenderModule,
+    SeederModule,
     DropboxModule,
     CalidadAguaModule,
   ],

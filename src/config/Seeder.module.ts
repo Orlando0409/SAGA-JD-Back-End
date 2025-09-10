@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SeederService } from './Seender.service';
+import { SeederService } from './Seeder.service';
 import { Permiso } from 'src/Modules/Usuarios/UsuarioEntities/Permiso.Entity';
 import { UserEntity } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { UserRol } from 'src/Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
@@ -14,4 +14,4 @@ import { UserRol } from 'src/Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity'
     providers: [SeederService],
     exports: [SeederService]
 })
-export class SeenderModule {}
+export class SeederModule {}
