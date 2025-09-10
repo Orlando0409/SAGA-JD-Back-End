@@ -3,6 +3,41 @@ import { IsString, IsEmail, IsNumber, IsOptional, IsDefined, IsNotEmpty, MinLeng
 import { Transform } from 'class-transformer';
 
 export class CreateAbonadoDto {
+  
+
+  @ApiProperty({ example: 'ejemplo@gmail.com' })
+  @Transform(({ value }) => value?.trim())
+  @IsEmail({}, { message: 'El correo electrónico debe tener un formato válido' })
+  @IsDefined({ message: 'El correo no puede estar vacío' })
+  @IsNotEmpty({ message: 'El correo no puede estar vacío' })
+  @MaxLength(100, { message: 'El correo no puede tener más de 100 caracteres' })
+  @Matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, { message: 'El formato del correo electrónico no es válido' })
+  Correo: string;
+
+  @ApiProperty({ example: '12345678' })
+  @Transform(({ value }) => value?.trim())
+  @IsString({ message: 'El número de teléfono debe ser un string' })
+  @IsDefined({ message: 'El número de teléfono no puede estar vacío' })
+  @IsNotEmpty({ message: 'El número de teléfono no puede estar vacío' })
+  @Matches(/^[0-9+()\s-]+$/, { message: 'El número de teléfono solo puede contener números, +, -, () y espacios' })
+  @MinLength(8, { message: 'El número de teléfono debe tener al menos 8 dígitos' })
+  @MaxLength(15, { message: 'El número de teléfono no puede tener más de 15 caracteres' })
+  Numero_Telefono: string;
+
+  @ApiProperty({ example: '200 metros del parque central' })
+  @Transform(({ value }) => value?.trim())
+  @IsString({ message: 'La dirección debe ser un string' })
+  @IsDefined({ message: 'La dirección no puede estar vacía' })
+  @IsNotEmpty({ message: 'La dirección no puede estar vacía' })
+  @MinLength(10, { message: 'La dirección debe tener al menos 10 caracteres' })
+  @MaxLength(255, { message: 'La dirección no puede tener más de 255 caracteres' })
+  @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#-]+$/, { message: 'La dirección solo puede contener letras, números, espacios y los caracteres .,-#' })
+  Direccion_Exacta: string;
+
+
+}
+
+export class CreateAbonadoFisicoDto extends CreateAbonadoDto {
   @ApiProperty({ example: '123456789' })
   @Transform(({ value }) => value?.trim())
   @IsString({ message: 'La cedula debe ser tener entre 9 y 12 caracteres' })
@@ -42,49 +77,32 @@ export class CreateAbonadoDto {
   @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'El segundo apellido solo puede contener letras y espacios' })
   Apellido2?: string;
 
-  @ApiProperty({ example: 'ejemplo@gmail.com' })
-  @Transform(({ value }) => value?.trim())
-  @IsEmail({}, { message: 'El correo electrónico debe tener un formato válido' })
-  @IsDefined({ message: 'El correo no puede estar vacío' })
-  @IsNotEmpty({ message: 'El correo no puede estar vacío' })
-  @MaxLength(100, { message: 'El correo no puede tener más de 100 caracteres' })
-  @Matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, { message: 'El formato del correo electrónico no es válido' })
-  Correo: string;
-
-  @ApiProperty({ example: '12345678' })
-  @Transform(({ value }) => value?.trim())
-  @IsString({ message: 'El número de teléfono debe ser un string' })
-  @IsDefined({ message: 'El número de teléfono no puede estar vacío' })
-  @IsNotEmpty({ message: 'El número de teléfono no puede estar vacío' })
-  @Matches(/^[0-9+()\s-]+$/, { message: 'El número de teléfono solo puede contener números, +, -, () y espacios' })
-  @MinLength(8, { message: 'El número de teléfono debe tener al menos 8 dígitos' })
-  @MaxLength(15, { message: 'El número de teléfono no puede tener más de 15 caracteres' })
-  Numero_Telefono: string;
-
-  @ApiProperty({ example: '200 metros del parque central' })
-  @Transform(({ value }) => value?.trim())
-  @IsString({ message: 'La dirección debe ser un string' })
-  @IsDefined({ message: 'La dirección no puede estar vacía' })
-  @IsNotEmpty({ message: 'La dirección no puede estar vacía' })
-  @MinLength(10, { message: 'La dirección debe tener al menos 10 caracteres' })
-  @MaxLength(255, { message: 'La dirección no puede tener más de 255 caracteres' })
-  @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#-]+$/, { message: 'La dirección solo puede contener letras, números, espacios y los caracteres .,-#' })
-  Direccion_Exacta: string;
-
   @ApiProperty({ example: 25 })
   @IsNumber({}, { message: 'La edad debe ser un número' })
   @IsDefined({ message: 'La edad no puede estar vacía' })
   @Min(18, { message: 'La edad mínima es 18 años' })
   @Max(120, { message: 'La edad máxima es 120 años' })
   Edad: number;
+}
 
-  @ApiProperty({ example: 'http://example.com/plano.pdf', required: false })
-  @IsOptional()
-  @IsString({ message: 'Los planos del terreno deben ser un string' })
-  Planos_Terreno?: string;
+export class CreateAbonadoJuridicoDto extends CreateAbonadoDto {
+  @ApiProperty({ example: '3101234567' })
+  @Transform(({ value }) => value?.trim())
+  @IsString({ message: 'La cédula jurídica debe ser un string' })
+  @IsDefined({ message: 'La cédula jurídica no puede estar vacía' })
+  @IsNotEmpty({ message: 'La cédula jurídica no puede estar vacía' })
+  @Matches(/^3-\d{3}-\d{6}$/, { message: 'La cédula jurídica debe tener el formato 3-XXX-XXXXXX' })
+  @MinLength(12)
+  @MaxLength(12)
+  Cedula_Juridica: string;
 
-  @ApiProperty({ example: 'http://example.com/escritura.pdf', required: false })
-  @IsOptional()
-  @IsString({ message: 'La escritura del terreno debe ser un string' })
-  Escritura_Terreno?: string;
+  @ApiProperty({ example: 'Empresa Ejemplo S.A.' })
+  @Transform(({ value }) => value?.trim())
+  @IsString({ message: 'La razón social debe ser un string' })
+  @IsDefined({ message: 'La razón social no puede estar vacía' })
+  @IsNotEmpty({ message: 'La razón social no puede estar vacía' })
+  @MinLength(2, { message: 'La razón social debe tener al menos 2 caracteres' })
+  @MaxLength(100, { message: 'La razón social no puede tener más de 100 caracteres' })
+  @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,&()-]+$/, { message: 'La razón social solo puede contener letras, números, espacios y los caracteres .,&()-' })
+  Razon_Social: string;
 }

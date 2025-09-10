@@ -99,7 +99,7 @@ export class SolicitudAfiliacionJuridicaService
         // Si el estado cambia a 3 (Aprobada), crear automáticamente el abonado
         if (nuevoEstadoId === 3) {
             try {
-                await this.abonadosService.createAbonadoFromSolicitud(solicitudActualizada);
+                await this.abonadosService.createAbonadoJuridico(solicitudActualizada);
             } catch (error) {
                 // Si ya existe el abonado, no lanzar error, solo continuar
                 if (!error.message.includes('Ya existe un abonado')) {

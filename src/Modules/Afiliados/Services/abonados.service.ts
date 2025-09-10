@@ -1,113 +1,168 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Abonado } from '../AfiliadoEntities/Abonado.Entity';
+import { AbonadoFisico, AbonadoJuridico } from '../AfiliadoEntities/Abonado.Entity';
 import { EstadoAfiliado } from '../AfiliadoEntities/EstadoAfiliado.Entity';
-import { SolicitudAfiliacionFisica } from '../../Solicitudes/SolicitudEntities/Solicitud.Entity';
-import { CreateAbonadoDto } from '../AfiliadoDTO\'s/CreateAbonado.dto';
-import { UpdateAbonadoDto } from '../AfiliadoDTO\'s/UpdateAbonado.dto';
+import { SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica } from '../../Solicitudes/SolicitudEntities/Solicitud.Entity';
+import { UpdateAbonadoFisicoDto, UpdateAbonadoJuridicoDto } from '../AfiliadoDTO\'s/UpdateAbonado.dto';
 
 @Injectable()
 export class AbonadosService {
   constructor(
-    @InjectRepository(Abonado)
-    private readonly abonadoRepository: Repository<Abonado>,
+    @InjectRepository(AbonadoFisico)
+    private readonly abonadoFisicoRepository: Repository<AbonadoFisico>,
+
+    @InjectRepository(AbonadoJuridico)
+    private readonly abonadoJuridicoRepository: Repository<AbonadoJuridico>,
 
     @InjectRepository(EstadoAfiliado)
     private readonly estadoAfiliadoRepository: Repository<EstadoAfiliado>,
 
     @InjectRepository(SolicitudAfiliacionFisica)
     private readonly solicitudAfiliacionFisicaRepository: Repository<SolicitudAfiliacionFisica>,
+
+    @InjectRepository(SolicitudAfiliacionJuridica)
+    private readonly solicitudAfiliacionJuridicaRepository: Repository<SolicitudAfiliacionJuridica>
   ) {}
 
   async getAllAbonados() {
-    return this.abonadoRepository.find({ relations: ['Estado'] });
+    return {
+      fisicos: await this.abonadoFisicoRepository.find({ relations: ['Estado'] }),
+      juridicos: await this.abonadoJuridicoRepository.find({ relations: ['Estado'] }),
+    };
   }
 
-  async getAbonadoById(id: number) {
-    const abonado = await this.abonadoRepository.findOne({
+  async getAbonadosFisicos() {
+    return this.abonadoFisicoRepository.find({ relations: ['Estado'] });
+  }
+
+  async getAbonadosJuridicos() {
+    return this.abonadoJuridicoRepository.find({ relations: ['Estado'] });
+  }
+
+  async getAbonadoFisicoById(id: number) {
+    const abonado = await this.abonadoFisicoRepository.findOne({
       where: { Id_Abonado: id },
       relations: ['Estado']
     });
     if (!abonado) {
-      throw new BadRequestException(`Abonado con id ${id} no encontrado`);
+      throw new BadRequestException(`Abonado fisico con id ${id} no encontrado`);
     }
     return abonado;
   }
 
-  async getAbonadoByCedula(cedula: string) {
-    const abonado = await this.abonadoRepository.findOne({
+  async getAbonadoJuridicoById(id: number)
+  {
+    const abonado = await this.abonadoJuridicoRepository.findOne({
+      where: { Id_Abonado: id },
+      relations: ['Estado']
+    });
+    if (!abonado) {
+      throw new BadRequestException(`Abonado juridico con id ${id} no encontrado`);
+    }
+    else
+      return abonado;
+  }
+
+  async getAbonadoFisicoByCedula(cedula: string) {
+    const abonado = await this.abonadoFisicoRepository.findOne({
       where: { Cedula: cedula },
       relations: ['Estado']
     });
 
     if (!abonado) {
-      throw new BadRequestException(`Abonado con cédula ${cedula} no encontrado`);
+      throw new BadRequestException(`Abonado fisico con cédula ${cedula} no encontrado`);
     }
 
     else
       return abonado;
   }
 
-  async createAbonado(dto: CreateAbonadoDto) {
-    // Verificar si ya existe un abonado con esa cédula
-    const existingAbonado = await this.getAbonadoByCedula(dto.Cedula);
-    if (existingAbonado) {
-      throw new BadRequestException(`Ya existe un abonado con la cédula ${dto.Cedula}`);
+  async getAbonadoJuridicoByCedula(cedula_juridica: string) {
+    const abonado = await this.abonadoJuridicoRepository.findOne({
+      where: { Cedula_Juridica: cedula_juridica },
+      relations: ['Estado']
+    });
+
+    if (!abonado) {
+      throw new BadRequestException(`Abonado juridico con cédula ${cedula_juridica} no encontrado`);
     }
 
+    return abonado;
+  }
+
+  async createAbonadoFisico(solicitud: SolicitudAfiliacionFisica) {
     // Verificar que existe una solicitud de afiliación aprobada para esta cédula
-    const solicitudAprobada = await this.solicitudAfiliacionFisicaRepository.findOne({ where: { Cedula: dto.Cedula, Estado: { Id_Estado_Solicitud: 3 } }, relations: ['Estado'] });
-    if (!solicitudAprobada) { throw new BadRequestException(`No existe una solicitud de afiliación aprobada para la cédula ${dto.Cedula}`); }
+    const solicitudAprobada = await this.solicitudAfiliacionFisicaRepository.findOne({ where: { Cedula: solicitud.Cedula, Estado: { Id_Estado_Solicitud: 3 } }, relations: ['Estado'] });
+    if (!solicitudAprobada) { throw new BadRequestException(`No existe una solicitud de afiliación aprobada para la cédula ${solicitud.Cedula}`); }
 
     // Obtener estado inicial (asumiendo que 1 es "Activo")
     const estadoInicial = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 1 } });
     if (!estadoInicial) { throw new BadRequestException('Estado inicial de abonado no configurado'); }
 
-    const abonado = this.abonadoRepository.create({
-      ...dto,
+    const abonado = this.abonadoFisicoRepository.create({
+      ...solicitud,
       Estado: estadoInicial
     });
 
-    return this.abonadoRepository.save(abonado);
+    return this.abonadoFisicoRepository.save(abonado);
   }
 
-// Método específico para crear abonado desde solicitud aprobada
-  async createAbonadoFromSolicitud(solicitudData: any) {
-    const createDto: CreateAbonadoDto = {
-      Cedula: solicitudData.Cedula,
-      Nombre: solicitudData.Nombre,
-      Apellido1: solicitudData.Apellido1,
-      Apellido2: solicitudData.Apellido2,
-      Correo: solicitudData.Correo,
-      Numero_Telefono: solicitudData.Numero_Telefono,
-      Direccion_Exacta: solicitudData.Direccion_Exacta,
-      Edad: solicitudData.Edad,
-      Planos_Terreno: solicitudData.Planos_Terreno,
-      Escritura_Terreno: solicitudData.Escritura_Terreno,
-    };
+  async createAbonadoJuridico(solicitud: SolicitudAfiliacionJuridica) {
+    // Verificar que existe una solicitud de afiliación aprobada para esta cédula jurídica
+    const SolicitudAprobada = await this.solicitudAfiliacionJuridicaRepository.findOne({ where: { Cedula_Juridica: solicitud.Cedula_Juridica, Estado: { Id_Estado_Solicitud: 3 } }, relations: ['Estado'] });
+    if (!SolicitudAprobada) { throw new BadRequestException(`No existe una solicitud de afiliación aprobada para la cédula jurídica ${solicitud.Cedula_Juridica}`); }
 
-    return this.createAbonado(createDto);
+    const estadoInicial = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 1 } });
+    if (!estadoInicial) { throw new BadRequestException('Estado inicial de abonado no configurado'); }
+
+    const abonado = this.abonadoJuridicoRepository.create({
+      ...solicitud,
+      Estado: estadoInicial
+    });
+
+    return this.abonadoJuridicoRepository.save(abonado);
   }
 
-  async updateAbonado(id: number, dto: UpdateAbonadoDto) {
-    const abonado = await this.getAbonadoById(id);
+  async updateAbonadoFisico(id: number, dto: UpdateAbonadoFisicoDto) {
+    const abonado = await this.getAbonadoFisicoById(id);
     Object.assign(abonado, dto);
-    return this.abonadoRepository.save(abonado);
+    return this.abonadoFisicoRepository.save(abonado);
   }
 
-  async updateEstadoAbonado(id: number, nuevoEstadoId: number) {
-    const abonado = await this.getAbonadoById(id);
-    
+  async updateAbonadoJuridico(id: number, dto: UpdateAbonadoJuridicoDto) {
+    const abonado = await this.getAbonadoJuridicoById(id);
+    Object.assign(abonado, dto);
+    return this.abonadoJuridicoRepository.save(abonado);
+  }
+
+  async updateEstadoAbonadoFisico(id: number, nuevoEstadoId: number) {
+    const abonado = await this.getAbonadoFisicoById(id);
+
     const nuevoEstado = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: nuevoEstadoId }});
     if (!nuevoEstado) { throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`); }
 
     abonado.Estado = nuevoEstado;
-    return this.abonadoRepository.save(abonado);
+    return this.abonadoFisicoRepository.save(abonado);
   }
 
-  async deleteAbonado(id: number) {
-    const abonado = await this.getAbonadoById(id);
-    return this.abonadoRepository.remove(abonado);
+  async updateEstadoAbonadoJuridico(id: number, nuevoEstadoId: number) {
+    const abonado = await this.getAbonadoJuridicoById(id);
+
+    const nuevoEstado = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: nuevoEstadoId }});
+    if (!nuevoEstado) { throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`); }
+
+    abonado.Estado = nuevoEstado;
+    return this.abonadoJuridicoRepository.save(abonado);
+  }
+
+  async deleteAbonadoFisico(id: number) {
+    const abonado = await this.getAbonadoFisicoById(id);
+    return this.abonadoFisicoRepository.remove(abonado);
+  }
+
+  async deleteAbonadoJuridico(id: number) {
+    const abonado = await this.getAbonadoJuridicoById(id);
+    return this.abonadoJuridicoRepository.remove(abonado);
   }
 }
