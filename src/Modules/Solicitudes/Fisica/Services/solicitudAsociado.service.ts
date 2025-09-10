@@ -80,7 +80,7 @@ export class SolicitudAsociadoFisicaService
         // Si el estado cambia a 3 (Aprobada), crear automáticamente el asociado
         if (nuevoEstadoId === 3) {
             try {
-                await this.asociadosService.createAsociadoFromSolicitud(solicitudActualizada);
+                await this.asociadosService.createAsociadoFisico(solicitudActualizada);
             } catch (error) {
                 // Si ya existe el asociado, no lanzar error, solo continuar
                 if (!error.message.includes('Ya existe un asociado')) {

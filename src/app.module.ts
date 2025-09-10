@@ -24,8 +24,8 @@ import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProye
 import { CalidadAguaModule } from './Modules/CalidadAgua/calidadAgua.module';
 import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity';
 import { DropboxModule } from './Dropbox/Files/DropboxFiles.module';
-import { Abonado } from './Modules/Afiliados/AfiliadoEntities/Abonado.Entity';
-import { Asociado } from './Modules/Afiliados/AfiliadoEntities/Asociado.Entity';
+import { Abonado, AbonadoFisico, AbonadoJuridico } from './Modules/Afiliados/AfiliadoEntities/Abonado.Entity';
+import { Asociado, AsociadoFisico, AsociadoJuridico } from './Modules/Afiliados/AfiliadoEntities/Asociado.Entity';
 import { EstadoAfiliado } from './Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica, SolicitudFisica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { SolicitudAsociadoFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAsociado.module';
@@ -36,6 +36,7 @@ import { SolicitudAfiliacionJuridicaModule } from './Modules/Solicitudes/Juridic
 import { SolicitudDesconexionJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudDesconexion.module';
 import { SolicitudCambioMedidorJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudCambioMedidor.module';
 import { SolicitudAsociadoJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudAsociado.module';
+import { TipoAfiliado } from './Modules/Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
 
 @Module({
   imports: [
@@ -58,7 +59,8 @@ import { SolicitudAsociadoJuridicaModule } from './Modules/Solicitudes/Juridica/
         SolicitudFisica, SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica,
         SolicitudDesconexionFisica, SolicitudAsociadoFisica, SolicitudAfiliacionJuridica,
         SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
-        EstadoSolicitud, Proyecto, ProyectoEstado, CalidadAgua, Abonado, Asociado, EstadoAfiliado],
+        EstadoSolicitud, Proyecto, ProyectoEstado, CalidadAgua, EstadoAfiliado, TipoAfiliado,
+        Abonado, AbonadoFisico, AbonadoJuridico, Asociado, AsociadoFisico, AsociadoJuridico],
         synchronize: false,
       }),
     }),
@@ -81,7 +83,7 @@ import { SolicitudAsociadoJuridicaModule } from './Modules/Solicitudes/Juridica/
     AuthModule,
     SeederModule,
     DropboxModule,
-    CalidadAguaModule
+    CalidadAguaModule,
   ],
   controllers: [],
   providers: [
