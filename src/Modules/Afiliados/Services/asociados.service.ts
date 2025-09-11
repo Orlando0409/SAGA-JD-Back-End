@@ -161,7 +161,6 @@ export class AsociadosService {
 
   async updateEstadoAsociadoFisico(id: number, nuevoEstadoId: number) {
     const asociado = await this.getAsociadoFisicoById(id);
-    const AsociadoExistente = await this.getAsociadoFisicoByCedula(asociado.Cedula);
     const nuevoEstado = await this.estadoAfiliadoRepository.findOne({
       where: { Id_Estado_Afiliado: nuevoEstadoId }
     });
@@ -169,14 +168,8 @@ export class AsociadosService {
       throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);
     }
 
-    if (nuevoEstadoId === 3) {
-      if (AsociadoExistente) {
-        throw new BadRequestException(`Ya existe un asociado físico con la cédula ${asociado.Cedula}`);
-      }
-    } else {
-      asociado.Estado = nuevoEstado;
-      return this.asociadoFisicoRepository.save(asociado);
-    }
+    asociado.Estado = nuevoEstado;
+    return this.asociadoFisicoRepository.save(asociado);
   }
 
   async updateEstadoAsociadoJuridico(id: number, nuevoEstadoId: number) {

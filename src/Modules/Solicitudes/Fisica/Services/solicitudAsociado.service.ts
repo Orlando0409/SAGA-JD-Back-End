@@ -42,6 +42,10 @@ export class SolicitudAsociadoFisicaService
         const estadoInicial = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) {throw new BadRequestException(`Estado inicial de solicitud no configurado`);}
 
+        // Validar que existe un abonado físico con esa cédula
+        const validacionAbonadoExistente = await this.validationsService.validarExistenciaAbonadoFisico(dto.Cedula);
+        if (validacionAbonadoExistente) { throw new BadRequestException(validacionAbonadoExistente); }
+
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Cedula);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 

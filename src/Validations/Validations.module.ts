@@ -3,9 +3,10 @@ import { ValidationsService } from './Validations.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica } from 'src/Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { EstadoSolicitud } from 'src/Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
+import { AbonadoFisico, AbonadoJuridico } from 'src/Modules/Afiliados/AfiliadoEntities/Abonado.Entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([SolicitudAfiliacionFisica, SolicitudDesconexionFisica, SolicitudCambioMedidorFisica, SolicitudAsociadoFisica, SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica, EstadoSolicitud])],
+    imports: [TypeOrmModule.forFeature([SolicitudAfiliacionFisica, SolicitudDesconexionFisica, SolicitudCambioMedidorFisica, SolicitudAsociadoFisica, SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica, EstadoSolicitud, AbonadoFisico, AbonadoJuridico])],
     providers: [ValidationsService],
     exports: [ValidationsService],
 })
