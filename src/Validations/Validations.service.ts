@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica } from "src/Modules/Solicitudes/SolicitudEntities/Solicitud.Entity";
+import { AbonadoFisico, AbonadoJuridico } from "src/Modules/Afiliados/AfiliadoEntities/Abonado.Entity";
 import { Repository } from "typeorm";
 
 @Injectable()
@@ -30,7 +31,13 @@ export class ValidationsService
         private readonly solicitudCambioMedidorJuridicaRepository: Repository<SolicitudCambioMedidorJuridica>,
 
         @InjectRepository(SolicitudAsociadoJuridica)
-        private readonly solicitudAsociadoJuridicaRepository: Repository<SolicitudAsociadoJuridica>
+        private readonly solicitudAsociadoJuridicaRepository: Repository<SolicitudAsociadoJuridica>,
+
+        @InjectRepository(AbonadoFisico)
+        private readonly abonadoFisicoRepository: Repository<AbonadoFisico>,
+
+        @InjectRepository(AbonadoJuridico)
+        private readonly abonadoJuridicoRepository: Repository<AbonadoJuridico>
     ) {}
 
     async validarSolicitudesFisicasActivas(cedula: string) {
@@ -89,5 +96,21 @@ export class ValidationsService
         else if (asociadoPendiente?.Estado.Id_Estado_Solicitud === 1 || asociadoRevisada?.Estado.Id_Estado_Solicitud === 2) {
             return `Ya existe una solicitud activa de asociado para la cédula jurídica ${cedulaJuridica}`;
         }
+    }
+
+    async validarExistenciaAbonadoFisico(cedula: string) {
+        const abonado = await this.abonadoFisicoRepository.findOne({ where: { Cedula: cedula } });
+        if (!abonado) {
+            return `No existe un abonado físico con la cédula ${cedula}. Debe ser abonado antes de solicitar asociación.`;
+        }
+        return null; // No hay error
+    }
+
+    async validarExistenciaAbonadoJuridico(cedulaJuridica: string) {
+        const abonado = await this.abonadoJuridicoRepository.findOne({ where: { Cedula_Juridica: cedulaJuridica } });
+        if (!abonado) {
+            return `No existe un abonado jurídico con la cédula ${cedulaJuridica}. Debe ser abonado antes de solicitar asociación.`;
+        }
+        return null; // No hay error
     }
 }

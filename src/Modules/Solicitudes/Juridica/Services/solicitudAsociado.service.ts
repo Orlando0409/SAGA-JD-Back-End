@@ -42,6 +42,10 @@ export class SolicitudAsociadoJuridicaService
         const estadoInicial = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) {throw new BadRequestException(`Estado inicial de solicitud no configurado`);}
 
+        // Validar que existe un abonado jurídico con esa cédula jurídica
+        const validacionAbonadoExistente = await this.validationsService.validarExistenciaAbonadoJuridico(dto.Cedula_Juridica);
+        if (validacionAbonadoExistente) { throw new BadRequestException(validacionAbonadoExistente); }
+
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesJuridicasActivas(dto.Cedula_Juridica);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
