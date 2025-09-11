@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from '../Emails/email.service';
 import { ResetPasswordDto } from './DTO/ResetPasswordDto';
+import { ChangePasswordDTO } from './DTO/ChangePasswordDTO';
 
 @Injectable()
 export class AuthService {
@@ -241,6 +242,27 @@ export class AuthService {
       console.error('Error al cambiar la contraseña:', error);
       throw new UnauthorizedException('Token inválido, expirado o contraseñas no coinciden');
     }
+  }
+
+  async changePassword(changePasswordDto: ChangePasswordDTO) {
+    const { Usuario, Contraseña_Actual, Nueva_Contraseña } = changePasswordDto;
+    const usuario = await this.userRepository.findOne({
+      where: { Nombre_Usuario: Usuario },
+      withDeleted: true
+    });
+    if (!usuario) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+    if (usuario.Fecha_Eliminacion) {
+      throw new UnauthorizedException('Usuario deshabilitado');
+    }
+    const contraseñaValida = await bcrypt.compare(Contraseña_Actual, usuario.Contraseña);
+    if (!contraseñaValida) {
+      throw new UnauthorizedException('Contraseña actual incorrecta');
+    }
+    const hashedPassword = await bcrypt.hash(Nueva_Contraseña, 10);
+    await this.userRepository.update(usuario.Id_Usuario, { Contraseña: hashedPassword });
+    return { mensaje: 'Contraseña cambiada exitosamente' };
   }
 
   private setTokenCookies(response: Response, accessToken: string, refreshToken: string) {

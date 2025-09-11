@@ -18,6 +18,12 @@ export class RolesService {
     
     async createRoles(createRolesDto: CreateRolesDto) {
         const { permisosIds, ...rolData } = createRolesDto;
+
+        const rolExistente = await this.rolesRepository.findOne({where : {Nombre_Rol : rolData.Nombre_Rol}, withDeleted : true});
+        if(rolExistente)
+        {
+            throw new NotFoundException('El nombre del rol ya está registrado');
+        }
         
         const rol = this.rolesRepository.create(rolData);
         
@@ -72,7 +78,30 @@ export class RolesService {
         return this.rolesRepository.save(rol);
     }
     
-    deleteRoles(id: number) {
-        return this.rolesRepository.delete(id);
+    async deleteRoles(id: number) {
+
+        const rol = await this.rolesRepository.findOne({ where: { Id_Rol: id }, withDeleted: true });
+        if (!rol) {
+            throw new NotFoundException('Rol no encontrado');
+        }
+
+        // Verificar si el rol está asignado a algún usuario
+        const usuariosConRol = await this.rolesRepository
+            .createQueryBuilder('rol')
+            .leftJoinAndSelect('rol.usuarios', 'usuario')
+            .where('rol.Id_Rol = :id', { id })
+            .andWhere('usuario.Id_Usuario IS NOT NULL')
+            .getCount();
+
+        if (usuariosConRol > 0) {
+            throw new NotFoundException('No se puede eliminar el rol porque está asignado a usuarios');
+        }   
+
+        // verifica que el rol este activo
+        /*if (rol.deletedAt) {
+            throw new NotFoundException('El rol ya ha sido eliminado');
+        }*/
+
+        return this.rolesRepository.softDelete(id);
     }
 }

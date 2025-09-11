@@ -15,6 +15,7 @@ import { LoginDto } from './DTO/LoginDto';
 import { ResetPasswordDto } from './DTO/ResetPasswordDto';
 import { JwtAuthGuard } from './Guard/JwtGuard';
 import { AuthService } from './Auth.service';
+import { ChangePasswordDTO } from './DTO/ChangePasswordDTO';
 
 
 @ApiTags('Autenticación')
@@ -67,6 +68,13 @@ export class AuthController {
   @ApiOperation({ summary: 'Restablecer contraseña' })
   async resetPassword(@Body() dto: ResetPasswordDto) {
     return await this.authService.resetPassword(dto);
+  }
+  
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Cambiar contraseña' })
+  async changePassword(@Body() changePasswordDto: ChangePasswordDTO) {
+    return this.authService.changePassword(changePasswordDto);
   }
 
   @UseGuards(JwtAuthGuard)
