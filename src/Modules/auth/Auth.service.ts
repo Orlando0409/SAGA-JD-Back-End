@@ -28,11 +28,15 @@ export class AuthService {
     // Buscar usuario por nombre de usuario
     const usuario = await this.userRepository.findOne({
       where: { Nombre_Usuario },
-      relations: ['rol', 'rol.permisos']
+      relations: ['rol', 'rol.permisos'],
+      withDeleted: true
     });
 
     if (!usuario) {
         throw new UnauthorizedException('Credenciales inválidas');
+    }
+    if (usuario.Fecha_Eliminacion) {
+      throw new UnauthorizedException('Usuario deshabilitado');
     }
 
     let contraseñaValida = false;
@@ -129,13 +133,9 @@ export class AuthService {
     }
   }
 
-  async logout(response: Response) {
+   async logout(response: Response) {
     response.clearCookie('accessToken');
     response.clearCookie('refreshToken');
-
-    return {
-      mensaje: 'Logout exitoso'
-    };
   }
 
   async forgotPassword(email: string) {
@@ -159,7 +159,7 @@ export class AuthService {
    
     const token = await this.jwtService.signAsync(payload, { expiresIn: '10m' });
 
-    const FrontendRecoverURL = `${this.configService.get('FRONTEND_URL')}/auth/reset-password`;
+    const FrontendRecoverURL = `${this.configService.get('FRONTEND_URL')}/ResetPassword`;
     const url = `${FrontendRecoverURL}?token=${token}`;
 
     
@@ -218,11 +218,6 @@ export class AuthService {
   async resetPassword(dto: ResetPasswordDto) {
     try {
      
-      if (dto.nuevaContraseña !== dto.confirmarContraseña) {
-        throw new UnauthorizedException('Las contraseñas no coinciden');
-      }
-
-     
       const payload = await this.jwtService.verifyAsync(dto.token);
 
       
@@ -234,7 +229,6 @@ export class AuthService {
         throw new NotFoundException('Usuario no encontrado');
       }
 
-  
       const hashedPassword = await bcrypt.hash(dto.nuevaContraseña, 10);
 
      

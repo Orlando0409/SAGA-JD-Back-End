@@ -14,6 +14,7 @@ export class CreateUserDto {
   })
   @IsNotEmpty({ message: 'La contraseña no puede estar vacía' })
   @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
+  
   Contraseña: string;
 
   @ApiProperty({

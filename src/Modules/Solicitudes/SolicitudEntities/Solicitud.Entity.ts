@@ -29,7 +29,7 @@ export abstract class Solicitud
 }
 
 export abstract class SolicitudFisica extends Solicitud {
-    @Column({ type: 'varchar', length: 12, unique: true })
+    @Column({ type: 'varchar', length: 12 })
     Cedula: string;
 
     @Column({ nullable: false })
