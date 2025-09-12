@@ -1,32 +1,51 @@
 create database proyecto;
-
 use proyecto;
-insert into Proyecto_Estado
-values(1, 'En progreso'), (2, 'Activo'), (3, 'Terminado');
 
-use proyecto;
-insert into Solicitud_Estado
-values(1, 'Enviada'), (2, 'En proceso'), (3, 'Finalizada');
+insert into estado_proyecto
+values(1, 'En planeamiento'), (2, 'En progreso'), (3, 'Terminado');
 
-use proyecto;
-select * from Proyecto_Estado;
+insert into estado_solicitud
+values(1, 'Pendiente'), (2, 'Revisada'), (3, 'Aprobada'), (4, 'Rechazada');
 
-use proyecto;
-select * from Proyecto;
+insert into estado_afiliado
+values(1, 'Activo'), (2, 'Inactivo');
+
+insert into tipo_afiliado
+values(1, 'Abonado'), (2, 'Asociado');
+
+select * from estado_solicitud;
+
+select * from estado_afiliado;
+
+select * from estado_proyecto;
+
+select * from solicitudes_afiliacion_fisica;
+
+select * from solicitudes_afiliacion_juridica;
+
+select * from solicitudes_desconexion_fisica;
+
+select * from solicitudes_desconexion_juridica;
+
+select * from solicitudes_cambio_medidor_fisica;
+
+select * from solicitudes_cambio_medidor_juridica;
+
+select * from solicitudes_asociado_fisica;
+
+select * from solicitudes_asociado_juridica;
+
+select * from afiliado_fisico;
+
+select * from afiliado_juridico;
+
+select * from calidad_agua;
+
+select * from usuario;
 
 select * from permisos;
 
-use proyecto;
-select * from Solicitud_Estado;
-
-use proyecto;
-select * from Solicitudes_Afiliacion;
-
-use proyecto;
-select * from Solicitud_Desconexion;
-
-use proyecto;
-select * from Solicitudes_Cambio_Medidor;
+select * from rol_permiso;
 
 show tables;
 
