@@ -3,8 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ProyectoModule } from './Modules/Proyectos/proyecto.module';
-import { AbonadosModule } from './Modules/Afiliados/Modules/abonados.module';
-import { AsociadosModule } from './Modules/Afiliados/Modules/asociados.module';
 import { FacturaModule } from './Modules/Facturas/factura.module';
 import { InventarioModule } from './Modules/Inventario/inventario.module';
 import { ProveedorModule } from './Modules/Proveedores/proveedor.module';
@@ -23,9 +21,6 @@ import { Proyecto } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
 import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 import { CalidadAguaModule } from './Modules/CalidadAgua/calidadAgua.module';
 import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity';
-import { DropboxModule } from './Dropbox/Files/DropboxFiles.module';
-import { Abonado, AbonadoFisico, AbonadoJuridico } from './Modules/Afiliados/AfiliadoEntities/Abonado.Entity';
-import { Asociado, AsociadoFisico, AsociadoJuridico } from './Modules/Afiliados/AfiliadoEntities/Asociado.Entity';
 import { EstadoAfiliado } from './Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica, SolicitudFisica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { SolicitudAsociadoFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAsociado.module';
@@ -37,6 +32,8 @@ import { SolicitudDesconexionJuridicaModule } from './Modules/Solicitudes/Juridi
 import { SolicitudCambioMedidorJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudCambioMedidor.module';
 import { SolicitudAsociadoJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudAsociado.module';
 import { TipoAfiliado } from './Modules/Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
+import { AfiliadosModule } from './Modules/Afiliados/afiliados.module';
+import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from './Modules/Afiliados/AfiliadoEntities/Afiliado.Entity';
 
 @Module({
   imports: [
@@ -60,13 +57,11 @@ import { TipoAfiliado } from './Modules/Afiliados/AfiliadoEntities/TipoAfiliado.
         SolicitudDesconexionFisica, SolicitudAsociadoFisica, SolicitudAfiliacionJuridica,
         SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
         EstadoSolicitud, Proyecto, ProyectoEstado, CalidadAgua, EstadoAfiliado, TipoAfiliado,
-        Abonado, AbonadoFisico, AbonadoJuridico, Asociado, AsociadoFisico, AsociadoJuridico],
+        Afiliado, AfiliadoFisico, AfiliadoJuridico],
         synchronize: false,
       }),
     }),
     ProyectoModule,
-    AbonadosModule,
-    AsociadosModule,
     FacturaModule,
     InventarioModule,
     ProveedorModule,
@@ -82,8 +77,8 @@ import { TipoAfiliado } from './Modules/Afiliados/AfiliadoEntities/TipoAfiliado.
     RolesModule,
     AuthModule,
     SeederModule,
-    DropboxModule,
     CalidadAguaModule,
+    AfiliadosModule,
   ],
   controllers: [],
   providers: [

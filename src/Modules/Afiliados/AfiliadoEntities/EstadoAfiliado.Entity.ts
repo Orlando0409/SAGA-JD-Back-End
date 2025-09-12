@@ -1,6 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Abonado } from "./Abonado.Entity";
-import { Asociado } from "./Asociado.Entity";
+import { Afiliado } from "./Afiliado.Entity";
 
 @Entity('Estado_Afiliado')
 export class EstadoAfiliado {
@@ -10,9 +9,6 @@ export class EstadoAfiliado {
     @Column({ type: 'varchar', length: 50, nullable: false })
     Nombre_Estado: string;
 
-    @OneToMany(() => Abonado, abonado => abonado.Estado)
-    Abonados: Abonado[];
-
-    @OneToMany(() => Asociado, asociado => asociado.Estado)
-    Asociados: Asociado[];
+    @OneToMany(() => Afiliado, afiliado => afiliado.Estado)
+    Afiliados: Afiliado[];
 }

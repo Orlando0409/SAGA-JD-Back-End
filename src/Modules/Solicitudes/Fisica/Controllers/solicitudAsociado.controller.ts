@@ -36,12 +36,14 @@ export class SolicitudAsociadoFisicaController {
     updateSolicitudAsociado(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSolicitudAsociadoFisicaDto) {
         return this.solicitudAsociadoFisicaService.updateSolicitudAsociado(id, dto);
     }
-
+    
+    /*
     @Put(':id/update/estado/:nuevoEstadoId')
     @ApiOperation({ summary: 'Actualizar el estado de una solicitud de asociado por ID' })
     updateEstadoSolicitudAsociado(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
         return this.solicitudAsociadoFisicaService.UpdateEstadoSolicitudAsociado(id, nuevoEstadoId);
     }
+    */
 
     @Delete('/delete/:id')
     @ApiOperation({ summary: 'Eliminar una solicitud de asociado por ID' })

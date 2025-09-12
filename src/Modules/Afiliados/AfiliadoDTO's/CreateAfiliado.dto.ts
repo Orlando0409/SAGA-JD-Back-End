@@ -2,9 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsEmail, IsNumber, IsOptional, IsDefined, IsNotEmpty, MinLength, MaxLength, Matches, Min, Max } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-export class CreateAbonadoDto {
-  
-
+export class CreateAfiliadoDto {
   @ApiProperty({ example: 'ejemplo@gmail.com' })
   @Transform(({ value }) => value?.trim())
   @IsEmail({}, { message: 'El correo electrónico debe tener un formato válido' })
@@ -33,11 +31,9 @@ export class CreateAbonadoDto {
   @MaxLength(255, { message: 'La dirección no puede tener más de 255 caracteres' })
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#-]+$/, { message: 'La dirección solo puede contener letras, números, espacios y los caracteres .,-#' })
   Direccion_Exacta: string;
-
-
 }
 
-export class CreateAbonadoFisicoDto extends CreateAbonadoDto {
+export class CreateAfiliadoFisicoDto extends CreateAfiliadoDto {
   @ApiProperty({ example: '123456789' })
   @Transform(({ value }) => value?.trim())
   @IsString({ message: 'La cedula debe ser tener entre 9 y 12 caracteres' })
@@ -85,7 +81,7 @@ export class CreateAbonadoFisicoDto extends CreateAbonadoDto {
   Edad: number;
 }
 
-export class CreateAbonadoJuridicoDto extends CreateAbonadoDto {
+export class CreateAfiliadoJuridicoDto extends CreateAfiliadoDto {
   @ApiProperty({ example: '3101234567' })
   @Transform(({ value }) => value?.trim())
   @IsString({ message: 'La cédula jurídica debe ser un string' })
