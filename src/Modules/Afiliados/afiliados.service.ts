@@ -149,9 +149,9 @@ export class AfiliadosService {
         return this.afiliadoJuridicoRepository.save(afiliado);
     }
 
-    async updateEstadoAfiliadoFisico(cedula: string, nuevoEstadoId: number) {
-        const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Cedula: cedula }, relations: ['Estado'] });
-        if (!afiliado) { throw new BadRequestException(`Afiliado físico con cédula ${cedula} no encontrado`); }
+    async updateEstadoAfiliadoFisico(idafiliado: number, nuevoEstadoId: number) {
+        const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Id_Afiliado: idafiliado }, relations: ['Estado'] });
+        if (!afiliado) { throw new BadRequestException(`Afiliado físico con ID ${idafiliado} no encontrado`); }
 
         const estadoInicial = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 1 } });
         if (!estadoInicial) { throw new BadRequestException('Estado inicial de abonado no configurado'); }
@@ -163,9 +163,9 @@ export class AfiliadosService {
         return this.afiliadoFisicoRepository.save(afiliado);
     }
 
-    async updateEstadoAfiliadoJuridico(cedulaJuridica: string, nuevoEstadoId: number) {
-        const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: cedulaJuridica }, relations: ['Estado'] });
-        if (!afiliado) { throw new BadRequestException(`Afiliado jurídico con cédula jurídica ${cedulaJuridica} no encontrado`); }
+    async updateEstadoAfiliadoJuridico(idafiliado: number, nuevoEstadoId: number) {
+        const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Id_Afiliado: idafiliado }, relations: ['Estado'] });
+        if (!afiliado) { throw new BadRequestException(`Afiliado jurídico con ID ${idafiliado} no encontrado`); }
 
         const estadoInicial = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 1 } });
         if (!estadoInicial) { throw new BadRequestException('Estado inicial de abonado no configurado'); }

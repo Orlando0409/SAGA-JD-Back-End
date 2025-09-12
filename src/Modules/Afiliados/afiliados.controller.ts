@@ -44,15 +44,15 @@ export class AfiliadosController {
         return this.afiliadosService.updateAfiliadoJuridico(id, dto);
     }
 
-    @Put('/update/estado/fisico/:id/estado/:nuevoEstadoId')
+    @Put('/fisico/:id/update/estado/:nuevoEstadoId')
     @ApiOperation({ summary: 'Actualizar estado de un afiliado físico' })
-    updateEstadoAfiliado(@Param('id') id: string, @Param('nuevoEstadoId') nuevoEstadoId: number) {
+    updateEstadoAfiliado(@Param('id') id: number, @Param('nuevoEstadoId') nuevoEstadoId: number) {
         return this.afiliadosService.updateEstadoAfiliadoFisico(id, nuevoEstadoId);
     }
 
-    @Put('update/estado/juridico/:id/estado/:nuevoEstadoId')
+    @Put('/juridico/:id/update/estado/:nuevoEstadoId')
     @ApiOperation({ summary: 'Actualizar estado de un afiliado jurídico' })
-    updateEstadoAfiliadoJuridico(@Param('id') id: string, @Param('nuevoEstadoId') nuevoEstadoId: number) {
+    updateEstadoAfiliadoJuridico(@Param('id') id: number, @Param('nuevoEstadoId') nuevoEstadoId: number) {
         return this.afiliadosService.updateEstadoAfiliadoJuridico(id, nuevoEstadoId);
     }
 
