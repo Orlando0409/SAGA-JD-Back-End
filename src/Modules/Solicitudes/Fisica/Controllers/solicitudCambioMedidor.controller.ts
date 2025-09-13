@@ -17,7 +17,7 @@ export class SolicitudCambioMedidorFisicaController {
   getAllSolicitudesCambioMedidor() {
     return this.solicitudCambioMedidorFisicaService.findAllSolicitudesCambioMedidor();
   }
-
+  @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Obtener solicitud de cambio de medidor por ID' })
   getSolicitudCambioMedidorById(@Param('id', ParseIntPipe) id: number) {
@@ -30,19 +30,19 @@ export class SolicitudCambioMedidorFisicaController {
   createSolicitudCambioMedidor(@Body() dto: CreateSolicitudCambioMedidorFisicaDto) {
     return this.solicitudCambioMedidorFisicaService.createSolicitudCambioMedidor(dto);
   }
-
+  @Public()
   @Put('/update/:id')
   @ApiOperation({ summary: 'Actualizar una solicitud de cambio de medidor por ID' })
   updateSolicitudCambioMedidor(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSolicitudCambioMedidorFisicaDto) {
     return this.solicitudCambioMedidorFisicaService.updateSolicitudCambioMedidor(id, dto);
   }
-
+  @Public()
   @Put(':id/update/estado/:nuevoEstadoId')
   @ApiOperation({ summary: 'Actualizar el estado de una solicitud de cambio de medidor por ID' })
   updateEstadoSolicitudCambioMedidor(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
     return this.solicitudCambioMedidorFisicaService.UpdateEstadoSolicitudCambioMedidor(id, nuevoEstadoId);
   }
-
+  @Public()
   @Delete('/delete/:id')
   @ApiOperation({ summary: 'Eliminar una solicitud de cambio de medidor por ID' })
   deleteSolicitudCambioMedidor(@Param('id', ParseIntPipe) id: number) {

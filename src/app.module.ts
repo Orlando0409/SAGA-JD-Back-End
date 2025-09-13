@@ -43,7 +43,7 @@ import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from './Modules/Afiliados/
 
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      inject:[ConfigService],
+      inject: [ConfigService],
 
       useFactory: (config: ConfigService) => ({
         type: 'mysql',
@@ -82,7 +82,13 @@ import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from './Modules/Afiliados/
   ],
   controllers: [],
   providers: [
-    {
+    
+  ],
+})
+export class AppModule {}
+
+/*
+{
       provide: APP_GUARD,
       useClass: JwtAuthGuard, //  Autenticación JWT global
     },
@@ -94,6 +100,4 @@ import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from './Modules/Afiliados/
       provide: APP_GUARD,
       useClass: PermisosGuard, //  Verificación de permisos global
     },
-  ],
-})
-export class AppModule {}
+*/
