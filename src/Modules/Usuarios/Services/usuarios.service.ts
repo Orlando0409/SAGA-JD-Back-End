@@ -108,11 +108,6 @@ export class UsuariosService {
             throw new NotFoundException('Usuario no encontrado');
         }
 
-        // Manejar actualización de contraseña
-        if (updateUserDto.Contraseña) {
-            updateUserDto.Contraseña = await bcrypt.hash(updateUserDto.Contraseña, 10); 
-        }
-
         if (updateUserDto.Id_Rol !== undefined) {
             if (updateUserDto.Id_Rol === 0) {
                 user.id_Rol = 0; 
