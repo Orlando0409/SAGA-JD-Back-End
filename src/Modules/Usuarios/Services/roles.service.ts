@@ -1,4 +1,4 @@
-import{Injectable, NotFoundException} from '@nestjs/common';
+import{BadRequestException, Injectable, NotFoundException} from '@nestjs/common';
 import{InjectRepository}from'@nestjs/typeorm';
 import{Repository, In}from'typeorm';
 import { CreateRolesDto } from '../UsuarioDTO\'s/CreateRoles.dto';
@@ -78,30 +78,43 @@ export class RolesService {
         return this.rolesRepository.save(rol);
     }
     
-    async deleteRoles(id: number) {
+    async softDeleteRol(id: number) {
+        const role = await this.rolesRepository.findOne({
+            where: { Id_Rol: id },
+            withDeleted: true, 
+        });
 
-        const rol = await this.rolesRepository.findOne({ where: { Id_Rol: id }, withDeleted: true });
-        if (!rol) {
-            throw new NotFoundException('Rol no encontrado');
+        if (!role) {
+            throw new NotFoundException('Rol no encontrado.');
         }
 
-        // Verificar si el rol está asignado a algún usuario
-        const usuariosConRol = await this.rolesRepository
-            .createQueryBuilder('rol')
-            .leftJoinAndSelect('rol.usuarios', 'usuario')
-            .where('rol.Id_Rol = :id', { id })
-            .andWhere('usuario.Id_Usuario IS NOT NULL')
-            .getCount();
+        if (role.Fecha_Eliminacion) {
+            throw new BadRequestException('El rol ya está inactivo.');
+        }
 
-        if (usuariosConRol > 0) {
-            throw new NotFoundException('No se puede eliminar el rol porque está asignado a usuarios');
-        }   
+        await this.rolesRepository.softDelete(id);
+        return {
+            message: 'El rol ha sido desactivado correctamente.',
+        };
+    }
 
-        // verifica que el rol este activo
-        /*if (rol.deletedAt) {
-            throw new NotFoundException('El rol ya ha sido eliminado');
-        }*/
+    async restoreRole(id: number) {
+        const role = await this.rolesRepository.findOne({
+            where: { Id_Rol: id },
+            withDeleted: true, 
+        });
 
-        return this.rolesRepository.softDelete(id);
+        if (!role) {
+            throw new NotFoundException('Rol no encontrado.');
+        }
+
+        if (!role.Fecha_Eliminacion) {
+            throw new BadRequestException('El rol no estaba inactivo.');
+        }
+
+        await this.rolesRepository.restore(id);
+        return {
+            message: 'El rol ha sido restaurado correctamente.',
+        };
     }
 }

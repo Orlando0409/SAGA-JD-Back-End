@@ -31,16 +31,19 @@ export class UsuariosController
   }
 
   @Put(':id')
-  UpdateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usuariosService.updateUser(+id, updateUserDto);
+  @RequiereRoles('Administrador')
+  UpdateUser(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
+    return this.usuariosService.updateUser(id, updateUserDto);
   }
 
   @Delete(':id')
+  @RequiereRoles('Administrador')
   DeleteUser(@Param('id',ParseIntPipe) id: number) {
     return this.usuariosService.softDeleteUser(id);
   }
 
   @Patch('restaurar/:id')
+  @RequiereRoles('Administrador')
   restoreUser(@Param('id', ParseIntPipe) id: number) {
     return this.usuariosService.restoreUser(id);
   }
