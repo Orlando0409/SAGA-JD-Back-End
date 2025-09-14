@@ -3,9 +3,6 @@ import { IsNotEmpty, MinLength } from 'class-validator';
 
 export class ResetPasswordDto {
   
-  @ApiProperty({
-    example: 'Ingrese el token recibido del correo:',
-  })
   @IsNotEmpty()
   token: string;
 
