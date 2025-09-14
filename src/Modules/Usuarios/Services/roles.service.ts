@@ -5,6 +5,7 @@ import { CreateRolesDto } from '../UsuarioDTO\'s/CreateRoles.dto';
 import { UpdateRolesDto } from '../UsuarioDTO\'s/UpdateRoles.dto';
 import { Permiso } from '../UsuarioEntities/Permiso.Entity';
 import { UserRol } from '../UsuarioEntities/UsuarioRol.Entity';
+import { UserEntity } from '../UsuarioEntities/Usuario.Entity';
 
 
 @Injectable()
@@ -14,6 +15,8 @@ export class RolesService {
         private readonly rolesRepository: Repository<UserRol>,
         @InjectRepository(Permiso)
         private readonly permisosRepository: Repository<Permiso>,
+        @InjectRepository(UserEntity)
+        private readonly userRepository: Repository<UserEntity>,
     ) {}
     
     async createRoles(createRolesDto: CreateRolesDto) {
@@ -39,7 +42,9 @@ export class RolesService {
     }
     
     AllRoles() {
-        return this.rolesRepository.find({ relations: ['permisos'] });
+        return this.rolesRepository.find({ 
+            relations: ['permisos'],
+            withDeleted: true});
     }
     AllPermission(){
         return this.permisosRepository.find();
@@ -48,7 +53,8 @@ export class RolesService {
     findOneRoles(id: number) {
         return this.rolesRepository.findOne({ 
             where: { Id_Rol: id }, 
-            relations: ['permisos'] 
+            relations: ['permisos'],
+            withDeleted: true
         });
     }
     
@@ -57,7 +63,8 @@ export class RolesService {
         
         const rol = await this.rolesRepository.findOne({ 
             where: { Id_Rol: id }, 
-            relations: ['permisos'] 
+            relations: ['permisos'],
+            withDeleted: true
         });
         
         if (!rol) {
@@ -93,6 +100,19 @@ export class RolesService {
         }
 
         await this.rolesRepository.softDelete(id);
+
+        const usersWithRole = await this.userRepository.find({
+            where: { id_Rol: id }, 
+            relations: ['rol', 'rol.permisos'],
+            withDeleted: true, 
+        });
+
+        if (usersWithRole && usersWithRole.length > 0) {
+            //desactivar usuarios con ese rol
+            const userIds = usersWithRole.map(user => user.Id_Usuario);
+            await this.userRepository.softDelete(userIds);
+        }
+
         return {
             message: 'El rol ha sido desactivado correctamente.',
         };
@@ -113,6 +133,18 @@ export class RolesService {
         }
 
         await this.rolesRepository.restore(id);
+
+        const usersWithRole = await this.userRepository.find({
+            where: { id_Rol: id }, 
+            relations: ['rol', 'rol.permisos'],
+            withDeleted: true, 
+        });
+
+        if (usersWithRole && usersWithRole.length > 0) {
+            const userIds = usersWithRole.map(user => user.Id_Usuario);
+            await this.userRepository.restore(userIds);
+        }
+
         return {
             message: 'El rol ha sido restaurado correctamente.',
         };
