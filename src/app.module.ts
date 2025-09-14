@@ -61,7 +61,7 @@ import { TipoAfiliado } from './Modules/Afiliados/AfiliadoEntities/TipoAfiliado.
         SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
         EstadoSolicitud, Proyecto, ProyectoEstado, CalidadAgua, EstadoAfiliado, TipoAfiliado,
         Abonado, AbonadoFisico, AbonadoJuridico, Asociado, AsociadoFisico, AsociadoJuridico],
-        synchronize: false,
+        synchronize: true,
       }),
     }),
     ProyectoModule,

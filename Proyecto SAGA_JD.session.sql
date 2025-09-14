@@ -1,27 +1,49 @@
 create database proyecto;
 use proyecto;
 
-insert into proyecto_estado
+insert into estado_proyecto
 values(1, 'En planeamiento'), (2, 'En progreso'), (3, 'Terminado');
 
-insert into solicitud_estado
+insert into estado_solicitud
 values(1, 'Pendiente'), (2, 'Revisada'), (3, 'Aprobada'), (4, 'Rechazada');
 
-select * from proyecto_estado;
+insert into estado_afiliado
+values(1, 'Activo'), (2, 'Inactivo');
 
-select * from solicitud_estado;
+insert into tipo_afiliado
+values(1, 'Abonado'), (2, 'Asociado');
 
-select * from proyecto;
+select * from estado_solicitud;
 
-select * from solicitudes_afiliacion;
+select * from estado_afiliado;
 
-select * from solicitudes_desconexion;
+select * from estado_proyecto;
 
-select * from solicitudes_asociado;
+select * from solicitudes_afiliacion_fisica;
 
-select * from solicitudes_cambio_medidor;
+select * from solicitudes_afiliacion_juridica;
+
+select * from solicitudes_desconexion_fisica;
+
+select * from solicitudes_desconexion_juridica;
+
+select * from solicitudes_cambio_medidor_fisica;
+
+select * from solicitudes_cambio_medidor_juridica;
+
+select * from solicitudes_asociado_fisica;
+
+select * from solicitudes_asociado_juridica;
 
 select * from calidad_agua;
+
+select * from abonados;
+select * from abonado_fisico;
+select * from asociados;
+
+select * from usuario;
+
+select * from permisos;
 
 show tables;
 
