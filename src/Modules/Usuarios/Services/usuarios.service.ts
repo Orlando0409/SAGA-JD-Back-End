@@ -171,6 +171,15 @@ async updateUser(id: number, updateUserDto: UpdateUserDto) {
 
         if (!user.Fecha_Eliminacion) {
             throw new BadRequestException('El usuario no estaba inactivo.');
+        } 
+
+        const isRolActive = await this.rolRepository.findOne({
+            where: { Id_Rol: user.id_Rol },
+            withDeleted: true, 
+        });
+
+        if(!isRolActive || isRolActive.Fecha_Eliminacion) {
+            throw new BadRequestException('No se puede restaurar el usuario porque su rol está deshabilitado.');
         }
 
         await this.userRepository.restore(id);
