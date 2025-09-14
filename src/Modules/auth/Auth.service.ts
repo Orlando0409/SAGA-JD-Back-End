@@ -245,9 +245,9 @@ export class AuthService {
   }
 
   async changePassword(changePasswordDto: ChangePasswordDTO) {
-    const { Usuario, Contraseña_Actual, Nueva_Contraseña } = changePasswordDto;
+    const { UsuarioId, Contraseña_Actual, Nueva_Contraseña } = changePasswordDto;
     const usuario = await this.userRepository.findOne({
-      where: { Nombre_Usuario: Usuario },
+      where: { Id_Usuario: UsuarioId },
       withDeleted: true
     });
     if (!usuario) {

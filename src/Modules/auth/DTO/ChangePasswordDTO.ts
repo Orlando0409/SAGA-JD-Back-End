@@ -1,6 +1,6 @@
 
 export class ChangePasswordDTO {
-    Usuario: string;
+    UsuarioId: number;
     Contraseña_Actual: string;
     Nueva_Contraseña: string;
 }
