@@ -4,11 +4,11 @@ import { Repository } from "typeorm";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 import { ValidationsService } from "src/Validations/Validations.service";
-import { AbonadosService } from "src/Modules/Afiliados/Services/abonados.service";
 import { SolicitudAfiliacionFisica } from "../../SolicitudEntities/Solicitud.Entity";
 import { EstadoSolicitud } from "../../SolicitudEntities/EstadoSolicitud.Entity";
 import { CreateSolicitudAfiliacionFisicaDto } from "../../SolicitudDTO's/CreateSolicitudFisica.dto";
 import { UpdateSolicitudAfiliacionFisicaDto } from "../../SolicitudDTO's/UpdateSolicitudFisica.dto";
+import { AfiliadosService } from "src/Modules/Afiliados/afiliados.service";
 
 @Injectable()
 export class SolicitudAfiliacionFisicaService
@@ -25,7 +25,7 @@ export class SolicitudAfiliacionFisicaService
 
         private readonly validationsService: ValidationsService,
 
-        private readonly abonadosService: AbonadosService,
+        private readonly afiliadosService: AfiliadosService,
     ) {}
 
     async getAllSolicitudesAfiliacion()
@@ -96,14 +96,20 @@ export class SolicitudAfiliacionFisicaService
         solicitud.Estado = nuevoEstado;
         const solicitudActualizada = await this.solicitudAfiliacionFisicaRepository.save(solicitud);
 
-        // Si el estado cambia a 3 (Aprobada), crear automáticamente el abonado
+        // Si el estado cambia a 3 (Aprobada), crear automáticamente el afiliado
         if (nuevoEstadoId === 3) {
             try {
-                await this.abonadosService.createAbonadoFromSolicitud(solicitudActualizada);
+                await this.afiliadosService.createAfiliadoFisicoFromSolicitud(solicitudActualizada);
             } catch (error) {
-                // Si ya existe el abonado, no lanzar error, solo continuar
-                if (!error.message.includes('Ya existe un abonado')) {
-                    throw error;
+                // Manejar diferentes tipos de errores con mensajes específicos
+                if (error.message.includes('Ya existe un afiliado físico')) {
+                    throw new BadRequestException(`Error al crear afiliado: Ya existe un afiliado físico con la cédula ${solicitudActualizada.Cedula}. La solicitud fue aprobada pero el afiliado ya estaba registrado.`);
+                } else if (error.message.includes('Estado inicial de afiliado no configurado')) {
+                    throw new BadRequestException(`Error de configuración: El estado inicial de afiliado no está configurado en el sistema. Contacte al administrador.`);
+                } else if (error.message.includes('Tipo de afiliado con ID')) {
+                    throw new BadRequestException(`Error de configuración: El tipo de afiliado "Abonado" no está configurado en el sistema. Contacte al administrador.`);
+                } else {
+                    throw new BadRequestException(`Error al crear afiliado automáticamente: ${error.message}`);
                 }
             }
         }

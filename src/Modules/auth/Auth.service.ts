@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from '../Emails/email.service';
 import { ResetPasswordDto } from './DTO/ResetPasswordDto';
+import { ChangePasswordDTO } from './DTO/ChangePasswordDTO';
 
 @Injectable()
 export class AuthService {
@@ -28,11 +29,15 @@ export class AuthService {
     // Buscar usuario por nombre de usuario
     const usuario = await this.userRepository.findOne({
       where: { Nombre_Usuario },
-      relations: ['rol', 'rol.permisos']
+      relations: ['rol', 'rol.permisos'],
+      withDeleted: true
     });
 
     if (!usuario) {
         throw new UnauthorizedException('Credenciales inválidas');
+    }
+    if (usuario.Fecha_Eliminacion) {
+      throw new UnauthorizedException('Usuario deshabilitado');
     }
 
     let contraseñaValida = false;
@@ -129,13 +134,9 @@ export class AuthService {
     }
   }
 
-  async logout(response: Response) {
+   async logout(response: Response) {
     response.clearCookie('accessToken');
     response.clearCookie('refreshToken');
-
-    return {
-      mensaje: 'Logout exitoso'
-    };
   }
 
   async forgotPassword(email: string) {
@@ -159,7 +160,7 @@ export class AuthService {
    
     const token = await this.jwtService.signAsync(payload, { expiresIn: '10m' });
 
-    const FrontendRecoverURL = `${this.configService.get('FRONTEND_URL')}/auth/reset-password`;
+    const FrontendRecoverURL = `${this.configService.get('FRONTEND_URL')}/ResetPassword`;
     const url = `${FrontendRecoverURL}?token=${token}`;
 
     
@@ -218,11 +219,6 @@ export class AuthService {
   async resetPassword(dto: ResetPasswordDto) {
     try {
      
-      if (dto.nuevaContraseña !== dto.confirmarContraseña) {
-        throw new UnauthorizedException('Las contraseñas no coinciden');
-      }
-
-     
       const payload = await this.jwtService.verifyAsync(dto.token);
 
       
@@ -234,7 +230,6 @@ export class AuthService {
         throw new NotFoundException('Usuario no encontrado');
       }
 
-  
       const hashedPassword = await bcrypt.hash(dto.nuevaContraseña, 10);
 
      
@@ -247,6 +242,27 @@ export class AuthService {
       console.error('Error al cambiar la contraseña:', error);
       throw new UnauthorizedException('Token inválido, expirado o contraseñas no coinciden');
     }
+  }
+
+  async changePassword(changePasswordDto: ChangePasswordDTO) {
+    const { UsuarioId, Contraseña_Actual, Nueva_Contraseña } = changePasswordDto;
+    const usuario = await this.userRepository.findOne({
+      where: { Id_Usuario: UsuarioId },
+      withDeleted: true
+    });
+    if (!usuario) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+    if (usuario.Fecha_Eliminacion) {
+      throw new UnauthorizedException('Usuario deshabilitado');
+    }
+    const contraseñaValida = await bcrypt.compare(Contraseña_Actual, usuario.Contraseña);
+    if (!contraseñaValida) {
+      throw new UnauthorizedException('Contraseña actual incorrecta');
+    }
+    const hashedPassword = await bcrypt.hash(Nueva_Contraseña, 10);
+    await this.userRepository.update(usuario.Id_Usuario, { Contraseña: hashedPassword });
+    return { mensaje: 'Contraseña cambiada exitosamente' };
   }
 
   private setTokenCookies(response: Response, accessToken: string, refreshToken: string) {

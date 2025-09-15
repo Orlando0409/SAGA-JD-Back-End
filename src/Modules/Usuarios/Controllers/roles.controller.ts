@@ -1,4 +1,4 @@
-import {Controller , Get, Post, Body, Param, Delete, Put, ParseIntPipe} from '@nestjs/common';
+import {Controller , Get, Post, Body, Param, Delete, Put, ParseIntPipe, Patch} from '@nestjs/common';
 import { RequiereRoles } from 'src/Modules/auth/Decorator/Rol.decorator';
 import {RolesService} from "../Services/roles.service";
 import {CreateRolesDto} from "../UsuarioDTO's/CreateRoles.dto";
@@ -8,9 +8,14 @@ import {UpdateRolesDto} from "../UsuarioDTO's/UpdateRoles.dto";
 export class RolesController {
     constructor(private readonly rolesService: RolesService) {}
     
-    @Get()
+    @Get('allRoles')
     AllRoles() {
         return this.rolesService.AllRoles();
+    }
+
+    @Get('allPermissions')
+    AllPermission(){
+        return this.rolesService.AllPermission();
     }
     
     @Get(':id')
@@ -31,6 +36,10 @@ export class RolesController {
     
     @Delete(':id')
     DeleteRoles(@Param('id', ParseIntPipe) id: number) {
-        return this.rolesService.deleteRoles(id);
+        return this.rolesService.softDeleteRol(id);
     }
+    @Patch('restore/:id')
+    RestoreRoles(@Param('id', ParseIntPipe) id: number) {
+        return this.rolesService.restoreRole(id);
     }
+ }

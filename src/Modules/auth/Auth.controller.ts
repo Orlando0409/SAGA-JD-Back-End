@@ -15,6 +15,7 @@ import { LoginDto } from './DTO/LoginDto';
 import { ResetPasswordDto } from './DTO/ResetPasswordDto';
 import { JwtAuthGuard } from './Guard/JwtGuard';
 import { AuthService } from './Auth.service';
+import { ChangePasswordDTO } from './DTO/ChangePasswordDTO';
 
 
 @ApiTags('Autenticación')
@@ -32,7 +33,7 @@ export class AuthController {
     return await this.authService.login(loginDto, response);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @Public()
   @Post('refresh')
   @ApiOperation({ summary: 'Renovar token de acceso' })
   async refresh(
@@ -51,8 +52,8 @@ export class AuthController {
   @Public()
   @Post('logout')
   @ApiOperation({ summary: 'Cerrar sesión' })
-  logout(@Res({ passthrough: true }) response: Response) {
-    return this.authService.logout(response);
+  async logout(@Res({ passthrough: true }) response: Response) {
+    await this.authService.logout(response);
   }
 
   @Public()
@@ -67,6 +68,13 @@ export class AuthController {
   @ApiOperation({ summary: 'Restablecer contraseña' })
   async resetPassword(@Body() dto: ResetPasswordDto) {
     return await this.authService.resetPassword(dto);
+  }
+  
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Cambiar contraseña' })
+  async changePassword(@Body() changePasswordDto: ChangePasswordDTO) {
+    return this.authService.changePassword(changePasswordDto);
   }
 
   @UseGuards(JwtAuthGuard)

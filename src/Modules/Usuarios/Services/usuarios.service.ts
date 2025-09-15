@@ -48,7 +48,7 @@ export class UsuariosService {
                 ...userData, 
                 Nombre_Usuario,
                 Contraseña: hashedPassword, //  Usar contraseña hasheada
-                id_rol: Id_Rol,
+                id_Rol: Id_Rol,
                 Correo_Electronico
             });
             return await this.userRepository.save(user);
@@ -65,7 +65,7 @@ export class UsuariosService {
     async AllUser() {
         const users = await this.userRepository.find({ 
             relations: ['rol', 'rol.permisos'], 
-            withDeleted: true 
+            withDeleted: true  
         });
         
         //  Remover contraseñas de la respuesta
@@ -82,6 +82,7 @@ export class UsuariosService {
         const user = await this.userRepository.findOne({
             where: { Id_Usuario: id },
             relations: ['rol', 'rol.permisos'],
+            withDeleted: true
         });
         
         if (!user) {
@@ -97,43 +98,47 @@ export class UsuariosService {
         };
     }
 
-    async updateUser(id: number, updateUserDto: UpdateUserDto) {
-        const user = await this.userRepository.findOne({
-            where: { Id_Usuario: id },
-            relations: ['rol'],
-        });
-        
-        if (!user){
-            throw new NotFoundException('Usuario no encontrado');
-        }
+async updateUser(id: number, updateUserDto: UpdateUserDto) {
 
-        // Manejar actualización de contraseña
-        if (updateUserDto.Contraseña) {
-            updateUserDto.Contraseña = await bcrypt.hash(updateUserDto.Contraseña, 10); 
-        }
-
-        if (updateUserDto.Id_Rol !== undefined) {
-            if (updateUserDto.Id_Rol === 0) {
-                user.id_rol = 0; 
-            } else {
-                const nuevoRol = await this.rolRepository.findOneBy({ Id_Rol: updateUserDto.Id_Rol});
-                if (!nuevoRol){
-                    throw new NotFoundException('Rol no encontrado');
-                } 
-                user.id_rol = updateUserDto.Id_Rol;
-            }
-        }
-
-        const { Id_Rol, ...restOfDto } = updateUserDto;
-        Object.assign(user, restOfDto);
-
-        const updatedUser = await this.userRepository.save(user);
-        
-        //  Remover contraseña de la respuesta
-        const { Contraseña, ...userWithoutPassword } = updatedUser;
-        return userWithoutPassword;
+    const user = await this.userRepository.findOne({
+        where: { Id_Usuario: id },
+        relations: ['rol', 'rol.permisos'],
+    });
+    
+    if (!user) {
+        throw new NotFoundException('Usuario no encontrado');
     }
 
+    // Manejar campos específicos
+    if (updateUserDto.Nombre_Usuario !== undefined) {
+        user.Nombre_Usuario = updateUserDto.Nombre_Usuario;
+    }
+    
+    if (updateUserDto.Correo_Electronico !== undefined) {
+        user.Correo_Electronico = updateUserDto.Correo_Electronico;
+    }
+
+    // Manejar el rol
+    if (updateUserDto.Id_Rol !== undefined) {
+        if (updateUserDto.Id_Rol === 0 ) {
+            user.id_Rol = 0;
+            user.rol.Id_Rol = 0; 
+        } else {
+            const nuevoRol = await this.rolRepository.findOneBy({ Id_Rol: updateUserDto.Id_Rol });
+            if (!nuevoRol) {
+                throw new NotFoundException('Rol no encontrado');
+            } 
+            user.id_Rol = updateUserDto.Id_Rol;
+            user.rol = nuevoRol; 
+        }
+    }
+
+    const updatedUser = await this.userRepository.save(user);
+    
+    // Remover la contraseña de la respuesta
+    const { Contraseña, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword;
+}
     async softDeleteUser(id: number) {
         const user = await this.userRepository.findOne({
             where: { Id_Usuario: id },
@@ -166,6 +171,15 @@ export class UsuariosService {
 
         if (!user.Fecha_Eliminacion) {
             throw new BadRequestException('El usuario no estaba inactivo.');
+        } 
+
+        const isRolActive = await this.rolRepository.findOne({
+            where: { Id_Rol: user.id_Rol },
+            withDeleted: true, 
+        });
+
+        if(!isRolActive || isRolActive.Fecha_Eliminacion) {
+            throw new BadRequestException('No se puede restaurar el usuario porque su rol está deshabilitado.');
         }
 
         await this.userRepository.restore(id);
