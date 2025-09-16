@@ -1,4 +1,4 @@
-import { Column, PrimaryGeneratedColumn, Entity, OneToMany, ManyToMany, JoinTable } from 'typeorm';
+import { Column, PrimaryGeneratedColumn, Entity, OneToMany, ManyToMany, JoinTable, DeleteDateColumn } from 'typeorm';
 import { UserEntity } from './Usuario.Entity';
 import { Permiso } from './Permiso.Entity';
 
@@ -10,6 +10,9 @@ export class UserRol {
 
   @Column()
   Nombre_Rol: string;
+
+  @DeleteDateColumn({ name: 'Fecha_Eliminacion', nullable: true })
+  Fecha_Eliminacion: Date;
 
   @OneToMany(() => UserEntity, user => user.rol)
   usuarios: UserEntity[];

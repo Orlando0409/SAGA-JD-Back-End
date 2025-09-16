@@ -33,7 +33,7 @@ export class AuthController {
     return await this.authService.login(loginDto, response);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @Public()
   @Post('refresh')
   @ApiOperation({ summary: 'Renovar token de acceso' })
   async refresh(

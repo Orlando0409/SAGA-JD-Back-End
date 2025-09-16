@@ -27,6 +27,6 @@ export class UserEntity {
 
     @ManyToOne(() => UserRol, rol => rol.usuarios, { nullable: true })
     @JoinColumn({ name: 'id_Rol' })
-    rol: UserRol | null ;
+    rol: UserRol;
 }
 
