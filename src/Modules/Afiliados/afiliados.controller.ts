@@ -1,20 +1,21 @@
-import { Body, Controller, Get, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Put, UploadedFiles, UseInterceptors } from "@nestjs/common";
 import { AfiliadosService } from "./afiliados.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { CreateAfiliadoFisicoDto, CreateAfiliadoJuridicoDto } from "./AfiliadoDTO's/CreateAfiliado.dto";
 import { UpdateAfiliadoFisicoDto, UpdateAfiliadoJuridicoDto } from "./AfiliadoDTO's/UpdateAfiliado.dto";
+import { FileFieldsInterceptor } from "@nestjs/platform-express/multer";
 
 @Controller('afiliados')
 export class AfiliadosController {
     constructor(private readonly afiliadosService: AfiliadosService) {}
 
-    @Get('fisico/all')
+    @Get('/fisico/all')
     @ApiOperation({ summary: 'Obtener todos los afiliados físicos' })
     findAllFisicos() {
         return this.afiliadosService.getAfiliadosFisicos();
     }
 
-    @Get('juridico/all')
+    @Get('/juridico/all')
     @ApiOperation({ summary: 'Obtener todos los afiliados jurídicos' })
     findAllJuridicos() {
         return this.afiliadosService.getAfiliadosJuridicos();
@@ -22,14 +23,25 @@ export class AfiliadosController {
 
     @Post('/fisico/create')
     @ApiOperation({ summary: 'Crear un nuevo afiliado físico' })
-    createAfiliadoFisico(@Body() dto: CreateAfiliadoFisicoDto) {
-        return this.afiliadosService.createAfiliadoFisico(dto);
+    @UseInterceptors(FileFieldsInterceptor([ 
+        { name: 'Planos_Terreno', maxCount: 1 }, 
+        { name: 'Escritura_Terreno', maxCount: 1 }, 
+    ]),)
+    createAfiliadoFisico(@Body() dto: CreateAfiliadoFisicoDto,
+    @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; }) {
+        console.log(dto);
+        return this.afiliadosService.createAfiliadoFisico(dto, files);
     }
 
     @Post('/juridico/create')
     @ApiOperation({ summary: 'Crear un nuevo afiliado jurídico' })
-    createAfiliadoJuridico(@Body() dto: CreateAfiliadoJuridicoDto) {
-        return this.afiliadosService.createAfiliadoJuridico(dto);
+    @UseInterceptors(FileFieldsInterceptor([ 
+        { name: 'Planos_Terreno', maxCount: 1 }, 
+        { name: 'Escritura_Terreno', maxCount: 1 }, 
+    ]),)
+    createAfiliadoJuridico(@Body() dto: CreateAfiliadoJuridicoDto,
+    @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; } ) {
+        return this.afiliadosService.createAfiliadoJuridico(dto, files);
     }
 
     @Put('/update/fisico/:id')

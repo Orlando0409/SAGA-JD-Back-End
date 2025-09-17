@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsEmail, IsNumber, IsOptional, IsDefined, IsNotEmpty, MinLength, MaxLength, Matches, Min, Max } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-export class CreateAfiliadoDto {
+export abstract class CreateAfiliadoDto {
   @ApiProperty({ example: 'ejemplo@gmail.com' })
   @Transform(({ value }) => value?.trim())
   @IsEmail({}, { message: 'El correo electrónico debe tener un formato válido' })
