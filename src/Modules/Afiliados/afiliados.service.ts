@@ -8,6 +8,8 @@ import { UpdateAfiliadoFisicoDto } from "./AfiliadoDTO's/UpdateAfiliado.dto";
 import { TipoAfiliado } from "./AfiliadoEntities/TipoAfiliado.Entity";
 import { CreateAfiliadoFisicoDto } from "./AfiliadoDTO's/CreateAfiliado.dto";
 import { CreateAfiliacionJuridicaDto } from "src/Modules/Solicitudes/SolicitudDTO's/CreateSolicitudJuridica.dto";
+import { ValidationsService } from "src/Validations/Validations.service";
+import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 
 @Injectable()
 export class AfiliadosService {
@@ -29,6 +31,10 @@ export class AfiliadosService {
 
     @InjectRepository(SolicitudAfiliacionJuridica)
     private readonly solicitudAfiliacionJuridicaRepository: Repository<SolicitudAfiliacionJuridica>,
+
+    private readonly validationsService: ValidationsService,
+
+    private readonly dropboxFilesService: DropboxFilesService,
   ) {}
 
     async getAfiliadosFisicos() {
@@ -64,7 +70,7 @@ export class AfiliadosService {
         return this.afiliadoFisicoRepository.save(afiliado);
     }
 
-    async createAfiliadoFisico(dto: CreateAfiliadoFisicoDto) {
+    async createAfiliadoFisico(dto: CreateAfiliadoFisicoDto, files: any) {
         // Verificar que no existe ya un afiliado físico con esa cédula
         const afiliadoExistente = await this.afiliadoFisicoRepository.findOne({ where: { Cedula: dto.Cedula } });
         if (afiliadoExistente) { 
@@ -77,8 +83,16 @@ export class AfiliadosService {
         const tipoAfiliado = await this.tipoAfiliadoRepository.findOne({ where: { Id_Tipo_Afiliado: 1 } });
         if (!tipoAfiliado) { throw new BadRequestException(`Tipo de afiliado con ID ${1} no encontrado`); }
 
+        const planoFile = files.Planos_Terreno?.[0];
+        const escrituraFile = files.Escritura_Terreno?.[0];
+
+        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Cedula) : null;
+        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Cedula) : null;
+
         const afiliado = this.afiliadoFisicoRepository.create({
             ...dto,
+            Planos_Terreno: planoRes?.url,
+            Escritura_Terreno: escrituraRes?.url,
             Estado: estadoInicial,
             Tipo_Afiliado: tipoAfiliado
         });
@@ -111,7 +125,7 @@ export class AfiliadosService {
         return this.afiliadoJuridicoRepository.save(afiliado);
     }
 
-    async createAfiliadoJuridico(dto: CreateAfiliacionJuridicaDto) {
+    async createAfiliadoJuridico(dto: CreateAfiliacionJuridicaDto, files: any) {
         // Verificar que no existe ya un afiliado jurídico con esa cédula jurídica
         const afiliadoExistente = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: dto.Cedula_Juridica } });
         if (afiliadoExistente) { 
@@ -124,10 +138,18 @@ export class AfiliadosService {
         const tipoAfiliado = await this.tipoAfiliadoRepository.findOne({ where: { Id_Tipo_Afiliado: 1 } });
         if (!tipoAfiliado) { throw new BadRequestException(`Tipo de afiliado con ID ${1} no encontrado`); }
 
+        const planoFile = files.Planos_Terreno?.[0];
+        const escrituraFile = files.Escritura_Terreno?.[0];
+
+        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Juridicas', dto.Cedula_Juridica) : null;
+        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Juridicas', dto.Cedula_Juridica) : null;
+
         const afiliado = this.afiliadoJuridicoRepository.create({
             ...dto,
             Estado: estadoInicial,
-            Tipo_Afiliado: tipoAfiliado
+            Tipo_Afiliado: tipoAfiliado,
+            Planos_Terreno: planoRes?.url,
+            Escritura_Terreno: escrituraRes?.url
         });
 
         return this.afiliadoJuridicoRepository.save(afiliado);
