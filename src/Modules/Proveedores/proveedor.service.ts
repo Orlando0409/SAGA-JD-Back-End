@@ -5,6 +5,7 @@ import { ProveedorFisico, ProveedorJuridico } from './ProveedorEntities/Proveedo
 import { CreateProveedorFisicoDto, CreateProveedorJuridicoDto } from './ProveedoresDTOs/CreateProveedor';
 import { UpdateProveedorFisicoDto, UpdateProveedorJuridicoDto } from './ProveedoresDTOs/UpdateProveedor';
 import { EstadoProveedor } from './ProveedorEntities/EstadoProveedor';
+import { UpdateEstadoProveedorDto } from './ProveedoresDTOs/UpdateEstadoProveedor';
 
 @Injectable()
 export class ProveedorService {
@@ -96,25 +97,37 @@ export class ProveedorService {
 
   async updateFisico(id: number, dto: UpdateProveedorFisicoDto): Promise<ProveedorFisico> {
     const proveedor = await this.findOneFisico(id);
-    if (dto.Id_EstadoProveedor) {
-      const estado = await this.estadoRepo.findOne({ where: { Id_EstadoProveedor: dto.Id_EstadoProveedor } });
-      if (!estado) throw new NotFoundException(`Estado proveedor ${dto.Id_EstadoProveedor} no encontrado`);
-      proveedor.estadoProveedor = estado;
-    }
     Object.assign(proveedor, dto);
     return this.fisicoRepo.save(proveedor);
   }
 
   async updateJuridico(id: number, dto: UpdateProveedorJuridicoDto): Promise<ProveedorJuridico> {
     const proveedor = await this.findOneJuridico(id);
-    if (dto.Id_EstadoProveedor) {
-      const estado = await this.estadoRepo.findOne({ where: { Id_EstadoProveedor: dto.Id_EstadoProveedor } });
-      if (!estado) throw new NotFoundException(`Estado proveedor ${dto.Id_EstadoProveedor} no encontrado`);
-      proveedor.estadoProveedor = estado;
-    }
     Object.assign(proveedor, dto);
     return this.juridicoRepo.save(proveedor);
   }
+
+  //----Actualizar Estado---- 
+    async updateEstadoFisico(id: number, dto: UpdateEstadoProveedorDto): Promise<ProveedorFisico> {
+    const proveedor = await this.findOneFisico(id);
+
+    const estado = await this.estadoRepo.findOne({ where: { Id_EstadoProveedor: dto.Id_EstadoProveedor } });
+    if (!estado) throw new NotFoundException(`Estado proveedor ${dto.Id_EstadoProveedor} no encontrado`);
+
+    proveedor.estadoProveedor = estado;
+    return this.fisicoRepo.save(proveedor);
+  }
+
+  async updateEstadoJuridico(id: number, dto: UpdateEstadoProveedorDto): Promise<ProveedorJuridico> {
+    const proveedor = await this.findOneJuridico(id);
+
+    const estado = await this.estadoRepo.findOne({ where: { Id_EstadoProveedor: dto.Id_EstadoProveedor } });
+    if (!estado) throw new NotFoundException(`Estado proveedor ${dto.Id_EstadoProveedor} no encontrado`);
+
+    proveedor.estadoProveedor = estado;
+    return this.juridicoRepo.save(proveedor);
+  }
+
 
   async removeFisico(id: number): Promise<void> {
     const proveedor = await this.findOneFisico(id);
