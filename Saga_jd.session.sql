@@ -1,18 +1,6 @@
 create database proyecto;
 use proyecto;
 
-insert into estado_proyecto
-values(1, 'En planeamiento'), (2, 'En progreso'), (3, 'Terminado');
-
-insert into estado_solicitud
-values(1, 'Pendiente'), (2, 'Revisada'), (3, 'Aprobada'), (4, 'Rechazada');
-
-insert into estado_afiliado
-values(1, 'Activo'), (2, 'Inactivo');
-
-insert into tipo_afiliado
-values(1, 'Abonado'), (2, 'Asociado');
-
 select * from estado_solicitud;
 
 select * from estado_afiliado;
