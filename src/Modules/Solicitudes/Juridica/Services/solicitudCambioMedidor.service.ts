@@ -74,13 +74,4 @@ export class SolicitudCambioMedidorJuridicaService
         solicitudCambioMedidor.Estado = nuevoEstado;
         return this.solicitudCambioMedidorJuridicaRepository.save(solicitudCambioMedidor);
     }
-
-    async deleteSolicitudCambioMedidor(id: number)
-    {
-        const solicitudCambioMedidor = await this.solicitudCambioMedidorJuridicaRepository.findOne({ where: { Id_Solicitud: id } });
-        if (!solicitudCambioMedidor) {
-            throw new BadRequestException(`Solicitud de cambio de medidor jurídica con id ${id} no encontrada`);
-        }
-        return this.solicitudCambioMedidorJuridicaRepository.remove(solicitudCambioMedidor);
-    }
 }

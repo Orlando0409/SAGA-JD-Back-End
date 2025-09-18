@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UploadedFiles, UseInterceptors} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, UploadedFiles, UseInterceptors} from "@nestjs/common";
 import { ApiOperation } from "@nestjs/swagger";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
@@ -38,15 +38,9 @@ export class SolicitudCambioMedidorJuridicaController {
     return this.solicitudCambioMedidorJuridicaService.updateSolicitudCambioMedidor(id, dto);
   }
 
-  @Put(':id/update/estado/:nuevoEstadoId')
+  @Patch(':id/update/estado/:nuevoEstadoId')
   @ApiOperation({ summary: 'Actualizar el estado de una solicitud de cambio de medidor jurídica por ID' })
   updateEstadoSolicitudCambioMedidor(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
     return this.solicitudCambioMedidorJuridicaService.UpdateEstadoSolicitudCambioMedidor(id, nuevoEstadoId);
-  }
-
-  @Delete('/delete/:id')
-  @ApiOperation({ summary: 'Eliminar una solicitud de cambio de medidor jurídica por ID' })
-  deleteSolicitudCambioMedidor(@Param('id', ParseIntPipe) id: number) {
-    return this.solicitudCambioMedidorJuridicaService.deleteSolicitudCambioMedidor(id);
   }
 }

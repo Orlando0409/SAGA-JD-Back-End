@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put } from "@nestjs/common";
 import { ApiOperation } from "@nestjs/swagger";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 import { CreateSolicitudAsociadoJuridicaDto } from "../../SolicitudDTO's/CreateSolicitudJuridica.dto";
@@ -37,15 +37,9 @@ export class SolicitudAsociadoJuridicaController {
     return this.solicitudAsociadoJuridicaService.updateSolicitudAsociado(id, dto);
   }
 
-  @Put(':id/update/estado/:nuevoEstadoId')
+  @Patch(':id/update/estado/:nuevoEstadoId')
   @ApiOperation({ summary: 'Actualizar el estado de una solicitud de asociado jurídica por ID' })
   updateEstadoSolicitudAsociado(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
     return this.solicitudAsociadoJuridicaService.UpdateEstadoSolicitudAsociado(id, nuevoEstadoId);
-  }
-
-  @Delete('/delete/:id')
-  @ApiOperation({ summary: 'Eliminar una solicitud de asociado jurídica por ID' })
-  deleteSolicitudAsociado(@Param('id', ParseIntPipe) id: number) {
-    return this.solicitudAsociadoJuridicaService.deleteSolicitudAsociado(id);
   }
 }

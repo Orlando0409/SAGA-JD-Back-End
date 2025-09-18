@@ -77,13 +77,4 @@ export class SolicitudesCambioMedidorFisicaService
         solicitudCambioMedidor.Estado = nuevoEstado;
         return this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
     }
-
-    async deleteSolicitudCambioMedidor(id: number)
-    {
-        const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({ where: { Id_Solicitud: id } });
-        if (!solicitudCambioMedidor) {
-            throw new BadRequestException(`Solicitud de cambio de medidor con id ${id} no encontrada`);
-        }
-        return this.solicitudCambioMedidorFisicaRepository.remove(solicitudCambioMedidor);
-    }
 }

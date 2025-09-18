@@ -71,17 +71,40 @@ export class SolicitudAfiliacionFisicaService
         return this.solicitudAfiliacionFisicaRepository.save(solicitudAfiliacion);
     }
 
-    async updateSolicitudAfiliacion(id: number, dto: UpdateSolicitudAfiliacionFisicaDto)
+    async updateSolicitudAfiliacion(id: number, dto: UpdateSolicitudAfiliacionFisicaDto, files?: any)
     {
-        const solicitud = await this.solicitudAfiliacionFisicaRepository.findOne({
-            where: { Id_Solicitud: id }
-        });
+        const solicitud = await this.solicitudAfiliacionFisicaRepository.findOne({ where: { Id_Solicitud: id } });
+        if (!solicitud) { throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`); }
 
-        if (!solicitud) {
-            throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`);
+        // Manejar archivos si se proporcionan
+        let planoUrl = solicitud.Planos_Terreno; // Mantener URL existente por defecto
+        let escrituraUrl = solicitud.Escritura_Terreno; // Mantener URL existente por defecto
+
+        if (files) {
+            const planoFile = files.Planos_Terreno?.[0];
+            const escrituraFile = files.Escritura_Terreno?.[0];
+            const cedula = dto.Cedula || solicitud.Cedula;
+
+            // Solo subir archivo si se proporciona uno nuevo
+            if (planoFile) {
+                const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', cedula);
+                planoUrl = planoRes?.url;
+            }
+
+            if (escrituraFile) {
+                const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Fisicas', cedula);
+                escrituraUrl = escrituraRes?.url;
+            }
         }
 
-        Object.assign(solicitud, dto);
+        // Actualizar solicitud con datos del DTO y URLs de archivos
+        const solicitudActualizada = {
+            ...dto,
+            Planos_Terreno: planoUrl,
+            Escritura_Terreno: escrituraUrl
+        };
+
+        Object.assign(solicitud, solicitudActualizada);
         return this.solicitudAfiliacionFisicaRepository.save(solicitud);
     }
 
@@ -115,12 +138,5 @@ export class SolicitudAfiliacionFisicaService
         }
 
         return solicitudActualizada;
-    }
-
-    async deleteSolicitudAfiliacion(id: number)
-    {
-        const solicitud = await this.solicitudAfiliacionFisicaRepository.findOne({ where: { Id_Solicitud: id } });
-        if (!solicitud) { throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`); }
-        return this.solicitudAfiliacionFisicaRepository.remove(solicitud);
     }
 }

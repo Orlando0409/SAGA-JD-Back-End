@@ -101,13 +101,4 @@ export class SolicitudAsociadoJuridicaService
 
         return solicitudActualizada;
     }
-
-    async deleteSolicitudAsociado(id: number)
-    {
-        const solicitudAsociado = await this.solicitudAsociadoJuridicaRepository.findOne({ where: { Id_Solicitud: id } });
-        if (!solicitudAsociado) {
-            throw new BadRequestException(`Solicitud de asociado jurídica con id ${id} no encontrada`);
-        }
-        return this.solicitudAsociadoJuridicaRepository.remove(solicitudAsociado);
-    }
 }

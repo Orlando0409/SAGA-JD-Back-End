@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UploadedFiles, UseInterceptors} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, UploadedFiles, UseInterceptors} from "@nestjs/common";
 import { ApiOperation } from "@nestjs/swagger";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
@@ -44,15 +44,9 @@ export class SolicitudAfiliacionJuridicaController {
     return this.solicitudAfiliacionJuridicaService.updateSolicitudAfiliacion(id, dto);
   }
 
-  @Put(':id/update/estado/:nuevoEstadoId')
+  @Patch(':id/update/estado/:nuevoEstadoId')
   @ApiOperation({ summary: 'Actualizar el estado de una solicitud de afiliación jurídica por ID' })
   updateEstadoSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
     return this.solicitudAfiliacionJuridicaService.UpdateEstadoSolicitudAfiliacion(id, nuevoEstadoId);
-  }
-
-  @Delete('/delete/:id')
-  @ApiOperation({ summary: 'Eliminar una solicitud de afiliación jurídica por ID' })
-  deleteSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number) {
-    return this.solicitudAfiliacionJuridicaService.deleteSolicitudAfiliacion(id);
   }
 }

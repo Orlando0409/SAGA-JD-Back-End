@@ -117,11 +117,4 @@ export class SolicitudAfiliacionJuridicaService
 
         return solicitudActualizada;
     }
-
-    async deleteSolicitudAfiliacion(id: number)
-    {
-        const solicitud = await this.solicitudAfiliacionJuridicaRepository.findOne({ where: { Id_Solicitud: id } });
-        if (!solicitud) { throw new BadRequestException(`Solicitud de afiliación jurídica con id ${id} no encontrada`); }
-        return this.solicitudAfiliacionJuridicaRepository.remove(solicitud);
-    }
 }

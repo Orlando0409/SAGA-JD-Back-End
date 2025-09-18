@@ -93,11 +93,4 @@ export class SolicitudDesconexionJuridicaService
         solicitud.Estado = nuevoEstado;
         return this.solicitudDesconexionJuridicaRepository.save(solicitud);
     }
-
-    async deleteSolicitudDesconexion(id: number)
-    {
-        const solicitud = await this.solicitudDesconexionJuridicaRepository.findOne({ where: { Id_Solicitud: id } });
-        if (!solicitud) { throw new BadRequestException(`Solicitud de desconexión jurídica con id ${id} no encontrada`); }
-        return this.solicitudDesconexionJuridicaRepository.remove(solicitud);
-    }
 }

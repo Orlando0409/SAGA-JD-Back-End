@@ -87,14 +87,4 @@ export class ProyectoService
         proyecto.Estado = nuevoEstado;
         return this.proyectoRepository.save(proyecto);
     }
-
-    async DeleteProyecto(Id_Proyecto: number) 
-    {
-        const proyecto = await this.proyectoRepository.findOne({ where: { Id_Proyecto } });
-        if (!proyecto) {
-            throw new NotFoundException(`Proyecto con id ${Id_Proyecto} no encontrado`);
-          }
-        await this.proyectoRepository.remove(proyecto);
-        return { message: `Proyecto con id ${Id_Proyecto} eliminado correctamente` };
-    }
 }
