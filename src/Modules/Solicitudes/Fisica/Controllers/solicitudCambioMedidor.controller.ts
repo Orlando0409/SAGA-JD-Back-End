@@ -15,7 +15,7 @@ export class SolicitudCambioMedidorFisicaController {
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todas las solicitudes de cambio de medidor' })
   getAllSolicitudesCambioMedidor() {
-    return this.solicitudCambioMedidorFisicaService.findAllSolicitudesCambioMedidor();
+    return this.solicitudCambioMedidorFisicaService.getAllSolicitudesCambioMedidor();
   }
   @Public()
   @Get(':id')

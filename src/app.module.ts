@@ -34,6 +34,7 @@ import { SolicitudAsociadoJuridicaModule } from './Modules/Solicitudes/Juridica/
 import { TipoAfiliado } from './Modules/Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
 import { AfiliadosModule } from './Modules/Afiliados/afiliados.module';
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from './Modules/Afiliados/AfiliadoEntities/Afiliado.Entity';
+import { SolicitudesModule } from './Modules/Solicitudes/solicitudes.module';
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from './Modules/Afiliados/
     SeederModule,
     CalidadAguaModule,
     AfiliadosModule,
+    SolicitudesModule
   ],
   controllers: [],
   providers: [
