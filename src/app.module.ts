@@ -44,7 +44,7 @@ import { SolicitudesModule } from './Modules/Solicitudes/solicitudes.module';
 
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      inject:[ConfigService],
+      inject: [ConfigService],
 
       useFactory: (config: ConfigService) => ({
         type: 'mysql',
@@ -84,7 +84,13 @@ import { SolicitudesModule } from './Modules/Solicitudes/solicitudes.module';
   ],
   controllers: [],
   providers: [
-    {
+    
+  ],
+})
+export class AppModule {}
+
+/*
+{
       provide: APP_GUARD,
       useClass: JwtAuthGuard, //  Autenticación JWT global
     },
@@ -96,6 +102,4 @@ import { SolicitudesModule } from './Modules/Solicitudes/solicitudes.module';
       provide: APP_GUARD,
       useClass: PermisosGuard, //  Verificación de permisos global
     },
-  ],
-})
-export class AppModule {}
+*/
