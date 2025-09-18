@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { Permiso } from 'src/Modules/Usuarios/UsuarioEntities/Permiso.Entity';
 import { UserEntity } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { UserRol } from 'src/Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
+import { EstadoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/EstadoProveedor';
 
 
 @Injectable()
@@ -15,11 +16,14 @@ export class SeederService implements OnModuleInit {
         @InjectRepository(Permiso)
         private readonly permisoRepository: Repository<Permiso>,
         @InjectRepository(UserEntity)
-        private readonly userRepository: Repository<UserEntity>
+        private readonly userRepository: Repository<UserEntity>,
+        @InjectRepository(EstadoProveedor)
+        private readonly estadoProveedorRepo: Repository<EstadoProveedor>,
     ) {}
 
     async onModuleInit() {
         await this.createInitialData();
+        await this.createDefaultEstadosProveedor();
     }
 
     private async createInitialData() {
@@ -33,6 +37,25 @@ export class SeederService implements OnModuleInit {
         } 
         catch (error) {
             console.error('❌ Error en seeder:', error);
+        }
+    }
+
+     private async createDefaultEstadosProveedor() {
+        const estados = [
+
+            { Id_EstadoProveedor: 1, Estado_Proveedor: 'Activo' },
+            { Id_EstadoProveedor: 2, Estado_Proveedor: 'Inactivo' },
+        ];
+
+        for (const estado of estados) {
+            const existe = await this.estadoProveedorRepo.findOne({
+                where: { Id_EstadoProveedor: estado.Id_EstadoProveedor }
+            });
+
+            if (!existe) {
+                const nuevoEstado = this.estadoProveedorRepo.create(estado);
+                await this.estadoProveedorRepo.save(nuevoEstado);
+            }
         }
     }
 
