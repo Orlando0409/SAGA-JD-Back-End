@@ -18,7 +18,7 @@ export class SolicitudAfiliacionFisicaController {
   getAllSolicitudesAfiliacion() {
     return this.solicitudAfiliacionFisicaService.getAllSolicitudesAfiliacion();
   }
-  @Public()
+
   @Get(':id')
   @ApiOperation({ summary: 'Obtener solicitud por ID' })
   getsolicitudAfiliacionById(@Param('id', ParseIntPipe) id: number) {
@@ -37,19 +37,19 @@ export class SolicitudAfiliacionFisicaController {
   @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; } ) {
     return this.solicitudAfiliacionFisicaService.createSolicitudAfiliacion(solicitudAfiliacion, files);
   }
-  @Public()
+
   @Put('/update/:id')
   @ApiOperation({ summary: 'Actualizar una solicitud de afiliación fisica por ID' })
   updateSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSolicitudAfiliacionFisicaDto) {
     return this.solicitudAfiliacionFisicaService.updateSolicitudAfiliacion(id, dto);
   }
-   @Public()
+
   @Put(':id/update/estado/:nuevoEstadoId')
   @ApiOperation({ summary: 'Actualizar el estado de una solicitud de afiliación fisica por ID' })
   updateEstadoSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
     return this.solicitudAfiliacionFisicaService.UpdateEstadoSolicitudAfiliacion(id, nuevoEstadoId);
   }
-  @Public()
+
   @Delete('/delete/:id')
   @ApiOperation({ summary: 'Eliminar una solicitud de afiliación fisica por ID' })
   deleteSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number) {
