@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, ParseIntPipe, Patch } from '@nestjs/common';
 import { ProveedorService } from './proveedor.service';
 import { CreateProveedorFisicoDto, CreateProveedorJuridicoDto } from './ProveedoresDTOs/CreateProveedor';
 import { UpdateProveedorFisicoDto, UpdateProveedorJuridicoDto } from './ProveedoresDTOs/UpdateProveedor';
+import { UpdateEstadoProveedorDto } from './ProveedoresDTOs/UpdateEstadoProveedor';
 import { ProveedorFisico, ProveedorJuridico } from './ProveedorEntities/ProveedorEntity';
 
 @Controller('proveedores')
@@ -63,4 +64,16 @@ export class ProveedorController {
   removeJuridico(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.proveedorService.removeJuridico(id);
   }
+
+  @Patch('Fisico/:id/estado')
+    updateEstadoFisico(@Param('id') id: number, @Body() dto: UpdateEstadoProveedorDto) {
+    return this.proveedorService.updateEstadoFisico(id, dto);
+  }
+
+  @Patch('Juridico/:id/estado')
+  updateEstadoJuridico(@Param('id') id: number, @Body() dto: UpdateEstadoProveedorDto) {
+    return this.proveedorService.updateEstadoJuridico(id, dto);
+  }
+
+
 }
