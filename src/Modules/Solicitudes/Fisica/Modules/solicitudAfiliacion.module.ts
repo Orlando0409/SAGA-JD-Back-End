@@ -12,6 +12,7 @@ import { AfiliadosModule } from "src/Modules/Afiliados/afiliados.module";
     imports: [TypeOrmModule.forFeature([SolicitudAfiliacionFisica, EstadoSolicitud]), DropboxModule, ValidationsModule, AfiliadosModule],
     controllers: [SolicitudAfiliacionFisicaController],
     providers: [SolicitudAfiliacionFisicaService],
+    exports: [SolicitudAfiliacionFisicaService],
 })
 
 export class SolicitudAfiliacionFisicaModule {}

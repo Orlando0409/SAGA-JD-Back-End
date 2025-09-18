@@ -10,6 +10,7 @@ import { SolicitudCambioMedidorFisica } from "../../SolicitudEntities/Solicitud.
     imports: [TypeOrmModule.forFeature([SolicitudCambioMedidorFisica, EstadoSolicitud]), ValidationsModule],
     controllers: [SolicitudCambioMedidorFisicaController],
     providers: [SolicitudesCambioMedidorFisicaService],
+    exports: [SolicitudesCambioMedidorFisicaService],
 })
 
 export class SolicitudCambioMedidorFisicaModule {}

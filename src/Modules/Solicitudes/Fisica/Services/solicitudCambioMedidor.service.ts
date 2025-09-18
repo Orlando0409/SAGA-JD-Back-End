@@ -22,7 +22,7 @@ export class SolicitudesCambioMedidorFisicaService
         private readonly validationsService: ValidationsService,
     ) {}
 
-    async findAllSolicitudesCambioMedidor()
+    async getAllSolicitudesCambioMedidor()
     {
         return this.solicitudCambioMedidorFisicaRepository.find({ relations: ['Estado'] });
     }
