@@ -14,7 +14,7 @@ export abstract class ProveedorEntity {
   Telefono_Proveedor: number;
 
   @ManyToOne(() => EstadoProveedor, (estadoProveedor) => estadoProveedor.proveedor)
-  estadoProveedor: EstadoProveedor;
+  Estado_Proveedor: EstadoProveedor;
 }
 
 @Entity("proveedor_fisico")
@@ -29,5 +29,5 @@ export class ProveedorJuridico extends ProveedorEntity {
   Cedula_Juridica: number;
 
   @Column({ type: "varchar", length: 150 })
-  Razon_social: string;
+  Razon_Social: string;
 }

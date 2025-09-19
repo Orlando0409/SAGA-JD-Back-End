@@ -29,7 +29,6 @@ export class AfiliadosController {
     ]),)
     createAfiliadoFisico(@Body() dto: CreateAfiliadoFisicoDto,
     @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; }) {
-        console.log(dto);
         return this.afiliadosService.createAfiliadoFisico(dto, files);
     }
 
