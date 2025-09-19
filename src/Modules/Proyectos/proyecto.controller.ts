@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, UploadedFile, UseInterceptors } from "@nestjs/common";
 import { ProyectoService } from "./proyecto.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { UpdateProyectoDto } from "./ProyectoDTO's/UpdateProyecto.dto";
@@ -40,15 +40,9 @@ export class ProyectoController
     return this.proyectoService.UpdateProyecto(id_Proyecto, UpdateProyectoDto);
   }
 
-  @Put(':id/update/estado/:nuevoEstadoId')
+  @Patch(':id/update/estado/:nuevoEstadoId')
   @ApiOperation({ summary: 'Actualizar el estado de proyecto por ID' })
   updateEstadoProyecto(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
     return this.proyectoService.updateEstadoProyecto(id, nuevoEstadoId);
-  }
-
-  @Delete('/delete/:id')
-  @ApiOperation({ summary: 'Eliminar un proyecto por ID' })
-  deleteProyecto(@Param('id', ParseIntPipe) id_Proyecto: number) {
-    return this.proyectoService.DeleteProyecto(id_Proyecto);
   }
 }

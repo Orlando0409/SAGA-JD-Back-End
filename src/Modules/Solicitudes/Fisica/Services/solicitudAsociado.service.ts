@@ -101,13 +101,4 @@ export class SolicitudAsociadoFisicaService
 
         return solicitudActualizada;
     }
-
-    async deleteSolicitudAsociado(id: number)
-    {
-        const solicitudAsociado = await this.solicitudAsociadoFisicaRepository.findOne({ where: { Id_Solicitud: id } });
-        if (!solicitudAsociado) {
-            throw new BadRequestException(`Solicitud de cambio de medidor con id ${id} no encontrada`);
-        }
-        return this.solicitudAsociadoFisicaRepository.remove(solicitudAsociado);
-    }
 }

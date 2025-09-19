@@ -10,5 +10,7 @@ import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
   imports: [ TypeOrmModule.forFeature([Proyecto, ProyectoEstado]), DropboxModule], // Importamos las entidades que vamos a usar en este modulo
   controllers: [ProyectoController],  //Su controlador 
   providers: [ProyectoService],
+  exports: [ProyectoService],
 })
+
 export class ProyectoModule {}

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UploadedFiles, UseInterceptors} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, UploadedFiles, UseInterceptors} from "@nestjs/common";
 import { ApiOperation } from "@nestjs/swagger";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
@@ -18,7 +18,7 @@ export class SolicitudAfiliacionFisicaController {
   getAllSolicitudesAfiliacion() {
     return this.solicitudAfiliacionFisicaService.getAllSolicitudesAfiliacion();
   }
-  @Public()
+
   @Get(':id')
   @ApiOperation({ summary: 'Obtener solicitud por ID' })
   getsolicitudAfiliacionById(@Param('id', ParseIntPipe) id: number) {
@@ -37,22 +37,24 @@ export class SolicitudAfiliacionFisicaController {
   @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; } ) {
     return this.solicitudAfiliacionFisicaService.createSolicitudAfiliacion(solicitudAfiliacion, files);
   }
-  @Public()
+
   @Put('/update/:id')
   @ApiOperation({ summary: 'Actualizar una solicitud de afiliación fisica por ID' })
-  updateSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSolicitudAfiliacionFisicaDto) {
-    return this.solicitudAfiliacionFisicaService.updateSolicitudAfiliacion(id, dto);
+  @UseInterceptors(FileFieldsInterceptor([ 
+    { name: 'Planos_Terreno', maxCount: 1 }, 
+    { name: 'Escritura_Terreno', maxCount: 1 }, 
+  ]))
+  updateSolicitudAfiliacion(
+    @Param('id', ParseIntPipe) id: number, 
+    @Body() dto: UpdateSolicitudAfiliacionFisicaDto,
+    @UploadedFiles() files?: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; }
+  ) {
+    return this.solicitudAfiliacionFisicaService.updateSolicitudAfiliacion(id, dto, files);
   }
-   @Public()
-  @Put(':id/update/estado/:nuevoEstadoId')
+
+  @Patch(':id/update/estado/:nuevoEstadoId')
   @ApiOperation({ summary: 'Actualizar el estado de una solicitud de afiliación fisica por ID' })
   updateEstadoSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
     return this.solicitudAfiliacionFisicaService.UpdateEstadoSolicitudAfiliacion(id, nuevoEstadoId);
-  }
-  @Public()
-  @Delete('/delete/:id')
-  @ApiOperation({ summary: 'Eliminar una solicitud de afiliación fisica por ID' })
-  deleteSolicitudAfiliacion(@Param('id', ParseIntPipe) id: number) {
-    return this.solicitudAfiliacionFisicaService.deleteSolicitudAfiliacion(id);
   }
 }

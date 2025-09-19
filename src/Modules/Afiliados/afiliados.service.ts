@@ -4,7 +4,7 @@ import { EstadoAfiliado } from "./AfiliadoEntities/EstadoAfiliado.Entity";
 import { SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica } from "src/Modules/Solicitudes/SolicitudEntities/Solicitud.Entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { UpdateAfiliadoFisicoDto } from "./AfiliadoDTO's/UpdateAfiliado.dto";
+import { UpdateAfiliadoFisicoDto, UpdateAfiliadoJuridicoDto } from "./AfiliadoDTO's/UpdateAfiliado.dto";
 import { TipoAfiliado } from "./AfiliadoEntities/TipoAfiliado.Entity";
 import { CreateAfiliadoFisicoDto } from "./AfiliadoDTO's/CreateAfiliado.dto";
 import { CreateAfiliacionJuridicaDto } from "src/Modules/Solicitudes/SolicitudDTO's/CreateSolicitudJuridica.dto";
@@ -155,18 +155,54 @@ export class AfiliadosService {
         return this.afiliadoJuridicoRepository.save(afiliado);
     }
 
-    async updateAfiliadoFisico(cedula: string, dto: UpdateAfiliadoFisicoDto) {
+    async updateAfiliadoFisico(cedula: string, dto: UpdateAfiliadoFisicoDto, files?: any) {
         const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Cedula: cedula } });
         if (!afiliado) { throw new BadRequestException(`Afiliado físico con cédula ${cedula} no encontrado`); }
 
+        // Handle file uploads if provided
+        if (files) {
+            const planoFile = files.Planos_Terreno?.[0];
+            const escrituraFile = files.Escritura_Terreno?.[0];
+
+            // Upload new files if provided, otherwise keep existing URLs
+            if (planoFile) {
+                const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', cedula);
+                afiliado.Planos_Terreno = planoRes?.url;
+            }
+
+            if (escrituraFile) {
+                const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Fisicas', cedula);
+                afiliado.Escritura_Terreno = escrituraRes?.url;
+            }
+        }
+
+        // Apply other DTO updates
         Object.assign(afiliado, dto);
         return this.afiliadoFisicoRepository.save(afiliado);
     }
 
-    async updateAfiliadoJuridico(cedulaJuridica: string, dto: UpdateAfiliadoFisicoDto) {
+    async updateAfiliadoJuridico(cedulaJuridica: string, dto: UpdateAfiliadoJuridicoDto, files?: any) {
         const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: cedulaJuridica } });
         if (!afiliado) { throw new BadRequestException(`Afiliado jurídico con cédula jurídica ${cedulaJuridica} no encontrado`); }
 
+        // Handle file uploads if provided
+        if (files) {
+            const planoFile = files.Planos_Terreno?.[0];
+            const escrituraFile = files.Escritura_Terreno?.[0];
+
+            // Upload new files if provided, otherwise keep existing URLs
+            if (planoFile) {
+                const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Juridicas', cedulaJuridica);
+                afiliado.Planos_Terreno = planoRes?.url;
+            }
+
+            if (escrituraFile) {
+                const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Juridicas', cedulaJuridica);
+                afiliado.Escritura_Terreno = escrituraRes?.url;
+            }
+        }
+
+        // Apply other DTO updates
         Object.assign(afiliado, dto);
         return this.afiliadoJuridicoRepository.save(afiliado);
     }

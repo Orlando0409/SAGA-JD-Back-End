@@ -97,13 +97,4 @@ export class SolicitudesDesconexionFisicaService
         solicitud.Estado = nuevoEstado;
         return this.solicitudDesconexionFisicaRepository.save(solicitud);
     }
-
-    async deleteSolicitudDesconexion(id: number)
-    {
-        const solicitud = await this.solicitudDesconexionFisicaRepository.findOne({ where: { Id_Solicitud: id } });
-        if (!solicitud) {
-            throw new BadRequestException(`Solicitud de desconexión con id ${id} no encontrada`);
-        }
-        return this.solicitudDesconexionFisicaRepository.remove(solicitud);
-    }
 }

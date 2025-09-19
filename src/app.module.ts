@@ -5,7 +5,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ProyectoModule } from './Modules/Proyectos/proyecto.module';
 import { FacturaModule } from './Modules/Facturas/factura.module';
 import { InventarioModule } from './Modules/Inventario/inventario.module';
+import { ProveedorEntity } from './Modules/Proveedores/ProveedorEntities/ProveedorEntity';
+import { ProveedorFisico } from './Modules/Proveedores/ProveedorEntities/ProveedorEntity';
+import { ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/ProveedorEntity';
 import { ProveedorModule } from './Modules/Proveedores/proveedor.module';
+import { EstadoProveedor } from './Modules/Proveedores/ProveedorEntities/EstadoProveedor';
 import { AuthModule } from './Modules/auth/Auth.module';
 import { JwtAuthGuard } from './Modules/auth/Guard/JwtGuard';
 import { RolesGuard } from './Modules/auth/Guard/RolesGuards';
@@ -44,7 +48,7 @@ import { SolicitudesModule } from './Modules/Solicitudes/solicitudes.module';
 
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      inject: [ConfigService],
+      inject:[ConfigService],
 
       useFactory: (config: ConfigService) => ({
         type: 'mysql',
@@ -53,12 +57,13 @@ import { SolicitudesModule } from './Modules/Solicitudes/solicitudes.module';
         username: config.get<string>('DB_USERNAME'),
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
-        entities: [UserEntity, UserRol, Permiso, Solicitud,
+        entities: [Solicitud,
         SolicitudFisica, SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica,
         SolicitudDesconexionFisica, SolicitudAsociadoFisica, SolicitudAfiliacionJuridica,
         SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
-        EstadoSolicitud, Proyecto, ProyectoEstado, CalidadAgua, EstadoAfiliado, TipoAfiliado,
-        Afiliado, AfiliadoFisico, AfiliadoJuridico],
+        EstadoSolicitud, CalidadAgua, EstadoAfiliado, TipoAfiliado, Afiliado, AfiliadoFisico, AfiliadoJuridico,
+        UserEntity, UserRol, Permiso, ProveedorEntity, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
+        ProyectoEstado, Proyecto],
         synchronize: false,
       }),
     }),
@@ -84,13 +89,7 @@ import { SolicitudesModule } from './Modules/Solicitudes/solicitudes.module';
   ],
   controllers: [],
   providers: [
-    
-  ],
-})
-export class AppModule {}
-
-/*
-{
+    {
       provide: APP_GUARD,
       useClass: JwtAuthGuard, //  Autenticación JWT global
     },
@@ -102,4 +101,6 @@ export class AppModule {}
       provide: APP_GUARD,
       useClass: PermisosGuard, //  Verificación de permisos global
     },
-*/
+  ],
+})
+export class AppModule {}
