@@ -23,7 +23,7 @@ export class Proyecto
   updateTimestamp() { this.Fecha_Actualizacion = new Date(); }
 
   @Column({ nullable: false })
-  Id_Usuario: number;
+  Id_Usuario: number;   // CAMBIAR A USUARIO RELACION
 
   @ManyToOne(() => ProyectoEstado, Estado => Estado.Proyectos)  //Relacion Muchos A uno
   @JoinColumn({ name: 'Id_Estado_Proyecto' })  //LLave Foranea para acceder al estado del proyecto 

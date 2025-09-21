@@ -132,13 +132,13 @@ export class SeederService implements OnModuleInit {
     private async createDefaultEstadosProveedor() {
         const estados = [
 
-            { Id_EstadoProveedor: 1, Estado_Proveedor: 'Activo' },
-            { Id_EstadoProveedor: 2, Estado_Proveedor: 'Inactivo' },
+            { Id_Estado_Proveedor: 1, Estado_Proveedor: 'Activo' },
+            { Id_Estado_Proveedor: 2, Estado_Proveedor: 'Inactivo' },
         ];
 
         for (const estado of estados) {
             const existe = await this.estadoProveedorRepo.findOne({
-                where: { Id_EstadoProveedor: estado.Id_EstadoProveedor }
+                where: { Id_Estado_Proveedor: estado.Id_Estado_Proveedor }
             });
 
             if (!existe) {

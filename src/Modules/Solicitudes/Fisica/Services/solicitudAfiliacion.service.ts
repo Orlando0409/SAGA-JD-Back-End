@@ -83,16 +83,15 @@ export class SolicitudAfiliacionFisicaService
         if (files) {
             const planoFile = files.Planos_Terreno?.[0];
             const escrituraFile = files.Escritura_Terreno?.[0];
-            const cedula = dto.Cedula || solicitud.Cedula;
 
             // Solo subir archivo si se proporciona uno nuevo
             if (planoFile) {
-                const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', cedula);
+                const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', solicitud.Cedula);
                 planoUrl = planoRes?.url;
             }
 
             if (escrituraFile) {
-                const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Fisicas', cedula);
+                const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Fisicas', solicitud.Cedula);
                 escrituraUrl = escrituraRes?.url;
             }
         }

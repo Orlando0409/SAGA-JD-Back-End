@@ -2,7 +2,6 @@ import { IsString, IsNotEmpty, IsNumber, Min, MaxLength, IsPositive, Matches} fr
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateProveedorFisicoDto {
-
   @ApiProperty({ example: "Nombre Apellido"})
   @IsString({ message: "El nombre debe ser un texto" })
   @IsNotEmpty({ message: "El nombre no puede estar vacío" })
@@ -25,7 +24,7 @@ export class CreateProveedorFisicoDto {
   @ApiProperty({ example: 1, description: "Estado del proveedor (1 = Activo, 2 = Inactivo)" })
   @IsNumber({}, { message: "El estado debe ser un número" })
   @IsPositive({ message: "El estado debe ser mayor a 0" })
-  Id_EstadoProveedor: number;
+  Id_Estado_Proveedor: number;
 }
 
 export class CreateProveedorJuridicoDto {
@@ -53,10 +52,10 @@ export class CreateProveedorJuridicoDto {
   @IsNotEmpty({ message: "La razón social no puede estar vacía" })
   @MaxLength(150, { message: "La razón social no debe superar los 150 caracteres" })
   @Matches(/\S/, { message: "La razon social no puede contener solo espacios" })
-  Razon_social: string;
+  Razon_Social: string;
 
   @ApiProperty({ example: 1})
   @IsNumber({}, { message: "El estado debe ser un número" })
   @IsPositive({ message: "El estado debe ser mayor a 0" })
-  Id_EstadoProveedor: number;
+  Id_Estado_Proveedor: number;
 }

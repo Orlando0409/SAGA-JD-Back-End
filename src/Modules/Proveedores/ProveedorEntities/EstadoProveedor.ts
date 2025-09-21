@@ -5,12 +5,12 @@ import { ProveedorEntity } from "./ProveedorEntity";
 export class EstadoProveedor{  
 
     @PrimaryGeneratedColumn()
-    Id_EstadoProveedor : number;
+    Id_Estado_Proveedor : number;
 
     @Column()
     Estado_Proveedor : string;
 
     //Un estado puede tener varios proveedores
-    @OneToMany(() => ProveedorEntity, (proveedor) => proveedor.estadoProveedor)
+    @OneToMany(() => ProveedorEntity, (proveedor) => proveedor.Estado_Proveedor)
     proveedor: ProveedorEntity[];
 }

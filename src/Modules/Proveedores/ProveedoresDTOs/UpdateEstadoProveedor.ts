@@ -6,5 +6,5 @@ export class UpdateEstadoProveedorDto {
   @ApiProperty({ example: 1})
   @IsNumber({}, { message: "El estado debe ser un numero" })
   @IsNotEmpty({ message: "El estado no puede estar vacio" })
-  Id_EstadoProveedor: number;
+  Id_Estado_Proveedor: number;
 }

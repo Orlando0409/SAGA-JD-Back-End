@@ -74,6 +74,4 @@ export class ProveedorController {
   updateEstadoJuridico(@Param('id') id: number, @Body() dto: UpdateEstadoProveedorDto) {
     return this.proveedorService.updateEstadoJuridico(id, dto);
   }
-
-
 }
