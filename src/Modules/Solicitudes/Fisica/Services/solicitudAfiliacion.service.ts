@@ -46,15 +46,15 @@ export class SolicitudAfiliacionFisicaService
         const estadoInicial = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) { throw new BadRequestException(`Estado inicial de solicitud no configurado`); }
 
-        const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Cedula);
+        const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
         const planoFile = files.Planos_Terreno?.[0];
         const escrituraFile = files.Escritura_Terreno?.[0];
-        const cedula = dto.Cedula;
+        const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} `.trim();
 
-        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', cedula) : null;
-        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Fisicas', cedula) : null;
+        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Identificacion, nombre) : null;
+        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Identificacion, nombre) : null;
 
         const now = new Date();
         now.setSeconds(0, 0);
@@ -86,12 +86,12 @@ export class SolicitudAfiliacionFisicaService
 
             // Solo subir archivo si se proporciona uno nuevo
             if (planoFile) {
-                const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', solicitud.Cedula);
+                const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', solicitud.Identificacion);
                 planoUrl = planoRes?.url;
             }
 
             if (escrituraFile) {
-                const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Fisicas', solicitud.Cedula);
+                const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Fisicas', solicitud.Identificacion);
                 escrituraUrl = escrituraRes?.url;
             }
         }
@@ -125,7 +125,7 @@ export class SolicitudAfiliacionFisicaService
             } catch (error) {
                 // Manejar diferentes tipos de errores con mensajes específicos
                 if (error.message.includes('Ya existe un afiliado físico')) {
-                    throw new BadRequestException(`Error al crear afiliado: Ya existe un afiliado físico con la cédula ${solicitudActualizada.Cedula}. La solicitud fue aprobada pero el afiliado ya estaba registrado.`);
+                    throw new BadRequestException(`Error al crear afiliado: Ya existe un afiliado físico con la identificación ${solicitudActualizada.Identificacion}. La solicitud fue aprobada pero el afiliado ya estaba registrado.`);
                 } else if (error.message.includes('Estado inicial de afiliado no configurado')) {
                     throw new BadRequestException(`Error de configuración: El estado inicial de afiliado no está configurado en el sistema. Contacte al administrador.`);
                 } else if (error.message.includes('Tipo de afiliado con ID')) {

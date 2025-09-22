@@ -1,17 +1,23 @@
 import { ApiProperty, IntersectionType } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive } from "class-validator";
+import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive, IsEnum } from "class-validator";
+import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
+import { IsIdentificacionValida } from "src/Validations/Custom Validators/Identificacion.validator";
 
 export class CreateSolicitudFisicaDto {
-  @ApiProperty({ example: '123456789' })
+  @ApiProperty({ example: 'Cedula' })
   @Transform(({ value }) => value?.trim())
-  @IsString({message: 'La cedula debe ser tener entre 9 y 12 caracteres'})
-  @IsDefined({message: 'La cedula no puede estar vacia'})
-  @Transform(({ value }) => value?.toUpperCase())
-  @Matches(/^([A]?\d{9,12})$/, {message: 'La cédula debe tener 9-12 dígitos o comenzar con A seguido de 9-11 dígitos'})
-  @MinLength(9)
-  @MaxLength(12)
-  Cedula: string;
+  @IsEnum(TipoIdentificacion, { message: `El tipo de identificación debe ser uno de los siguientes: ${Object.values(TipoIdentificacion).join(', ')}` })
+  @IsDefined({ message: 'El tipo de identificación no puede estar vacío' })
+  Tipo_Identificacion: TipoIdentificacion;
+  
+  @ApiProperty({ example: '123456789' })
+  @Transform(({ value }) => value?.trim().toUpperCase())
+  @IsDefined({ message: 'La identificación no puede estar vacía' })
+  @IsNotEmpty({ message: 'La identificación no puede estar vacía' })
+  @IsString({ message: 'La identificación debe ser un string' })
+  @IsIdentificacionValida()
+  Identificacion: string;
 
   @ApiProperty({ example: 'Mario' })
   @Transform(({ value }) => value?.trim())

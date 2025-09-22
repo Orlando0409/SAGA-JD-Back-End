@@ -1,9 +1,8 @@
-import{Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne} from "typeorm";
-import { ProveedorEntity } from "./ProveedorEntity";
+import{ Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
+import { ProveedorEntity } from "./Proveedor.Entity";
 
-@Entity()
+@Entity('Estado_Proveedor')
 export class EstadoProveedor{  
-
     @PrimaryGeneratedColumn()
     Id_Estado_Proveedor : number;
 

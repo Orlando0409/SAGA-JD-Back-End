@@ -40,32 +40,32 @@ export class ValidationsService
         private readonly afiliadoJuridicoRepository: Repository<AfiliadoJuridico>
     ) {}
 
-    async validarSolicitudesFisicasActivas(cedula: string) {
+    async validarSolicitudesFisicasActivas(identificacion: string) {
         const [afiliacionPendiente, afiliacionRevisada, desconexionPendiente, desconexionRevisada, cambioMedidorPendiente, cambioMedidorRevisada, asociadoPendiente, asociadoRevisada] = await Promise.all([
-            this.solicitudAfiliacionFisicaRepository.findOne({ where: { Cedula: cedula, Estado: { Id_Estado_Solicitud: 1 } }, relations: ['Estado'] }),
-            this.solicitudAfiliacionFisicaRepository.findOne({ where: { Cedula: cedula, Estado: { Id_Estado_Solicitud: 2 } }, relations: ['Estado'] }), 
-            this.solicitudDesconexionFisicaRepository.findOne({ where: { Cedula: cedula, Estado: { Id_Estado_Solicitud: 1 } }, relations: ['Estado'] }),
-            this.solicitudDesconexionFisicaRepository.findOne({ where: { Cedula: cedula, Estado: { Id_Estado_Solicitud: 2 } }, relations: ['Estado'] }),
-            this.solicitudCambioMedidorFisicaRepository.findOne({ where: { Cedula: cedula, Estado: { Id_Estado_Solicitud: 1 } }, relations: ['Estado'] }),
-            this.solicitudCambioMedidorFisicaRepository.findOne({ where: { Cedula: cedula, Estado: { Id_Estado_Solicitud: 2 } }, relations: ['Estado'] }),
-            this.solicitudAsociadoFisicaRepository.findOne({ where: { Cedula: cedula, Estado: { Id_Estado_Solicitud: 1 } }, relations: ['Estado'] }),
-            this.solicitudAsociadoFisicaRepository.findOne({ where: { Cedula: cedula, Estado: { Id_Estado_Solicitud: 2 } }, relations: ['Estado'] }),
+            this.solicitudAfiliacionFisicaRepository.findOne({ where: { Identificacion: identificacion, Estado: { Id_Estado_Solicitud: 1 } }, relations: ['Estado'] }),
+            this.solicitudAfiliacionFisicaRepository.findOne({ where: { Identificacion: identificacion, Estado: { Id_Estado_Solicitud: 2 } }, relations: ['Estado'] }),
+            this.solicitudDesconexionFisicaRepository.findOne({ where: { Identificacion: identificacion, Estado: { Id_Estado_Solicitud: 1 } }, relations: ['Estado'] }),
+            this.solicitudDesconexionFisicaRepository.findOne({ where: { Identificacion: identificacion, Estado: { Id_Estado_Solicitud: 2 } }, relations: ['Estado'] }),
+            this.solicitudCambioMedidorFisicaRepository.findOne({ where: { Identificacion: identificacion, Estado: { Id_Estado_Solicitud: 1 } }, relations: ['Estado'] }),
+            this.solicitudCambioMedidorFisicaRepository.findOne({ where: { Identificacion: identificacion, Estado: { Id_Estado_Solicitud: 2 } }, relations: ['Estado'] }),
+            this.solicitudAsociadoFisicaRepository.findOne({ where: { Identificacion: identificacion, Estado: { Id_Estado_Solicitud: 1 } }, relations: ['Estado'] }),
+            this.solicitudAsociadoFisicaRepository.findOne({ where: { Identificacion: identificacion, Estado: { Id_Estado_Solicitud: 2 } }, relations: ['Estado'] }),
         ]);
 
         if (afiliacionPendiente?.Estado.Id_Estado_Solicitud === 1 || afiliacionRevisada?.Estado.Id_Estado_Solicitud === 2) {
-            return `Ya existe una solicitud activa de afiliación para la cédula ${cedula}`;
+            return `Ya existe una solicitud activa de afiliación para la cédula ${identificacion}`;
         }
 
         else if (desconexionPendiente?.Estado.Id_Estado_Solicitud === 1 || desconexionRevisada?.Estado.Id_Estado_Solicitud === 2) {
-            return `Ya existe una solicitud activa de desconexión para la cédula ${cedula}`;
+            return `Ya existe una solicitud activa de desconexión para la cédula ${identificacion}`;
         }
 
         else if (cambioMedidorPendiente?.Estado.Id_Estado_Solicitud === 1 || cambioMedidorRevisada?.Estado.Id_Estado_Solicitud === 2) {
-            return `Ya existe una solicitud activa de cambio de medidor para la cédula ${cedula}`;
+            return `Ya existe una solicitud activa de cambio de medidor para la cédula ${identificacion}`;
         }
 
         else if (asociadoPendiente?.Estado.Id_Estado_Solicitud === 1 || asociadoRevisada?.Estado.Id_Estado_Solicitud === 2) {
-            return `Ya existe una solicitud activa de asociado para la cédula ${cedula}`;
+            return `Ya existe una solicitud activa de asociado para la cédula ${identificacion}`;
         }
     }
 
@@ -98,10 +98,10 @@ export class ValidationsService
         }
     }
 
-    async validarExistenciaAfiliadoFisico(cedula: string) {
-        const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Cedula: cedula } });
+    async validarExistenciaAfiliadoFisico(identificacion: string) {
+        const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: identificacion } });
         if (!afiliado) {
-            return `No existe un afiliado físico con la cédula ${cedula}. Debe ser afiliado antes de solicitar asociación.`;
+            return `No existe un afiliado físico con la cédula ${identificacion}. Debe ser afiliado antes de solicitar asociación.`;
         }
         return null; // No hay error
     }

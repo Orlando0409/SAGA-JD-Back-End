@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Put, Delete, Param, Body, ParseIntPipe, Patch } from '@nestjs/common';
 import { ProveedorService } from './proveedor.service';
-import { CreateProveedorFisicoDto, CreateProveedorJuridicoDto } from './ProveedoresDTOs/CreateProveedor';
-import { UpdateProveedorFisicoDto, UpdateProveedorJuridicoDto } from './ProveedoresDTOs/UpdateProveedor';
-import { UpdateEstadoProveedorDto } from './ProveedoresDTOs/UpdateEstadoProveedor';
-import { ProveedorFisico, ProveedorJuridico } from './ProveedorEntities/ProveedorEntity';
+import { CreateProveedorFisicoDto, CreateProveedorJuridicoDto } from './ProveedoresDTOs/CreateProveedor.dto';
+import { UpdateProveedorFisicoDto, UpdateProveedorJuridicoDto } from './ProveedoresDTOs/UpdateProveedor.dto';
+import { UpdateEstadoProveedorDto } from './ProveedoresDTOs/UpdateEstadoProveedor.dto';
+import { ProveedorFisico, ProveedorJuridico } from './ProveedorEntities/Proveedor.Entity';
 
 @Controller('proveedores')
 export class ProveedorController {

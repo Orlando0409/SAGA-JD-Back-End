@@ -1,11 +1,11 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Permiso } from 'src/Modules/Usuarios/UsuarioEntities/Permiso.Entity';
 import { UserEntity } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { UserRol } from 'src/Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
-import { EstadoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/EstadoProveedor';
+import { EstadoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/EstadoProveedor.Entity';
 import { ProyectoEstado } from 'src/Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 import { EstadoSolicitud } from 'src/Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
 import { EstadoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
