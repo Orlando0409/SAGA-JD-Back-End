@@ -44,7 +44,7 @@ export class ProyectoService
         if (!estadoinicial) {throw new NotFoundException(`Estado inicial de proyecto no configurado`);}
 
         // Subir archivo a Dropbox
-        const fileRes = await this.dropboxFilesService.uploadFile(file, 'Imagenes-Proyectos');
+        const fileRes = await this.dropboxFilesService.uploadFileDownloadOnly(file, 'Imagenes-Proyectos');
 
         const now = new Date();
         now.setSeconds(0, 0);

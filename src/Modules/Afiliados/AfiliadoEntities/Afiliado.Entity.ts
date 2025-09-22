@@ -1,6 +1,8 @@
-import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, TableInheritance, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, TableInheritance, UpdateDateColumn } from "typeorm";
 import { EstadoAfiliado } from "./EstadoAfiliado.Entity";
 import { TipoAfiliado } from "./TipoAfiliado.Entity";
+import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 
 @Entity('Afiliados')
 @TableInheritance({ column: { type: "varchar", name: "Tipo_Afiliado" } })
@@ -36,12 +38,30 @@ export abstract class Afiliado {
     @ManyToOne(() => TipoAfiliado, tipo => tipo.Afiliados)
     @JoinColumn({ name: 'Id_Tipo_Afiliado' })
     Tipo_Afiliado: TipoAfiliado;
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    normalizarTelefono() {
+        if (this.Numero_Telefono) {
+            try {
+                const phoneNumber = parsePhoneNumberFromString(this.Numero_Telefono);
+                if (phoneNumber) {
+                    this.Numero_Telefono = phoneNumber.number; // siempre guarda en formato E.164
+                }
+            } catch {
+                // si hay error, simplemente no normalizamos
+            }
+        }
+    }
 }
 
 @Entity('Afiliado_Fisico')
 export class AfiliadoFisico extends Afiliado {
-@Column({ type: 'varchar', length: 12, nullable: false })
-    Cedula: string;
+    @Column({ type: 'enum', enum: TipoIdentificacion, nullable: false })
+    Tipo_Identificacion: TipoIdentificacion;
+
+    @Column({ type: 'varchar', length: 20, nullable: false })
+    Identificacion: string;
 
     @Column({ nullable: false })
     Nombre: string;

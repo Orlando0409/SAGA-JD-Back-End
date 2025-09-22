@@ -48,10 +48,9 @@ export class SolicitudDesconexionJuridicaService
 
         const planoFile = files.Planos_Terreno?.[0];
         const escrituraFile = files.Escritura_Terreno?.[0];
-        const cedulaJuridica = dto.Cedula_Juridica;
 
-        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Desconexion', 'Juridicas', cedulaJuridica) : null;
-        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Desconexion', 'Juridicas', cedulaJuridica) : null;
+        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Desconexion', 'Juridicas', dto.Cedula_Juridica, dto.Razon_Social) : null;
+        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Desconexion', 'Juridicas', dto.Cedula_Juridica, dto.Razon_Social) : null;
 
         const now = new Date();
         now.setSeconds(0, 0);

@@ -50,9 +50,9 @@ export class AfiliadosService {
         if (!solicitudAprobada) { throw new BadRequestException(`Solicitud de afiliación física con ID ${solicitud.Id_Solicitud} no aprobada`); }
 
         // Verificar que no existe ya un afiliado físico con esa cédula
-        const afiliadoExistente = await this.afiliadoFisicoRepository.findOne({ where: { Cedula: solicitud.Cedula } });
-        if (afiliadoExistente) { 
-            throw new BadRequestException(`Ya existe un afiliado físico con la cédula ${solicitud.Cedula}`); 
+        const afiliadoExistente = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitud.Identificacion } });
+        if (afiliadoExistente) {
+            throw new BadRequestException(`Ya existe un afiliado físico con la identificación ${solicitud.Identificacion}`);
         }
 
         const estadoInicial = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 1 } });
@@ -71,10 +71,10 @@ export class AfiliadosService {
     }
 
     async createAfiliadoFisico(dto: CreateAfiliadoFisicoDto, files: any) {
-        // Verificar que no existe ya un afiliado físico con esa cédula
-        const afiliadoExistente = await this.afiliadoFisicoRepository.findOne({ where: { Cedula: dto.Cedula } });
-        if (afiliadoExistente) { 
-            throw new BadRequestException(`Ya existe un afiliado físico con la cédula ${dto.Cedula}`); 
+        // Verificar que no existe ya un afiliado físico con esa identificación
+        const afiliadoExistente = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: dto.Identificacion } });
+        if (afiliadoExistente) {
+            throw new BadRequestException(`Ya existe un afiliado físico con la identificación ${dto.Identificacion}`);
         }
 
         const estadoInicial = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 1 } });
@@ -85,9 +85,10 @@ export class AfiliadosService {
 
         const planoFile = files.Planos_Terreno?.[0];
         const escrituraFile = files.Escritura_Terreno?.[0];
+        const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} `.trim();
 
-        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Cedula) : null;
-        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Cedula) : null;
+        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Identificacion, nombre) : null;
+        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Identificacion, nombre) : null;
 
         const afiliado = this.afiliadoFisicoRepository.create({
             ...dto,
@@ -141,8 +142,8 @@ export class AfiliadosService {
         const planoFile = files.Planos_Terreno?.[0];
         const escrituraFile = files.Escritura_Terreno?.[0];
 
-        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Juridicas', dto.Cedula_Juridica) : null;
-        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Juridicas', dto.Cedula_Juridica) : null;
+        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Juridicas', dto.Cedula_Juridica, dto.Razon_Social) : null;
+        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Juridicas', dto.Cedula_Juridica, dto.Razon_Social) : null;
 
         const afiliado = this.afiliadoJuridicoRepository.create({
             ...dto,
@@ -156,7 +157,7 @@ export class AfiliadosService {
     }
 
     async updateAfiliadoFisico(cedula: string, dto: UpdateAfiliadoFisicoDto, files?: any) {
-        const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Cedula: cedula } });
+        const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: cedula } });
         if (!afiliado) { throw new BadRequestException(`Afiliado físico con cédula ${cedula} no encontrado`); }
 
         // Handle file uploads if provided
@@ -280,15 +281,15 @@ export class AfiliadosService {
     }
 
     // Métodos para cambiar afiliado a asociado basado en solicitud de asociado aprobada
-    async cambiarAbonadoAAsociadoFisico(cedula: string) {
-        const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Cedula: cedula }, relations: ['Tipo_Afiliado'] });
-        if (!afiliado) { 
-            throw new BadRequestException(`No existe un afiliado físico con la cédula ${cedula}`); 
+    async cambiarAbonadoAAsociadoFisico(identificacion: string) {
+        const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: identificacion }, relations: ['Tipo_Afiliado'] });
+        if (!afiliado) {
+            throw new BadRequestException(`No existe un afiliado físico con la identificación ${identificacion}`);
         }
 
         // Verificar que es abonado (ID 1) antes de cambiar a asociado (ID 2)
         if (afiliado.Tipo_Afiliado.Id_Tipo_Afiliado !== 1) {
-            throw new BadRequestException(`El afiliado con cédula ${cedula} ya es asociado o tiene otro tipo`);
+            throw new BadRequestException(`El afiliado con identificación ${identificacion} ya es asociado o tiene otro tipo`);
         }
 
         const tipoAsociado = await this.tipoAfiliadoRepository.findOne({ where: { Id_Tipo_Afiliado: 2 } });

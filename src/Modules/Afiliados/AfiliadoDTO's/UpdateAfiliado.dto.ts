@@ -2,7 +2,7 @@ import { OmitType, PartialType } from '@nestjs/swagger';
 import { CreateAfiliadoFisicoDto, CreateAfiliadoJuridicoDto } from './CreateAfiliado.dto';
 
 export class UpdateAfiliadoFisicoDto extends PartialType(
-    OmitType(CreateAfiliadoFisicoDto, ['Cedula'] as const),
+    OmitType(CreateAfiliadoFisicoDto, ['Identificacion'] as const),
 ) {}
 
 export class UpdateAfiliadoJuridicoDto extends PartialType(

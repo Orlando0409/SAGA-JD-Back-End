@@ -1,5 +1,7 @@
-import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, TableInheritance, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, TableInheritance, UpdateDateColumn } from "typeorm";
 import { EstadoSolicitud } from "./EstadoSolicitud.Entity";
+import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 
 @Entity('Solicitud')
 @TableInheritance({ column: { type: "int", name: "Id_Tipo_Solicitud" } })
@@ -18,19 +20,37 @@ export abstract class Solicitud
     @JoinColumn({ name: 'Id_Estado_Solicitud' })
     Estado: EstadoSolicitud;
 
+    @Column({ nullable: false })
+    Id_Tipo_Solicitud: number;
+
     @CreateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Creacion: Date;
 
     @UpdateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Actualizacion: Date;
 
-    @Column({ nullable: false })
-    Id_Tipo_Solicitud: number;
+    @BeforeInsert()
+        @BeforeUpdate()
+        normalizarTelefono() {
+            if (this.Numero_Telefono) {
+                try {
+                    const phoneNumber = parsePhoneNumberFromString(this.Numero_Telefono);
+                    if (phoneNumber) {
+                        this.Numero_Telefono = phoneNumber.number; // siempre guarda en formato E.164
+                    }
+                } catch {
+                    // si hay error, simplemente no normalizamos
+                }
+            }
+        }
 }
 
 export abstract class SolicitudFisica extends Solicitud {
-    @Column({ type: 'varchar', length: 12 })
-    Cedula: string;
+    @Column({ type: 'enum', enum: TipoIdentificacion, nullable: false })
+    Tipo_Identificacion: TipoIdentificacion;
+
+    @Column({ type: 'varchar', length: 20, nullable: false })
+    Identificacion: string;
 
     @Column({ nullable: false })
     Nombre: string;

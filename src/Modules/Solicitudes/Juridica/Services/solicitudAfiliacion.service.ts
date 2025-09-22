@@ -8,7 +8,6 @@ import { SolicitudAfiliacionJuridica } from "../../SolicitudEntities/Solicitud.E
 import { EstadoSolicitud } from "../../SolicitudEntities/EstadoSolicitud.Entity";
 import { CreateSolicitudAfiliacionJuridicaDto } from "../../SolicitudDTO's/CreateSolicitudJuridica.dto";
 import { UpdateSolicitudAfiliacionJuridicaDto } from "../../SolicitudDTO's/UpdateSolicitudJuridica.dto";
-import { Afiliado } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { AfiliadosService } from "src/Modules/Afiliados/afiliados.service";
 
 @Injectable()
@@ -52,10 +51,9 @@ export class SolicitudAfiliacionJuridicaService
 
         const planoFile = files.Planos_Terreno?.[0];
         const escrituraFile = files.Escritura_Terreno?.[0];
-        const cedulaJuridica = dto.Cedula_Juridica;
-    
-        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Juridicas', cedulaJuridica) : null;
-        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Juridicas', cedulaJuridica) : null;
+
+        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Juridicas', dto.Cedula_Juridica, dto.Razon_Social) : null;
+        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Juridicas', dto.Cedula_Juridica, dto.Razon_Social) : null;
 
         const now = new Date();
         now.setSeconds(0, 0);
