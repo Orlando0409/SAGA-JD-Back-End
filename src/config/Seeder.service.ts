@@ -161,7 +161,8 @@ export class SeederService implements OnModuleInit {
             'inventario',
             'proveedores',
             'solicitudes',
-            'manuales'
+            'manuales',
+            'calidadAgua'
         ];
 
         for (const modulo of modulos) {
