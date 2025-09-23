@@ -14,7 +14,6 @@ import { AuthModule } from './Modules/auth/Auth.module';
 import { JwtAuthGuard } from './Modules/auth/Guard/JwtGuard';
 import { RolesGuard } from './Modules/auth/Guard/RolesGuards';
 import { PermisosGuard } from './Modules/auth/Guard/PermisosGuard';
-import { SeederModule } from './Config/Seeder.module';
 import { EstadoSolicitud } from './Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
 import { RolesModule } from './Modules/Usuarios/Modules/roles.module';
 import { UsuariosModule } from './Modules/Usuarios/Modules/usuarios.module';
@@ -39,6 +38,7 @@ import { TipoAfiliado } from './Modules/Afiliados/AfiliadoEntities/TipoAfiliado.
 import { AfiliadosModule } from './Modules/Afiliados/afiliados.module';
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from './Modules/Afiliados/AfiliadoEntities/Afiliado.Entity';
 import { SolicitudesModule } from './Modules/Solicitudes/solicitudes.module';
+import { SeederModule } from './config/Seeder.module';
 
 @Module({
   imports: [
