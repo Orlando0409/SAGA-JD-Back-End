@@ -8,7 +8,6 @@ import { UpdateAfiliadoFisicoDto, UpdateAfiliadoJuridicoDto } from "./AfiliadoDT
 import { TipoAfiliado } from "./AfiliadoEntities/TipoAfiliado.Entity";
 import { CreateAfiliadoFisicoDto } from "./AfiliadoDTO's/CreateAfiliado.dto";
 import { CreateAfiliacionJuridicaDto } from "src/Modules/Solicitudes/SolicitudDTO's/CreateSolicitudJuridica.dto";
-import { ValidationsService } from "src/Validations/Validations.service";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 
 @Injectable()
@@ -31,8 +30,6 @@ export class AfiliadosService {
 
     @InjectRepository(SolicitudAfiliacionJuridica)
     private readonly solicitudAfiliacionJuridicaRepository: Repository<SolicitudAfiliacionJuridica>,
-
-    private readonly validationsService: ValidationsService,
 
     private readonly dropboxFilesService: DropboxFilesService,
   ) {}

@@ -1,6 +1,7 @@
-import { ApiProperty, IntersectionType } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive } from "class-validator";
+import { IsTelefonoValido } from "src/Validations/Custom Validators/NumeroTelefono.validator";
 
 export class CreateSolicitudJuridicaDto {
   @ApiProperty({ example: '3101234567' })
@@ -32,14 +33,12 @@ export class CreateSolicitudJuridicaDto {
   @Matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, { message: 'El formato del correo electrónico no es válido' })
   Correo: string;
 
-  @ApiProperty({ example: '12345678' })
+  @ApiProperty({ example: '+506-8888-7777' })
   @Transform(({ value }) => value?.trim())
   @IsString({ message: 'El número de teléfono debe ser un string' })
   @IsDefined({ message: 'El número de teléfono no puede estar vacío' })
   @IsNotEmpty({ message: 'El número de teléfono no puede estar vacío' })
-  @Matches(/^[0-9+()\s-]+$/, { message: 'El número de teléfono solo puede contener números, +, -, () y espacios' })
-  @MinLength(8, { message: 'El número de teléfono debe tener al menos 8 dígitos' })
-  @MaxLength(15, { message: 'El número de teléfono no puede tener más de 15 caracteres' })
+  @IsTelefonoValido({ message: 'Número de teléfono inválido' })
   Numero_Telefono: string;
 }
 
@@ -120,22 +119,11 @@ export class CreateSolicitudAsociadoJuridicaDto extends CreateSolicitudJuridicaD
   Motivo_Solicitud: string;
 }
 
-export class CreateAfiliacionJuridicaDto extends IntersectionType(
-  CreateSolicitudJuridicaDto,
-  CreateSolicitudAfiliacionJuridicaDto
-) {}
+// Usando herencia directa en lugar de IntersectionType para evitar problemas con validadores personalizados
+export class CreateAfiliacionJuridicaDto extends CreateSolicitudAfiliacionJuridicaDto {}
 
-export class CreateDesconexionJuridicaDto extends IntersectionType(
-  CreateSolicitudJuridicaDto,
-  CreateSolicitudDesconexionJuridicaDto
-) {}
+export class CreateDesconexionJuridicaDto extends CreateSolicitudDesconexionJuridicaDto {}
 
-export class CreateCambioMedidorJuridicaDto extends IntersectionType(
-  CreateSolicitudJuridicaDto,
-  CreateSolicitudCambioMedidorJuridicaDto
-) {}
+export class CreateCambioMedidorJuridicaDto extends CreateSolicitudCambioMedidorJuridicaDto {}
 
-export class CreateAsociadoJuridicaDto extends IntersectionType(
-  CreateSolicitudJuridicaDto,
-  CreateSolicitudAsociadoJuridicaDto
-) {}
+export class CreateAsociadoJuridicaDto extends CreateSolicitudAsociadoJuridicaDto {}
