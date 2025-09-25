@@ -19,14 +19,14 @@ export abstract class ProveedorEntity {
 
 @Entity("proveedor_fisico")
 export class ProveedorFisico extends ProveedorEntity {
-  @Column()
-  Cedula_Fisica: number;
+  @Column({ type: "varchar", length: 20 })
+  Cedula_Fisica: string;
 }
 
 @Entity("proveedor_juridico")
 export class ProveedorJuridico extends ProveedorEntity {
-  @Column()
-  Cedula_Juridica: number;
+  @Column({ type: "varchar", length: 25 })
+  Cedula_Juridica: string;
 
   @Column({ type: "varchar", length: 150 })
   Razon_social: string;

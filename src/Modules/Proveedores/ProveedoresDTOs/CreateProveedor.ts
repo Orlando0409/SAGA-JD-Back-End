@@ -21,11 +21,16 @@ export class CreateProveedorFisicoDto {
   })
   Telefono_Proveedor: string;
 
-  @ApiProperty({ example: 123456789})
-  @IsNotEmpty({ message: "La cédula es obligatoria" })
-  @IsNumber({}, { message: "La cédula debe ser un número" })
-  @Min(100000000, { message: "La cédula debe tener al menos 9 dígitos" })
-  Cedula_Fisica: number;
+  @ApiProperty({ 
+    example: "0-000-000000",  
+  })
+  @IsNotEmpty({ message: "El documento de identidad es obligatorio" })
+  @IsString({ message: "El documento debe ser texto" })
+  @MaxLength(20, { message: "El documento no puede tener más de 20 caracteres" })
+  @Matches(/^[A-Z0-9\-\s]{3,20}$/i, { 
+    message: "Formato de documento inválido." 
+  })
+  Cedula_Fisica: string;
 
   @ApiProperty({ example: 1, description: "Estado del proveedor (1 = Activo, 2 = Inactivo)" })
   @IsNumber({}, { message: "El estado debe ser un número" })
@@ -51,11 +56,16 @@ export class CreateProveedorJuridicoDto {
   })
   Telefono_Proveedor: string;
 
-  @ApiProperty({ example: 12345678})
-  @IsNumber({}, { message: "La cédula debe ser un número" })
-  @IsNotEmpty({ message: "La cédula es obligatoria" })
-  @Min(10000000, { message: "La cédula debe tener al menos 8 dígitos" })
-  Cedula_Juridica: number;
+  @ApiProperty({ 
+    example: "0-000-000000", 
+  })
+  @IsNotEmpty({ message: "La cédula jurídica es obligatoria" })
+  @IsString({ message: "La cédula jurídica debe ser texto" })
+  @MaxLength(25, { message: "La cédula jurídica no puede tener más de 25 caracteres" })
+  @Matches(/^[A-Z0-9\-\s]{3,25}$/i, { 
+    message: "Formato de cédula jurídica inválido" 
+  })
+  Cedula_Juridica: string;
 
   @ApiProperty({ example: "Empresa S.A"})
   @IsString({ message: "La razón social debe ser un texto" })
