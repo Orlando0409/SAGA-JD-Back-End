@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Material } from "./Material.Entity";
 
 @Entity('Estado_Material')
@@ -9,6 +9,6 @@ export class EstadoMaterial {
     @Column({ nullable: false })
     Nombre_Estado_Material: string;
 
-    @ManyToMany(() => Material, material => material.Estado_Material)
+    @OneToMany(() => Material, material => material.Estado_Material)
     Materiales: Material[];
 }

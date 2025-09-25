@@ -2,8 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsEmail, IsNumber, IsOptional, IsDefined, IsNotEmpty, MinLength, MaxLength, Matches, Min, Max, IsEnum, } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { TipoIdentificacion } from 'src/Common/Enums/TipoIdentificacion.enum';
-import { IsIdentificacionValida } from 'src/Validations/Custom Validators/Identificacion.validator';
-import { IsTelefonoValido } from 'src/Validations/Custom Validators/NumeroTelefono.validator';
+import { IsIdentificacionValida } from 'src/Validations/DTO Validators/Identificacion.validator';
+import { IsTelefonoValido } from 'src/Validations/DTO Validators/NumeroTelefono.validator';
 
 export abstract class CreateAfiliadoDto {
   @ApiProperty({ example: 'ejemplo@gmail.com' })

@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { EstadoMaterial } from "./EstadoMaterial.Entity";
 import { CategoriaMaterial } from "./CategoriaMaterial.Entity";
 
@@ -25,12 +25,16 @@ export class Material {
     @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Actualizacion: Date;
 
-    @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0, nullable: true })
+    @Column({ type: 'datetime', precision: 0, nullable: true })
     Fecha_Salida: Date;
 
-    @OneToMany(() => EstadoMaterial, estadoMaterial => estadoMaterial.Materiales)
-    Estado_Material: EstadoMaterial[];
+    @ManyToOne(() => EstadoMaterial, estadoMaterial => estadoMaterial.Materiales)
+    Estado_Material: EstadoMaterial;
 
-    @OneToMany(() => CategoriaMaterial, categoriaMaterial => categoriaMaterial.Categoria_Material, { nullable: true })
-    Categoria: CategoriaMaterial[];
+    @ManyToMany(() => CategoriaMaterial, categoriaMaterial => categoriaMaterial.Materiales, { nullable: true })
+    @JoinTable()
+    Categorias: CategoriaMaterial[];
+
+    @BeforeInsert()
+    setDefaultEstado() { this.Estado_Material = { Id_Estado_Material: 1, Nombre_Estado_Material: 'DISPONIBLE' } as EstadoMaterial; }
 }

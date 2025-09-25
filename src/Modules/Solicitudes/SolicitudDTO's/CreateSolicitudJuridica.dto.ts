@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive } from "class-validator";
-import { IsTelefonoValido } from "src/Validations/Custom Validators/NumeroTelefono.validator";
+import { IsTelefonoValido } from "src/Validations/DTO Validators/NumeroTelefono.validator";
 
 export class CreateSolicitudJuridicaDto {
   @ApiProperty({ example: '3101234567' })

@@ -42,6 +42,9 @@ import { SolicitudesModule } from './Modules/Solicitudes/solicitudes.module';
 import { Acta } from './Modules/Actas/ActaEntities/Actas.Entity';
 import { ArchivoActa } from './Modules/Actas/ActaEntities/ArchivoActa.Entity';
 import { ActasModule } from './Modules/Actas/actas.module';
+import { Material } from './Modules/Inventario/InventarioEntities/Material.Entity';
+import { CategoriaMaterial } from './Modules/Inventario/InventarioEntities/CategoriaMaterial.Entity';
+import { EstadoMaterial } from './Modules/Inventario/InventarioEntities/EstadoMaterial.Entity';
 
 @Module({
   imports: [
@@ -66,7 +69,7 @@ import { ActasModule } from './Modules/Actas/actas.module';
         SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
         EstadoSolicitud, EstadoAfiliado, TipoAfiliado, Afiliado, AfiliadoFisico, AfiliadoJuridico,
         UserEntity, UserRol, Permiso, ProveedorEntity, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
-        ProyectoEstado, Proyecto, CalidadAgua, Acta, ArchivoActa],
+        ProyectoEstado, Proyecto, CalidadAgua, Acta, ArchivoActa, Material, EstadoMaterial, CategoriaMaterial],
         synchronize: false,
       }),
     }),

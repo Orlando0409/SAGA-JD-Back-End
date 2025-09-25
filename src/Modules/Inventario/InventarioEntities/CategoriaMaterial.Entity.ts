@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Material } from "./Material.Entity";
 
 @Entity('Categoria_Material')
@@ -9,6 +9,6 @@ export class CategoriaMaterial {
     @Column({ nullable: false })
     Nombre_Categoria_Material: string;
 
-    @ManyToOne(() => Material, material => material.Categoria, { nullable: true })
-    Categoria_Material: Material;
+    @ManyToMany(() => Material, material => material.Categorias, { nullable: true })
+    Materiales: Material[];
 }
