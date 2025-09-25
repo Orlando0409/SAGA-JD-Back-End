@@ -10,8 +10,8 @@ export class Material {
     @Column({ nullable: false })
     Nombre_Material: string;
 
-    @Column({ nullable: false })
-    Descripcion: string;
+    @Column({ nullable: true })
+    Descripcion?: string;
 
     @Column({ nullable: false })
     Cantidad: number;
