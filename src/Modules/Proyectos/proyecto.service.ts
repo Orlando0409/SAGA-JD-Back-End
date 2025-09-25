@@ -36,15 +36,11 @@ export class ProyectoService
 
     async CreateProyecto(dto: CreateProyectoDto, file?: Express.Multer.File)
     {
-        if (!file) {
-            throw new Error('Debe subir una imagen para el proyecto');
-        }
+        if (!file) { throw new Error('Debe subir una imagen para el proyecto'); }
 
-        const estadoinicial = await this.proyectoEstadoRepository.findOne({ where:{ Id_Estado_Proyecto: 1 } });
-        if (!estadoinicial) {throw new NotFoundException(`Estado inicial de proyecto no configurado`);}
-
+        const TituloToUpperCase = dto.Titulo.toUpperCase();
         // Subir archivo a Dropbox
-        const Proyecto = await this.dropboxFilesService.uploadFileDownloadOnly(file, 'Proyectos', dto.Titulo);
+        const Proyecto = await this.dropboxFilesService.uploadFileDownloadOnly(file, 'Proyectos', TituloToUpperCase);
 
         const now = new Date();
         now.setSeconds(0, 0);
@@ -53,7 +49,6 @@ export class ProyectoService
         const proyecto = ({
             ...dto,
             Imagen_Url: Proyecto.url,
-            Estado: estadoinicial
         });
 
         // Guardar en BD
@@ -63,16 +58,11 @@ export class ProyectoService
     async UpdateProyecto(Id_Proyecto: number, dto: UpdateProyectoDto) 
     {
         const proyecto = await this.proyectoRepository.findOne({ where: { Id_Proyecto } });
-        if (!proyecto)
-          {
-            throw new NotFoundException(`Proyecto con id ${Id_Proyecto} no encontrado`);
-          }
+        if (!proyecto) { throw new NotFoundException(`Proyecto con id ${Id_Proyecto} no encontrado`); }
 
-        const estado = await this.proyectoEstadoRepository.findOne({ where:{ Id_Estado_Proyecto: 1 } });
-        
-        if (!estado) {throw new NotFoundException(`Estado inicial de proyecto no configurado`);}
+        if (dto.Titulo) { dto.Titulo = dto.Titulo.toUpperCase(); }
 
-        Object.assign(proyecto, dto, { Estado: estado });
+        Object.assign(proyecto, dto);
         return this.proyectoRepository.save(proyecto);
     }
 

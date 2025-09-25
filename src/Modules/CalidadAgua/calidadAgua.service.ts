@@ -37,8 +37,10 @@ export class CalidadAguaService
             throw new Error('Debe subir un archivo para la calidad de agua');
         }
 
+        const tituloToUpperCase = dto.Titulo.toUpperCase();
+
         // Subir archivo a Dropbox
-        const fileRes = await this.dropboxFilesService.uploadFile(file, 'Calidad-de-Agua', dto.Titulo);
+        const fileRes = await this.dropboxFilesService.uploadFile(file, 'Calidad-de-Agua', tituloToUpperCase);
 
         const now = new Date();
         now.setSeconds(0, 0);
