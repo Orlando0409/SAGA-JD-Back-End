@@ -57,4 +57,14 @@ export class ActasService {
 
         return this.actaRepository.save(actaActualizada);
     }
+
+    async deleteActa(id: number) {
+        const actaExistente = await this.actaRepository.findOne({ where: { Id_Acta: id } });
+        if (!actaExistente) {
+            throw new BadRequestException(`El acta que intenta eliminar con ID ${id} no existe.`);
+        }
+
+        await this.actaRepository.remove(actaExistente);
+        return { message: 'Acta eliminada exitosamente' };
+    }
 }

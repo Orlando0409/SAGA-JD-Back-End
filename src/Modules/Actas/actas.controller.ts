@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, UploadedFiles, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, UploadedFiles, UseInterceptors } from "@nestjs/common";
 import { ActasService } from "./actas.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
@@ -32,5 +32,11 @@ export class ActaController {
     updateActa(@Param('id acta') id: number, @Body() dto: CreateActaDto,
     @UploadedFiles() files: { Archivo?: Express.Multer.File[]; }) {
         return this.actasService.UpdateActa(id, dto, files.Archivo || []);
+    }
+
+    @Delete('/delete/:id')
+    @ApiOperation({ summary: 'Eliminar una acta existente' })
+    deleteActa(@Param('id acta') id: number) {
+        return this.actasService.deleteActa(id);
     }
 }
