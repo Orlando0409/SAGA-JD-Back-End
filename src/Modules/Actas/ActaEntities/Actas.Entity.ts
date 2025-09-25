@@ -13,8 +13,8 @@ export class Acta
     @Column({ nullable: false })
     Titulo: string;
 
-    @Column({ nullable: false })
-    Descripcion: string;
+    @Column({ nullable: true })
+    Descripcion?: string;
 
     @CreateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Creacion: Date;
