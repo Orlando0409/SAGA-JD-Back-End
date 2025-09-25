@@ -36,7 +36,7 @@ export class InventarioService {
         return this.inventarioRepository.createQueryBuilder('material')
             .leftJoinAndSelect('material.Estado_Material', 'estado')
             .where('material.Cantidad > 0')
-            .orderBy('material.Nombre_Material', 'ASC')
+            .orderBy('material.Nombre_Material')
             .getMany();
     }
 
