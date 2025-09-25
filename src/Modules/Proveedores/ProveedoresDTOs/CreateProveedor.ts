@@ -10,11 +10,16 @@ export class CreateProveedorFisicoDto {
   @Matches(/\S/, { message: "El nombre no puede contener solo espacios" })
   Nombre_Proveedor: string;
 
-  @ApiProperty({ example: 12345678})
+  @ApiProperty({ 
+    example: "+0 000 000-000 o +506 0000-0000", 
+  })
   @IsNotEmpty({ message: "El teléfono es obligatorio" })
-  @IsNumber({}, { message: "El teléfono debe ser un número" })
-  @Min(10000000, { message: "El teléfono debe tener al menos 8 dígitos" })
-  Telefono_Proveedor: number;
+  @IsString({ message: "El teléfono debe ser un texto" })
+  @MaxLength(20, { message: "El teléfono no puede tener más de 20 caracteres" })
+  @Matches(/^(\+?[1-9][\d\s\-]{1,15}[0-9]|[0-9]{7,10})$/, { 
+    message: "El teléfono debe tener un formato válido y tamaño apropiado" 
+  })
+  Telefono_Proveedor: string;
 
   @ApiProperty({ example: 123456789})
   @IsNotEmpty({ message: "La cédula es obligatoria" })
@@ -36,11 +41,15 @@ export class CreateProveedorJuridicoDto {
   @Matches(/\S/, { message: "El nombre no puede contener solo espacios" })
   Nombre_Proveedor: string;
 
-  @ApiProperty({ example: 12345678})
-  @IsNotEmpty({ message: "El teléfono es obligatorio" })
-  @IsNumber({}, { message: "El teléfono debe ser un número" })
-  @Min(10000000, { message: "El teléfono debe tener al menos 8 dígitos" })
-  Telefono_Proveedor: number;
+  @ApiProperty({ 
+    example: "+0 000 000-0000 o +506 0000-0000", 
+  })
+  @IsString({ message: "El teléfono debe ser un texto" })
+  @MaxLength(20, { message: "El teléfono no puede tener más de 20 caracteres" })
+  @Matches(/^(\+?[1-9][\d\s\-]{1,15}[0-9]|[0-9]{7,10})$/, { 
+    message: "El teléfono debe tener un formato válido y tamaño apropiado" 
+  })
+  Telefono_Proveedor: string;
 
   @ApiProperty({ example: 12345678})
   @IsNumber({}, { message: "La cédula debe ser un número" })

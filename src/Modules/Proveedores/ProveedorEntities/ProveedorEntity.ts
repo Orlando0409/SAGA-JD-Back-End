@@ -10,8 +10,8 @@ export abstract class ProveedorEntity {
   @Column()
   Nombre_Proveedor: string;
 
-  @Column({})
-  Telefono_Proveedor: number;
+  @Column({ type: "varchar", length: 25 })
+  Telefono_Proveedor: string;
 
   @ManyToOne(() => EstadoProveedor, (estadoProveedor) => estadoProveedor.proveedor)
   estadoProveedor: EstadoProveedor;
