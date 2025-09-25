@@ -44,6 +44,7 @@ import { ActasModule } from './Modules/Actas/actas.module';
 import { Material } from './Modules/Inventario/InventarioEntities/Material.Entity';
 import { CategoriaMaterial } from './Modules/Inventario/InventarioEntities/CategoriaMaterial.Entity';
 import { EstadoMaterial } from './Modules/Inventario/InventarioEntities/EstadoMaterial.Entity';
+import { SeederModule } from './config/Seeder.module';
 
 @Module({
   imports: [
