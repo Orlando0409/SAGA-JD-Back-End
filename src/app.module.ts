@@ -14,7 +14,6 @@ import { AuthModule } from './Modules/auth/Auth.module';
 import { JwtAuthGuard } from './Modules/auth/Guard/JwtGuard';
 import { RolesGuard } from './Modules/auth/Guard/RolesGuards';
 import { PermisosGuard } from './Modules/auth/Guard/PermisosGuard';
-import { SeederModule } from './Config/Seeder.module';
 import { EstadoSolicitud } from './Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
 import { RolesModule } from './Modules/Usuarios/Modules/roles.module';
 import { UsuariosModule } from './Modules/Usuarios/Modules/usuarios.module';
@@ -45,6 +44,7 @@ import { ActasModule } from './Modules/Actas/actas.module';
 import { Material } from './Modules/Inventario/InventarioEntities/Material.Entity';
 import { CategoriaMaterial } from './Modules/Inventario/InventarioEntities/CategoriaMaterial.Entity';
 import { EstadoMaterial } from './Modules/Inventario/InventarioEntities/EstadoMaterial.Entity';
+import { SeederModule } from './config/Seeder.module';
 
 @Module({
   imports: [
