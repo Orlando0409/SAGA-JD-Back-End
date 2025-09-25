@@ -5,7 +5,7 @@ import { UpdateProveedorFisicoDto, UpdateProveedorJuridicoDto } from './Proveedo
 import { UpdateEstadoProveedorDto } from './ProveedoresDTOs/UpdateEstadoProveedor.dto';
 import { ProveedorFisico, ProveedorJuridico } from './ProveedorEntities/Proveedor.Entity';
 
-@Controller('proveedores')
+@Controller('Proveedores')
 export class ProveedorController {
   constructor(private readonly proveedorService: ProveedorService) {}
 
