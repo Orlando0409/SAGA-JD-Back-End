@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsDefined, IsNotEmpty, IsString, Matches, MaxLength, MinLength } from "class-validator";
 
-export class CreateCategoriaMaterialDto {
+export class CreateCategoriaDto {
     @ApiProperty({ example: 'Materiales de Construcción' })
     @IsString({ message: 'La categoría debe ser un string' })
     @IsDefined({ message: 'La categoría no puede estar vacio' })

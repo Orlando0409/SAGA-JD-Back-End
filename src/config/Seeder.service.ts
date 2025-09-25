@@ -11,7 +11,7 @@ import { EstadoSolicitud } from 'src/Modules/Solicitudes/SolicitudEntities/Estad
 import { EstadoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { TipoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
 import { EstadoMaterial } from 'src/Modules/Inventario/InventarioEntities/EstadoMaterial.Entity';
-import { CategoriaMaterial } from 'src/Modules/Inventario/InventarioEntities/CategoriaMaterial.Entity';
+import { Categoria } from 'src/Modules/Inventario/InventarioEntities/Categoria.Entity';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -34,8 +34,8 @@ export class SeederService implements OnModuleInit {
         private readonly tipoAfiliadoRepository: Repository<TipoAfiliado>,
         @InjectRepository(EstadoMaterial)
         private readonly estadoMaterialRepository: Repository<EstadoMaterial>,
-        @InjectRepository(CategoriaMaterial)
-        private readonly categoriaMaterialRepository: Repository<CategoriaMaterial>,
+        @InjectRepository(Categoria)
+        private readonly categoriaMaterialRepository: Repository<Categoria>,
     ) {}
 
     async onModuleInit() {
@@ -157,15 +157,15 @@ export class SeederService implements OnModuleInit {
 
     private async createDefaultCategoriasMaterial() {
         const categorias = [
-            { Id_Categoria_Material: 1, Nombre_Categoria_Material: 'PLOMERIA' },
-            { Id_Categoria_Material: 2, Nombre_Categoria_Material: 'ELECTRICIDAD' },
-            { Id_Categoria_Material: 3, Nombre_Categoria_Material: 'HERRAMIENTAS' },
-            { Id_Categoria_Material: 4, Nombre_Categoria_Material: 'OTROS' },
+            { Id_Categoria: 1, Nombre_Categoria: 'PLOMERIA' },
+            { Id_Categoria: 2, Nombre_Categoria: 'ELECTRICIDAD' },
+            { Id_Categoria: 3, Nombre_Categoria: 'HERRAMIENTAS' },
+            { Id_Categoria: 4, Nombre_Categoria: 'OTROS' },
         ];
 
         for (const categoria of categorias) {
             const existe = await this.categoriaMaterialRepository.findOne({
-                where: { Id_Categoria_Material: categoria.Id_Categoria_Material }
+                where: { Id_Categoria: categoria.Id_Categoria }
             });
 
             if (!existe) {

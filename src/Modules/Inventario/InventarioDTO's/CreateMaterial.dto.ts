@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsDefined, IsNotEmpty, IsString, Matches, MaxLength, Min, MinLength, IsArray, ArrayNotEmpty, IsNumber } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsDefined, IsInt, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, Min, MinLength } from "class-validator";
 
 export class CreateMaterialDto {
     @ApiProperty({ example: 'Cemento' })
@@ -31,12 +31,12 @@ export class CreateMaterialDto {
 
     @ApiProperty({ 
         example: [1, 2, 3], 
+        description: 'Array de IDs de categorías para el material',
         type: [Number],
-        description: 'Array de IDs de categorías para asignar al material'
+        required: false 
     })
-    @IsArray({ message: 'Las categorías deben ser un array' })
-    @ArrayNotEmpty({ message: 'Debe seleccionar al menos una categoría' })
-    @IsNumber({}, { each: true, message: 'Cada ID de categoría debe ser un número' })
-    @IsDefined({ message: 'Las categorías son obligatorias' })
-    IDS_Categorias: number[];
+    @IsOptional()
+    @IsArray({ message: 'Las categorías deben ser un array [ID]' })
+    @IsInt({ each: true, message: 'Cada categoría debe ser un número entero' })
+    IDS_Categorias?: number[];
 }

@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, UseInterceptors, ClassSerializerInterceptor } from '@nestjs/common';
 import { InventarioService } from './inventario.service';
 import { CreateMaterialDto } from './InventarioDTO\'s/CreateMaterial.dto';
-import { CreateCategoriaMaterialDto } from './InventarioDTO\'s/CreateCategoriaMaterial.dto';
 import { ApiOperation } from '@nestjs/swagger';
+import { CreateCategoriaDto } from './InventarioDTO\'s/CreateCategoria.dto';
 
 @Controller('Inventario')
+@UseInterceptors(ClassSerializerInterceptor) // Agregar el interceptor para serialización
 export class InventarioController {
     constructor(private readonly inventarioService: InventarioService) {}
 
@@ -28,7 +29,25 @@ export class InventarioController {
 
     @Post('/create/categoria')
     @ApiOperation({ summary: 'Crea una nueva categoría de material.' })
-    async createCategoria(@Body() dto: CreateCategoriaMaterialDto) {
+    async createCategoria(@Body() dto: CreateCategoriaDto) {
         return this.inventarioService.createCategoria(dto);
+    }
+
+    @Post('/add/material/:materialId/:categoriaId')
+    @ApiOperation({ summary: 'Agrega una categoría a un material existente.' })
+    async addCategoriaToMaterial(
+        @Param('materialId', ParseIntPipe) materialId: number,
+        @Param('categoriaId', ParseIntPipe) categoriaId: number
+    ) {
+        return this.inventarioService.addCategoriaToMaterial(materialId, categoriaId);
+    }
+
+    @Delete('/remove/material/:materialId/:categoriaId')
+    @ApiOperation({ summary: 'Remueve una categoría de un material.' })
+    async removeCategoriaFromMaterial(
+        @Param('materialId', ParseIntPipe) materialId: number,
+        @Param('categoriaId', ParseIntPipe) categoriaId: number
+    ) {
+        return this.inventarioService.removeCategoriaFromMaterial(materialId, categoriaId);
     }
 }
