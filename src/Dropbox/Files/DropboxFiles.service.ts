@@ -56,7 +56,7 @@ export class DropboxFilesService {
       // 📂 Construcción de la ruta en Dropbox
       let dropboxPath = Identificacion
         ? `${folderPath}/${carpetaPrincipal}/${carpetaSecundaria}/${Identificacion} - ${Nombre}/${file.originalname}`
-        : `${folderPath}/${carpetaPrincipal}/${file.originalname}`;
+        : `${folderPath}/${carpetaPrincipal}/${carpetaSecundaria}/${file.originalname}`;
 
       // 🚀 Subir archivo a Dropbox
       const uploadRes = await dbx.filesUpload({

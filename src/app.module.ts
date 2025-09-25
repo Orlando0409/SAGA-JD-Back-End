@@ -38,7 +38,9 @@ import { TipoAfiliado } from './Modules/Afiliados/AfiliadoEntities/TipoAfiliado.
 import { AfiliadosModule } from './Modules/Afiliados/afiliados.module';
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from './Modules/Afiliados/AfiliadoEntities/Afiliado.Entity';
 import { SolicitudesModule } from './Modules/Solicitudes/solicitudes.module';
-import { SeederModule } from './config/Seeder.module';
+import { Acta } from './Modules/Actas/ActaEntities/Actas.Entity';
+import { ArchivoActa } from './Modules/Actas/ActaEntities/ArchivoActa.Entity';
+import { ActaModule } from './Modules/Actas/acta.module';
 
 @Module({
   imports: [
@@ -63,7 +65,7 @@ import { SeederModule } from './config/Seeder.module';
         SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
         EstadoSolicitud, CalidadAgua, EstadoAfiliado, TipoAfiliado, Afiliado, AfiliadoFisico, AfiliadoJuridico,
         UserEntity, UserRol, Permiso, ProveedorEntity, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
-        ProyectoEstado, Proyecto],
+        ProyectoEstado, Proyecto, Acta, ArchivoActa],
         synchronize: false,
       }),
     }),
@@ -85,7 +87,8 @@ import { SeederModule } from './config/Seeder.module';
     SeederModule,
     CalidadAguaModule,
     AfiliadosModule,
-    SolicitudesModule
+    SolicitudesModule,
+    ActaModule
   ],
   controllers: [],
   providers: [
