@@ -10,6 +10,8 @@ import { ProyectoEstado } from 'src/Modules/Proyectos/ProyectoEntities/EstadoPro
 import { EstadoSolicitud } from 'src/Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
 import { EstadoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { TipoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
+import { EstadoMaterial } from 'src/Modules/Inventario/InventarioEntities/EstadoMaterial.Entity';
+import { CategoriaMaterial } from 'src/Modules/Inventario/InventarioEntities/CategoriaMaterial.Entity';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -30,6 +32,10 @@ export class SeederService implements OnModuleInit {
         private readonly afiliadoEstadoRepository: Repository<EstadoAfiliado>,
         @InjectRepository(TipoAfiliado)
         private readonly tipoAfiliadoRepository: Repository<TipoAfiliado>,
+        @InjectRepository(EstadoMaterial)
+        private readonly estadoMaterialRepository: Repository<EstadoMaterial>,
+        @InjectRepository(CategoriaMaterial)
+        private readonly categoriaMaterialRepository: Repository<CategoriaMaterial>,
     ) {}
 
     async onModuleInit() {
@@ -39,6 +45,8 @@ export class SeederService implements OnModuleInit {
         await this.createDefaultEstadosSolicitud();
         await this.createDefaultEstadosAfiliado();
         await this.createDefaultTiposAfiliado();
+        await this.createDefaultEstadosMaterial();
+        await this.createDefaultCategoriasMaterial();
     }
 
     private async createInitialData() {
@@ -50,7 +58,7 @@ export class SeederService implements OnModuleInit {
             await this.createAdminUser();
         } 
         catch (error) {
-            console.error('❌ Error en seeder:', error);
+            console.error('Error en seeder:', error);
         }
     }
 
@@ -125,6 +133,44 @@ export class SeederService implements OnModuleInit {
             if (!existe) {
                 const nuevoTipo = this.tipoAfiliadoRepository.create(tipo);
                 await this.tipoAfiliadoRepository.save(nuevoTipo);
+            }
+        }
+    }
+
+    private async createDefaultEstadosMaterial() {
+        const estados = [
+            { Id_Estado_Material: 1, Nombre_Estado_Material: 'DISPONIBLE' },
+            { Id_Estado_Material: 2, Nombre_Estado_Material: 'AGOTADO' },
+        ];
+
+        for (const estado of estados) {
+            const existe = await this.estadoMaterialRepository.findOne({
+                where: { Id_Estado_Material: estado.Id_Estado_Material }
+            });
+
+            if (!existe) {
+                const nuevoEstado = this.estadoMaterialRepository.create(estado);
+                await this.estadoMaterialRepository.save(nuevoEstado);
+            }
+        }
+    }
+
+    private async createDefaultCategoriasMaterial() {
+        const categorias = [
+            { Id_Categoria_Material: 1, Nombre_Categoria_Material: 'PLOMERIA' },
+            { Id_Categoria_Material: 2, Nombre_Categoria_Material: 'ELECTRICIDAD' },
+            { Id_Categoria_Material: 3, Nombre_Categoria_Material: 'HERRAMIENTAS' },
+            { Id_Categoria_Material: 4, Nombre_Categoria_Material: 'OTROS' },
+        ];
+
+        for (const categoria of categorias) {
+            const existe = await this.categoriaMaterialRepository.findOne({
+                where: { Id_Categoria_Material: categoria.Id_Categoria_Material }
+            });
+
+            if (!existe) {
+                const nuevaCategoria = this.categoriaMaterialRepository.create(categoria);
+                await this.categoriaMaterialRepository.save(nuevaCategoria);
             }
         }
     }

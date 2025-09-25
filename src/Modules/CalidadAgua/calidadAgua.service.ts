@@ -38,7 +38,7 @@ export class CalidadAguaService
         }
 
         // Subir archivo a Dropbox
-        const fileRes = await this.dropboxFilesService.uploadFile(file, 'Calidad-de-Agua');
+        const fileRes = await this.dropboxFilesService.uploadFile(file, 'Calidad-de-Agua', dto.Titulo);
 
         const now = new Date();
         now.setSeconds(0, 0);
@@ -62,7 +62,7 @@ export class CalidadAguaService
 
         // Si llega un archivo, subimos uno nuevo
         if (file) {
-            const fileRes = await this.dropboxFilesService.uploadFile(file, 'Calidad-de-Agua');
+            const fileRes = await this.dropboxFilesService.uploadFile(file, 'Calidad-de-Agua', dto.Titulo);
             CalidadAgua.Url_Archivo = fileRes.url;
         }
 

@@ -51,7 +51,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, documentFactory, {
     swaggerOptions: {
       operationsSorter: (a: any, b: any) => {
-        const order = { get: 1, post: 2, put: 3, delete: 4, patch: 5 };
+        const order = { get: 1, post: 2, put: 3, patch: 4, delete: 5 };
         return order[a.get("method")] - order[b.get("method")];
       }
     }, 
@@ -62,6 +62,3 @@ async function bootstrap() {
 bootstrap();
 
 // Usar la URL 'http://localhost:3000/api' para abrir el Swagger UI
-
-// Si los proyectos dan error 500, cambien el synchronize del app.module a true
-// y eliminen la base de datos para que se vuelva a crear con las nuevas entidades

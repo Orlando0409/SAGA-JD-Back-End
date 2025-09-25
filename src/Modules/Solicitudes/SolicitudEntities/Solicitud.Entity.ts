@@ -30,19 +30,19 @@ export abstract class Solicitud
     Fecha_Actualizacion: Date;
 
     @BeforeInsert()
-        @BeforeUpdate()
-        normalizarTelefono() {
-            if (this.Numero_Telefono) {
-                try {
-                    const phoneNumber = parsePhoneNumberFromString(this.Numero_Telefono);
-                    if (phoneNumber) {
-                        this.Numero_Telefono = phoneNumber.number; // siempre guarda en formato E.164
-                    }
-                } catch {
-                    // si hay error, simplemente no normalizamos
+    @BeforeUpdate()
+    normalizarTelefono() {
+        if (this.Numero_Telefono) {
+            try {
+                const phoneNumber = parsePhoneNumberFromString(this.Numero_Telefono);
+                if (phoneNumber) {
+                    this.Numero_Telefono = phoneNumber.number; // siempre guarda en formato E.164
                 }
+            } catch {
+                // si hay error, simplemente no normalizamos
             }
         }
+    }
 }
 
 export abstract class SolicitudFisica extends Solicitud {
@@ -60,6 +60,21 @@ export abstract class SolicitudFisica extends Solicitud {
 
     @Column()
     Apellido2: string;
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    normalizarTelefono() {
+        if (this.Numero_Telefono) {
+            try {
+                const phoneNumber = parsePhoneNumberFromString(this.Numero_Telefono);
+                if (phoneNumber) {
+                    this.Numero_Telefono = phoneNumber.number; // siempre guarda en formato E.164
+                }
+            } catch {
+                // si hay error, simplemente no normalizamos
+            }
+        }
+    }
 }
 
 export class SolicitudJuridica extends Solicitud {
@@ -68,6 +83,21 @@ export class SolicitudJuridica extends Solicitud {
 
     @Column({ nullable: false })
     Razon_Social: string;
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    normalizarTelefono() {
+        if (this.Numero_Telefono) {
+            try {
+                const phoneNumber = parsePhoneNumberFromString(this.Numero_Telefono);
+                if (phoneNumber) {
+                    this.Numero_Telefono = phoneNumber.number; // siempre guarda en formato E.164
+                }
+            } catch {
+                // si hay error, simplemente no normalizamos
+            }
+        }
+    }
 }
 
 @Entity('Solicitudes_Afiliacion_Fisica')

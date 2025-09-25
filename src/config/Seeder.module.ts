@@ -9,10 +9,12 @@ import { EstadoSolicitud } from 'src/Modules/Solicitudes/SolicitudEntities/Estad
 import { EstadoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { TipoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
 import { SeederService } from './Seeder.service';
+import { EstadoMaterial } from 'src/Modules/Inventario/InventarioEntities/EstadoMaterial.Entity';
+import { CategoriaMaterial } from 'src/Modules/Inventario/InventarioEntities/CategoriaMaterial.Entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([UserEntity, UserRol, Permiso, EstadoProveedor, ProyectoEstado, EstadoSolicitud, EstadoAfiliado, TipoAfiliado])
+        TypeOrmModule.forFeature([UserEntity, UserRol, Permiso, EstadoProveedor, ProyectoEstado, EstadoSolicitud, EstadoAfiliado, TipoAfiliado, EstadoMaterial, CategoriaMaterial])
     ],
     providers: [SeederService],
     exports: [SeederService]

@@ -1,8 +1,9 @@
-import { ApiProperty, IntersectionType } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive, IsEnum } from "class-validator";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
-import { IsIdentificacionValida } from "src/Validations/Custom Validators/Identificacion.validator";
+import { IsIdentificacionValida } from "src/Validations/DTO Validators/Identificacion.validator";
+import { IsTelefonoValido } from "src/Validations/DTO Validators/NumeroTelefono.validator";
 
 export class CreateSolicitudFisicaDto {
   @ApiProperty({ example: 'Cedula' })
@@ -45,7 +46,7 @@ export class CreateSolicitudFisicaDto {
   @MinLength(2, { message: 'El segundo apellido debe tener al menos 2 caracteres' })
   @MaxLength(50, { message: 'El segundo apellido no puede tener más de 50 caracteres' })
   @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'El segundo apellido solo puede contener letras y espacios' })
-  Apellido2: string;
+  Apellido2?: string;
 
   @ApiProperty({ example: 'ejemplo@gmail.com' })
   @Transform(({ value }) => value?.trim())
@@ -56,14 +57,12 @@ export class CreateSolicitudFisicaDto {
   @Matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, {message: 'El formato del correo electrónico no es válido' })
   Correo: string;
 
-  @ApiProperty({ example: '12345678' })
+  @ApiProperty({ example: '+506-8888-7777' })
   @Transform(({ value }) => value?.trim())
   @IsString({ message: 'El número de teléfono debe ser un string' })
   @IsDefined({ message: 'El número de teléfono no puede estar vacío' })
   @IsNotEmpty({ message: 'El número de teléfono no puede estar vacío' })
-  @Matches(/^[0-9+()\s-]+$/, { message: 'El número de teléfono solo puede contener números, +, -, () y espacios' })
-  @MinLength(8, { message: 'El número de teléfono debe tener al menos 8 dígitos' })
-  @MaxLength(15, { message: 'El número de teléfono no puede tener más de 15 caracteres' })
+  @IsTelefonoValido({ message: 'Número de teléfono inválido' })
   Numero_Telefono: string;
 }
 
@@ -153,22 +152,10 @@ export class CreateSolicitudAsociadoFisicaDto extends CreateSolicitudFisicaDto {
   Motivo_Solicitud: string;
 }
 
-export class CreateAfiliacionFisicaDto extends IntersectionType(
-  CreateSolicitudFisicaDto,
-  CreateSolicitudAfiliacionFisicaDto
-) {}
+export class CreateAfiliacionFisicaDto extends CreateSolicitudAfiliacionFisicaDto {}
 
-export class CreateDesconexionFisicaDto extends IntersectionType(
-  CreateSolicitudFisicaDto,
-  CreateSolicitudDesconexionFisicaDto
-) {}
+export class CreateDesconexionFisicaDto extends CreateSolicitudDesconexionFisicaDto {}
 
-export class CreateCambioMedidorFisicaDto extends IntersectionType(
-  CreateSolicitudFisicaDto,
-  CreateSolicitudCambioMedidorFisicaDto
-) {}
+export class CreateCambioMedidorFisicaDto extends CreateSolicitudCambioMedidorFisicaDto {}
 
-export class CreateAsociadoFisicaDto extends IntersectionType(
-  CreateSolicitudFisicaDto,
-  CreateSolicitudAsociadoFisicaDto
-) {}
+export class CreateAsociadoFisicaDto extends CreateSolicitudAsociadoFisicaDto {}

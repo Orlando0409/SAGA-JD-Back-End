@@ -44,7 +44,7 @@ export class ProyectoService
         if (!estadoinicial) {throw new NotFoundException(`Estado inicial de proyecto no configurado`);}
 
         // Subir archivo a Dropbox
-        const fileRes = await this.dropboxFilesService.uploadFileDownloadOnly(file, 'Imagenes-Proyectos');
+        const Proyecto = await this.dropboxFilesService.uploadFileDownloadOnly(file, 'Proyectos', dto.Titulo);
 
         const now = new Date();
         now.setSeconds(0, 0);
@@ -52,7 +52,7 @@ export class ProyectoService
         // Crear objeto entidad
         const proyecto = ({
             ...dto,
-            Imagen_Url: fileRes.url,
+            Imagen_Url: Proyecto.url,
             Estado: estadoinicial
         });
 
