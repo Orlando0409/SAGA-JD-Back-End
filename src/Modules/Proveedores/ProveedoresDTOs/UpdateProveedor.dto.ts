@@ -5,4 +5,4 @@ export class UpdateProveedorFisicoDto extends PartialType(
      OmitType(CreateProveedorFisicoDto, ['Id_Estado_Proveedor' , 'Identificacion'] as const),) {}
 
 export class UpdateProveedorJuridicoDto extends PartialType( 
-    OmitType(CreateProveedorJuridicoDto, ['Id_Estado_Proveedor' , 'Cedula_Juridica'] as const),) {}
+    OmitType(CreateProveedorJuridicoDto, ['Id_Estado_Proveedor' , 'Identificacion'] as const),) {}

@@ -1,9 +1,10 @@
-import { IsString, IsNotEmpty, IsNumber, Min, MaxLength, IsPositive, Matches, IsEnum, IsDefined} from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, Min, MaxLength, IsPositive, Matches, IsEnum, IsDefined, IsIn} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { TipoIdentificacion } from 'src/Common/Enums/TipoIdentificacion.enum';
 import { IsIdentificacionValida } from 'src/Validations/DTO Validators/Identificacion.validator';
 import { IsTelefonoValido } from 'src/Validations/DTO Validators/NumeroTelefono.validator';
+import { IsCedulaJuridicaValida } from 'src/Validations/DTO Validators/CedulaJuridica.validator';
 
 export class CreateProveedorFisicoDto {
   @ApiProperty({ example: "Nombre Apellido"})
@@ -21,9 +22,11 @@ export class CreateProveedorFisicoDto {
   @IsTelefonoValido({ message: 'Número de teléfono inválido' })
   Telefono_Proveedor: string;
 
-  @ApiProperty({ example: 'Cedula' })
+  @ApiProperty({ example: 'Cedula', description: 'Tipos permitidos para proveedores físicos: Cedula Nacional, Dimex, Pasaporte' })
   @Transform(({ value }) => value?.trim())
-  @IsEnum(TipoIdentificacion, { message: `El tipo de identificación debe ser uno de los siguientes: ${Object.values(TipoIdentificacion).join(', ')}` })
+  @IsEnum(TipoIdentificacion, { message: `El tipo de identificación debe ser válido` })
+  @IsIn([TipoIdentificacion.CEDULA, TipoIdentificacion.DIMEX, TipoIdentificacion.PASAPORTE], 
+    { message: 'Para proveedores físicos solo se permiten: Cedula Nacional, Dimex, Pasaporte' })
   @IsDefined({ message: 'El tipo de identificación no puede estar vacío' })
   Tipo_Identificacion: TipoIdentificacion;
   
@@ -57,11 +60,21 @@ export class CreateProveedorJuridicoDto {
   @IsTelefonoValido({ message: 'Número de teléfono inválido' })
   Telefono_Proveedor: string;
 
-  @ApiProperty({ example: 12345678})
-  @IsNumber({}, { message: "La cédula debe ser un número" })
-  @IsNotEmpty({ message: "La cédula es obligatoria" })
-  @Min(10000000, { message: "La cédula debe tener al menos 8 dígitos" })
-  Cedula_Juridica: number;
+  @ApiProperty({ example: 'Cedula', description: 'Para proveedores jurídicos solo se permite: Cedula Juridica' })
+  @Transform(({ value }) => value?.trim())
+  @IsEnum(TipoIdentificacion, { message: `El tipo de identificación debe ser válido` })
+  @IsIn([TipoIdentificacion.CEDULA_JURIDICA], 
+    { message: 'Para proveedores jurídicos solo se permite: Cedula Juridica' })
+  @IsDefined({ message: 'El tipo de identificación no puede estar vacío' })
+  Tipo_Identificacion: TipoIdentificacion;
+
+  @ApiProperty({ example: '0-000-000000', description: 'Formatos válidos: 0-000-000000 o 0 000 000000 o 0--000--000000' })
+  @Transform(({ value }) => value?.trim())
+  @IsDefined({ message: 'La cédula jurídica no puede estar vacía' })
+  @IsNotEmpty({ message: 'La cédula jurídica no puede estar vacía' })
+  @IsString({ message: 'La cédula jurídica debe ser un string' })
+  @IsCedulaJuridicaValida()
+  Identificacion: string;
 
   @ApiProperty({ example: "Empresa S.A"})
   @IsString({ message: "La razón social debe ser un texto" })
