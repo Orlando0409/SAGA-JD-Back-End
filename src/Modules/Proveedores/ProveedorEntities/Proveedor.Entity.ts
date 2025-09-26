@@ -51,8 +51,8 @@ export class ProveedorFisico extends ProveedorEntity {
 
 @Entity("Proveedor_Juridico")
 export class ProveedorJuridico extends ProveedorEntity {
-    @Column({ nullable: false })
-    Cedula_Juridica: number;
+    @Column({ type: "varchar", length: 25 })
+    Cedula_Juridica: string;
 
     @Column({ nullable: false })
     Razon_Social: string;

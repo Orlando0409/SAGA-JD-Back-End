@@ -53,7 +53,7 @@ export class ProveedorService {
     }
 
     const cedulaExistente = await this.juridicoRepo.findOne({
-      where: { Cedula_Juridica: dto.Cedula_Juridica },
+      where: { Cedula_Juridica: (dto.Cedula_Juridica) },
     });
       if (cedulaExistente) {
         throw new ConflictException('Esta cédula ya se encuentra registrada');

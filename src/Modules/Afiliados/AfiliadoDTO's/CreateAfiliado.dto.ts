@@ -4,6 +4,7 @@ import { Transform } from 'class-transformer';
 import { TipoIdentificacion } from 'src/Common/Enums/TipoIdentificacion.enum';
 import { IsIdentificacionValida } from 'src/Validations/DTO Validators/Identificacion.validator';
 import { IsTelefonoValido } from 'src/Validations/DTO Validators/NumeroTelefono.validator';
+import { IsCedulaJuridicaValida } from 'src/Validations/DTO Validators/CedulaJuridica.validator';
 
 export abstract class CreateAfiliadoDto {
   @ApiProperty({ example: 'ejemplo@gmail.com' })
@@ -92,9 +93,7 @@ export class CreateAfiliadoJuridicoDto extends CreateAfiliadoDto {
   @IsString({ message: 'La cédula jurídica debe ser un string' })
   @IsDefined({ message: 'La cédula jurídica no puede estar vacía' })
   @IsNotEmpty({ message: 'La cédula jurídica no puede estar vacía' })
-  @Matches(/^[2-5]/, { message: 'La cédula jurídica debe comenzar con 2, 3, 4 o 5' })
-  @MinLength(10)
-  @MaxLength(12)
+  @IsCedulaJuridicaValida()
   Cedula_Juridica: string;
 
   @ApiProperty({ example: 'Empresa Ejemplo S.A.' })

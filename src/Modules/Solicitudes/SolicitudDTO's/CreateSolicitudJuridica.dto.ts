@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive } from "class-validator";
+import { IsCedulaJuridicaValida } from "src/Validations/DTO Validators/CedulaJuridica.validator";
 import { IsTelefonoValido } from "src/Validations/DTO Validators/NumeroTelefono.validator";
 
 export class CreateSolicitudJuridicaDto {
@@ -9,9 +10,7 @@ export class CreateSolicitudJuridicaDto {
   @IsString({ message: 'La cédula jurídica debe ser un string' })
   @IsDefined({ message: 'La cédula jurídica no puede estar vacía' })
   @IsNotEmpty({ message: 'La cédula jurídica no puede estar vacía' })
-  @Matches(/^3-\d{3}-\d{6}$/, { message: 'La cédula jurídica debe tener el formato 3-XXX-XXXXXX' })
-  @MinLength(12)
-  @MaxLength(12)
+  @IsCedulaJuridicaValida()
   Cedula_Juridica: string;
 
   @ApiProperty({ example: 'Empresa Ejemplo S.A.' })
