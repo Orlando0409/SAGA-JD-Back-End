@@ -1,8 +1,8 @@
-import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { EstadoMaterial } from "./EstadoMaterial.Entity";
 import { MaterialCategoria } from "./MaterialCategoria.Entity";
-import { Categoria } from "./Categoria.Entity";
-import { Transform, Expose, Exclude } from "class-transformer";
+import { join } from "path";
+import { Expose } from "class-transformer";
 
 @Entity('Material')
 export class Material {
@@ -30,27 +30,19 @@ export class Material {
     @Column({ type: 'datetime', precision: 0, nullable: true })
     Fecha_Salida: Date;
 
+    @DeleteDateColumn({ name: 'Fecha_Baja', type: 'datetime', precision: 0, nullable: true })
+    Fecha_Baja: Date;
+
+    @Column({ nullable: true })
+    Id_Estado_Material: number;
+
     @ManyToOne(() => EstadoMaterial, estadoMaterial => estadoMaterial.Materiales, { eager: true })
     @JoinColumn({ name: 'Id_Estado_Material' })
     Estado_Material: EstadoMaterial;
 
     @OneToMany(() => MaterialCategoria, materialCategoria => materialCategoria.Material, { cascade: true, eager: true })
-    @Exclude() // Excluir el campo privado de la serialización
-    private _Categorias: MaterialCategoria[];
-
-    // Getter personalizado que transforma las categorías
-    @Expose({ name: 'Categorias' }) // Exponer con el nombre correcto
-    @Transform(({ value, obj }) => {
-        return obj._Categorias?.map(mc => mc.Categoria) || [];
-    })
-    get Categorias(): Categoria[] {
-        return this._Categorias?.map(mc => mc.Categoria) || [];
-    }
-
-    // Setter para cuando necesites asignar categorías
-    set Categorias(categorias: MaterialCategoria[]) {
-        this._Categorias = categorias;
-    }
+    @Expose({ name: 'Categorias' })
+    materialCategorias: MaterialCategoria[];
 
     @BeforeInsert()
     setDefaultEstado() { this.Estado_Material = { Id_Estado_Material: 1, Nombre_Estado_Material: 'DISPONIBLE' } as EstadoMaterial; }

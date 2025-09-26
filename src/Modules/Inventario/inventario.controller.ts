@@ -21,6 +21,30 @@ export class InventarioController {
         return this.inventarioService.getAllCategories();
     }
 
+    @Get('/materiales/with/categorias')
+    @ApiOperation({ summary: 'Obtiene materiales que tienen categorías asignadas' })
+    async getMaterialesConCategorias() {
+        return this.inventarioService.getMaterialesConCategorias();
+    }
+
+    @Get('/materiales/without/categorias')
+    @ApiOperation({ summary: 'Obtiene materiales que no tienen categorías' })
+    async getMaterialesSinCategorias() {
+        return this.inventarioService.getMaterialesSinCategorias();
+    }
+
+    @Get('/materiales/above/stock/:threshold')
+    @ApiOperation({ summary: 'Obtiene materiales con cantidad por encima de un umbral dado, ordenados de mayor a menor.' })
+    async getMaterialesPorEncimaDeStock(@Param('threshold', ParseIntPipe) threshold: number) {
+        return this.inventarioService.getMaterialesPorEncimaDeStock(threshold);
+    }
+
+    @Get('/materiales/below/stock/:threshold')
+    @ApiOperation({ summary: 'Obtiene materiales con cantidad por debajo de un umbral dado, ordenados de menor a mayor.' })
+    async getMaterialesPorDebajoDeStock(@Param('threshold', ParseIntPipe) threshold: number) {
+        return this.inventarioService.getMaterialesPorDebajoDeStock(threshold);
+    }
+
     @Post('/create/material')
     @ApiOperation({ summary: 'Crea un nuevo material en el inventario.' })
     async createMaterial(@Body() dto: CreateMaterialDto) {

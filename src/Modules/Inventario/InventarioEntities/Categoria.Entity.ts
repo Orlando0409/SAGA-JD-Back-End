@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { MaterialCategoria } from "./MaterialCategoria.Entity";
 
 @Entity('Categoria')
@@ -10,6 +10,5 @@ export class Categoria {
     Nombre_Categoria: string;
 
     @OneToMany(() => MaterialCategoria, materialCategoria => materialCategoria.Categoria)
-    @JoinColumn({ name: 'Id_Material' })
     Materiales: MaterialCategoria[];
 }
