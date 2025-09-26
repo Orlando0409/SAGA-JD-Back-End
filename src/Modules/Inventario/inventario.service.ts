@@ -7,6 +7,7 @@ import { CreateMaterialDto } from './InventarioDTO\'s/CreateMaterial.dto';
 import { CreateCategoriaDto } from './InventarioDTO\'s/CreateCategoria.dto';
 import { Categoria } from './InventarioEntities/Categoria.Entity';
 import { MaterialCategoria } from './InventarioEntities/MaterialCategoria.Entity';
+import { UpdateMaterialDto } from './InventarioDTO\'s/UpdateMaterial.dto';
 
 @Injectable()
 export class InventarioService {
@@ -142,6 +143,78 @@ export class InventarioService {
         if (!relacion) { throw new NotFoundException('La relación entre el material y la categoría no existe'); }
 
         await this.materialCategoriaRepository.remove(relacion);
+        return this.inventarioRepository.findOne({ where: { Id_Material: Id_Material }, relations: ['Estado_Material', 'materialCategorias', 'materialCategorias.Categoria'] });
+    }
+
+    async UpdateMaterial(Id_Material: number, dto: UpdateMaterialDto) {
+        const materialExistente = await this.inventarioRepository.findOne({ where: { Id_Material: Id_Material }, relations: ['materialCategorias', 'materialCategorias.Categoria'] });
+        if (!materialExistente) { throw new NotFoundException(`Material con ID ${Id_Material} no encontrado`); }
+
+        // Validar si el nuevo nombre ya existe en otro material
+        if (dto.Nombre_Material && dto.Nombre_Material.toUpperCase() !== materialExistente.Nombre_Material) {
+            const NombreToUpperCase = dto.Nombre_Material.toUpperCase();
+
+            const materialExistenteConNombre = await this.inventarioRepository.findOne({ where: { Nombre_Material: NombreToUpperCase } });
+            if (materialExistenteConNombre) { throw new BadRequestException(`Ya existe un material con el nombre "${NombreToUpperCase}"`); }
+        }
+
+        // Manejar categorías si se proporcionan (incluso si es array vacío)
+        if (dto.IDS_Categorias !== undefined) {
+            // Validar que las nuevas categorías existan
+            let nuevasCategorias: Categoria[] = [];
+            if (dto.IDS_Categorias && dto.IDS_Categorias.length > 0) {
+                nuevasCategorias = await this.categoriaRepository.find({ where: { Id_Categoria: In(dto.IDS_Categorias) } });
+
+                if (nuevasCategorias.length !== dto.IDS_Categorias.length) { throw new BadRequestException('Una o más categorías no existen'); }
+            }
+
+            // Obtener las categorías actualmente asignadas
+            const categoriasActuales = materialExistente.materialCategorias || [];
+            const idsCategoriasActuales = categoriasActuales.map(mc => mc.Categoria.Id_Categoria);
+            const idsCategoriasNuevas = dto.IDS_Categorias || [];
+
+            // Determinar qué categorías agregar y cuáles eliminar
+            const categoriasParaAgregar = idsCategoriasNuevas.filter(id => !idsCategoriasActuales.includes(id));
+            const categoriasParaEliminar = idsCategoriasActuales.filter(id => !idsCategoriasNuevas.includes(id));
+
+            // Eliminar solo las categorías que ya no están en la nueva lista
+            if (categoriasParaEliminar.length > 0) {
+                await this.materialCategoriaRepository.delete({ Material: { Id_Material: Id_Material }, Categoria: { Id_Categoria: In(categoriasParaEliminar) } });
+            }
+
+            // Agregar solo las categorías nuevas
+            if (categoriasParaAgregar.length > 0) {
+                const categoriasAAgregar = nuevasCategorias.filter(cat => 
+                    categoriasParaAgregar.includes(cat.Id_Categoria)
+                );
+
+                const nuevasRelaciones = categoriasAAgregar.map(categoria => {
+                    return this.materialCategoriaRepository.create({ Material: { Id_Material: Id_Material } as Material, Categoria: categoria });
+                });
+
+                await this.materialCategoriaRepository.save(nuevasRelaciones);
+            }
+        }
+
+        // Actualizar los campos del material (excluyendo IDS_Categorias y relaciones)
+        const { IDS_Categorias, ...datosActualizacion } = dto;
+        
+        // Excluir explícitamente las relaciones del merge para evitar conflictos
+        const { materialCategorias, Estado_Material, ...materialSinRelaciones } = materialExistente;
+        
+        const materialActualizado = {
+            ...materialSinRelaciones,
+            ...datosActualizacion,
+        };
+
+        // Convertir nombre a mayúsculas si se proporciona
+        if (datosActualizacion.Nombre_Material) {
+            materialActualizado.Nombre_Material = datosActualizacion.Nombre_Material.toUpperCase();
+        }
+
+        await this.inventarioRepository.save(materialActualizado);
+
+        // Retornar el material con todas sus relaciones
         return this.inventarioRepository.findOne({ where: { Id_Material: Id_Material }, relations: ['Estado_Material', 'materialCategorias', 'materialCategorias.Categoria'] });
     }
 }

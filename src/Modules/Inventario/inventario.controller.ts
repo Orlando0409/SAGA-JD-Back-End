@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, UseInterceptors, ClassSerializerInterceptor } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, UseInterceptors, ClassSerializerInterceptor, Put } from '@nestjs/common';
 import { InventarioService } from './inventario.service';
 import { CreateMaterialDto } from './InventarioDTO\'s/CreateMaterial.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { CreateCategoriaDto } from './InventarioDTO\'s/CreateCategoria.dto';
+import { UpdateMaterialDto } from './InventarioDTO\'s/UpdateMaterial.dto';
 
 @Controller('Inventario')
 @UseInterceptors(ClassSerializerInterceptor) // Agregar el interceptor para serialización
@@ -64,6 +65,15 @@ export class InventarioController {
         @Param('categoriaId', ParseIntPipe) categoriaId: number
     ) {
         return this.inventarioService.addCategoriaToMaterial(materialId, categoriaId);
+    }
+
+    @Put('/update/material/:materialId')
+    @ApiOperation({ summary: 'Actualiza un material existente.' })
+    async updateMaterial(
+        @Param('materialId', ParseIntPipe) materialId: number,
+        @Body() dto: UpdateMaterialDto
+    ) {
+        return this.inventarioService.UpdateMaterial(materialId, dto);
     }
 
     @Delete('/remove/material/:materialId/:categoriaId')
