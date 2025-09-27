@@ -1,8 +1,9 @@
 import { BeforeInsert, Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { EstadoMaterial } from "./EstadoMaterial.Entity";
 import { MaterialCategoria } from "./MaterialCategoria.Entity";
-import { join } from "path";
+import { UnidadMedicion } from "./UnidadMedicion.Entity";
 import { Expose } from "class-transformer";
+import { EstadoUnidadMedicion } from "./EstadoUnidadMedicion.Entity";
 
 @Entity('Material')
 export class Material {
@@ -14,6 +15,13 @@ export class Material {
 
     @Column({ nullable: true })
     Descripcion?: string;
+
+    @Column({ nullable: true })
+    Id_Unidad_Medicion: number;
+
+    @ManyToOne(() => UnidadMedicion, unidadMedicion => unidadMedicion.Materiales, { eager: true })
+    @JoinColumn({ name: 'Id_Unidad_Medicion' })
+    Unidad_Medicion: UnidadMedicion;
 
     @Column({ nullable: false })
     Cantidad: number;
@@ -32,9 +40,6 @@ export class Material {
 
     @DeleteDateColumn({ name: 'Fecha_Baja', type: 'datetime', precision: 0, nullable: true })
     Fecha_Baja: Date;
-
-    @Column({ nullable: true })
-    Id_Estado_Material: number;
 
     @ManyToOne(() => EstadoMaterial, estadoMaterial => estadoMaterial.Materiales, { eager: true })
     @JoinColumn({ name: 'Id_Estado_Material' })

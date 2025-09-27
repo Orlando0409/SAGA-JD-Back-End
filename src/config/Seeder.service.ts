@@ -12,6 +12,8 @@ import { EstadoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/EstadoAfi
 import { TipoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
 import { EstadoMaterial } from 'src/Modules/Inventario/InventarioEntities/EstadoMaterial.Entity';
 import { Categoria } from 'src/Modules/Inventario/InventarioEntities/Categoria.Entity';
+import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
+import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -36,6 +38,10 @@ export class SeederService implements OnModuleInit {
         private readonly estadoMaterialRepository: Repository<EstadoMaterial>,
         @InjectRepository(Categoria)
         private readonly categoriaMaterialRepository: Repository<Categoria>,
+        @InjectRepository(EstadoUnidadMedicion)
+        private readonly estadoUnidadMedicionRepository: Repository<EstadoUnidadMedicion>,
+        @InjectRepository(UnidadMedicion)
+        private readonly unidadMedicionRepository: Repository<UnidadMedicion>,
     ) {}
 
     async onModuleInit() {
@@ -47,6 +53,8 @@ export class SeederService implements OnModuleInit {
         await this.createDefaultTiposAfiliado();
         await this.createDefaultEstadosMaterial();
         await this.createDefaultCategoriasMaterial();
+        await this.createDefaultEstadosUnidadMedicion();
+        await this.createDefaultUnidadesMedicion();
     }
 
     private async createInitialData() {
@@ -171,6 +179,43 @@ export class SeederService implements OnModuleInit {
             if (!existe) {
                 const nuevaCategoria = this.categoriaMaterialRepository.create(categoria);
                 await this.categoriaMaterialRepository.save(nuevaCategoria);
+            }
+        }
+    }
+
+    private async createDefaultEstadosUnidadMedicion() {
+        const estados = [
+            { Id_Estado_Unidad_Medicion: 1, Nombre_Estado_Unidad_Medicion: 'Activo' },
+            { Id_Estado_Unidad_Medicion: 2, Nombre_Estado_Unidad_Medicion: 'Inactivo' },
+        ];
+
+        for (const estado of estados) {
+            const existe = await this.estadoUnidadMedicionRepository.findOne({
+                where: { Id_Estado_Unidad_Medicion: estado.Id_Estado_Unidad_Medicion }
+            });
+
+            if (!existe) {
+                const nuevoEstado = this.estadoUnidadMedicionRepository.create(estado);
+                await this.estadoUnidadMedicionRepository.save(nuevoEstado);
+            }
+        }
+    }
+
+    private async createDefaultUnidadesMedicion() {
+        const unidades = [
+            { Id_Unidad_Medicion: 1, Nombre_Unidad: 'Unidades', Abreviatura: 'U', Descripcion: 'Unidades simples' },
+            { Id_Unidad_Medicion: 2, Nombre_Unidad: 'Paquetes', Abreviatura: 'P', Descripcion: 'De entre 4 a 8 por paquete' },
+            { Id_Unidad_Medicion: 3, Nombre_Unidad: 'Litros', Abreviatura: 'L', Descripcion: 'Unidad de medida de volumen' },
+        ];
+
+        for (const unidad of unidades) {
+            const existe = await this.unidadMedicionRepository.findOne({
+                where: { Id_Unidad_Medicion: unidad.Id_Unidad_Medicion }
+            });
+
+            if (!existe) {
+                const nuevaUnidad = this.unidadMedicionRepository.create(unidad);
+                await this.unidadMedicionRepository.save(nuevaUnidad);
             }
         }
     }

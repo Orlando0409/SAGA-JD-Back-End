@@ -1,9 +1,12 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, UseInterceptors, ClassSerializerInterceptor, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, UseInterceptors, ClassSerializerInterceptor, Put, Patch } from '@nestjs/common';
 import { InventarioService } from './inventario.service';
 import { CreateMaterialDto } from './InventarioDTO\'s/CreateMaterial.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { CreateCategoriaDto } from './InventarioDTO\'s/CreateCategoria.dto';
 import { UpdateMaterialDto } from './InventarioDTO\'s/UpdateMaterial.dto';
+import { CreateUnidadMedicionDto } from './InventarioDTO\'s/CreateUnidadMedicion.dto';
+import { IngresoEgresoMaterialDto } from './InventarioDTO\'s/IngresoEgresoMaterial.dto';
+import { UpdateUnidadMedicionDto } from './InventarioDTO\'s/UpdateUnidadMedicion.dto';
 
 @Controller('Inventario')
 @UseInterceptors(ClassSerializerInterceptor) // Agregar el interceptor para serialización
@@ -20,6 +23,12 @@ export class InventarioController {
     @ApiOperation({ summary: 'Obtiene todas las categorías de materiales.' })
     async getAllCategories() {
         return this.inventarioService.getAllCategories();
+    }
+
+    @Get('/all/unidades-medicion')
+    @ApiOperation({ summary: 'Obtiene todas las unidades de medición activas.' })
+    async getAllUnidadesMedicion() {
+        return this.inventarioService.getAllUnidadesMedicion();
     }
 
     @Get('/materiales/with/categorias')
@@ -58,30 +67,51 @@ export class InventarioController {
         return this.inventarioService.createCategoria(dto);
     }
 
-    @Post('/add/material/:materialId/:categoriaId')
-    @ApiOperation({ summary: 'Agrega una categoría a un material existente.' })
-    async addCategoriaToMaterial(
-        @Param('materialId', ParseIntPipe) materialId: number,
-        @Param('categoriaId', ParseIntPipe) categoriaId: number
-    ) {
-        return this.inventarioService.addCategoriaToMaterial(materialId, categoriaId);
+    @Post('/create/unidad-medicion')
+    @ApiOperation({ summary: 'Crea una nueva unidad de medición.' })
+    async createUnidadMedicion(@Body() dto: CreateUnidadMedicionDto) {
+        return this.inventarioService.createUnidadMedicion(dto);
     }
 
-    @Put('/update/material/:materialId')
-    @ApiOperation({ summary: 'Actualiza un material existente.' })
-    async updateMaterial(
-        @Param('materialId', ParseIntPipe) materialId: number,
-        @Body() dto: UpdateMaterialDto
+    @Put('/update/unidad-medicion/:unidadId')
+    @ApiOperation({ summary: 'Actualiza una unidad de medición existente.' })
+    async updateUnidadMedicion(
+        @Param('unidadId', ParseIntPipe) unidadId: number,
+        @Body() dto: UpdateUnidadMedicionDto
     ) {
-        return this.inventarioService.UpdateMaterial(materialId, dto);
+        return this.inventarioService.updateUnidadMedicion(unidadId, dto);
     }
 
-    @Delete('/remove/material/:materialId/:categoriaId')
-    @ApiOperation({ summary: 'Remueve una categoría de un material.' })
-    async removeCategoriaFromMaterial(
-        @Param('materialId', ParseIntPipe) materialId: number,
-        @Param('categoriaId', ParseIntPipe) categoriaId: number
+    @Patch('/update/estado/unidad-medicion/:unidadId/:estadoUnidadId')
+    @ApiOperation({ summary: 'Cambia el estado de una unidad de medición al estado especificado.' })
+    async cambiarEstadoUnidadMedicion(
+        @Param('unidadId', ParseIntPipe) unidadId: number, 
+        @Param('estadoUnidadId', ParseIntPipe) estadoUnidadId: number
     ) {
-        return this.inventarioService.removeCategoriaFromMaterial(materialId, categoriaId);
+        return this.inventarioService.updateEstadoUnidadMedicion(unidadId, estadoUnidadId);
+    }
+
+    @Patch('/ingreso/material/:materialId')
+    @ApiOperation({ summary: 'Registra el ingreso de una cantidad específica de un material al inventario.' })
+    async ingresoMaterial(
+        @Param('materialId', ParseIntPipe) materialId: number,
+        @Body() dto: IngresoEgresoMaterialDto
+    ) {
+        return this.inventarioService.IngresoMaterial(materialId, dto);
+    }
+
+    @Patch('/egreso/material/:materialId')
+    @ApiOperation({ summary: 'Registra el egreso de una cantidad específica de un material del inventario.' })
+    async egresoMaterial(
+        @Param('materialId', ParseIntPipe) materialId: number,
+        @Body() dto: IngresoEgresoMaterialDto
+    ) {
+        return this.inventarioService.EgresoMaterial(materialId, dto);
+    }
+
+    @Delete('/delete/unidad-medicion/:unidadId')
+    @ApiOperation({ summary: 'Elimina una unidad de medición (solo si no está en uso).' })
+    async deleteUnidadMedicion(@Param('unidadId', ParseIntPipe) unidadId: number) {
+        return this.inventarioService.deleteUnidadMedicion(unidadId);
     }
 }
