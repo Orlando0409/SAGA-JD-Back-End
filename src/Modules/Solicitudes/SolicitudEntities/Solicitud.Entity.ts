@@ -60,6 +60,14 @@ export abstract class SolicitudFisica extends Solicitud {
 
     @Column({ nullable: true })
     Apellido2?: string;
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    normalizarApellido2() {
+        if (!this.Apellido2 || this.Apellido2.trim() === '' || this.Apellido2 === 'undefined') {
+            this.Apellido2 = 'No Proporcionado';
+        }
+    }
 }
 
 export class SolicitudJuridica extends Solicitud {
@@ -87,6 +95,7 @@ export class SolicitudAfiliacionFisica extends SolicitudFisica {
     @BeforeInsert()
     setDefaultEstado() { 
         this.normalizarTelefono();
+        this.normalizarApellido2();
         this.Id_Tipo_Solicitud = 1;
         this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
     } 
@@ -109,6 +118,7 @@ export class SolicitudDesconexionFisica extends SolicitudFisica {
     @BeforeInsert()
     setDefaultEstado() { 
         this.normalizarTelefono();
+        this.normalizarApellido2();
         this.Id_Tipo_Solicitud = 2;
         this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
     } 
@@ -128,6 +138,7 @@ export class SolicitudCambioMedidorFisica extends SolicitudFisica {
     @BeforeInsert()
     setDefaultsAndNormalize() { 
         this.normalizarTelefono();
+        this.normalizarApellido2();
         this.Id_Tipo_Solicitud = 3;
         this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
     }
@@ -141,6 +152,7 @@ export class SolicitudAsociadoFisica extends SolicitudFisica {
     @BeforeInsert()
     setDefaultsAndNormalize() { 
         this.normalizarTelefono();
+        this.normalizarApellido2();
         this.Id_Tipo_Solicitud = 4;
         this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
     }

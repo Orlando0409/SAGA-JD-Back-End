@@ -43,14 +43,9 @@ export class SolicitudesDesconexionFisicaService
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
+        // Normalizar nombres en el servicio (Apellido2 se maneja automáticamente en la entidad)
         dto.Nombre = dto.Nombre.trim()[0].toUpperCase() + dto.Nombre.trim().slice(1).toLowerCase();
         dto.Apellido1 = dto.Apellido1.trim()[0].toUpperCase() + dto.Apellido1.trim().slice(1).toLowerCase();
-        if (dto.Apellido2 !== undefined && dto.Apellido2 !== '') {
-            dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
-        }
-        if (dto.Apellido2 === undefined || dto.Apellido2 === '') {
-            dto.Apellido2 = 'No Proporcionado';
-        }
 
         const planoFile = files.Planos_Terreno?.[0];
         const escrituraFile = files.Escritura_Terreno?.[0];
@@ -81,9 +76,7 @@ export class SolicitudesDesconexionFisicaService
             throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`);
         }
 
-        if (dto.Apellido2 === '') {
-            dto.Apellido2 = 'No Proporcionado';
-        }
+        // Apellido2 se maneja automáticamente en la entidad
 
         Object.assign(solicitud, dto);
         return this.solicitudDesconexionFisicaRepository.save(solicitud);

@@ -40,8 +40,11 @@ export class CreateSolicitudFisicaDto {
   @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'El primer apellido solo puede contener letras y espacios' })
   Apellido1: string;
 
-  @ApiProperty({ example: 'Lopez' })
-  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
+  @ApiProperty({ example: 'Lopez', required: false })
+  @Transform(({ value }) => {
+    if (!value || value.trim() === '') return 'No Proporcionado';
+    return value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase();
+  })
   @IsString({ message: 'El segundo apellido debe ser un string' })
   @MaxLength(50, { message: 'El segundo apellido no puede tener más de 50 caracteres' })
   @IsOptional()
