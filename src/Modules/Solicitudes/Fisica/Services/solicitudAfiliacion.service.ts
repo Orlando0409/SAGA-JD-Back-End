@@ -33,13 +33,6 @@ export class SolicitudAfiliacionFisicaService
         return this.solicitudAfiliacionFisicaRepository.find({ relations: ['Estado'] });
     }
 
-    async findSolicitudAfiliacionById(id: number)
-    {
-        const solicitud = await this.solicitudAfiliacionFisicaRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
-        if (!solicitud) {throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`);}
-        return solicitud;
-    }
-
     @Public()
     async createSolicitudAfiliacion(dto: CreateSolicitudAfiliacionFisicaDto, files: any)
     {
@@ -49,15 +42,16 @@ export class SolicitudAfiliacionFisicaService
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
+        if (dto.Apellido2 === '') {
+            dto.Apellido2 = 'No Proporcionado';
+        }
+
         const planoFile = files.Planos_Terreno?.[0];
         const escrituraFile = files.Escritura_Terreno?.[0];
-        const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} `.trim();
+        const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
 
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Identificacion, nombre) : null;
         const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Identificacion, nombre) : null;
-
-        const now = new Date();
-        now.setSeconds(0, 0);
 
         // Guarda SOLO las URLs en tu BD
         const solicitudAfiliacion = {
@@ -79,6 +73,10 @@ export class SolicitudAfiliacionFisicaService
         // Manejar archivos si se proporcionan
         let planoUrl = solicitud.Planos_Terreno; // Mantener URL existente por defecto
         let escrituraUrl = solicitud.Escritura_Terreno; // Mantener URL existente por defecto
+
+        if (dto.Apellido2 === '') {
+            dto.Apellido2 = 'No Proporcionado';
+        }
 
         if (files) {
             const planoFile = files.Planos_Terreno?.[0];

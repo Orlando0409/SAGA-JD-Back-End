@@ -100,9 +100,9 @@ export class InventarioService {
     }
 
     async createMaterial(dto: CreateMaterialDto) {
-        const NombreToUpperCase = dto.Nombre_Material.toUpperCase();
+        const NombreNormalizado = dto.Nombre_Material[0].toUpperCase() + dto.Nombre_Material.slice(1).toLowerCase();
 
-        const materialExistente = await this.inventarioRepository.findOne({ where: { Nombre_Material: NombreToUpperCase }, });
+        const materialExistente = await this.inventarioRepository.findOne({ where: { Nombre_Material: NombreNormalizado }, });
         if (materialExistente) { throw new ConflictException('Ya existe un material con este nombre'); }
 
         const UnidadMedicionExistente = await this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: dto.Id_Unidad_Medicion }, });
@@ -123,7 +123,7 @@ export class InventarioService {
         // Crear el material
         const material = this.inventarioRepository.create({
             ...dto,
-            Nombre_Material: NombreToUpperCase,
+            Nombre_Material: NombreNormalizado,
             Unidad_Medicion: UnidadMedicionExistente,
         });
 
@@ -142,29 +142,29 @@ export class InventarioService {
     }
 
     async createCategoria(dto: CreateCategoriaDto) {
-        const CategoriaToUpperCase = dto.Nombre_Categoria.toUpperCase();
+        const CategoriaNormalizada = dto.Nombre_Categoria[0].toUpperCase() + dto.Nombre_Categoria.slice(1).toLowerCase();
 
-        const categoriaExistente = await this.categoriaRepository.findOne({ where: { Nombre_Categoria: CategoriaToUpperCase } });
-        if (categoriaExistente) { throw new BadRequestException(`La categoría "${CategoriaToUpperCase}" ya se encuentra registrada`); }
+        const categoriaExistente = await this.categoriaRepository.findOne({ where: { Nombre_Categoria: CategoriaNormalizada } });
+        if (categoriaExistente) { throw new BadRequestException(`La categoría "${CategoriaNormalizada}" ya se encuentra registrada`); }
 
         const categoria = this.categoriaRepository.create({
             ...dto,
-            Nombre_Categoria: CategoriaToUpperCase,
+            Nombre_Categoria: CategoriaNormalizada,
         });
 
         return this.categoriaRepository.save(categoria);
     }
 
     async createUnidadMedicion(dto: CreateUnidadMedicionDto) {
-        const nombreToUpperCase = dto.Nombre_Unidad_Medicion.toUpperCase();
+        const nombreNormalizado = dto.Nombre_Unidad_Medicion[0].toUpperCase() + dto.Nombre_Unidad_Medicion.slice(1).toLowerCase();
         const abreviaturaToLowerCase = dto.Abreviatura.toLowerCase();
 
         // Verificar que no exista una unidad con el mismo nombre
         const unidadExistentePorNombre = await this.unidadMedicionRepository.findOne({ 
-            where: { Nombre_Unidad: nombreToUpperCase } 
+            where: { Nombre_Unidad: nombreNormalizado } 
         });
         if (unidadExistentePorNombre) {
-            throw new ConflictException(`Ya existe una unidad de medición con el nombre "${nombreToUpperCase}"`);
+            throw new ConflictException(`Ya existe una unidad de medición con el nombre "${nombreNormalizado}"`);
         }
 
         // Verificar que no exista una unidad con la misma abreviatura
@@ -176,7 +176,7 @@ export class InventarioService {
         }
 
         const unidad = this.unidadMedicionRepository.create({
-            Nombre_Unidad: nombreToUpperCase,
+            Nombre_Unidad: nombreNormalizado,
             Abreviatura: abreviaturaToLowerCase,
             Descripcion: dto.Descripcion,
         });
@@ -190,11 +190,11 @@ export class InventarioService {
         if (!materialExistente) { throw new NotFoundException(`Material con ID ${Id_Material} no encontrado`); }
 
         // Validar si el nuevo nombre ya existe en otro material
-        if (dto.Nombre_Material && dto.Nombre_Material.toUpperCase() !== materialExistente.Nombre_Material) {
-            const NombreToUpperCase = dto.Nombre_Material.toUpperCase();
+        if (dto.Nombre_Material && (dto.Nombre_Material[0].toUpperCase() + dto.Nombre_Material.slice(1).toLowerCase()) !== materialExistente.Nombre_Material) {
+            const NombreNormalizado = dto.Nombre_Material[0].toUpperCase() + dto.Nombre_Material.slice(1).toLowerCase();
 
-            const materialExistenteConNombre = await this.inventarioRepository.findOne({ where: { Nombre_Material: NombreToUpperCase } });
-            if (materialExistenteConNombre) { throw new BadRequestException(`Ya existe un material con el nombre "${NombreToUpperCase}"`); }
+            const materialExistenteConNombre = await this.inventarioRepository.findOne({ where: { Nombre_Material: NombreNormalizado } });
+            if (materialExistenteConNombre) { throw new BadRequestException(`Ya existe un material con el nombre "${NombreNormalizado}"`); }
         }
 
         // Manejar categorias si se proporcionan (incluso si es array vacio)
@@ -246,9 +246,9 @@ export class InventarioService {
             ...datosActualizacion,
         };
 
-        // Convertir nombre a mayúsculas si se proporciona
+        // Normalizar nombre si se proporciona
         if (datosActualizacion.Nombre_Material) {
-            materialActualizado.Nombre_Material = datosActualizacion.Nombre_Material.toUpperCase();
+            materialActualizado.Nombre_Material = datosActualizacion.Nombre_Material[0].toUpperCase() + datosActualizacion.Nombre_Material.slice(1).toLowerCase();
         }
 
         await this.inventarioRepository.save(materialActualizado);
@@ -262,14 +262,18 @@ export class InventarioService {
         if (!categoriaExistente) { throw new NotFoundException(`Categoría con ID ${Id_Categoria} no encontrada`); }
 
         // Validar nombre único si se está actualizando
-        if (dto.Nombre_Categoria && dto.Nombre_Categoria.toLowerCase() !== categoriaExistente.Nombre_Categoria.toLowerCase()) {
-            const nombreToLowerCase = dto.Nombre_Categoria.toLowerCase();
-            const categoriaConNombre = await this.categoriaRepository.findOne({ where: { Nombre_Categoria: nombreToLowerCase } });
-            if (categoriaConNombre) { throw new ConflictException(`Ya existe una categoría con el nombre "${nombreToLowerCase}"`); }
+        if (dto.Nombre_Categoria && (dto.Nombre_Categoria[0].toUpperCase() + dto.Nombre_Categoria.slice(1).toLowerCase()) !== categoriaExistente.Nombre_Categoria) {
+            const nombreNormalizado = dto.Nombre_Categoria[0].toUpperCase() + dto.Nombre_Categoria.slice(1).toLowerCase();
+            const categoriaConNombre = await this.categoriaRepository.findOne({ where: { Nombre_Categoria: nombreNormalizado } });
+            if (categoriaConNombre) { throw new ConflictException(`Ya existe una categoría con el nombre "${nombreNormalizado}"`); }
         }
 
-        // Actualizar la categoría
-        Object.assign(categoriaExistente, dto);
+        // Actualizar la categoría con normalización
+        const datosActualizados = { ...dto };
+        if (dto.Nombre_Categoria) {
+            datosActualizados.Nombre_Categoria = dto.Nombre_Categoria[0].toUpperCase() + dto.Nombre_Categoria.slice(1).toLowerCase();
+        }
+        Object.assign(categoriaExistente, datosActualizados);
         return this.categoriaRepository.save(categoriaExistente);
     }
 
@@ -278,19 +282,19 @@ export class InventarioService {
         if (!unidadExistente) { throw new NotFoundException(`Unidad de medición con ID ${Id_Unidad_Medicion} no encontrada`); }
 
         // Validar nombre único si se está actualizando
-        if (dto.Nombre_Unidad_Medicion && dto.Nombre_Unidad_Medicion.toUpperCase() !== unidadExistente.Nombre_Unidad) {
-            const nombreToUpperCase = dto.Nombre_Unidad_Medicion.toUpperCase();
+        if (dto.Nombre_Unidad_Medicion && (dto.Nombre_Unidad_Medicion[0].toUpperCase() + dto.Nombre_Unidad_Medicion.slice(1).toLowerCase()) !== unidadExistente.Nombre_Unidad) {
+            const nombreNormalizado = dto.Nombre_Unidad_Medicion[0].toUpperCase() + dto.Nombre_Unidad_Medicion.slice(1).toLowerCase();
 
-            const unidadConNombre = await this.unidadMedicionRepository.findOne({ where: { Nombre_Unidad: nombreToUpperCase } });
-            if (unidadConNombre) { throw new ConflictException(`Ya existe una unidad de medición con el nombre "${nombreToUpperCase}"`); }
+            const unidadConNombre = await this.unidadMedicionRepository.findOne({ where: { Nombre_Unidad: nombreNormalizado } });
+            if (unidadConNombre) { throw new ConflictException(`Ya existe una unidad de medición con el nombre "${nombreNormalizado}"`); }
         }
 
         // Validar abreviatura única si se está actualizando
-        if (dto.Abreviatura && dto.Abreviatura.toUpperCase() !== unidadExistente.Abreviatura) {
-            const abreviaturaToUpperCase = dto.Abreviatura.toUpperCase();
+        if (dto.Abreviatura && dto.Abreviatura.toLowerCase() !== unidadExistente.Abreviatura) {
+            const abreviaturaToLowerCase = dto.Abreviatura.toLowerCase();
 
-            const unidadConAbrev = await this.unidadMedicionRepository.findOne({ where: { Abreviatura: abreviaturaToUpperCase } });
-            if (unidadConAbrev) { throw new ConflictException(`Ya existe una unidad de medición con la abreviatura "${abreviaturaToUpperCase}"`); }
+            const unidadConAbrev = await this.unidadMedicionRepository.findOne({ where: { Abreviatura: abreviaturaToLowerCase } });
+            if (unidadConAbrev) { throw new ConflictException(`Ya existe una unidad de medición con la abreviatura "${abreviaturaToLowerCase}"`); }
         }
 
         const unidadActualizada = {
@@ -299,10 +303,10 @@ export class InventarioService {
         };
 
         if (dto.Nombre_Unidad_Medicion) {
-            unidadActualizada.Nombre_Unidad_Medicion = dto.Nombre_Unidad_Medicion.toUpperCase();
+            unidadActualizada.Nombre_Unidad = dto.Nombre_Unidad_Medicion[0].toUpperCase() + dto.Nombre_Unidad_Medicion.slice(1).toLowerCase();
         }
         if (dto.Abreviatura) {
-            unidadActualizada.Abreviatura = dto.Abreviatura.toUpperCase();
+            unidadActualizada.Abreviatura = dto.Abreviatura.toLowerCase();
         }
 
         return this.unidadMedicionRepository.save(unidadActualizada);

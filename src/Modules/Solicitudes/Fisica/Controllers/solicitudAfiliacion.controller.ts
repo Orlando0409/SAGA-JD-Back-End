@@ -19,12 +19,6 @@ export class SolicitudAfiliacionFisicaController {
     return this.solicitudAfiliacionFisicaService.getAllSolicitudesAfiliacion();
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Obtener solicitud por ID' })
-  getsolicitudAfiliacionById(@Param('id', ParseIntPipe) id: number) {
-    return this.solicitudAfiliacionFisicaService.findSolicitudAfiliacionById(id);
-  }
-
   @Public()
   @Post('/create')
   @ApiOperation({ summary: 'Crear una nueva solicitud de afiliacion fisica' })

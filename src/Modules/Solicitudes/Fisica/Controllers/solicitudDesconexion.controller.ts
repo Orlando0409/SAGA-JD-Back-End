@@ -18,12 +18,6 @@ export class SolicitudDesconexionFisicaController {
     return this.solicitudDesconexionFisicaService.getAllSolicitudesDesconexion();
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Obtener una solicitud de desconexion por ID' })
-  getSolicitudDesconexionById(@Param('id', ParseIntPipe) id: number) {
-    return this.solicitudDesconexionFisicaService.findSolicitudDesconexionById(id);
-  }
-
   @Public()
   @Post('/create')
   @UseInterceptors(FileFieldsInterceptor([ 

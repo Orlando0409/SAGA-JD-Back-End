@@ -37,6 +37,9 @@ export class CalidadAguaService
             throw new Error('Debe subir un archivo para la calidad de agua');
         }
 
+        // Normalizar título antes de procesar
+        dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
+        
         const tituloToUpperCase = dto.Titulo.toUpperCase();
 
         // Subir archivo a Dropbox

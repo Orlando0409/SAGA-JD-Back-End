@@ -58,8 +58,8 @@ export abstract class SolicitudFisica extends Solicitud {
     @Column({ nullable: false })
     Apellido1: string;
 
-    @Column()
-    Apellido2: string;
+    @Column({ nullable: true })
+    Apellido2?: string;
 }
 
 export class SolicitudJuridica extends Solicitud {

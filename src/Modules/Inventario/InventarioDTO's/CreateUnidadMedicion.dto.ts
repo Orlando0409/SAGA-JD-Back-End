@@ -4,7 +4,7 @@ import { IsDefined, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, MinLen
 
 export class CreateUnidadMedicionDto {
     @ApiProperty({ example: 'Kilogramo' })
-    @Transform(({ value }) => value?.trim().toUpperCase())
+    @Transform(({ value }) => value?.trim() ? value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase() : value)
     @IsString({ message: 'El nombre de la unidad debe ser un string' })
     @IsDefined({ message: 'El nombre de la unidad no puede estar vacío' })
     @IsNotEmpty({ message: 'El nombre de la unidad no puede estar vacío' })
@@ -13,8 +13,8 @@ export class CreateUnidadMedicionDto {
     @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'El nombre de la unidad solo puede contener letras, números y espacios' })
     Nombre_Unidad_Medicion: string;
 
-    @ApiProperty({ example: 'KG' })
-    @Transform(({ value }) => value?.trim().toUpperCase())
+    @ApiProperty({ example: 'kg' })
+    @Transform(({ value }) => value?.trim().toLowerCase())
     @IsString({ message: 'La abreviatura debe ser un string' })
     @IsDefined({ message: 'La abreviatura no puede estar vacía' })
     @IsNotEmpty({ message: 'La abreviatura no puede estar vacía' })

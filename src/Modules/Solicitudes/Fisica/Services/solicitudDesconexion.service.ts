@@ -30,15 +30,6 @@ export class SolicitudesDesconexionFisicaService
         return this.solicitudDesconexionFisicaRepository.find({ relations: ['Estado'] });
     }
 
-    async findSolicitudDesconexionById(id: number)
-    {
-        const solicitud = await this.solicitudDesconexionFisicaRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
-        if (!solicitud) {
-            throw new BadRequestException(`Solicitud de desconexión con id ${id} no encontrada`);
-        }
-        return solicitud;
-    }
-
     @Public()
     async createSolicitudDesconexion(dto: CreateSolicitudDesconexionFisicaDto, files: any)
     {
@@ -48,15 +39,16 @@ export class SolicitudesDesconexionFisicaService
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
+        if (dto.Apellido2 === '') {
+            dto.Apellido2 = 'No Proporcionado';
+        } 
+
         const planoFile = files.Planos_Terreno?.[0];
         const escrituraFile = files.Escritura_Terreno?.[0];
         const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} `.trim();
 
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Desconexion', 'Fisicas', dto.Identificacion, nombre) : null;
         const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Desconexion', 'Fisicas', dto.Identificacion, nombre) : null;
-
-        const now = new Date();
-        now.setSeconds(0, 0);
 
         // Guarda SOLO las URLs en tu BD
         const solicitudDesconexion = {
@@ -75,23 +67,25 @@ export class SolicitudesDesconexionFisicaService
         const solicitud = await this.solicitudDesconexionFisicaRepository.findOne({
             where: { Id_Solicitud: id }
         });
-        
+
         if (!solicitud) {
             throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`);
         }
-        
+
+        if (dto.Apellido2 === '') {
+            dto.Apellido2 = 'No Proporcionado';
+        }
+
         Object.assign(solicitud, dto);
         return this.solicitudDesconexionFisicaRepository.save(solicitud);
     }
-        
+
     async UpdateEstadoSolicitudDesconexion(id: number, nuevoEstadoId: number)
     {
         const solicitud = await this.solicitudDesconexionFisicaRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
-        
         if (!solicitud) {throw new BadRequestException(`Solicitud con id ${id} no encontrada`);}
         
         const nuevoEstado = await this.solicitudEstadoRepository.findOne({where: { Id_Estado_Solicitud: nuevoEstadoId }});
-        
         if (!nuevoEstado) {throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);}
         
         solicitud.Estado = nuevoEstado;

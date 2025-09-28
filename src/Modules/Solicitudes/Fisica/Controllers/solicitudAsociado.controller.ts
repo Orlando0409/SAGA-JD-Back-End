@@ -18,12 +18,6 @@ export class SolicitudAsociadoFisicaController {
         return this.solicitudAsociadoFisicaService.getAllSolicitudesAsociado();
     }
 
-    @Get(':id')
-    @ApiOperation({ summary: 'Obtener solicitud por ID' })
-    getSolicitudAsociadoById(@Param('id', ParseIntPipe) id: number) {
-        return this.solicitudAsociadoFisicaService.findSolicitudAsociadoById(id);
-    }
-
     @Public()
     @Post('/create')
     @ApiOperation({ summary: 'Crear una nueva solicitud de asociado' })

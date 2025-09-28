@@ -6,7 +6,7 @@ export class CreateMaterialDto {
     @ApiProperty({ example: 'Cemento' })
     @IsString({ message: 'El nombre del material debe ser un string' })
     @IsDefined({ message: 'El nombre del material no puede estar vacio' })
-    @Transform(({ value }) => value?.trim().toUpperCase())
+    @Transform(({ value }) => value?.trim() ? value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase() : value)
     @IsNotEmpty({ message: 'El nombre del material no puede estar vacío' })
     @MinLength(2, { message: 'El nombre del material debe tener al menos 2 caracteres' })
     @MaxLength(50, { message: 'El nombre del material no puede tener más de 50 caracteres' })
