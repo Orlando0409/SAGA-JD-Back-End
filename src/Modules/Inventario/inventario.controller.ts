@@ -79,6 +79,15 @@ export class InventarioController {
         return this.inventarioService.createUnidadMedicion(dto);
     }
 
+    @Put('/update/material/:materialId')
+    @ApiOperation({ summary: 'Actualiza un material existente en el inventario.' })
+    async updateMaterial(
+        @Param('materialId', ParseIntPipe) materialId: number,
+        @Body() dto: UpdateMaterialDto
+    ) {
+        return this.inventarioService.updateMaterial(materialId, dto);
+    }
+
     @Put('/update/unidad-medicion/:unidadId')
     @ApiOperation({ summary: 'Actualiza una unidad de medición existente.' })
     async updateUnidadMedicion(
