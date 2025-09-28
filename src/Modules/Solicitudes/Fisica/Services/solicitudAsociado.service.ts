@@ -29,30 +29,24 @@ export class SolicitudAsociadoFisicaService
         return this.solicitudAsociadoFisicaRepository.find({ relations: ['Estado'] });
     }
 
-    async findSolicitudAsociadoById(id: number)
-    {
-        const solicitud = await this.solicitudAsociadoFisicaRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
-        if (!solicitud) {throw new BadRequestException(`Solicitud de asociado con id ${id} no encontrada`);}
-        return solicitud;
-    }
-
     @Public()
     async createSolicitudAsociado(dto: CreateSolicitudAsociadoFisicaDto)
     {
         const estadoInicial = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) {throw new BadRequestException(`Estado inicial de solicitud no configurado`);}
 
-        // Validar que existe un afiliado físico con esa cédula
-        const validacionAfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Cedula);
+        // Validar que existe un afiliado físico con esa identificación
+        const validacionAfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
         if (validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
 
-        const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Cedula);
+        const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
-        const now = new Date();
-        now.setSeconds(0, 0);
+        // Normalizar nombres en el servicio (Apellido2 se maneja automáticamente en la entidad)
+        dto.Nombre = dto.Nombre.trim()[0].toUpperCase() + dto.Nombre.trim().slice(1).toLowerCase();
+        dto.Apellido1 = dto.Apellido1.trim()[0].toUpperCase() + dto.Apellido1.trim().slice(1).toLowerCase();
 
-        const solicitudAsociado = this.solicitudAsociadoFisicaRepository.create({...dto, Estado: estadoInicial, Fecha_Creacion: now});
+        const solicitudAsociado = this.solicitudAsociadoFisicaRepository.create({...dto, Estado: estadoInicial});
         return this.solicitudAsociadoFisicaRepository.save(solicitudAsociado);
     }
 
@@ -65,6 +59,8 @@ export class SolicitudAsociadoFisicaService
         if (!solicitudAsociado) {
             throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`);
         }
+
+        // Apellido2 se maneja automáticamente en la entidad
 
         Object.assign(solicitudAsociado, dto);
         return this.solicitudAsociadoFisicaRepository.save(solicitudAsociado);
@@ -84,13 +80,13 @@ export class SolicitudAsociadoFisicaService
         // Si el estado cambia a 3 (Aprobada), cambiar el tipo del afiliado existente de "Abonado" a "Asociado"
         if (nuevoEstadoId === 3) {
             try {
-                await this.afiliadosService.cambiarAbonadoAAsociadoFisico(solicitudActualizada.Cedula);
+                await this.afiliadosService.cambiarAbonadoAAsociadoFisico(solicitudActualizada.Identificacion);
             } catch (error) {
                 // Manejar diferentes tipos de errores con mensajes específicos
                 if (error.message.includes('No existe un afiliado físico')) {
-                    throw new BadRequestException(`Error al cambiar tipo: No se encontró un afiliado físico con la cédula ${solicitudActualizada.Cedula}. La solicitud fue aprobada pero no se pudo cambiar el tipo.`);
+                    throw new BadRequestException(`Error al cambiar tipo: No se encontró un afiliado físico con la identificación ${solicitudActualizada.Identificacion}. La solicitud fue aprobada pero no se pudo cambiar el tipo.`);
                 } else if (error.message.includes('ya es asociado')) {
-                    throw new BadRequestException(`Información: El afiliado con cédula ${solicitudActualizada.Cedula} ya es asociado. La solicitud fue aprobada correctamente.`);
+                    throw new BadRequestException(`Información: El afiliado con identificación ${solicitudActualizada.Identificacion} ya es asociado. La solicitud fue aprobada correctamente.`);
                 } else if (error.message.includes('Tipo "Asociado" no configurado')) {
                     throw new BadRequestException(`Error de configuración: El tipo "Asociado" no está configurado en el sistema. Contacte al administrador.`);
                 } else {
@@ -100,14 +96,5 @@ export class SolicitudAsociadoFisicaService
         }
 
         return solicitudActualizada;
-    }
-
-    async deleteSolicitudAsociado(id: number)
-    {
-        const solicitudAsociado = await this.solicitudAsociadoFisicaRepository.findOne({ where: { Id_Solicitud: id } });
-        if (!solicitudAsociado) {
-            throw new BadRequestException(`Solicitud de cambio de medidor con id ${id} no encontrada`);
-        }
-        return this.solicitudAsociadoFisicaRepository.remove(solicitudAsociado);
     }
 }

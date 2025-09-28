@@ -1,8 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEmail, IsNumber, IsOptional, IsDefined, IsNotEmpty, MinLength, MaxLength, Matches, Min, Max } from 'class-validator';
+import { IsString, IsEmail, IsNumber, IsOptional, IsDefined, IsNotEmpty, MinLength, MaxLength, Matches, Min, Max, IsEnum, } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { TipoIdentificacion } from 'src/Common/Enums/TipoIdentificacion.enum';
+import { IsIdentificacionValida } from 'src/Validations/DTO Validators/Identificacion.validator';
+import { IsTelefonoValido } from 'src/Validations/DTO Validators/NumeroTelefono.validator';
+import { IsCedulaJuridicaValida } from 'src/Validations/DTO Validators/CedulaJuridica.validator';
 
-export class CreateAfiliadoDto {
+export abstract class CreateAfiliadoDto {
   @ApiProperty({ example: 'ejemplo@gmail.com' })
   @Transform(({ value }) => value?.trim())
   @IsEmail({}, { message: 'El correo electrónico debe tener un formato válido' })
@@ -12,14 +16,12 @@ export class CreateAfiliadoDto {
   @Matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, { message: 'El formato del correo electrónico no es válido' })
   Correo: string;
 
-  @ApiProperty({ example: '12345678' })
+  @ApiProperty({ example: '+506-8888-7777' })
   @Transform(({ value }) => value?.trim())
   @IsString({ message: 'El número de teléfono debe ser un string' })
   @IsDefined({ message: 'El número de teléfono no puede estar vacío' })
   @IsNotEmpty({ message: 'El número de teléfono no puede estar vacío' })
-  @Matches(/^[0-9+()\s-]+$/, { message: 'El número de teléfono solo puede contener números, +, -, () y espacios' })
-  @MinLength(8, { message: 'El número de teléfono debe tener al menos 8 dígitos' })
-  @MaxLength(15, { message: 'El número de teléfono no puede tener más de 15 caracteres' })
+  @IsTelefonoValido({ message: 'Número de teléfono inválido' })
   Numero_Telefono: string;
 
   @ApiProperty({ example: '200 metros del parque central' })
@@ -34,15 +36,19 @@ export class CreateAfiliadoDto {
 }
 
 export class CreateAfiliadoFisicoDto extends CreateAfiliadoDto {
-  @ApiProperty({ example: '123456789' })
+  @ApiProperty({ example: 'Cedula' })
   @Transform(({ value }) => value?.trim())
-  @IsString({ message: 'La cedula debe ser tener entre 9 y 12 caracteres' })
-  @IsDefined({ message: 'La cedula no puede estar vacia' })
-  @Transform(({ value }) => value?.toUpperCase())
-  @Matches(/^([A]?\d{9,12})$/, { message: 'La cédula debe tener 9-12 dígitos o comenzar con A seguido de 9-11 dígitos' })
-  @MinLength(9)
-  @MaxLength(12)
-  Cedula: string;
+  @IsEnum(TipoIdentificacion, { message: `El tipo de identificación debe ser uno de los siguientes: ${Object.values(TipoIdentificacion).join(', ')}` })
+  @IsDefined({ message: 'El tipo de identificación no puede estar vacío' })
+  Tipo_Identificacion: TipoIdentificacion;
+
+  @ApiProperty({ example: '123456789' })
+  @Transform(({ value }) => value?.trim().toUpperCase())
+  @IsDefined({ message: 'La identificación no puede estar vacía' })
+  @IsNotEmpty({ message: 'La identificación no puede estar vacía' })
+  @IsString({ message: 'La identificación debe ser un string' })
+  @IsIdentificacionValida()
+  Identificacion: string;
 
   @ApiProperty({ example: 'Mario' })
   @Transform(({ value }) => value?.trim())
@@ -65,12 +71,13 @@ export class CreateAfiliadoFisicoDto extends CreateAfiliadoDto {
   Apellido1: string;
 
   @ApiProperty({ example: 'Lopez', required: false })
-  @Transform(({ value }) => value?.trim())
-  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value || value.trim() === '') return 'No Proporcionado';
+    return value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase();
+  })
   @IsString({ message: 'El segundo apellido debe ser un string' })
-  @MinLength(2, { message: 'El segundo apellido debe tener al menos 2 caracteres' })
   @MaxLength(50, { message: 'El segundo apellido no puede tener más de 50 caracteres' })
-  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'El segundo apellido solo puede contener letras y espacios' })
+  @IsOptional()
   Apellido2?: string;
 
   @ApiProperty({ example: 25 })
@@ -87,9 +94,7 @@ export class CreateAfiliadoJuridicoDto extends CreateAfiliadoDto {
   @IsString({ message: 'La cédula jurídica debe ser un string' })
   @IsDefined({ message: 'La cédula jurídica no puede estar vacía' })
   @IsNotEmpty({ message: 'La cédula jurídica no puede estar vacía' })
-  @Matches(/^3-\d{3}-\d{6}$/, { message: 'La cédula jurídica debe tener el formato 3-XXX-XXXXXX' })
-  @MinLength(12)
-  @MaxLength(12)
+  @IsCedulaJuridicaValida()
   Cedula_Juridica: string;
 
   @ApiProperty({ example: 'Empresa Ejemplo S.A.' })

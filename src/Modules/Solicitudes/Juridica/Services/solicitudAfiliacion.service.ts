@@ -8,7 +8,6 @@ import { SolicitudAfiliacionJuridica } from "../../SolicitudEntities/Solicitud.E
 import { EstadoSolicitud } from "../../SolicitudEntities/EstadoSolicitud.Entity";
 import { CreateSolicitudAfiliacionJuridicaDto } from "../../SolicitudDTO's/CreateSolicitudJuridica.dto";
 import { UpdateSolicitudAfiliacionJuridicaDto } from "../../SolicitudDTO's/UpdateSolicitudJuridica.dto";
-import { Afiliado } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { AfiliadosService } from "src/Modules/Afiliados/afiliados.service";
 
 @Injectable()
@@ -34,13 +33,6 @@ export class SolicitudAfiliacionJuridicaService
         return this.solicitudAfiliacionJuridicaRepository.find({ relations: ['Estado'] });
     }
 
-    async findSolicitudAfiliacionById(id: number)
-    {
-        const solicitud = await this.solicitudAfiliacionJuridicaRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
-        if (!solicitud) {throw new BadRequestException(`Solicitud de afiliación jurídica con id ${id} no encontrada`);}
-        return solicitud;
-    }
-
     @Public()
     async createSolicitudAfiliacion(dto: CreateSolicitudAfiliacionJuridicaDto, files: any)
     {
@@ -52,34 +44,30 @@ export class SolicitudAfiliacionJuridicaService
 
         const planoFile = files.Planos_Terreno?.[0];
         const escrituraFile = files.Escritura_Terreno?.[0];
-        const cedulaJuridica = dto.Cedula_Juridica;
-    
-        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Juridicas', cedulaJuridica) : null;
-        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Juridicas', cedulaJuridica) : null;
 
-        const now = new Date();
-        now.setSeconds(0, 0);
+        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Juridicas', dto.Cedula_Juridica, dto.Razon_Social) : null;
+        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Juridicas', dto.Cedula_Juridica, dto.Razon_Social) : null;
 
-        // Guarda SOLO las URLs en tu BD
-        const solicitudAfiliacion = {
+        dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
+
+        // Crear instancia de la entidad para que se ejecuten los decoradores @BeforeInsert
+        const solicitudAfiliacion = this.solicitudAfiliacionJuridicaRepository.create({
             ...dto,
             Planos_Terreno: planoRes?.url,
             Escritura_Terreno: escrituraRes?.url,
-            Estado: estadoInicial,
-            Id_Tipo_Solicitud: 1
-        };
+            Estado: estadoInicial
+        });
 
         return this.solicitudAfiliacionJuridicaRepository.save(solicitudAfiliacion);
     }
 
     async updateSolicitudAfiliacion(id: number, dto: UpdateSolicitudAfiliacionJuridicaDto)
     {
-        const solicitud = await this.solicitudAfiliacionJuridicaRepository.findOne({
-            where: { Id_Solicitud: id }
-        });
+        const solicitud = await this.solicitudAfiliacionJuridicaRepository.findOne({ where: { Id_Solicitud: id } });
+        if (!solicitud) { throw new BadRequestException(`Solicitud de afiliación jurídica con id ${id} no encontrada`); }
 
-        if (!solicitud) {
-            throw new BadRequestException(`Solicitud de afiliación jurídica con id ${id} no encontrada`);
+        if (dto.Razon_Social) {
+            dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
         }
 
         Object.assign(solicitud, dto);
@@ -116,12 +104,5 @@ export class SolicitudAfiliacionJuridicaService
         }
 
         return solicitudActualizada;
-    }
-
-    async deleteSolicitudAfiliacion(id: number)
-    {
-        const solicitud = await this.solicitudAfiliacionJuridicaRepository.findOne({ where: { Id_Solicitud: id } });
-        if (!solicitud) { throw new BadRequestException(`Solicitud de afiliación jurídica con id ${id} no encontrada`); }
-        return this.solicitudAfiliacionJuridicaRepository.remove(solicitud);
     }
 }

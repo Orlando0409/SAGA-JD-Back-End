@@ -30,13 +30,6 @@ export class SolicitudDesconexionJuridicaService
         return this.solicitudDesconexionJuridicaRepository.find({ relations: ['Estado'] });
     }
 
-    async findSolicitudDesconexionById(id: number)
-    {
-        const solicitud = await this.solicitudDesconexionJuridicaRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
-        if (!solicitud) {throw new BadRequestException(`Solicitud de desconexión jurídica con id ${id} no encontrada`);}
-        return solicitud;
-    }
-
     @Public()
     async createSolicitudDesconexion(dto: CreateSolicitudDesconexionJuridicaDto, files: any)
     {
@@ -48,34 +41,29 @@ export class SolicitudDesconexionJuridicaService
 
         const planoFile = files.Planos_Terreno?.[0];
         const escrituraFile = files.Escritura_Terreno?.[0];
-        const cedulaJuridica = dto.Cedula_Juridica;
 
-        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Desconexion', 'Juridicas', cedulaJuridica) : null;
-        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Desconexion', 'Juridicas', cedulaJuridica) : null;
+        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Desconexion', 'Juridicas', dto.Cedula_Juridica, dto.Razon_Social) : null;
+        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Desconexion', 'Juridicas', dto.Cedula_Juridica, dto.Razon_Social) : null;
 
-        const now = new Date();
-        now.setSeconds(0, 0);
-
-        // Guarda SOLO las URLs en tu BD
-        const solicitudDesconexion = {
+        dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
+        
+        const solicitudDesconexion = this.solicitudDesconexionJuridicaRepository.create({
             ...dto,
             Planos_Terreno: planoRes?.url,
             Escritura_Terreno: escrituraRes?.url,
             Estado: estadoInicial,
-            Id_Tipo_Solicitud: 2
-        };
+        });
 
         return this.solicitudDesconexionJuridicaRepository.save(solicitudDesconexion);
     }
 
     async updateSolicitudDesconexion(id: number, dto: UpdateSolicitudDesconexionJuridicaDto)
     {
-        const solicitud = await this.solicitudDesconexionJuridicaRepository.findOne({
-            where: { Id_Solicitud: id }
-        });
+        const solicitud = await this.solicitudDesconexionJuridicaRepository.findOne({ where: { Id_Solicitud: id } });
+        if (!solicitud) { throw new BadRequestException(`Solicitud de desconexión jurídica con id ${id} no encontrada`); }
 
-        if (!solicitud) {
-            throw new BadRequestException(`Solicitud de desconexión jurídica con id ${id} no encontrada`);
+        if (dto.Razon_Social) {
+            dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
         }
 
         Object.assign(solicitud, dto);
@@ -92,12 +80,5 @@ export class SolicitudDesconexionJuridicaService
 
         solicitud.Estado = nuevoEstado;
         return this.solicitudDesconexionJuridicaRepository.save(solicitud);
-    }
-
-    async deleteSolicitudDesconexion(id: number)
-    {
-        const solicitud = await this.solicitudDesconexionJuridicaRepository.findOne({ where: { Id_Solicitud: id } });
-        if (!solicitud) { throw new BadRequestException(`Solicitud de desconexión jurídica con id ${id} no encontrada`); }
-        return this.solicitudDesconexionJuridicaRepository.remove(solicitud);
     }
 }

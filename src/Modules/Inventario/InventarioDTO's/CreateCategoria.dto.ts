@@ -1,0 +1,15 @@
+import { ApiProperty } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
+import { IsDefined, IsNotEmpty, IsString, Matches, MaxLength, MinLength } from "class-validator";
+
+export class CreateCategoriaDto {
+    @ApiProperty({ example: 'Materiales de Construcción' })
+    @IsString({ message: 'La categoría debe ser un string' })
+    @IsDefined({ message: 'La categoría no puede estar vacio' })
+    @Transform(({ value }) => value?.trim() ? value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase() : value)
+    @IsNotEmpty({ message: 'La categoría no puede estar vacío' })
+    @MinLength(2, { message: 'La categoría debe tener al menos 2 caracteres' })
+    @MaxLength(30, { message: 'La categoría no puede tener más de 30 caracteres' })
+    @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s!?¿¡().,-]+$/, { message: 'La categoría solo puede contener letras, números, espacios y los caracteres !?¿¡().,-' })
+    Nombre_Categoria: string;
+}

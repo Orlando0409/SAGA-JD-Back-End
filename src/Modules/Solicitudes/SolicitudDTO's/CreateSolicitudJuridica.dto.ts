@@ -1,6 +1,8 @@
-import { ApiProperty, IntersectionType } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive } from "class-validator";
+import { IsCedulaJuridicaValida } from "src/Validations/DTO Validators/CedulaJuridica.validator";
+import { IsTelefonoValido } from "src/Validations/DTO Validators/NumeroTelefono.validator";
 
 export class CreateSolicitudJuridicaDto {
   @ApiProperty({ example: '3101234567' })
@@ -8,13 +10,11 @@ export class CreateSolicitudJuridicaDto {
   @IsString({ message: 'La cédula jurídica debe ser un string' })
   @IsDefined({ message: 'La cédula jurídica no puede estar vacía' })
   @IsNotEmpty({ message: 'La cédula jurídica no puede estar vacía' })
-  @Matches(/^3-\d{3}-\d{6}$/, { message: 'La cédula jurídica debe tener el formato 3-XXX-XXXXXX' })
-  @MinLength(12)
-  @MaxLength(12)
+  @IsCedulaJuridicaValida()
   Cedula_Juridica: string;
 
   @ApiProperty({ example: 'Empresa Ejemplo S.A.' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'La razón social debe ser un string' })
   @IsDefined({ message: 'La razón social no puede estar vacía' })
   @IsNotEmpty({ message: 'La razón social no puede estar vacía' })
@@ -24,7 +24,7 @@ export class CreateSolicitudJuridicaDto {
   Razon_Social: string;
 
   @ApiProperty({ example: 'ejemplo@empresa.com' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim().toLowerCase())
   @IsEmail({}, { message: 'El correo electrónico debe tener un formato válido' })
   @IsDefined({ message: 'El correo no puede estar vacío' })
   @IsNotEmpty({ message: 'El correo no puede estar vacío' })
@@ -32,20 +32,18 @@ export class CreateSolicitudJuridicaDto {
   @Matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, { message: 'El formato del correo electrónico no es válido' })
   Correo: string;
 
-  @ApiProperty({ example: '12345678' })
+  @ApiProperty({ example: '+506-8888-7777' })
   @Transform(({ value }) => value?.trim())
   @IsString({ message: 'El número de teléfono debe ser un string' })
   @IsDefined({ message: 'El número de teléfono no puede estar vacío' })
   @IsNotEmpty({ message: 'El número de teléfono no puede estar vacío' })
-  @Matches(/^[0-9+()\s-]+$/, { message: 'El número de teléfono solo puede contener números, +, -, () y espacios' })
-  @MinLength(8, { message: 'El número de teléfono debe tener al menos 8 dígitos' })
-  @MaxLength(15, { message: 'El número de teléfono no puede tener más de 15 caracteres' })
+  @IsTelefonoValido({ message: 'Número de teléfono inválido' })
   Numero_Telefono: string;
 }
 
 export class CreateSolicitudAfiliacionJuridicaDto extends CreateSolicitudJuridicaDto {
   @ApiProperty({ example: '200 metros del centro comercial' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'La dirección debe ser un string' })
   @IsDefined({ message: 'La dirección no puede estar vacía' })
   @IsNotEmpty({ message: 'La dirección no puede estar vacía' })
@@ -57,7 +55,7 @@ export class CreateSolicitudAfiliacionJuridicaDto extends CreateSolicitudJuridic
 
 export class CreateSolicitudDesconexionJuridicaDto extends CreateSolicitudJuridicaDto {
   @ApiProperty({ example: '200 metros del centro comercial' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'La dirección debe ser un string' })
   @IsDefined({ message: 'La dirección no puede estar vacía' })
   @IsNotEmpty({ message: 'La dirección no puede estar vacía' })
@@ -67,7 +65,7 @@ export class CreateSolicitudDesconexionJuridicaDto extends CreateSolicitudJuridi
   Direccion_Exacta: string;
 
   @ApiProperty({ example: 'Cierre de oficinas en esa ubicación' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'El motivo de la solicitud debe ser un string' })
   @IsDefined({ message: 'El motivo de la solicitud no puede estar vacío' })
   @IsNotEmpty({ message: 'El motivo de la solicitud no puede estar vacío' })
@@ -79,7 +77,7 @@ export class CreateSolicitudDesconexionJuridicaDto extends CreateSolicitudJuridi
 
 export class CreateSolicitudCambioMedidorJuridicaDto extends CreateSolicitudJuridicaDto {
   @ApiProperty({ example: '200 metros del centro comercial' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'La dirección debe ser un string' })
   @IsDefined({ message: 'La dirección no puede estar vacía' })
   @IsNotEmpty({ message: 'La dirección no puede estar vacía' })
@@ -89,7 +87,7 @@ export class CreateSolicitudCambioMedidorJuridicaDto extends CreateSolicitudJuri
   Direccion_Exacta: string;
 
   @ApiProperty({ example: 'Medidor dañado por remodelación de oficinas' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'El motivo de la solicitud debe ser un string' })
   @IsDefined({ message: 'El motivo de la solicitud no puede estar vacío' })
   @IsNotEmpty({ message: 'El motivo de la solicitud no puede estar vacío' })
@@ -110,7 +108,7 @@ export class CreateSolicitudCambioMedidorJuridicaDto extends CreateSolicitudJuri
 
 export class CreateSolicitudAsociadoJuridicaDto extends CreateSolicitudJuridicaDto {
   @ApiProperty({ example: 'Queremos ser parte de la asociación para contribuir al desarrollo comunitario' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'El motivo de la solicitud debe ser un string' })
   @IsDefined({ message: 'El motivo de la solicitud no puede estar vacío' })
   @IsNotEmpty({ message: 'El motivo de la solicitud no puede estar vacío' })
@@ -120,22 +118,11 @@ export class CreateSolicitudAsociadoJuridicaDto extends CreateSolicitudJuridicaD
   Motivo_Solicitud: string;
 }
 
-export class CreateAfiliacionJuridicaDto extends IntersectionType(
-  CreateSolicitudJuridicaDto,
-  CreateSolicitudAfiliacionJuridicaDto
-) {}
+// Usando herencia directa en lugar de IntersectionType para evitar problemas con validadores personalizados
+export class CreateAfiliacionJuridicaDto extends CreateSolicitudAfiliacionJuridicaDto {}
 
-export class CreateDesconexionJuridicaDto extends IntersectionType(
-  CreateSolicitudJuridicaDto,
-  CreateSolicitudDesconexionJuridicaDto
-) {}
+export class CreateDesconexionJuridicaDto extends CreateSolicitudDesconexionJuridicaDto {}
 
-export class CreateCambioMedidorJuridicaDto extends IntersectionType(
-  CreateSolicitudJuridicaDto,
-  CreateSolicitudCambioMedidorJuridicaDto
-) {}
+export class CreateCambioMedidorJuridicaDto extends CreateSolicitudCambioMedidorJuridicaDto {}
 
-export class CreateAsociadoJuridicaDto extends IntersectionType(
-  CreateSolicitudJuridicaDto,
-  CreateSolicitudAsociadoJuridicaDto
-) {}
+export class CreateAsociadoJuridicaDto extends CreateSolicitudAsociadoJuridicaDto {}

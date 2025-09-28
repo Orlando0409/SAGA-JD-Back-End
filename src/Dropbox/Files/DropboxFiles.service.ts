@@ -9,7 +9,32 @@ export class DropboxFilesService {
     private readonly dropboxAuthService: DropboxAuthService,
   ) {}
 
-  async uploadFile(file: Express.Multer.File, carpetaPrincipal: string, carpetaSecundaria?: string, cedula?: string) {
+  // 📋 Extensiones que permiten previsualización
+  private readonly previewableExtensions = [
+    '.pdf', '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp',
+    '.txt', '.md', '.csv', '.json', '.xml', '.html', '.htm'
+  ];
+
+  // 🔍 Método para verificar si un archivo puede ser previsualizado
+  private canPreview(filename: string): boolean {
+    const extension = filename.toLowerCase().substring(filename.lastIndexOf('.'));
+    return this.previewableExtensions.includes(extension);
+  }
+
+  // 📂 Método para obtener el tipo de archivo
+  private getFileType(filename: string): string {
+    const extension = filename.toLowerCase().substring(filename.lastIndexOf('.'));
+    
+    if (['.pdf'].includes(extension)) return 'document';
+    if (['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'].includes(extension)) return 'image';
+    if (['.txt', '.md', '.csv', '.json', '.xml', '.html', '.htm'].includes(extension)) return 'text';
+    if (['.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'].includes(extension)) return 'office';
+    if (['.zip', '.rar', '.7z', '.tar', '.gz'].includes(extension)) return 'archive';
+    
+    return 'other';
+  }
+
+  async uploadFile(file: Express.Multer.File, carpetaPrincipal: string, carpetaSecundaria?: string, Identificacion?: string, Nombre?: string, soloDescargar?: boolean) {
 
     const accessToken = await this.dropboxAuthService.getAccessToken();
     const dbx = new Dropbox({ accessToken });
@@ -23,12 +48,15 @@ export class DropboxFilesService {
         throw new Error('No se ha recibido ningún archivo');
       }
 
+      // 🔍 Determinar si permitir previsualización (automático si no se especifica)
+      const shouldAllowPreview = soloDescargar ?? this.canPreview(file.originalname);
+
       const folderPath = process.env.DROPBOX_FOLDER_PATH;
 
       // 📂 Construcción de la ruta en Dropbox
-      let dropboxPath = cedula
-        ? `${folderPath}/${carpetaPrincipal}/${carpetaSecundaria}/${cedula}/${file.originalname}`
-        : `${folderPath}/${carpetaPrincipal}/${file.originalname}`;
+      let dropboxPath = Identificacion
+        ? `${folderPath}/${carpetaPrincipal}/${carpetaSecundaria}/${Identificacion} - ${Nombre}/${file.originalname}`
+        : `${folderPath}/${carpetaPrincipal}/${carpetaSecundaria}/${file.originalname}`;
 
       // 🚀 Subir archivo a Dropbox
       const uploadRes = await dbx.filesUpload({
@@ -61,8 +89,18 @@ export class DropboxFilesService {
         }
       }
 
-      // 🔄 Convertir link en descarga directa
-      const url = sharedLink.result.url.replace('dl=0', 'dl=1');
+      // 🔄 Generar el tipo de link apropiado según shouldAllowPreview
+      let url: string;
+      let viewUrl: string | null = null;
+      
+      if (shouldAllowPreview) {
+        // Para previsualización: mantener dl=0 para ver en navegador
+        viewUrl = sharedLink.result.url; // Link para previsualizar
+        url = sharedLink.result.url.replace('dl=0'); // Link para descargar
+      } else {
+        // Solo descarga: forzar descarga directa
+        url = sharedLink.result.url.replace('dl=0', 'dl=1');
+      }
 
       // 📦 Respuesta final
       return {
@@ -70,11 +108,24 @@ export class DropboxFilesService {
         name: uploadRes.result.name,
         size: uploadRes.result.size,
         path: dropboxPath,
-        url, // 👈 directo para guardar en BD
+        url, // 👈 Link de descarga directa
+        viewUrl, // 👈 Link de previsualización (null si no se permite)
+        allowPreview: shouldAllowPreview,
+        fileType: this.getFileType(file.originalname)
       };
     } catch (error) {
       console.error('Error subiendo archivo a Dropbox:', error);
       throw error;
     }
+  }
+
+  // 📥 Método específico para archivos que solo permiten descarga
+  async uploadFileDownloadOnly(file: Express.Multer.File, carpetaPrincipal: string, carpetaSecundaria?: string, Identificacion?: string, Nombre?: string) {
+    return this.uploadFile(file, carpetaPrincipal, carpetaSecundaria, Identificacion, Nombre, false);
+  }
+
+  // 👁️ Método específico para archivos que permiten previsualización
+  async uploadFileWithPreview(file: Express.Multer.File, carpetaPrincipal: string, carpetaSecundaria?: string, Identificacion?: string, Nombre?: string) {
+    return this.uploadFile(file, carpetaPrincipal, carpetaSecundaria, Identificacion, Nombre, true);
   }
 }

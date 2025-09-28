@@ -29,13 +29,6 @@ export class SolicitudAsociadoJuridicaService
         return this.solicitudAsociadoJuridicaRepository.find({ relations: ['Estado'] });
     }
 
-    async findSolicitudAsociadoById(id: number)
-    {
-        const solicitud = await this.solicitudAsociadoJuridicaRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
-        if (!solicitud) {throw new BadRequestException(`Solicitud de asociado jurídica con id ${id} no encontrada`);}
-        return solicitud;
-    }
-
     @Public()
     async createSolicitudAsociado(dto: CreateSolicitudAsociadoJuridicaDto)
     {
@@ -49,21 +42,19 @@ export class SolicitudAsociadoJuridicaService
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesJuridicasActivas(dto.Cedula_Juridica);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
-        const now = new Date();
-        now.setSeconds(0, 0);
+        dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
 
-        const solicitudAsociado = this.solicitudAsociadoJuridicaRepository.create({...dto, Estado: estadoInicial, Fecha_Creacion: now});
+        const solicitudAsociado = this.solicitudAsociadoJuridicaRepository.create({...dto, Estado: estadoInicial});
         return this.solicitudAsociadoJuridicaRepository.save(solicitudAsociado);
     }
 
     async updateSolicitudAsociado(id: number, dto: UpdateSolicitudAsociadoJuridicaDto)
     {
-        const solicitudAsociado = await this.solicitudAsociadoJuridicaRepository.findOne({
-            where: { Id_Solicitud: id }
-        });
+        const solicitudAsociado = await this.solicitudAsociadoJuridicaRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
+        if (!solicitudAsociado) { throw new BadRequestException(`Solicitud de asociado jurídica con id ${id} no encontrada`); }
 
-        if (!solicitudAsociado) {
-            throw new BadRequestException(`Solicitud de asociado jurídica con id ${id} no encontrada`);
+        if (dto.Razon_Social) {
+            dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
         }
 
         Object.assign(solicitudAsociado, dto);
@@ -100,14 +91,5 @@ export class SolicitudAsociadoJuridicaService
         }
 
         return solicitudActualizada;
-    }
-
-    async deleteSolicitudAsociado(id: number)
-    {
-        const solicitudAsociado = await this.solicitudAsociadoJuridicaRepository.findOne({ where: { Id_Solicitud: id } });
-        if (!solicitudAsociado) {
-            throw new BadRequestException(`Solicitud de asociado jurídica con id ${id} no encontrada`);
-        }
-        return this.solicitudAsociadoJuridicaRepository.remove(solicitudAsociado);
     }
 }

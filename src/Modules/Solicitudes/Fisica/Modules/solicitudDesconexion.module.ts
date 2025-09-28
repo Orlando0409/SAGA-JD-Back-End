@@ -11,6 +11,7 @@ import { SolicitudDesconexionFisica } from "../../SolicitudEntities/Solicitud.En
     imports: [TypeOrmModule.forFeature([SolicitudDesconexionFisica, EstadoSolicitud]), DropboxModule, ValidationsModule],
     controllers: [SolicitudDesconexionFisicaController],
     providers: [SolicitudesDesconexionFisicaService],
+    exports: [SolicitudesDesconexionFisicaService],
 })
 
 export class SolicitudDesconexionFisicaModule {}
