@@ -151,8 +151,8 @@ export class SeederService implements OnModuleInit {
 
     private async createDefaultEstadosMaterial() {
         const estados = [
-            { Id_Estado_Material: 1, Nombre_Estado_Material: 'DISPONIBLE' },
-            { Id_Estado_Material: 2, Nombre_Estado_Material: 'AGOTADO' },
+            { Id_Estado_Material: 1, Nombre_Estado_Material: 'Disponible' },
+            { Id_Estado_Material: 2, Nombre_Estado_Material: 'Agotado' },
         ];
 
         for (const estado of estados) {
@@ -169,10 +169,10 @@ export class SeederService implements OnModuleInit {
 
     private async createDefaultCategoriasMaterial() {
         const categorias = [
-            { Id_Categoria: 1, Nombre_Categoria: 'PLOMERIA' },
-            { Id_Categoria: 2, Nombre_Categoria: 'ELECTRICIDAD' },
-            { Id_Categoria: 3, Nombre_Categoria: 'HERRAMIENTAS' },
-            { Id_Categoria: 4, Nombre_Categoria: 'OTROS' },
+            { Id_Categoria: 1, Nombre_Categoria: 'Plomeria' },
+            { Id_Categoria: 2, Nombre_Categoria: 'Electricidad' },
+            { Id_Categoria: 3, Nombre_Categoria: 'Herramientas' },
+            { Id_Categoria: 4, Nombre_Categoria: 'Otros' },
         ];
 
         for (const categoria of categorias) {

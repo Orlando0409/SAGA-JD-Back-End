@@ -189,6 +189,13 @@ export class InventarioService {
         const materialExistente = await this.inventarioRepository.findOne({ where: { Id_Material: Id_Material }, relations: ['materialCategorias', 'materialCategorias.Categoria'] });
         if (!materialExistente) { throw new NotFoundException(`Material con ID ${Id_Material} no encontrado`); }
 
+        const UnidadMedicionExistente = await this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: dto.Id_Unidad_Medicion } });
+        if (!UnidadMedicionExistente) { throw new BadRequestException('La unidad de medición proporcionada no existe'); }
+
+        if (UnidadMedicionExistente.Estado_Unidad_Medicion.Nombre_Estado_Unidad_Medicion !== 'Activo') {
+            throw new BadRequestException('La unidad de medición proporcionada no esta activa');
+        }
+
         // Validar si el nuevo nombre ya existe en otro material
         if (dto.Nombre_Material && (dto.Nombre_Material[0].toUpperCase() + dto.Nombre_Material.slice(1).toLowerCase()) !== materialExistente.Nombre_Material) {
             const NombreNormalizado = dto.Nombre_Material[0].toUpperCase() + dto.Nombre_Material.slice(1).toLowerCase();
@@ -244,6 +251,7 @@ export class InventarioService {
         const materialActualizado = {
             ...materialSinRelaciones,
             ...datosActualizacion,
+            Unidad_Medicion: UnidadMedicionExistente,
         };
 
         // Normalizar nombre si se proporciona
@@ -254,7 +262,7 @@ export class InventarioService {
         await this.inventarioRepository.save(materialActualizado);
 
         // Retornar el material con todas sus relaciones
-        return this.inventarioRepository.findOne({ where: { Id_Material: Id_Material }, relations: ['Estado_Material', 'Tipo_Unidad_Medicion', 'materialCategorias', 'materialCategorias.Categoria'] });
+        return this.inventarioRepository.findOne({ where: { Id_Material: Id_Material }, relations: ['Estado_Material', 'Unidad_Medicion', 'materialCategorias', 'materialCategorias.Categoria'] });
     }
 
     async updateCategoria(Id_Categoria: number, dto: UpdateCategoriaDto) {
@@ -370,7 +378,7 @@ export class InventarioService {
         }
 
         await this.inventarioRepository.save(materialExistente);
-        return this.inventarioRepository.findOne({ where: { Id_Material: Id_Material }, relations: ['Estado_Material', 'Tipo_Unidad_Medicion', 'materialCategorias', 'materialCategorias.Categoria'] });
+        return this.inventarioRepository.findOne({ where: { Id_Material: Id_Material }, relations: ['Estado_Material', 'Unidad_Medicion', 'materialCategorias', 'materialCategorias.Categoria'] });
     }
 
     async deleteUnidadMedicion(Id_Unidad_Medicion: number) {

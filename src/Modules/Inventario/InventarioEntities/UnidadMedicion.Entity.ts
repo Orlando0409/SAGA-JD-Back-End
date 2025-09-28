@@ -30,5 +30,5 @@ export class UnidadMedicion {
     Fecha_Actualizacion: Date;
 
     @BeforeInsert()
-    setDefaultEstadoUnidadMedicion() { this.Estado_Unidad_Medicion = { Id_Estado_Unidad_Medicion: 2 } as EstadoUnidadMedicion; }
+    setDefaultEstadoUnidadMedicion() { this.Estado_Unidad_Medicion = { Id_Estado_Unidad_Medicion: 1 } as EstadoUnidadMedicion; }
 }
