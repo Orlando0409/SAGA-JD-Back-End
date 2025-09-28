@@ -1,6 +1,5 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, UploadedFiles, UseInterceptors} from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put } from "@nestjs/common";
 import { ApiOperation } from "@nestjs/swagger";
-import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 import { CreateSolicitudCambioMedidorJuridicaDto } from "../../SolicitudDTO's/CreateSolicitudJuridica.dto";
 import { UpdateSolicitudCambioMedidorJuridicaDto } from "../../SolicitudDTO's/UpdateSolicitudJuridica.dto";
@@ -17,12 +16,6 @@ export class SolicitudCambioMedidorJuridicaController {
   @ApiOperation({ summary: 'Obtener todas las solicitudes de cambio de medidor jurídicas' })
   getAllSolicitudesCambioMedidor() {
     return this.solicitudCambioMedidorJuridicaService.getAllSolicitudesCambioMedidor();
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: 'Obtener solicitud por ID' })
-  getSolicitudCambioMedidorById(@Param('id', ParseIntPipe) id: number) {
-    return this.solicitudCambioMedidorJuridicaService.findSolicitudCambioMedidorById(id);
   }
 
   @Public()

@@ -36,12 +36,21 @@ export class SolicitudesDesconexionFisicaService
         const estadoInicial = await this.solicitudEstadoRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) {throw new BadRequestException(`Estado inicial de solicitud no configurado`);}
 
+        // Validar que existe un afiliado físico con esa identificación
+        const validacionAfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
+        if (validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
+
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
-        if (dto.Apellido2 === '') {
+        dto.Nombre = dto.Nombre.trim()[0].toUpperCase() + dto.Nombre.trim().slice(1).toLowerCase();
+        dto.Apellido1 = dto.Apellido1.trim()[0].toUpperCase() + dto.Apellido1.trim().slice(1).toLowerCase();
+        if (dto.Apellido2 !== undefined && dto.Apellido2 !== '') {
+            dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
+        }
+        if (dto.Apellido2 === undefined || dto.Apellido2 === '') {
             dto.Apellido2 = 'No Proporcionado';
-        } 
+        }
 
         const planoFile = files.Planos_Terreno?.[0];
         const escrituraFile = files.Escritura_Terreno?.[0];
@@ -50,14 +59,14 @@ export class SolicitudesDesconexionFisicaService
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Desconexion', 'Fisicas', dto.Identificacion, nombre) : null;
         const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Desconexion', 'Fisicas', dto.Identificacion, nombre) : null;
 
-        // Guarda SOLO las URLs en tu BD
-        const solicitudDesconexion = {
+        // Crear instancia de la entidad para que se ejecuten los decoradores @BeforeInsert
+        const solicitudDesconexion = this.solicitudDesconexionFisicaRepository.create({
             ...dto,
             Planos_Terreno: planoRes?.url,
             Escritura_Terreno: escrituraRes?.url,
             Estado: estadoInicial,
             Id_Tipo_Solicitud: 2
-        };
+        });
 
         return this.solicitudDesconexionFisicaRepository.save(solicitudDesconexion);
     }

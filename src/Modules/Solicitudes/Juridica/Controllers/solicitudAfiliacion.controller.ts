@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, UploadedFiles, UseInterceptors} from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, UploadedFiles, UseInterceptors} from "@nestjs/common";
 import { ApiOperation } from "@nestjs/swagger";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
@@ -17,12 +17,6 @@ export class SolicitudAfiliacionJuridicaController {
   @ApiOperation({ summary: 'Obtener todas las solicitudes de afiliación jurídicas' })
   getAllSolicitudesAfiliacion() {
     return this.solicitudAfiliacionJuridicaService.getAllSolicitudesAfiliacion();
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: 'Obtener solicitud por ID' })
-  getsolicitudAfiliacionById(@Param('id', ParseIntPipe) id: number) {
-    return this.solicitudAfiliacionJuridicaService.findSolicitudAfiliacionById(id);
   }
 
   @Public()

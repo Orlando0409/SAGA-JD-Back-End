@@ -32,11 +32,20 @@ export class SolicitudesCambioMedidorFisicaService
     {
         const estadoInicial = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) {throw new BadRequestException(`Estado inicial de solicitud no configurado`);}
-        
+
+        // Validar que existe un afiliado físico con esa identificación
+        const validacionAfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
+        if (validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
+
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
-        if (dto.Apellido2 === '') {
+        dto.Nombre = dto.Nombre.trim()[0].toUpperCase() + dto.Nombre.trim().slice(1).toLowerCase();
+        dto.Apellido1 = dto.Apellido1.trim()[0].toUpperCase() + dto.Apellido1.trim().slice(1).toLowerCase();
+        if (dto.Apellido2 !== undefined && dto.Apellido2 !== '') {
+            dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
+        }
+        if (dto.Apellido2 === undefined || dto.Apellido2 === '') {
             dto.Apellido2 = 'No Proporcionado';
         }
 

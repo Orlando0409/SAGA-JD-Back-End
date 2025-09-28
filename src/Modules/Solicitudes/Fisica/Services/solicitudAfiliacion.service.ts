@@ -42,7 +42,12 @@ export class SolicitudAfiliacionFisicaService
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
-        if (dto.Apellido2 === '') {
+        dto.Nombre = dto.Nombre.trim()[0].toUpperCase() + dto.Nombre.trim().slice(1).toLowerCase();
+        dto.Apellido1 = dto.Apellido1.trim()[0].toUpperCase() + dto.Apellido1.trim().slice(1).toLowerCase();
+        if (dto.Apellido2 !== undefined && dto.Apellido2 !== '') {
+            dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
+        }
+        if (dto.Apellido2 === undefined || dto.Apellido2 === '') {
             dto.Apellido2 = 'No Proporcionado';
         }
 
@@ -53,14 +58,14 @@ export class SolicitudAfiliacionFisicaService
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Identificacion, nombre) : null;
         const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Identificacion, nombre) : null;
 
-        // Guarda SOLO las URLs en tu BD
-        const solicitudAfiliacion = {
+        // Crear instancia de la entidad para que se ejecuten los decoradores @BeforeInsert
+        const solicitudAfiliacion = this.solicitudAfiliacionFisicaRepository.create({
             ...dto,
             Planos_Terreno: planoRes?.url,
             Escritura_Terreno: escrituraRes?.url,
             Estado: estadoInicial,
             Id_Tipo_Solicitud: 1
-        };
+        });
 
         return this.solicitudAfiliacionFisicaRepository.save(solicitudAfiliacion);
     }
