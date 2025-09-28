@@ -4,7 +4,7 @@ import { TipoAfiliado } from "./TipoAfiliado.Entity";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 
-@Entity('Afiliados')
+@Entity('Afiliado')
 @TableInheritance({ column: { type: "varchar", name: "Tipo_Afiliado" } })
 export abstract class Afiliado {
     @PrimaryGeneratedColumn()

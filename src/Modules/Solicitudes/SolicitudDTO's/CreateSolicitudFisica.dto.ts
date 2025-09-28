@@ -2,8 +2,8 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive, IsEnum } from "class-validator";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
-import { IsIdentificacionValida } from "src/Validations/Custom Validators/Identificacion.validator";
-import { IsTelefonoValido } from "src/Validations/Custom Validators/NumeroTelefono.validator";
+import { IsIdentificacionValida } from "src/Validations/DTO Validators/Identificacion.validator";
+import { IsTelefonoValido } from "src/Validations/DTO Validators/NumeroTelefono.validator";
 
 export class CreateSolicitudFisicaDto {
   @ApiProperty({ example: 'Cedula' })
