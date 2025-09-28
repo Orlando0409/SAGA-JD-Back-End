@@ -1,4 +1,5 @@
-import { BeforeUpdate, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { EstadoCalidadAgua } from "./EstadoCalidadAgua.Entity";
 
 @Entity('Calidad_Agua')
 export class CalidadAgua
@@ -15,9 +16,12 @@ export class CalidadAgua
     @UpdateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Actualizacion: Date;
 
-    @BeforeUpdate()
-    updateTimestamp() { this.Fecha_Actualizacion = new Date(); }
-
     @Column({ nullable: false })
     Url_Archivo: string;
+
+    @ManyToOne(() => EstadoCalidadAgua, estado => estado.CalidadAgua)
+    Estado: EstadoCalidadAgua;
+
+    @BeforeInsert()
+    setDefaultEstado() { this.Estado = { Id_Estado_Calidad_Agua: 2, Nombre_Estado_Calidad_Agua: 'Invisible' } as EstadoCalidadAgua; }
 }

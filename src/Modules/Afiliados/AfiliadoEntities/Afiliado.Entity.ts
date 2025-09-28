@@ -69,11 +69,19 @@ export class AfiliadoFisico extends Afiliado {
     @Column({ nullable: false })
     Apellido1: string;
 
-    @Column()
-    Apellido2: string;
+    @Column({ nullable: true })
+    Apellido2?: string;
 
     @Column({ nullable: false })
     Edad: number;
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    normalizarApellido2() {
+        if (!this.Apellido2 || this.Apellido2.trim() === '' || this.Apellido2 === 'undefined') {
+            this.Apellido2 = 'No Proporcionado';
+        }
+    }
 
     @BeforeInsert()
     setDefaultEstado() { this.Estado = { Id_Estado_Afiliado: 1, Nombre_Estado: 'Activo' } as EstadoAfiliado; }

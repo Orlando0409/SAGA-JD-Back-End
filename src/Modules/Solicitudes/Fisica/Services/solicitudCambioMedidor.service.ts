@@ -27,28 +27,24 @@ export class SolicitudesCambioMedidorFisicaService
         return this.solicitudCambioMedidorFisicaRepository.find({ relations: ['Estado'] });
     }
 
-    async findSolicitudCambioMedidorById(id: number)
-    {
-        const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
-        if (!solicitudCambioMedidor) {
-            throw new BadRequestException(`Solicitud de cambio de medidor con id ${id} no encontrada`);
-        }
-        return solicitudCambioMedidor;
-    }
-
     @Public()
     async createSolicitudCambioMedidor(dto: CreateCambioMedidorFisicaDto)
     {
         const estadoInicial = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) {throw new BadRequestException(`Estado inicial de solicitud no configurado`);}
-        
+
+        // Validar que existe un afiliado físico con esa identificación
+        const validacionAfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
+        if (validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
+
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
-        const now = new Date();
-        now.setSeconds(0, 0);
+        // Normalizar nombres en el servicio (Apellido2 se maneja automáticamente en la entidad)
+        dto.Nombre = dto.Nombre.trim()[0].toUpperCase() + dto.Nombre.trim().slice(1).toLowerCase();
+        dto.Apellido1 = dto.Apellido1.trim()[0].toUpperCase() + dto.Apellido1.trim().slice(1).toLowerCase();
 
-        const solicitudCambioMedidor = this.solicitudCambioMedidorFisicaRepository.create({...dto, Estado: estadoInicial, Fecha_Creacion: now});
+        const solicitudCambioMedidor = this.solicitudCambioMedidorFisicaRepository.create({...dto, Estado: estadoInicial});
         return this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
     }
 
@@ -61,19 +57,21 @@ export class SolicitudesCambioMedidorFisicaService
         if (!solicitudCambioMedidor) {
             throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`);
         }
-    
+
+        // Apellido2 se maneja automáticamente en la entidad
+
         Object.assign(solicitudCambioMedidor, dto);
         return this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
     }
     
     async UpdateEstadoSolicitudCambioMedidor(id: number, nuevoEstadoId: number)
     {
-        const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
+        const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
         if (!solicitudCambioMedidor) {throw new BadRequestException(`Solicitud con id ${id} no encontrada`);}
-    
-        const nuevoEstado = await this.estadoSolicitudRepository.findOne({where: { Id_Estado_Solicitud: nuevoEstadoId }});
+
+        const nuevoEstado = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: nuevoEstadoId }});
         if (!nuevoEstado) {throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);}
-    
+
         solicitudCambioMedidor.Estado = nuevoEstado;
         return this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
     }

@@ -26,13 +26,6 @@ export class SolicitudCambioMedidorJuridicaService
         return this.solicitudCambioMedidorJuridicaRepository.find({ relations: ['Estado'] });
     }
 
-    async findSolicitudCambioMedidorById(id: number)
-    {
-        const solicitud = await this.solicitudCambioMedidorJuridicaRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
-        if (!solicitud) {throw new BadRequestException(`Solicitud de cambio de medidor jurídica con id ${id} no encontrada`);}
-        return solicitud;
-    }
-
     @Public()
     async createSolicitudCambioMedidor(dto: CreateSolicitudCambioMedidorJuridicaDto)
     {
@@ -42,21 +35,19 @@ export class SolicitudCambioMedidorJuridicaService
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesJuridicasActivas(dto.Cedula_Juridica);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
-        const now = new Date();
-        now.setSeconds(0, 0);
+        dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
 
-        const solicitudCambioMedidor = this.solicitudCambioMedidorJuridicaRepository.create({...dto, Estado: estadoInicial, Fecha_Creacion: now});
+        const solicitudCambioMedidor = this.solicitudCambioMedidorJuridicaRepository.create({...dto, Estado: estadoInicial});
         return this.solicitudCambioMedidorJuridicaRepository.save(solicitudCambioMedidor);
     }
 
     async updateSolicitudCambioMedidor(id: number, dto: UpdateSolicitudCambioMedidorJuridicaDto)
     {
-        const solicitudCambioMedidor = await this.solicitudCambioMedidorJuridicaRepository.findOne({
-            where: { Id_Solicitud: id }
-        });
+        const solicitudCambioMedidor = await this.solicitudCambioMedidorJuridicaRepository.findOne({ where: { Id_Solicitud: id } });
+        if (!solicitudCambioMedidor) { throw new BadRequestException(`Solicitud de cambio de medidor jurídica con id ${id} no encontrada`); }
 
-        if (!solicitudCambioMedidor) {
-            throw new BadRequestException(`Solicitud de cambio de medidor jurídica con id ${id} no encontrada`);
+        if (dto.Razon_Social) {
+            dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
         }
 
         Object.assign(solicitudCambioMedidor, dto);

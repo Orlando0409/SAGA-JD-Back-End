@@ -71,12 +71,13 @@ export class CreateAfiliadoFisicoDto extends CreateAfiliadoDto {
   Apellido1: string;
 
   @ApiProperty({ example: 'Lopez', required: false })
-  @Transform(({ value }) => value?.trim())
-  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value || value.trim() === '') return 'No Proporcionado';
+    return value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase();
+  })
   @IsString({ message: 'El segundo apellido debe ser un string' })
-  @MinLength(2, { message: 'El segundo apellido debe tener al menos 2 caracteres' })
   @MaxLength(50, { message: 'El segundo apellido no puede tener más de 50 caracteres' })
-  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'El segundo apellido solo puede contener letras y espacios' })
+  @IsOptional()
   Apellido2?: string;
 
   @ApiProperty({ example: 25 })

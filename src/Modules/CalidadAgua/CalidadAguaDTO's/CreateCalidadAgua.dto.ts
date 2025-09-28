@@ -6,7 +6,7 @@ export class CreateCalidadAguaDto {
     @ApiProperty({ example: 'Reporte de Ebais de Juan Diaz' })
     @IsString({ message: 'El titulo debe ser un string' })
     @IsDefined({ message: 'El titulo no puede estar vacio' })
-    @Transform(({ value }) => value?.trim().toUpperCase())
+    @Transform(({ value }) => value?.trim() ? value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase() : value)
     @IsNotEmpty({ message: 'El título no puede estar vacío' })
     @MinLength(5, { message: 'El título debe tener al menos 5 caracteres' })
     @MaxLength(100, { message: 'El título no puede tener más de 100 caracteres' })

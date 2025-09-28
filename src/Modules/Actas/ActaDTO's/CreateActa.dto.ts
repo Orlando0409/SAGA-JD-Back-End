@@ -4,7 +4,7 @@ import { Transform } from 'class-transformer';
 
 export class CreateActaDto {
     @ApiProperty({ example: 'Acta de Reunión de Proyecto X' })
-    @Transform(({ value }) => value?.trim().toUpperCase())
+    @Transform(({ value }) => value?.trim() ? value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase() : value)
     @IsString({ message: 'El título debe ser un string' })
     @IsDefined({ message: 'El título no puede estar vacío' })
     @IsNotEmpty({ message: 'El título no puede estar vacío' })
@@ -13,7 +13,7 @@ export class CreateActaDto {
     Titulo: string;
 
     @ApiProperty({ example: 'Descripción detallada del acta...' })
-    @Transform(({ value }) => value?.trim())
+    @Transform(({ value }) => value?.trim() ? value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase() : value)
     @IsString({ message: 'La descripción debe ser un string' })
     @IsDefined({ message: 'La descripción no puede estar vacía' })
     @IsNotEmpty({ message: 'La descripción no puede estar vacía' })

@@ -1,8 +1,9 @@
 import { BeforeInsert, Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { EstadoMaterial } from "./EstadoMaterial.Entity";
 import { MaterialCategoria } from "./MaterialCategoria.Entity";
-import { join } from "path";
+import { UnidadMedicion } from "./UnidadMedicion.Entity";
 import { Expose } from "class-transformer";
+import { EstadoUnidadMedicion } from "./EstadoUnidadMedicion.Entity";
 
 @Entity('Material')
 export class Material {
@@ -33,9 +34,6 @@ export class Material {
     @DeleteDateColumn({ name: 'Fecha_Baja', type: 'datetime', precision: 0, nullable: true })
     Fecha_Baja: Date;
 
-    @Column({ nullable: true })
-    Id_Estado_Material: number;
-
     @ManyToOne(() => EstadoMaterial, estadoMaterial => estadoMaterial.Materiales, { eager: true })
     @JoinColumn({ name: 'Id_Estado_Material' })
     Estado_Material: EstadoMaterial;
@@ -43,6 +41,10 @@ export class Material {
     @OneToMany(() => MaterialCategoria, materialCategoria => materialCategoria.Material, { cascade: true, eager: true })
     @Expose({ name: 'Categorias' })
     materialCategorias: MaterialCategoria[];
+
+    @ManyToOne(() => UnidadMedicion, unidadMedicion => unidadMedicion.Materiales, { eager: true })
+    @JoinColumn({ name: 'Id_Unidad_Medicion' })
+    Unidad_Medicion: UnidadMedicion;
 
     @BeforeInsert()
     setDefaultEstado() { this.Estado_Material = { Id_Estado_Material: 1, Nombre_Estado_Material: 'DISPONIBLE' } as EstadoMaterial; }

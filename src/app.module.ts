@@ -45,6 +45,9 @@ import { Material } from './Modules/Inventario/InventarioEntities/Material.Entit
 import { EstadoMaterial } from './Modules/Inventario/InventarioEntities/EstadoMaterial.Entity';
 import { Categoria } from './Modules/Inventario/InventarioEntities/Categoria.Entity';
 import { MaterialCategoria } from './Modules/Inventario/InventarioEntities/MaterialCategoria.Entity';
+import { UnidadMedicion } from './Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
+import { EstadoUnidadMedicion } from './Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
+import { EstadoCalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
 import { SeederModule } from './config/Seeder.module';
 
 @Module({
@@ -70,7 +73,8 @@ import { SeederModule } from './config/Seeder.module';
         SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
         EstadoSolicitud, EstadoAfiliado, TipoAfiliado, Afiliado, AfiliadoFisico, AfiliadoJuridico,
         UserEntity, UserRol, Permiso, ProveedorEntity, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
-        ProyectoEstado, Proyecto, CalidadAgua, Acta, ArchivoActa, Material, EstadoMaterial, Categoria, MaterialCategoria],
+        ProyectoEstado, Proyecto, CalidadAgua, EstadoCalidadAgua, Acta, ArchivoActa, Material, EstadoMaterial,
+        Categoria, MaterialCategoria, EstadoUnidadMedicion, UnidadMedicion],
         synchronize: false,
       }),
     }),
