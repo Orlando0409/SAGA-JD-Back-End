@@ -31,6 +31,12 @@ export class InventarioController {
         return this.inventarioService.getAllUnidadesMedicion();
     }
 
+    @Get('/all/unidades-medicion/simple')
+    @ApiOperation({ summary: 'Obtiene todas las unidades de medición (solo Id y Nombre).' })
+    async getAllUnidadesMedicionSimple() {
+        return this.inventarioService.getUnidadMedicionSimple();
+    }
+
     @Get('/materiales/with/categorias')
     @ApiOperation({ summary: 'Obtiene materiales que tienen categorías asignadas' })
     async getMaterialesConCategorias() {

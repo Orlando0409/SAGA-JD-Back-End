@@ -203,9 +203,9 @@ export class SeederService implements OnModuleInit {
 
     private async createDefaultUnidadesMedicion() {
         const unidades = [
-            { Id_Unidad_Medicion: 1, Nombre_Unidad: 'Unidades', Abreviatura: 'U', Descripcion: 'Unidades simples' },
-            { Id_Unidad_Medicion: 2, Nombre_Unidad: 'Paquetes', Abreviatura: 'P', Descripcion: 'De entre 4 a 8 por paquete' },
-            { Id_Unidad_Medicion: 3, Nombre_Unidad: 'Litros', Abreviatura: 'L', Descripcion: 'Unidad de medida de volumen' },
+            { Id_Unidad_Medicion: 1, Nombre_Unidad: 'UNIDAD', Abreviatura: 'U', Descripcion: 'Unidades simples', Id_Estado_Unidad_Medicion: 1 },
+            { Id_Unidad_Medicion: 2, Nombre_Unidad: 'PAQUETE', Abreviatura: 'P', Descripcion: 'De entre 4 a 8 por paquete', Id_Estado_Unidad_Medicion: 1 },
+            { Id_Unidad_Medicion: 3, Nombre_Unidad: 'LITRO', Abreviatura: 'L', Descripcion: 'Unidad de medida de volumen', Id_Estado_Unidad_Medicion: 1 },
         ];
 
         for (const unidad of unidades) {

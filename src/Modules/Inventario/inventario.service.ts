@@ -14,6 +14,7 @@ import { IngresoEgresoMaterialDto } from './InventarioDTO\'s/IngresoEgresoMateri
 import { EstadoUnidadMedicion } from './InventarioEntities/EstadoUnidadMedicion.Entity';
 import { UpdateCategoriaDto } from './InventarioDTO\'s/UpdateCategoria.dto';
 import { UpdateUnidadMedicionDto } from './InventarioDTO\'s/UpdateUnidadMedicion.dto';
+import { getUnidadDeMedidaDTO } from './InventarioDTO\'s/getUidadaDeMedida.dto';
 
 @Injectable()
 export class InventarioService {
@@ -47,6 +48,16 @@ export class InventarioService {
 
     async getAllUnidadesMedicion() {
         return this.unidadMedicionRepository.find({ relations: ['Estado_Unidad_Medicion'] });
+    }
+
+    async getUnidadMedicionSimple(): Promise<getUnidadDeMedidaDTO[]> {
+        const unidades = await this.unidadMedicionRepository.find({ select: ['Id_Unidad_Medicion', 'Nombre_Unidad'] });
+        return unidades.map(unidad => {
+            const dto = new getUnidadDeMedidaDTO();
+            dto.Id_Unidad_Medicion = unidad.Id_Unidad_Medicion;
+            dto.Nombre_Unidad_Medicion = unidad.Nombre_Unidad[0].toUpperCase() + unidad.Nombre_Unidad.slice(1).toLowerCase();
+            return dto;
+        });
     }
 
     async getMaterialesConCategorias() {
@@ -94,6 +105,13 @@ export class InventarioService {
         const materialExistente = await this.inventarioRepository.findOne({ where: { Nombre_Material: NombreToUpperCase }, });
         if (materialExistente) { throw new ConflictException('Ya existe un material con este nombre'); }
 
+        const UnidadMedicionExistente = await this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: dto.Id_Unidad_Medicion }, });
+        if (!UnidadMedicionExistente) { throw new BadRequestException('La unidad de medición proporcionada no existe'); }
+
+        if (UnidadMedicionExistente.Estado_Unidad_Medicion.Nombre_Estado_Unidad_Medicion !== 'Activo') {
+            throw new BadRequestException('La unidad de medición proporcionada no está activa');
+        }
+
         // Validar categorías si se proporcionan
         let categorias: Categoria[] = [];
         if (dto.IDS_Categorias && dto.IDS_Categorias.length > 0) {
@@ -102,16 +120,11 @@ export class InventarioService {
             if (categorias.length !== dto.IDS_Categorias.length) { throw new BadRequestException('Una o más categorías no existen'); }
         }
 
-        // Validar unidad de medición si se proporciona
-        if (dto.Id_Unidad_Medicion) {
-            const unidadMedicion = await this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: dto.Id_Unidad_Medicion } });
-            if (!unidadMedicion) { throw new BadRequestException('La unidad de medición no existe o está inactiva'); }
-        }
-
         // Crear el material
         const material = this.inventarioRepository.create({
             ...dto,
-            Nombre_Material: NombreToUpperCase
+            Nombre_Material: NombreToUpperCase,
+            Unidad_Medicion: UnidadMedicionExistente,
         });
 
         const savedMaterial = await this.inventarioRepository.save(material);

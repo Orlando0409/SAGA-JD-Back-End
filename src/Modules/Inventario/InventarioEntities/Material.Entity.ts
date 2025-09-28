@@ -16,13 +16,6 @@ export class Material {
     @Column({ nullable: true })
     Descripcion?: string;
 
-    @Column({ nullable: true })
-    Id_Unidad_Medicion: number;
-
-    @ManyToOne(() => UnidadMedicion, unidadMedicion => unidadMedicion.Materiales, { eager: true })
-    @JoinColumn({ name: 'Id_Unidad_Medicion' })
-    Unidad_Medicion: UnidadMedicion;
-
     @Column({ nullable: false })
     Cantidad: number;
 
@@ -48,6 +41,10 @@ export class Material {
     @OneToMany(() => MaterialCategoria, materialCategoria => materialCategoria.Material, { cascade: true, eager: true })
     @Expose({ name: 'Categorias' })
     materialCategorias: MaterialCategoria[];
+
+    @ManyToOne(() => UnidadMedicion, unidadMedicion => unidadMedicion.Materiales, { eager: true })
+    @JoinColumn({ name: 'Id_Unidad_Medicion' })
+    Unidad_Medicion: UnidadMedicion;
 
     @BeforeInsert()
     setDefaultEstado() { this.Estado_Material = { Id_Estado_Material: 1, Nombre_Estado_Material: 'DISPONIBLE' } as EstadoMaterial; }

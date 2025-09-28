@@ -1,7 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { ArrayNotEmpty, IsArray, IsDefined, IsInt, IsNotEmpty, IsOptional, IsString, Matches, Max, MaxLength, Min, MinLength } from "class-validator";
-import { UnidadMedicion } from "../InventarioEntities/UnidadMedicion.Entity";
+import { IsArray, IsDefined, IsInt, IsNotEmpty, IsOptional, IsString, Matches, Max, MaxLength, Min, MinLength } from "class-validator";
 
 export class CreateMaterialDto {
     @ApiProperty({ example: 'Cemento' })
@@ -21,20 +20,9 @@ export class CreateMaterialDto {
     @IsOptional()
     Descripcion?: string;
 
-    @ApiProperty({ example: 'Kilogramo' })
-    @Transform(({ value }) => value?.trim().toUpperCase())
-    @IsString({ message: 'El nombre de la unidad de medida debe ser un string' })
-    @IsDefined({ message: 'El nombre de la unidad de medida no puede estar vacío' })
-    @IsNotEmpty({ message: 'El nombre de la unidad de medida no puede estar vacío' })
-    @MinLength(2, { message: 'El nombre de la unidad de medida debe tener al menos 2 caracteres' })
-    @MaxLength(30, { message: 'El nombre de la unidad de medida no puede tener más de 30 caracteres' })
-    @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'El nombre de la unidad de medida solo puede contener letras, números y espacios' })
-    Unidad_Medicion: UnidadMedicion;
-
     @ApiProperty({ example: 1 })
-    @IsInt({ message: 'La unidad de medición debe ser un número entero' })
     @IsDefined({ message: 'La unidad de medición no puede estar vacio' })
-    @Min(1, { message: 'El ID de la unidad de medición debe ser mayor a 0' })
+    @IsInt({ message: 'La unidad de medición debe ser un número entero' })
     Id_Unidad_Medicion: number;
 
     @ApiProperty({ example: 100 })
