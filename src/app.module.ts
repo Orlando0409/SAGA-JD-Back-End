@@ -48,6 +48,7 @@ import { Categoria } from './Modules/Inventario/InventarioEntities/Categoria.Ent
 import { MaterialCategoria } from './Modules/Inventario/InventarioEntities/MaterialCategoria.Entity';
 import { UnidadMedicion } from './Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoUnidadMedicion } from './Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
+import { EstadoCalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
 
 @Module({
   imports: [
@@ -72,8 +73,8 @@ import { EstadoUnidadMedicion } from './Modules/Inventario/InventarioEntities/Es
         SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
         EstadoSolicitud, EstadoAfiliado, TipoAfiliado, Afiliado, AfiliadoFisico, AfiliadoJuridico,
         UserEntity, UserRol, Permiso, ProveedorEntity, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
-        ProyectoEstado, Proyecto, CalidadAgua, Acta, ArchivoActa, Material, EstadoMaterial, Categoria, MaterialCategoria,
-        EstadoUnidadMedicion, UnidadMedicion],
+        ProyectoEstado, Proyecto, CalidadAgua, EstadoCalidadAgua, Acta, ArchivoActa, Material, EstadoMaterial,
+        Categoria, MaterialCategoria, EstadoUnidadMedicion, UnidadMedicion],
         synchronize: false,
       }),
     }),

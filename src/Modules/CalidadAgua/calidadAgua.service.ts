@@ -6,6 +6,7 @@ import { CreateCalidadAguaDto } from "./CalidadAguaDTO's/CreateCalidadAgua.dto";
 import { UpdateCalidadAguaDto } from "./CalidadAguaDTO's/UpdateCalidadAgua.dto";
 import { Public } from "../auth/Decorator/Public.decorator";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
+import { EstadoCalidadAgua } from "./CalidadAguaEntities/EstadoCalidadAgua.Entity";
 
 @Injectable()
 export class CalidadAguaService
@@ -15,20 +16,21 @@ export class CalidadAguaService
         @InjectRepository(CalidadAgua)
         private readonly calidadAguaRepository: Repository<CalidadAgua>,
 
+        @InjectRepository(EstadoCalidadAgua)
+        private readonly estadoCalidadAguaRepository: Repository<EstadoCalidadAgua>,
+
         private readonly dropboxFilesService: DropboxFilesService,
     ) {}
 
     @Public()
-    async getCalidadAgua()
+    async getCalidadAguaVisibles()
     {
-        return this.calidadAguaRepository.find()
+        return this.calidadAguaRepository.find({ where: { Estado: { Id_Estado_Calidad_Agua: 1 } }, relations: ['Estado'] });
     }
 
-    async getCalidadAguaById(Id_Calidad_Agua: number)
+    async getCalidadAgua()
     {
-        const CalidadAgua = await this.calidadAguaRepository.findOne({ where: { Id_Calidad_Agua }})
-        if(!CalidadAgua) { throw new NotFoundException(`Archivo con id ${Id_Calidad_Agua} no encontrado`); }
-        return CalidadAgua;
+        return this.calidadAguaRepository.find({ relations: ['Estado'] });
     }
 
     async CreateCalidadAgua(dto: CreateCalidadAguaDto, file?: Express.Multer.File)
@@ -77,5 +79,16 @@ export class CalidadAguaService
         }
 
         return this.calidadAguaRepository.save(CalidadAgua);
+    }
+
+    async updateEstadoCalidadAgua(Id_Calidad_Agua: number, Id_Estado_Calidad_Agua: number) {
+        const calidadAgua = await this.calidadAguaRepository.findOne({ where: { Id_Calidad_Agua } });
+        if (!calidadAgua) { throw new NotFoundException(`Registro con ID ${Id_Calidad_Agua} no encontrado`); }
+
+        const estado = await this.estadoCalidadAguaRepository.findOne({ where: { Id_Estado_Calidad_Agua } });
+        if (!estado) { throw new NotFoundException(`Estado con ID ${Id_Estado_Calidad_Agua} no encontrado`); }
+
+        calidadAgua.Estado = estado;
+        return this.calidadAguaRepository.save(calidadAgua);
     }
 }
