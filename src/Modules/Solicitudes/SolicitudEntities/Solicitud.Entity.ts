@@ -58,46 +58,24 @@ export abstract class SolicitudFisica extends Solicitud {
     @Column({ nullable: false })
     Apellido1: string;
 
-    @Column()
-    Apellido2: string;
+    @Column({ nullable: true })
+    Apellido2?: string;
 
     @BeforeInsert()
     @BeforeUpdate()
-    normalizarTelefono() {
-        if (this.Numero_Telefono) {
-            try {
-                const phoneNumber = parsePhoneNumberFromString(this.Numero_Telefono);
-                if (phoneNumber) {
-                    this.Numero_Telefono = phoneNumber.number; // siempre guarda en formato E.164
-                }
-            } catch {
-                // si hay error, simplemente no normalizamos
-            }
+    normalizarApellido2() {
+        if (!this.Apellido2 || this.Apellido2.trim() === '' || this.Apellido2 === 'undefined') {
+            this.Apellido2 = 'No Proporcionado';
         }
     }
 }
 
 export class SolicitudJuridica extends Solicitud {
-    @Column({ type: 'varchar', length: 15, unique: true })
+    @Column({ type: 'varchar', length: 20, nullable: false })
     Cedula_Juridica: string;
 
     @Column({ nullable: false })
     Razon_Social: string;
-
-    @BeforeInsert()
-    @BeforeUpdate()
-    normalizarTelefono() {
-        if (this.Numero_Telefono) {
-            try {
-                const phoneNumber = parsePhoneNumberFromString(this.Numero_Telefono);
-                if (phoneNumber) {
-                    this.Numero_Telefono = phoneNumber.number; // siempre guarda en formato E.164
-                }
-            } catch {
-                // si hay error, simplemente no normalizamos
-            }
-        }
-    }
 }
 
 @Entity('Solicitudes_Afiliacion_Fisica')
@@ -115,7 +93,12 @@ export class SolicitudAfiliacionFisica extends SolicitudFisica {
     Escritura_Terreno: string;
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; } 
+    setDefaultEstado() { 
+        this.normalizarTelefono();
+        this.normalizarApellido2();
+        this.Id_Tipo_Solicitud = 1;
+        this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
+    } 
 }
 
 @Entity('Solicitudes_Desconexion_Fisica')
@@ -133,7 +116,12 @@ export class SolicitudDesconexionFisica extends SolicitudFisica {
     Escritura_Terreno: string;
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; } 
+    setDefaultEstado() { 
+        this.normalizarTelefono();
+        this.normalizarApellido2();
+        this.Id_Tipo_Solicitud = 2;
+        this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
+    } 
 }
 
 @Entity('Solicitudes_Cambio_Medidor_Fisica')
@@ -148,10 +136,12 @@ export class SolicitudCambioMedidorFisica extends SolicitudFisica {
     Numero_Medidor_Anterior: number;
 
     @BeforeInsert()
-    setTipoSolicitud() { this.Id_Tipo_Solicitud = 3; }
-
-    @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; } 
+    setDefaultsAndNormalize() { 
+        this.normalizarTelefono();
+        this.normalizarApellido2();
+        this.Id_Tipo_Solicitud = 3;
+        this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
+    }
 }
 
 @Entity('Solicitudes_Asociado_Fisica')
@@ -160,10 +150,12 @@ export class SolicitudAsociadoFisica extends SolicitudFisica {
     Motivo_Solicitud: string;
 
     @BeforeInsert()
-    setTipoSolicitud() { this.Id_Tipo_Solicitud = 4; }
-
-    @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; }
+    setDefaultsAndNormalize() { 
+        this.normalizarTelefono();
+        this.normalizarApellido2();
+        this.Id_Tipo_Solicitud = 4;
+        this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
+    }
 }
 
 @Entity('Solicitudes_Afiliacion_Juridica')
@@ -178,7 +170,11 @@ export class SolicitudAfiliacionJuridica extends SolicitudJuridica {
     Escritura_Terreno: string;
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; }
+    setDefaultEstado() { 
+        this.normalizarTelefono();
+        this.Id_Tipo_Solicitud = 1;
+        this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
+    }
 }
 
 @Entity('Solicitudes_Desconexion_Juridica')
@@ -196,7 +192,11 @@ export class SolicitudDesconexionJuridica extends SolicitudJuridica {
     Escritura_Terreno: string;
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; }
+    setDefaultEstado() { 
+        this.normalizarTelefono();
+        this.Id_Tipo_Solicitud = 2;
+        this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
+    }
 }
 
 @Entity('Solicitudes_Cambio_Medidor_Juridica')
@@ -211,10 +211,11 @@ export class SolicitudCambioMedidorJuridica extends SolicitudJuridica {
     Numero_Medidor_Anterior: number;
 
     @BeforeInsert()
-    setTipoSolicitud() { this.Id_Tipo_Solicitud = 3; }
-
-    @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; }
+    setDefaultsAndNormalize() { 
+        this.normalizarTelefono();
+        this.Id_Tipo_Solicitud = 3;
+        this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
+    }
 }
 
 @Entity('Solicitudes_Asociado_Juridica')
@@ -223,8 +224,9 @@ export class SolicitudAsociadoJuridica extends SolicitudJuridica {
     Motivo_Solicitud: string;
 
     @BeforeInsert()
-    setTipoSolicitud() { this.Id_Tipo_Solicitud = 4; }
-
-    @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; }
+    setDefaultsAndNormalize() { 
+        this.normalizarTelefono();
+        this.Id_Tipo_Solicitud = 4;
+        this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
+    }
 }

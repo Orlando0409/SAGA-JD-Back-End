@@ -18,12 +18,6 @@ export class SolicitudCambioMedidorFisicaController {
     return this.solicitudCambioMedidorFisicaService.getAllSolicitudesCambioMedidor();
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Obtener solicitud de cambio de medidor por ID' })
-  getSolicitudCambioMedidorById(@Param('id', ParseIntPipe) id: number) {
-    return this.solicitudCambioMedidorFisicaService.findSolicitudCambioMedidorById(id);
-  }
-
   @Public()
   @Post('/create')
   @ApiOperation({ summary: 'Crear una nueva solicitud de cambio de medidor' })

@@ -29,13 +29,6 @@ export class SolicitudAsociadoFisicaService
         return this.solicitudAsociadoFisicaRepository.find({ relations: ['Estado'] });
     }
 
-    async findSolicitudAsociadoById(id: number)
-    {
-        const solicitud = await this.solicitudAsociadoFisicaRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
-        if (!solicitud) {throw new BadRequestException(`Solicitud de asociado con id ${id} no encontrada`);}
-        return solicitud;
-    }
-
     @Public()
     async createSolicitudAsociado(dto: CreateSolicitudAsociadoFisicaDto)
     {
@@ -49,10 +42,11 @@ export class SolicitudAsociadoFisicaService
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
-        const now = new Date();
-        now.setSeconds(0, 0);
+        // Normalizar nombres en el servicio (Apellido2 se maneja automáticamente en la entidad)
+        dto.Nombre = dto.Nombre.trim()[0].toUpperCase() + dto.Nombre.trim().slice(1).toLowerCase();
+        dto.Apellido1 = dto.Apellido1.trim()[0].toUpperCase() + dto.Apellido1.trim().slice(1).toLowerCase();
 
-        const solicitudAsociado = this.solicitudAsociadoFisicaRepository.create({...dto, Estado: estadoInicial, Fecha_Creacion: now});
+        const solicitudAsociado = this.solicitudAsociadoFisicaRepository.create({...dto, Estado: estadoInicial});
         return this.solicitudAsociadoFisicaRepository.save(solicitudAsociado);
     }
 
@@ -65,6 +59,8 @@ export class SolicitudAsociadoFisicaService
         if (!solicitudAsociado) {
             throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`);
         }
+
+        // Apellido2 se maneja automáticamente en la entidad
 
         Object.assign(solicitudAsociado, dto);
         return this.solicitudAsociadoFisicaRepository.save(solicitudAsociado);

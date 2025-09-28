@@ -1,6 +1,9 @@
-import { BeforeInsert, Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { EstadoMaterial } from "./EstadoMaterial.Entity";
-import { CategoriaMaterial } from "./CategoriaMaterial.Entity";
+import { MaterialCategoria } from "./MaterialCategoria.Entity";
+import { UnidadMedicion } from "./UnidadMedicion.Entity";
+import { Expose } from "class-transformer";
+import { EstadoUnidadMedicion } from "./EstadoUnidadMedicion.Entity";
 
 @Entity('Material')
 export class Material {
@@ -28,12 +31,20 @@ export class Material {
     @Column({ type: 'datetime', precision: 0, nullable: true })
     Fecha_Salida: Date;
 
-    @ManyToOne(() => EstadoMaterial, estadoMaterial => estadoMaterial.Materiales)
+    @DeleteDateColumn({ name: 'Fecha_Baja', type: 'datetime', precision: 0, nullable: true })
+    Fecha_Baja: Date;
+
+    @ManyToOne(() => EstadoMaterial, estadoMaterial => estadoMaterial.Materiales, { eager: true })
+    @JoinColumn({ name: 'Id_Estado_Material' })
     Estado_Material: EstadoMaterial;
 
-    @ManyToMany(() => CategoriaMaterial, categoriaMaterial => categoriaMaterial.Materiales, { nullable: true })
-    @JoinTable()
-    Categorias: CategoriaMaterial[];
+    @OneToMany(() => MaterialCategoria, materialCategoria => materialCategoria.Material, { cascade: true, eager: true })
+    @Expose({ name: 'Categorias' })
+    materialCategorias: MaterialCategoria[];
+
+    @ManyToOne(() => UnidadMedicion, unidadMedicion => unidadMedicion.Materiales, { eager: true })
+    @JoinColumn({ name: 'Id_Unidad_Medicion' })
+    Unidad_Medicion: UnidadMedicion;
 
     @BeforeInsert()
     setDefaultEstado() { this.Estado_Material = { Id_Estado_Material: 1, Nombre_Estado_Material: 'DISPONIBLE' } as EstadoMaterial; }

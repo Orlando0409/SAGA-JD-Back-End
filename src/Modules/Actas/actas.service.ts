@@ -20,6 +20,10 @@ export class ActasService {
     }
 
     async createActa(dto: CreateActaDto, files: Express.Multer.File[]) {
+        // Normalizar título antes de procesar
+        dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
+        dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
+        
         const TituloToUpperCase = dto.Titulo.toUpperCase();
 
         const ArchivosSubidos = await Promise.all(
@@ -43,9 +47,17 @@ export class ActasService {
             throw new BadRequestException('El acta que intenta modificar no existe.');
         }
 
+        // Normalizar datos antes de procesar
+        if (dto.Titulo) {
+            dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
+        }
+        
+        if (dto.Descripcion) {
+            dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
+        }
+        
         if (dto.Titulo) {
             const TituloToUpperCase = dto.Titulo.toUpperCase();
-
             const actaConMismoTitulo = await this.actaRepository.findOne({ where: { Titulo: TituloToUpperCase } });
             if (actaConMismoTitulo && actaConMismoTitulo.Id_Acta !== id) {
                 throw new BadRequestException(`Ya existe un acta con el título "${TituloToUpperCase}".`);
