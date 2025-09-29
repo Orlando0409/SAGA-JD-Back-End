@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
-import { InventarioService } from './inventario.service';
+import { MaterialService } from './Services/material.service';
+import { CategoriasService } from './Services/categorias.service';
+import { UnidadesDeMedicionService } from './Services/unidadesDeMedicion.service';
 import { InventarioController } from './inventario.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Material } from './InventarioEntities/Material.Entity';
@@ -12,7 +14,7 @@ import { EstadoUnidadMedicion } from './InventarioEntities/EstadoUnidadMedicion.
 @Module({
   imports: [TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion])],
   controllers: [InventarioController],
-  providers: [InventarioService],
-  exports: [InventarioService],
+  providers: [MaterialService, CategoriasService, UnidadesDeMedicionService],
+  exports: [MaterialService, CategoriasService, UnidadesDeMedicionService],
 })
 export class InventarioModule {}
