@@ -74,6 +74,7 @@ import { ProveedorEntity, ProveedorFisico, ProveedorJuridico } from './Modules/P
         ProyectoEstado, Proyecto, CalidadAgua, EstadoCalidadAgua, Acta, ArchivoActa, Material, EstadoMaterial,
         Categoria, MaterialCategoria, EstadoUnidadMedicion, UnidadMedicion],
         synchronize: false,
+        dropSchema: false,
       }),
     }),
     SeederModule,
