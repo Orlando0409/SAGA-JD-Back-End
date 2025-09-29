@@ -15,7 +15,7 @@ export function IsIdentificacionValida(validationOptions?: ValidationOptions) {
 
                 switch (tipo) {
                     case TipoIdentificacion.CEDULA:
-                        return /^[1-9]\d{8}$/.test(value); // 9 dígitos CR
+                        return /^[1-7]\d{8}$/.test(value); // 7 dígitos CR
                     case TipoIdentificacion.DIMEX:
                         return /^(12|13|18)\d{9,10}$/.test(value); // 11 - 12 dígitos Dimex
                     case TipoIdentificacion.PASAPORTE:
