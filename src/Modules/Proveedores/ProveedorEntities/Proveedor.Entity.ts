@@ -51,21 +51,17 @@ export class ProveedorFisico extends ProveedorEntity {
 
 @Entity("Proveedor_Juridico")
 export class ProveedorJuridico extends ProveedorEntity {
-    @Column({ type: 'enum', enum: TipoIdentificacion, nullable: false })
-    Tipo_Identificacion: TipoIdentificacion;
-
-    @Column({ type: 'varchar', length: 20, nullable: false })
-    Identificacion: string;
+    @Column({ type: "varchar", length: 25 })
+    Cedula_Juridica: string;
 
     @Column({ nullable: false })
     Razon_Social: string;
 
-    @BeforeInsert()
-    @BeforeUpdate()
-    normalizarCedulaJuridica() {
-        if (this.Identificacion && this.Tipo_Identificacion === TipoIdentificacion.CEDULA_JURIDICA) {
-           
-            this.Identificacion = this.Identificacion.replace(/[\s\-]+/g, '');
-        }
-    }
+    //@BeforeInsert()
+    //@BeforeUpdate()
+    //normalizarCedulaJuridica() {
+    //    if (this.Identificacion && this.Tipo_Identificacion === TipoIdentificacion.CEDULA_JURIDICA) {
+    //        this.Identificacion = this.Identificacion.replace(/[\s\-]+/g, '');
+    //    }
+    //}
 }

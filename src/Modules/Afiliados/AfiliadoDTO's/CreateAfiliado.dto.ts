@@ -4,6 +4,7 @@ import { Transform } from 'class-transformer';
 import { TipoIdentificacion } from 'src/Common/Enums/TipoIdentificacion.enum';
 import { IsIdentificacionValida } from 'src/Validations/DTO Validators/Identificacion.validator';
 import { IsTelefonoValido } from 'src/Validations/DTO Validators/NumeroTelefono.validator';
+import { IsCedulaJuridicaValida } from 'src/Validations/DTO Validators/CedulaJuridica.validator';
 
 export abstract class CreateAfiliadoDto {
   @ApiProperty({ example: 'ejemplo@gmail.com' })
@@ -70,12 +71,13 @@ export class CreateAfiliadoFisicoDto extends CreateAfiliadoDto {
   Apellido1: string;
 
   @ApiProperty({ example: 'Lopez', required: false })
-  @Transform(({ value }) => value?.trim())
-  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value || value.trim() === '') return 'No Proporcionado';
+    return value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase();
+  })
   @IsString({ message: 'El segundo apellido debe ser un string' })
-  @MinLength(2, { message: 'El segundo apellido debe tener al menos 2 caracteres' })
   @MaxLength(50, { message: 'El segundo apellido no puede tener más de 50 caracteres' })
-  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'El segundo apellido solo puede contener letras y espacios' })
+  @IsOptional()
   Apellido2?: string;
 
   @ApiProperty({ example: 25 })
@@ -92,9 +94,7 @@ export class CreateAfiliadoJuridicoDto extends CreateAfiliadoDto {
   @IsString({ message: 'La cédula jurídica debe ser un string' })
   @IsDefined({ message: 'La cédula jurídica no puede estar vacía' })
   @IsNotEmpty({ message: 'La cédula jurídica no puede estar vacía' })
-  @Matches(/^[2-5]/, { message: 'La cédula jurídica debe comenzar con 2, 3, 4 o 5' })
-  @MinLength(10)
-  @MaxLength(12)
+  @IsCedulaJuridicaValida()
   Cedula_Juridica: string;
 
   @ApiProperty({ example: 'Empresa Ejemplo S.A.' })

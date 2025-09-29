@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Put, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, UploadedFile, UseInterceptors } from "@nestjs/common";
 import { CalidadAguaService } from "./calidadAgua.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { CreateCalidadAguaDto } from "./CalidadAguaDTO's/CreateCalidadAgua.dto";
@@ -15,16 +15,16 @@ export class CalidadAguaController
     ) {}
 
     @Public()
+    @Get('/visibles')
+    @ApiOperation({ summary: 'Obtener registros de calidad de agua visibles (estado activo)' })
+    getCalidadAguaVisibles(){
+        return this.calidadAguaService.getCalidadAguaVisibles();
+    }
+
     @Get('/all')
     @ApiOperation({ summary: 'Obtener todos los registros de calidad de agua' })
     getCalidadAgua(){
         return this.calidadAguaService.getCalidadAgua();
-    }
-
-    @Get(':id')
-    @ApiOperation({ summary: 'Obtener registro por ID' })
-    findCalidadAguabyId(@Param('id', ParseIntPipe) id: number) {
-        return this.calidadAguaService.getCalidadAguaById(id);
     }
 
     @Post('/create')
@@ -45,6 +45,15 @@ export class CalidadAguaController
     @Body() dto: UpdateCalidadAguaDto,
     @UploadedFile() Archivo_Calidad_Agua?: Express.Multer.File
     ) {
-    return this.calidadAguaService.updateCalidadAgua(id, dto, Archivo_Calidad_Agua);
+        return this.calidadAguaService.updateCalidadAgua(id, dto, Archivo_Calidad_Agua);
+    }
+
+    @Patch('update/estado/:id/:estado')
+    @ApiOperation({ summary: 'Actualizar estado de un registro de calidad de agua' })
+    updateEstadoCalidadAgua(
+        @Param('id', ParseIntPipe) id: number,
+        @Param('estado', ParseIntPipe) estado: number,
+    ) {
+        return this.calidadAguaService.updateEstadoCalidadAgua(id, estado);
     }
 }

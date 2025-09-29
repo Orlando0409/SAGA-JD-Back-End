@@ -38,6 +38,10 @@ export class ProyectoService
     {
         if (!file) { throw new Error('Debe subir una imagen para el proyecto'); }
 
+        // Normalizar datos antes de procesar
+        dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
+        dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
+        
         const TituloToUpperCase = dto.Titulo.toUpperCase();
         // Subir archivo a Dropbox
         const Proyecto = await this.dropboxFilesService.uploadFileDownloadOnly(file, 'Proyectos', TituloToUpperCase);
@@ -60,7 +64,12 @@ export class ProyectoService
         const proyecto = await this.proyectoRepository.findOne({ where: { Id_Proyecto } });
         if (!proyecto) { throw new NotFoundException(`Proyecto con id ${Id_Proyecto} no encontrado`); }
 
-        if (dto.Titulo) { dto.Titulo = dto.Titulo.toUpperCase(); }
+        if (dto.Titulo) { 
+            dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase(); 
+        }
+        if (dto.Descripcion) { 
+            dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase(); 
+        }
 
         Object.assign(proyecto, dto);
         return this.proyectoRepository.save(proyecto);

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put } from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put } from "@nestjs/common";
 import { ApiOperation } from "@nestjs/swagger";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 import { CreateSolicitudAsociadoJuridicaDto } from "../../SolicitudDTO's/CreateSolicitudJuridica.dto";
@@ -16,12 +16,6 @@ export class SolicitudAsociadoJuridicaController {
   @ApiOperation({ summary: 'Obtener todas las solicitudes de asociado jurídicas' })
   getAllSolicitudesAsociado() {
     return this.solicitudAsociadoJuridicaService.getAllSolicitudesAsociado();
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: 'Obtener solicitud por ID' })
-  getSolicitudAsociadoById(@Param('id', ParseIntPipe) id: number) {
-    return this.solicitudAsociadoJuridicaService.findSolicitudAsociadoById(id);
   }
 
   @Public()

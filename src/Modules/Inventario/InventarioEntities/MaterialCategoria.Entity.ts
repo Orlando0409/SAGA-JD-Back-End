@@ -7,7 +7,7 @@ export class MaterialCategoria {
     @PrimaryGeneratedColumn()
     Id_Material_Categoria: number;
 
-    @ManyToOne(() => Material, material => material.Categorias, { onDelete: 'CASCADE' })
+    @ManyToOne(() => Material, material => material.materialCategorias, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'Id_Material' })
     Material: Material;
 

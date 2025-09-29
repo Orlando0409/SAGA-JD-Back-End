@@ -12,6 +12,9 @@ import { EstadoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/EstadoAfi
 import { TipoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
 import { EstadoMaterial } from 'src/Modules/Inventario/InventarioEntities/EstadoMaterial.Entity';
 import { Categoria } from 'src/Modules/Inventario/InventarioEntities/Categoria.Entity';
+import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
+import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
+import { EstadoCalidadAgua } from 'src/Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -36,6 +39,12 @@ export class SeederService implements OnModuleInit {
         private readonly estadoMaterialRepository: Repository<EstadoMaterial>,
         @InjectRepository(Categoria)
         private readonly categoriaMaterialRepository: Repository<Categoria>,
+        @InjectRepository(EstadoUnidadMedicion)
+        private readonly estadoUnidadMedicionRepository: Repository<EstadoUnidadMedicion>,
+        @InjectRepository(UnidadMedicion)
+        private readonly unidadMedicionRepository: Repository<UnidadMedicion>,
+        @InjectRepository(EstadoCalidadAgua)
+        private readonly estadoCalidadAguaRepository: Repository<EstadoCalidadAgua>,
     ) {}
 
     async onModuleInit() {
@@ -47,6 +56,9 @@ export class SeederService implements OnModuleInit {
         await this.createDefaultTiposAfiliado();
         await this.createDefaultEstadosMaterial();
         await this.createDefaultCategoriasMaterial();
+        await this.createDefaultEstadosUnidadMedicion();
+        await this.createDefaultUnidadesMedicion();
+        await this.createDefaultEstadosCalidadAgua();
     }
 
     private async createInitialData() {
@@ -139,8 +151,8 @@ export class SeederService implements OnModuleInit {
 
     private async createDefaultEstadosMaterial() {
         const estados = [
-            { Id_Estado_Material: 1, Nombre_Estado_Material: 'DISPONIBLE' },
-            { Id_Estado_Material: 2, Nombre_Estado_Material: 'AGOTADO' },
+            { Id_Estado_Material: 1, Nombre_Estado_Material: 'Disponible' },
+            { Id_Estado_Material: 2, Nombre_Estado_Material: 'Agotado' },
         ];
 
         for (const estado of estados) {
@@ -157,10 +169,10 @@ export class SeederService implements OnModuleInit {
 
     private async createDefaultCategoriasMaterial() {
         const categorias = [
-            { Id_Categoria: 1, Nombre_Categoria: 'PLOMERIA' },
-            { Id_Categoria: 2, Nombre_Categoria: 'ELECTRICIDAD' },
-            { Id_Categoria: 3, Nombre_Categoria: 'HERRAMIENTAS' },
-            { Id_Categoria: 4, Nombre_Categoria: 'OTROS' },
+            { Id_Categoria: 1, Nombre_Categoria: 'Plomeria' },
+            { Id_Categoria: 2, Nombre_Categoria: 'Electricidad' },
+            { Id_Categoria: 3, Nombre_Categoria: 'Herramientas' },
+            { Id_Categoria: 4, Nombre_Categoria: 'Otros' },
         ];
 
         for (const categoria of categorias) {
@@ -171,6 +183,61 @@ export class SeederService implements OnModuleInit {
             if (!existe) {
                 const nuevaCategoria = this.categoriaMaterialRepository.create(categoria);
                 await this.categoriaMaterialRepository.save(nuevaCategoria);
+            }
+        }
+    }
+
+    private async createDefaultEstadosUnidadMedicion() {
+        const estados = [
+            { Id_Estado_Unidad_Medicion: 1, Nombre_Estado_Unidad_Medicion: 'Activo' },
+            { Id_Estado_Unidad_Medicion: 2, Nombre_Estado_Unidad_Medicion: 'Inactivo' },
+        ];
+
+        for (const estado of estados) {
+            const existe = await this.estadoUnidadMedicionRepository.findOne({
+                where: { Id_Estado_Unidad_Medicion: estado.Id_Estado_Unidad_Medicion }
+            });
+
+            if (!existe) {
+                const nuevoEstado = this.estadoUnidadMedicionRepository.create(estado);
+                await this.estadoUnidadMedicionRepository.save(nuevoEstado);
+            }
+        }
+    }
+
+    private async createDefaultUnidadesMedicion() {
+        const unidades = [
+            { Id_Unidad_Medicion: 1, Nombre_Unidad: 'Unidad', Abreviatura: 'U', Descripcion: 'Unidades simples', Id_Estado_Unidad_Medicion: 1 },
+            { Id_Unidad_Medicion: 2, Nombre_Unidad: 'Paquete', Abreviatura: 'P', Descripcion: 'De entre 4 a 8 por paquete', Id_Estado_Unidad_Medicion: 1 },
+            { Id_Unidad_Medicion: 3, Nombre_Unidad: 'Litro', Abreviatura: 'L', Descripcion: 'Unidad de medida para líquidos', Id_Estado_Unidad_Medicion: 1 },
+        ];
+
+        for (const unidad of unidades) {
+            const existe = await this.unidadMedicionRepository.findOne({
+                where: { Id_Unidad_Medicion: unidad.Id_Unidad_Medicion }
+            });
+
+            if (!existe) {
+                const nuevaUnidad = this.unidadMedicionRepository.create(unidad);
+                await this.unidadMedicionRepository.save(nuevaUnidad);
+            }
+        }
+    }
+
+    private async createDefaultEstadosCalidadAgua() {
+        const estados = [
+            { Id_Estado_Calidad_Agua: 1, Nombre_Estado_Calidad_Agua: 'Visible' },
+            { Id_Estado_Calidad_Agua: 2, Nombre_Estado_Calidad_Agua: 'Invisible' },
+        ];
+
+        for (const estado of estados) {
+            const existe = await this.estadoCalidadAguaRepository.findOne({
+                where: { Id_Estado_Calidad_Agua: estado.Id_Estado_Calidad_Agua }
+            });
+
+            if (!existe) {
+                const nuevoEstado = this.estadoCalidadAguaRepository.create(estado);
+                await this.estadoCalidadAguaRepository.save(nuevoEstado);
             }
         }
     }

@@ -33,13 +33,6 @@ export class SolicitudAfiliacionJuridicaService
         return this.solicitudAfiliacionJuridicaRepository.find({ relations: ['Estado'] });
     }
 
-    async findSolicitudAfiliacionById(id: number)
-    {
-        const solicitud = await this.solicitudAfiliacionJuridicaRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
-        if (!solicitud) {throw new BadRequestException(`Solicitud de afiliación jurídica con id ${id} no encontrada`);}
-        return solicitud;
-    }
-
     @Public()
     async createSolicitudAfiliacion(dto: CreateSolicitudAfiliacionJuridicaDto, files: any)
     {
@@ -55,29 +48,26 @@ export class SolicitudAfiliacionJuridicaService
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Juridicas', dto.Cedula_Juridica, dto.Razon_Social) : null;
         const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Juridicas', dto.Cedula_Juridica, dto.Razon_Social) : null;
 
-        const now = new Date();
-        now.setSeconds(0, 0);
+        dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
 
-        // Guarda SOLO las URLs en tu BD
-        const solicitudAfiliacion = {
+        // Crear instancia de la entidad para que se ejecuten los decoradores @BeforeInsert
+        const solicitudAfiliacion = this.solicitudAfiliacionJuridicaRepository.create({
             ...dto,
             Planos_Terreno: planoRes?.url,
             Escritura_Terreno: escrituraRes?.url,
-            Estado: estadoInicial,
-            Id_Tipo_Solicitud: 1
-        };
+            Estado: estadoInicial
+        });
 
         return this.solicitudAfiliacionJuridicaRepository.save(solicitudAfiliacion);
     }
 
     async updateSolicitudAfiliacion(id: number, dto: UpdateSolicitudAfiliacionJuridicaDto)
     {
-        const solicitud = await this.solicitudAfiliacionJuridicaRepository.findOne({
-            where: { Id_Solicitud: id }
-        });
+        const solicitud = await this.solicitudAfiliacionJuridicaRepository.findOne({ where: { Id_Solicitud: id } });
+        if (!solicitud) { throw new BadRequestException(`Solicitud de afiliación jurídica con id ${id} no encontrada`); }
 
-        if (!solicitud) {
-            throw new BadRequestException(`Solicitud de afiliación jurídica con id ${id} no encontrada`);
+        if (dto.Razon_Social) {
+            dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
         }
 
         Object.assign(solicitud, dto);

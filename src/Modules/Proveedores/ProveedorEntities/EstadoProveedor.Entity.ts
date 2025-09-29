@@ -6,7 +6,7 @@ export class EstadoProveedor{
     @PrimaryGeneratedColumn()
     Id_Estado_Proveedor : number;
 
-    @Column()
+    @Column({ nullable: false })
     Estado_Proveedor : string;
 
     //Un estado puede tener varios proveedores

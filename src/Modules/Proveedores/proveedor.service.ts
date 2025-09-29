@@ -52,10 +52,10 @@ export class ProveedorService {
         throw new ConflictException('Este nombre ya se encuentra registrado');
     }
 
-    const identificacionExistente = await this.juridicoRepo.findOne({
-      where: { Identificacion: dto.Identificacion },
+    const cedulaExistente = await this.juridicoRepo.findOne({
+      where: { Cedula_Juridica: (dto.Cedula_Juridica) },
     });
-      if (identificacionExistente) {
+      if (cedulaExistente) {
         throw new ConflictException('Esta identificación ya se encuentra registrada');
     }
 

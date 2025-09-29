@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive, IsEnum } from "class-validator";
+import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive, IsEnum, IsOptional } from "class-validator";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { IsIdentificacionValida } from "src/Validations/DTO Validators/Identificacion.validator";
 import { IsTelefonoValido } from "src/Validations/DTO Validators/NumeroTelefono.validator";
@@ -21,7 +21,7 @@ export class CreateSolicitudFisicaDto {
   Identificacion: string;
 
   @ApiProperty({ example: 'Mario' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'El nombre debe ser un string' })
   @IsDefined({ message: 'El nombre no puede estar vacío' })
   @IsNotEmpty({ message: 'El nombre no puede estar vacío' })
@@ -31,7 +31,7 @@ export class CreateSolicitudFisicaDto {
   Nombre: string;
 
   @ApiProperty({ example: 'Perez' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'El primer apellido debe ser un string' })
   @IsDefined({ message: 'El primer apellido no puede estar vacío' })
   @IsNotEmpty({ message: 'El primer apellido no puede estar vacío' })
@@ -40,16 +40,18 @@ export class CreateSolicitudFisicaDto {
   @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'El primer apellido solo puede contener letras y espacios' })
   Apellido1: string;
 
-  @ApiProperty({ example: 'Lopez' })
-  @Transform(({ value }) => value?.trim())
+  @ApiProperty({ example: 'Lopez', required: false })
+  @Transform(({ value }) => {
+    if (!value || value.trim() === '') return 'No Proporcionado';
+    return value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase();
+  })
   @IsString({ message: 'El segundo apellido debe ser un string' })
-  @MinLength(2, { message: 'El segundo apellido debe tener al menos 2 caracteres' })
   @MaxLength(50, { message: 'El segundo apellido no puede tener más de 50 caracteres' })
-  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'El segundo apellido solo puede contener letras y espacios' })
+  @IsOptional()
   Apellido2?: string;
 
   @ApiProperty({ example: 'ejemplo@gmail.com' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim().toLowerCase())
   @IsEmail({}, { message: 'El correo electrónico debe tener un formato válido' })
   @IsDefined({ message: 'El correo no puede estar vacío' })
   @IsNotEmpty({ message: 'El correo no puede estar vacío' })
@@ -68,7 +70,7 @@ export class CreateSolicitudFisicaDto {
 
 export class CreateSolicitudAfiliacionFisicaDto extends CreateSolicitudFisicaDto {
   @ApiProperty({ example: '200 metros del perro echado' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'La dirección debe ser un string' })
   @IsDefined({ message: 'La dirección no puede estar vacía' })
   @IsNotEmpty({ message: 'La dirección no puede estar vacía' })
@@ -89,7 +91,7 @@ export class CreateSolicitudAfiliacionFisicaDto extends CreateSolicitudFisicaDto
 
 export class CreateSolicitudDesconexionFisicaDto extends CreateSolicitudFisicaDto {
   @ApiProperty({ example: '200 metros del perro echado' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'La dirección debe ser un string' })
   @IsDefined({ message: 'La dirección no puede estar vacía' })
   @IsNotEmpty({ message: 'La dirección no puede estar vacía' })
@@ -99,7 +101,7 @@ export class CreateSolicitudDesconexionFisicaDto extends CreateSolicitudFisicaDt
   Direccion_Exacta: string;
 
   @ApiProperty({ example: 'Para mi casa de campo nueva' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'El motivo de la solicitud debe ser un string' })
   @IsDefined({ message: 'El motivo de la solicitud no puede estar vacío' })
   @IsNotEmpty({ message: 'El motivo de la solicitud no puede estar vacío' })
@@ -111,7 +113,7 @@ export class CreateSolicitudDesconexionFisicaDto extends CreateSolicitudFisicaDt
 
 export class CreateSolicitudCambioMedidorFisicaDto extends CreateSolicitudFisicaDto {
   @ApiProperty({ example: '200 metros del perro echado' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'La dirección debe ser un string' })
   @IsDefined({ message: 'La dirección no puede estar vacía' })
   @IsNotEmpty({ message: 'La dirección no puede estar vacía' })
@@ -121,7 +123,7 @@ export class CreateSolicitudCambioMedidorFisicaDto extends CreateSolicitudFisica
   Direccion_Exacta: string;
 
   @ApiProperty({ example: 'Para mi casa de campo nueva' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'El motivo de la solicitud debe ser un string' })
   @IsDefined({ message: 'El motivo de la solicitud no puede estar vacío' })
   @IsNotEmpty({ message: 'El motivo de la solicitud no puede estar vacío' })
@@ -142,7 +144,7 @@ export class CreateSolicitudCambioMedidorFisicaDto extends CreateSolicitudFisica
 
 export class CreateSolicitudAsociadoFisicaDto extends CreateSolicitudFisicaDto {
   @ApiProperty({ example: 'Para mi casa de campo nueva' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'El motivo de la solicitud debe ser un string' })
   @IsDefined({ message: 'El motivo de la solicitud no puede estar vacío' })
   @IsNotEmpty({ message: 'El motivo de la solicitud no puede estar vacío' })
