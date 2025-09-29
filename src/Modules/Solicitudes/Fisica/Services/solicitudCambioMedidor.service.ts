@@ -43,6 +43,9 @@ export class SolicitudesCambioMedidorFisicaService
         // Normalizar nombres en el servicio (Apellido2 se maneja automáticamente en la entidad)
         dto.Nombre = dto.Nombre.trim()[0].toUpperCase() + dto.Nombre.trim().slice(1).toLowerCase();
         dto.Apellido1 = dto.Apellido1.trim()[0].toUpperCase() + dto.Apellido1.trim().slice(1).toLowerCase();
+        if (dto.Apellido2) {
+            dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
+        }
 
         const solicitudCambioMedidor = this.solicitudCambioMedidorFisicaRepository.create({...dto, Estado: estadoInicial});
         return this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
@@ -50,15 +53,12 @@ export class SolicitudesCambioMedidorFisicaService
 
     async updateSolicitudCambioMedidor(id: number, dto: UpdateSolicitudCambioMedidorFisicaDto)
     {
-        const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({
-            where: { Id_Solicitud: id }
-        });
-    
-        if (!solicitudCambioMedidor) {
-            throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`);
-        }
+        const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({ where: { Id_Solicitud: id } });
+        if (!solicitudCambioMedidor) { throw new BadRequestException(`Solicitud de cambio de medidor físico con id ${id} no encontrada`); }
 
-        // Apellido2 se maneja automáticamente en la entidad
+        if(dto.Apellido2) {
+            dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
+        }
 
         Object.assign(solicitudCambioMedidor, dto);
         return this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);

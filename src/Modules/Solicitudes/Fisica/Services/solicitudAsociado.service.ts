@@ -45,6 +45,9 @@ export class SolicitudAsociadoFisicaService
         // Normalizar nombres en el servicio (Apellido2 se maneja automáticamente en la entidad)
         dto.Nombre = dto.Nombre.trim()[0].toUpperCase() + dto.Nombre.trim().slice(1).toLowerCase();
         dto.Apellido1 = dto.Apellido1.trim()[0].toUpperCase() + dto.Apellido1.trim().slice(1).toLowerCase();
+        if (dto.Apellido2) {
+            dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
+        }
 
         const solicitudAsociado = this.solicitudAsociadoFisicaRepository.create({...dto, Estado: estadoInicial});
         return this.solicitudAsociadoFisicaRepository.save(solicitudAsociado);
@@ -52,15 +55,12 @@ export class SolicitudAsociadoFisicaService
 
     async updateSolicitudAsociado(id: number, dto: UpdateSolicitudAsociadoFisicaDto)
     {
-        const solicitudAsociado = await this.solicitudAsociadoFisicaRepository.findOne({
-            where: { Id_Solicitud: id }
-        });
+        const solicitudAsociado = await this.solicitudAsociadoFisicaRepository.findOne({ where: { Id_Solicitud: id } });
+        if (!solicitudAsociado) { throw new BadRequestException(`Solicitud de asociado físico con id ${id} no encontrada`); }
 
-        if (!solicitudAsociado) {
-            throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`);
+        if (dto.Apellido2) {
+            dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
         }
-
-        // Apellido2 se maneja automáticamente en la entidad
 
         Object.assign(solicitudAsociado, dto);
         return this.solicitudAsociadoFisicaRepository.save(solicitudAsociado);
