@@ -76,6 +76,7 @@ import { EstadoCalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/Est
         ProyectoEstado, Proyecto, CalidadAgua, EstadoCalidadAgua, Acta, ArchivoActa, Material, EstadoMaterial,
         Categoria, MaterialCategoria, EstadoUnidadMedicion, UnidadMedicion],
         synchronize: false,
+        dropSchema: false,
       }),
     }),
     SeederModule,
