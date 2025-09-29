@@ -233,6 +233,7 @@ export class SeederService implements OnModuleInit {
         for (const estado of estados) {
             const existe = await this.estadoCalidadAguaRepository.findOne({
                 where: { Id_Estado_Calidad_Agua: estado.Id_Estado_Calidad_Agua }
+                
             });
 
             if (!existe) {
