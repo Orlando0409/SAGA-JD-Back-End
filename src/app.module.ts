@@ -5,9 +5,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ProyectoModule } from './Modules/Proyectos/proyecto.module';
 import { FacturaModule } from './Modules/Facturas/factura.module';
 import { InventarioModule } from './Modules/Inventario/inventario.module';
-import { ProveedorEntity } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
-import { ProveedorFisico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
-import { ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
 import { ProveedorModule } from './Modules/Proveedores/proveedor.module';
 import { EstadoProveedor } from './Modules/Proveedores/ProveedorEntities/EstadoProveedor.Entity';
 import { AuthModule } from './Modules/auth/Auth.module';
@@ -43,12 +40,13 @@ import { ArchivoActa } from './Modules/Actas/ActaEntities/ArchivoActa.Entity';
 import { ActasModule } from './Modules/Actas/actas.module';
 import { Material } from './Modules/Inventario/InventarioEntities/Material.Entity';
 import { EstadoMaterial } from './Modules/Inventario/InventarioEntities/EstadoMaterial.Entity';
-import { SeederModule } from './Config/Seeder.module';
 import { Categoria } from './Modules/Inventario/InventarioEntities/Categoria.Entity';
 import { MaterialCategoria } from './Modules/Inventario/InventarioEntities/MaterialCategoria.Entity';
 import { UnidadMedicion } from './Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoUnidadMedicion } from './Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
 import { EstadoCalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
+import { SeederModule } from './config/Seeder.module';
+import { ProveedorEntity, ProveedorFisico, ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
 
 @Module({
   imports: [
