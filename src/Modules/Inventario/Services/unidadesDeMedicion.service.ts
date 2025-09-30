@@ -1,11 +1,11 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UnidadMedicion } from '../InventarioEntities/UnidadMedicion.Entity';
 import { EstadoUnidadMedicion } from '../InventarioEntities/EstadoUnidadMedicion.Entity';
 import { CreateUnidadMedicionDto } from "../InventarioDTO's/CreateUnidadMedicion.dto";
 import { UpdateUnidadMedicionDto } from "../InventarioDTO's/UpdateUnidadMedicion.dto";
-import { getUnidadDeMedidaDTO } from "../InventarioDTO's/getUidadaDeMedida.dto";
+import { getUnidadDeMedidaDTO } from "../InventarioDTO's/getUnidadDeMedida.dto";
 
 @Injectable()
 export class UnidadesDeMedicionService {
@@ -97,36 +97,16 @@ export class UnidadesDeMedicionService {
     }
 
     async updateEstadoUnidadMedicion(Id_Unidad_Medicion: number, Id_Estado_Unidad_Medicion: number) {
-        const unidad = await this.unidadMedicionRepository.findOne({ 
-            where: { Id_Unidad_Medicion: Id_Unidad_Medicion }, 
-            relations: ['Estado_Unidad_Medicion'] 
-        });
-        if (!unidad) { 
-            throw new NotFoundException(`Unidad de medición con ID ${Id_Unidad_Medicion} no encontrada`); 
-        }
+        const unidadExistente = await this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: Id_Unidad_Medicion }, relations: ['Estado_Unidad_Medicion'] });
+        if (!unidadExistente) { throw new NotFoundException(`Unidad de medición con ID ${Id_Unidad_Medicion} no encontrada`); }
 
         // Verificar que el nuevo estado existe
-        const nuevoEstado = await this.estadoUnidadMedicionRepository.findOne({ 
-            where: { Id_Estado_Unidad_Medicion: Id_Estado_Unidad_Medicion } 
-        });
-        if (!nuevoEstado) { 
-            throw new NotFoundException(`Estado con ID ${Id_Estado_Unidad_Medicion} no encontrado en la base de datos`); 
-        }
+        const nuevoEstado = await this.estadoUnidadMedicionRepository.findOne({ where: { Id_Estado_Unidad_Medicion: Id_Estado_Unidad_Medicion } });
+        if (!nuevoEstado) { throw new NotFoundException(`Estado con ID ${Id_Estado_Unidad_Medicion} no encontrado en la base de datos`); }
 
         // Actualizar el estado de la unidad
-        unidad.Estado_Unidad_Medicion = nuevoEstado;
-        await this.unidadMedicionRepository.save(unidad);
+        unidadExistente.Estado_Unidad_Medicion = nuevoEstado;
+        await this.unidadMedicionRepository.save(unidadExistente);
         return this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: Id_Unidad_Medicion }, relations: ['Estado_Unidad_Medicion'] });
-    }
-
-    async deleteUnidadMedicion(Id_Unidad_Medicion: number) {
-        const unidad = await this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: Id_Unidad_Medicion }, relations: ['Materiales'] });
-        if (!unidad) { throw new NotFoundException(`Unidad de medición con ID ${Id_Unidad_Medicion} no encontrada`); }
-
-        // Verificar si hay materiales usando esta unidad
-        if (unidad.Materiales && unidad.Materiales.length > 0) { throw new BadRequestException(`No se puede eliminar la unidad de medición porque ${unidad.Materiales.length} material(es) la están usando`); }
-
-        await this.unidadMedicionRepository.remove(unidad);
-        return { message: `Unidad de medición "${unidad.Nombre_Unidad}" eliminada exitosamente` };
     }
 }

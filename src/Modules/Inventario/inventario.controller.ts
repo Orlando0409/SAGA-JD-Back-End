@@ -9,6 +9,7 @@ import { UpdateMaterialDto } from "./InventarioDTO's/UpdateMaterial.dto";
 import { CreateUnidadMedicionDto } from "./InventarioDTO's/CreateUnidadMedicion.dto";
 import { IngresoEgresoMaterialDto } from "./InventarioDTO's/IngresoEgresoMaterial.dto";
 import { UpdateUnidadMedicionDto } from "./InventarioDTO's/UpdateUnidadMedicion.dto";
+import { UpdateCategoriaDto } from './InventarioDTO\'s/UpdateCategoria.dto';
 
 @Controller('Inventario')
 @UseInterceptors(ClassSerializerInterceptor) // Agregar el interceptor para serialización
@@ -27,8 +28,8 @@ export class InventarioController {
 
     @Get('/all/categorias')
     @ApiOperation({ summary: 'Obtiene todas las categorías de materiales.' })
-    async getAllCategories() {
-        return this.categoriasService.getAllCategories();
+    async getAllCategorias() {
+        return this.categoriasService.getAllCategorias();
     }
 
     @Get('/all/unidades-medicion')
@@ -73,10 +74,13 @@ export class InventarioController {
         return this.materialService.createMaterial(dto);
     }
 
-    @Post('/create/categoria')
+    @Post('/create/categoria/:idUsuario')
     @ApiOperation({ summary: 'Crea una nueva categoría de material.' })
-    async createCategoria(@Body() dto: CreateCategoriaDto) {
-        return this.categoriasService.createCategoria(dto);
+    async createCategoria(
+        @Body() dto: CreateCategoriaDto,
+        @Param('idUsuario', ParseIntPipe) idUsuario: number
+    ) {
+        return this.categoriasService.createCategoria(dto, idUsuario);
     }
 
     @Post('/create/unidad-medicion')
@@ -94,6 +98,15 @@ export class InventarioController {
         return this.materialService.updateMaterial(materialId, dto);
     }
 
+    @Put('/update/categoria/:categoriaId')
+    @ApiOperation({ summary: 'Actualiza una categoría existente.' })
+    async updateCategoria(
+        @Param('categoriaId', ParseIntPipe) categoriaId: number,
+        @Body() dto: UpdateCategoriaDto
+    ) {
+        return this.categoriasService.updateCategoria(categoriaId, dto);
+    }
+
     @Put('/update/unidad-medicion/:unidadId')
     @ApiOperation({ summary: 'Actualiza una unidad de medición existente.' })
     async updateUnidadMedicion(
@@ -101,6 +114,15 @@ export class InventarioController {
         @Body() dto: UpdateUnidadMedicionDto
     ) {
         return this.unidadesDeMedicionService.updateUnidadMedicion(unidadId, dto);
+    }
+
+    @Patch('/update/estado/categoria/:categoriaId/:estadoCategoriaId')
+    @ApiOperation({ summary: 'Cambia el estado de una categoría al estado especificado.' })
+    async cambiarEstadoCategoria(
+        @Param('categoriaId', ParseIntPipe) categoriaId: number,
+        @Param('estadoCategoriaId', ParseIntPipe) estadoCategoriaId: number
+    ) {
+        return this.categoriasService.updateEstadoCategoria(categoriaId, estadoCategoriaId);
     }
 
     @Patch('/update/estado/unidad-medicion/:unidadId/:estadoUnidadId')
@@ -128,11 +150,5 @@ export class InventarioController {
         @Body() dto: IngresoEgresoMaterialDto
     ) {
         return this.materialService.EgresoMaterial(materialId, dto);
-    }
-
-    @Delete('/delete/unidad-medicion/:unidadId')
-    @ApiOperation({ summary: 'Elimina una unidad de medición (solo si no está en uso).' })
-    async deleteUnidadMedicion(@Param('unidadId', ParseIntPipe) unidadId: number) {
-        return this.unidadesDeMedicionService.deleteUnidadMedicion(unidadId);
     }
 }
