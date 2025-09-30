@@ -46,6 +46,9 @@ export class SolicitudesDesconexionFisicaService
         // Normalizar nombres en el servicio (Apellido2 se maneja automáticamente en la entidad)
         dto.Nombre = dto.Nombre.trim()[0].toUpperCase() + dto.Nombre.trim().slice(1).toLowerCase();
         dto.Apellido1 = dto.Apellido1.trim()[0].toUpperCase() + dto.Apellido1.trim().slice(1).toLowerCase();
+        if (dto.Apellido2) {
+            dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
+        }
 
         const planoFile = files.Planos_Terreno?.[0];
         const escrituraFile = files.Escritura_Terreno?.[0];
@@ -68,15 +71,12 @@ export class SolicitudesDesconexionFisicaService
 
     async updateSolicitudDesconexion(id: number, dto: UpdateSolicitudDesconexionFisicaDto)
     {
-        const solicitud = await this.solicitudDesconexionFisicaRepository.findOne({
-            where: { Id_Solicitud: id }
-        });
+        const solicitud = await this.solicitudDesconexionFisicaRepository.findOne({ where: { Id_Solicitud: id } });
+        if (!solicitud) { throw new BadRequestException(`Solicitud de desconexión física con id ${id} no encontrada`); }
 
-        if (!solicitud) {
-            throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`);
+        if(dto.Apellido2) {
+            dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
         }
-
-        // Apellido2 se maneja automáticamente en la entidad
 
         Object.assign(solicitud, dto);
         return this.solicitudDesconexionFisicaRepository.save(solicitud);

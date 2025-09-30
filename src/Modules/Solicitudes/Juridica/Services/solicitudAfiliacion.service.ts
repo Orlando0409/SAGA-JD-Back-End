@@ -39,6 +39,10 @@ export class SolicitudAfiliacionJuridicaService
         const estadoInicial = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) { throw new BadRequestException(`Estado inicial de solicitud no configurado`); }
 
+        // Validar que existe un afiliado jurídico con esa identificación
+        const validacionAfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(dto.Cedula_Juridica);
+        if (validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
+
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesJuridicasActivas(dto.Cedula_Juridica);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
@@ -65,10 +69,6 @@ export class SolicitudAfiliacionJuridicaService
     {
         const solicitud = await this.solicitudAfiliacionJuridicaRepository.findOne({ where: { Id_Solicitud: id } });
         if (!solicitud) { throw new BadRequestException(`Solicitud de afiliación jurídica con id ${id} no encontrada`); }
-
-        if (dto.Razon_Social) {
-            dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
-        }
 
         Object.assign(solicitud, dto);
         return this.solicitudAfiliacionJuridicaRepository.save(solicitud);
