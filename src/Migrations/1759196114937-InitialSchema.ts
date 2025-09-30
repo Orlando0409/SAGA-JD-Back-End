@@ -1,11 +1,9 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class Test1759194708122 implements MigrationInterface {
-    name = 'Test1759194708122'
+export class InitialSchema1759196114937 implements MigrationInterface {
+    name = 'InitialSchema1759196114937'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`CREATE TABLE \`Archivo_Acta\` (\`Id_Archivo_Acta\` int NOT NULL AUTO_INCREMENT, \`Url_Archivo\` varchar(255) NOT NULL, \`actaIdActa\` int NULL, PRIMARY KEY (\`Id_Archivo_Acta\`)) ENGINE=InnoDB`);
-        await queryRunner.query(`CREATE TABLE \`Acta\` (\`Id_Acta\` int NOT NULL AUTO_INCREMENT, \`Id_Usuario\` int NOT NULL, \`Titulo\` varchar(255) NOT NULL, \`Descripcion\` varchar(255) NULL, \`Fecha_Creacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`Fecha_Actualizacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (\`Id_Acta\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Estado_Solicitud\` (\`Id_Estado_Solicitud\` int NOT NULL AUTO_INCREMENT, \`Nombre_Estado\` varchar(50) NOT NULL, PRIMARY KEY (\`Id_Estado_Solicitud\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Solicitud\` (\`Id_Solicitud\` int NOT NULL AUTO_INCREMENT, \`Correo\` varchar(255) NOT NULL, \`Numero_Telefono\` varchar(255) NOT NULL, \`Id_Tipo_Solicitud\` int NOT NULL, \`Fecha_Creacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`Fecha_Actualizacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`Id_Estado_Solicitud\` int NULL, INDEX \`IDX_c78cd62911db9f9a02fe4b5efd\` (\`Id_Tipo_Solicitud\`), PRIMARY KEY (\`Id_Solicitud\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Solicitudes_Afiliacion_Fisica\` (\`Id_Solicitud\` int NOT NULL AUTO_INCREMENT, \`Correo\` varchar(255) NOT NULL, \`Numero_Telefono\` varchar(255) NOT NULL, \`Id_Tipo_Solicitud\` int NOT NULL, \`Fecha_Creacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`Fecha_Actualizacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`Tipo_Identificacion\` enum ('Cedula Nacional', 'Dimex', 'Pasaporte') NOT NULL, \`Identificacion\` varchar(20) NOT NULL, \`Nombre\` varchar(255) NOT NULL, \`Apellido1\` varchar(255) NOT NULL, \`Apellido2\` varchar(255) NULL, \`Direccion_Exacta\` varchar(255) NOT NULL, \`Edad\` int NOT NULL, \`Planos_Terreno\` varchar(255) NOT NULL, \`Escritura_Terreno\` varchar(255) NOT NULL, \`Id_Estado_Solicitud\` int NULL, PRIMARY KEY (\`Id_Solicitud\`)) ENGINE=InnoDB`);
@@ -18,25 +16,25 @@ export class Test1759194708122 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE \`Solicitudes_Asociado_Juridica\` (\`Id_Solicitud\` int NOT NULL AUTO_INCREMENT, \`Correo\` varchar(255) NOT NULL, \`Numero_Telefono\` varchar(255) NOT NULL, \`Id_Tipo_Solicitud\` int NOT NULL, \`Fecha_Creacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`Fecha_Actualizacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`Cedula_Juridica\` varchar(20) NOT NULL, \`Razon_Social\` varchar(255) NOT NULL, \`Motivo_Solicitud\` varchar(255) NOT NULL, \`Id_Estado_Solicitud\` int NULL, PRIMARY KEY (\`Id_Solicitud\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Estado_Proyecto\` (\`Id_Estado_Proyecto\` int NOT NULL AUTO_INCREMENT, \`Nombre_Estado\` varchar(50) NOT NULL, PRIMARY KEY (\`Id_Estado_Proyecto\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Proyecto\` (\`Id_Proyecto\` int NOT NULL AUTO_INCREMENT, \`Titulo\` varchar(255) NOT NULL, \`Descripcion\` text NOT NULL, \`Fecha_Creacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`Fecha_Actualizacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`Id_Usuario\` int NOT NULL, \`Imagen_Url\` varchar(255) NOT NULL, \`Id_Estado_Proyecto\` int NULL, PRIMARY KEY (\`Id_Proyecto\`)) ENGINE=InnoDB`);
-        await queryRunner.query(`CREATE TABLE \`Estado_Proveedor\` (\`Id_Estado_Proveedor\` int NOT NULL AUTO_INCREMENT, \`Estado_Proveedor\` varchar(255) NOT NULL, PRIMARY KEY (\`Id_Estado_Proveedor\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Proveedor\` (\`Id_Proveedor\` int NOT NULL AUTO_INCREMENT, \`Nombre_Proveedor\` varchar(255) NOT NULL, \`Telefono_Proveedor\` varchar(255) NOT NULL, \`Fecha_Creacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`Fecha_Actualizacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`Tipo_Proveedor\` varchar(255) NOT NULL, \`estadoProveedorIdEstadoProveedor\` int NULL, INDEX \`IDX_63e1147765fe206aa2191bb94a\` (\`Tipo_Proveedor\`), PRIMARY KEY (\`Id_Proveedor\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Proveedor_Fisico\` (\`Id_Proveedor\` int NOT NULL AUTO_INCREMENT, \`Nombre_Proveedor\` varchar(255) NOT NULL, \`Telefono_Proveedor\` varchar(255) NOT NULL, \`Fecha_Creacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`Fecha_Actualizacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`Tipo_Identificacion\` enum ('Cedula Nacional', 'Dimex', 'Pasaporte') NOT NULL, \`Identificacion\` varchar(20) NOT NULL, \`estadoProveedorIdEstadoProveedor\` int NULL, PRIMARY KEY (\`Id_Proveedor\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Proveedor_Juridico\` (\`Id_Proveedor\` int NOT NULL AUTO_INCREMENT, \`Nombre_Proveedor\` varchar(255) NOT NULL, \`Telefono_Proveedor\` varchar(255) NOT NULL, \`Fecha_Creacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`Fecha_Actualizacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`Cedula_Juridica\` varchar(25) NOT NULL, \`Razon_Social\` varchar(255) NOT NULL, \`estadoProveedorIdEstadoProveedor\` int NULL, PRIMARY KEY (\`Id_Proveedor\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Estado_Proveedor\` (\`Id_Estado_Proveedor\` int NOT NULL AUTO_INCREMENT, \`Estado_Proveedor\` varchar(255) NOT NULL, PRIMARY KEY (\`Id_Estado_Proveedor\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Estado_Material\` (\`Id_Estado_Material\` int NOT NULL AUTO_INCREMENT, \`Nombre_Estado_Material\` varchar(255) NOT NULL, PRIMARY KEY (\`Id_Estado_Material\`)) ENGINE=InnoDB`);
-        await queryRunner.query(`CREATE TABLE \`Estado_Unidad_Medicion\` (\`Id_Estado_Unidad_Medicion\` int NOT NULL AUTO_INCREMENT, \`Nombre_Estado_Unidad_Medicion\` varchar(255) NOT NULL, PRIMARY KEY (\`Id_Estado_Unidad_Medicion\`)) ENGINE=InnoDB`);
-        await queryRunner.query(`CREATE TABLE \`Unidades_Medicion\` (\`Id_Unidad_Medicion\` int NOT NULL AUTO_INCREMENT, \`Nombre_Unidad\` varchar(255) NOT NULL, \`Abreviatura\` varchar(255) NOT NULL, \`Descripcion\` varchar(255) NULL, \`Fecha_Creacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`Fecha_Actualizacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`Id_Estado_Unidad_Medicion\` int NULL, PRIMARY KEY (\`Id_Unidad_Medicion\`)) ENGINE=InnoDB`);
-        await queryRunner.query(`CREATE TABLE \`Material\` (\`Id_Material\` int NOT NULL AUTO_INCREMENT, \`Nombre_Material\` varchar(255) NOT NULL, \`Descripcion\` varchar(255) NULL, \`Cantidad\` int NOT NULL, \`Precio_Unitario\` int NOT NULL, \`Fecha_Entrada\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`Fecha_Actualizacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`Fecha_Salida\` datetime(0) NULL, \`Fecha_Baja\` datetime(0) NULL, \`Id_Estado_Material\` int NULL, \`Id_Unidad_Medicion\` int NULL, PRIMARY KEY (\`Id_Material\`)) ENGINE=InnoDB`);
-        await queryRunner.query(`CREATE TABLE \`estado_categoria\` (\`Id_Estado_Categoria\` int NOT NULL AUTO_INCREMENT, \`Nombre_Estado_Categoria\` varchar(255) NOT NULL, PRIMARY KEY (\`Id_Estado_Categoria\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Categoria\` (\`Id_Categoria\` int NOT NULL AUTO_INCREMENT, \`Nombre_Categoria\` varchar(255) NOT NULL, \`Descripcion_Categoria\` varchar(255) NULL, PRIMARY KEY (\`Id_Categoria\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Material_Categoria\` (\`Id_Material_Categoria\` int NOT NULL AUTO_INCREMENT, \`Id_Material\` int NULL, \`Id_Categoria\` int NULL, PRIMARY KEY (\`Id_Material_Categoria\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Material\` (\`Id_Material\` int NOT NULL AUTO_INCREMENT, \`Nombre_Material\` varchar(255) NOT NULL, \`Descripcion\` varchar(255) NULL, \`Cantidad\` int NOT NULL, \`Precio_Unitario\` int NOT NULL, \`Fecha_Entrada\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`Fecha_Actualizacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`Fecha_Salida\` datetime(0) NULL, \`Fecha_Baja\` datetime(0) NULL, \`Id_Estado_Material\` int NULL, \`Id_Unidad_Medicion\` int NULL, PRIMARY KEY (\`Id_Material\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Estado_Unidad_Medicion\` (\`Id_Estado_Unidad_Medicion\` int NOT NULL AUTO_INCREMENT, \`Nombre_Estado_Unidad_Medicion\` varchar(255) NOT NULL, PRIMARY KEY (\`Id_Estado_Unidad_Medicion\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Unidades_Medicion\` (\`Id_Unidad_Medicion\` int NOT NULL AUTO_INCREMENT, \`Nombre_Unidad\` varchar(255) NOT NULL, \`Abreviatura\` varchar(255) NOT NULL, \`Descripcion\` varchar(255) NULL, \`Fecha_Creacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`Fecha_Actualizacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`Id_Estado_Unidad_Medicion\` int NULL, PRIMARY KEY (\`Id_Unidad_Medicion\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Calidad_Agua\` (\`Id_Calidad_Agua\` int NOT NULL AUTO_INCREMENT, \`Titulo\` varchar(255) NOT NULL, \`Fecha_Creacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`Fecha_Actualizacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`Url_Archivo\` varchar(255) NOT NULL, \`estadoIdEstadoCalidadAgua\` int NULL, PRIMARY KEY (\`Id_Calidad_Agua\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Estado_Calidad_Agua\` (\`Id_Estado_Calidad_Agua\` int NOT NULL AUTO_INCREMENT, \`Nombre_Estado_Calidad_Agua\` varchar(255) NOT NULL, PRIMARY KEY (\`Id_Estado_Calidad_Agua\`)) ENGINE=InnoDB`);
-        await queryRunner.query(`CREATE TABLE \`Tipo_Afiliado\` (\`Id_Tipo_Afiliado\` int NOT NULL AUTO_INCREMENT, \`Nombre_Tipo_Afiliado\` varchar(50) NOT NULL, PRIMARY KEY (\`Id_Tipo_Afiliado\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Estado_Afiliado\` (\`Id_Estado_Afiliado\` int NOT NULL AUTO_INCREMENT, \`Nombre_Estado\` varchar(50) NOT NULL, PRIMARY KEY (\`Id_Estado_Afiliado\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Afiliado\` (\`Id_Afiliado\` int NOT NULL AUTO_INCREMENT, \`Correo\` varchar(255) NOT NULL, \`Numero_Telefono\` varchar(255) NOT NULL, \`Direccion_Exacta\` varchar(255) NOT NULL, \`Planos_Terreno\` varchar(255) NULL, \`Escritura_Terreno\` varchar(255) NULL, \`Fecha_Creacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`Fecha_Actualizacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`Tipo_Afiliado\` varchar(255) NOT NULL, \`Id_Estado_Afiliado\` int NULL, \`Id_Tipo_Afiliado\` int NULL, INDEX \`IDX_dcd704875268344764a264ef84\` (\`Tipo_Afiliado\`), PRIMARY KEY (\`Id_Afiliado\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Afiliado_Fisico\` (\`Id_Afiliado\` int NOT NULL AUTO_INCREMENT, \`Correo\` varchar(255) NOT NULL, \`Numero_Telefono\` varchar(255) NOT NULL, \`Direccion_Exacta\` varchar(255) NOT NULL, \`Planos_Terreno\` varchar(255) NULL, \`Escritura_Terreno\` varchar(255) NULL, \`Fecha_Creacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`Fecha_Actualizacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`Tipo_Identificacion\` enum ('Cedula Nacional', 'Dimex', 'Pasaporte') NOT NULL, \`Identificacion\` varchar(20) NOT NULL, \`Nombre\` varchar(255) NOT NULL, \`Apellido1\` varchar(255) NOT NULL, \`Apellido2\` varchar(255) NULL, \`Edad\` int NOT NULL, \`Id_Estado_Afiliado\` int NULL, \`Id_Tipo_Afiliado\` int NULL, PRIMARY KEY (\`Id_Afiliado\`)) ENGINE=InnoDB`);
         await queryRunner.query(`CREATE TABLE \`Afiliado_Juridico\` (\`Id_Afiliado\` int NOT NULL AUTO_INCREMENT, \`Correo\` varchar(255) NOT NULL, \`Numero_Telefono\` varchar(255) NOT NULL, \`Direccion_Exacta\` varchar(255) NOT NULL, \`Planos_Terreno\` varchar(255) NULL, \`Escritura_Terreno\` varchar(255) NULL, \`Fecha_Creacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`Fecha_Actualizacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \`Cedula_Juridica\` varchar(20) NOT NULL, \`Razon_Social\` varchar(255) NOT NULL, \`Id_Estado_Afiliado\` int NULL, \`Id_Tipo_Afiliado\` int NULL, PRIMARY KEY (\`Id_Afiliado\`)) ENGINE=InnoDB`);
-        await queryRunner.query(`CREATE TABLE \`Estado_Afiliado\` (\`Id_Estado_Afiliado\` int NOT NULL AUTO_INCREMENT, \`Nombre_Estado\` varchar(50) NOT NULL, PRIMARY KEY (\`Id_Estado_Afiliado\`)) ENGINE=InnoDB`);
-        await queryRunner.query(`ALTER TABLE \`Archivo_Acta\` ADD CONSTRAINT \`FK_ff27db7cb09f59850f7a08cce42\` FOREIGN KEY (\`actaIdActa\`) REFERENCES \`Acta\`(\`Id_Acta\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
+        await queryRunner.query(`CREATE TABLE \`Tipo_Afiliado\` (\`Id_Tipo_Afiliado\` int NOT NULL AUTO_INCREMENT, \`Nombre_Tipo_Afiliado\` varchar(50) NOT NULL, PRIMARY KEY (\`Id_Tipo_Afiliado\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Acta\` (\`Id_Acta\` int NOT NULL AUTO_INCREMENT, \`Id_Usuario\` int NOT NULL, \`Titulo\` varchar(255) NOT NULL, \`Descripcion\` varchar(255) NULL, \`Fecha_Creacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP, \`Fecha_Actualizacion\` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (\`Id_Acta\`)) ENGINE=InnoDB`);
+        await queryRunner.query(`CREATE TABLE \`Archivo_Acta\` (\`Id_Archivo_Acta\` int NOT NULL AUTO_INCREMENT, \`Url_Archivo\` varchar(255) NOT NULL, \`actaIdActa\` int NULL, PRIMARY KEY (\`Id_Archivo_Acta\`)) ENGINE=InnoDB`);
         await queryRunner.query(`ALTER TABLE \`Solicitud\` ADD CONSTRAINT \`FK_3a6829abe1186831b46d532c4cc\` FOREIGN KEY (\`Id_Estado_Solicitud\`) REFERENCES \`Estado_Solicitud\`(\`Id_Estado_Solicitud\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`Solicitudes_Afiliacion_Fisica\` ADD CONSTRAINT \`FK_1651a6f6baebbd8fa0317ee20e8\` FOREIGN KEY (\`Id_Estado_Solicitud\`) REFERENCES \`Estado_Solicitud\`(\`Id_Estado_Solicitud\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`Solicitudes_Desconexion_Fisica\` ADD CONSTRAINT \`FK_39e8ee69fbc817322e3c14b4aac\` FOREIGN KEY (\`Id_Estado_Solicitud\`) REFERENCES \`Estado_Solicitud\`(\`Id_Estado_Solicitud\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
@@ -50,11 +48,11 @@ export class Test1759194708122 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE \`Proveedor\` ADD CONSTRAINT \`FK_6a361e57b117edc51d57a73105f\` FOREIGN KEY (\`estadoProveedorIdEstadoProveedor\`) REFERENCES \`Estado_Proveedor\`(\`Id_Estado_Proveedor\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`Proveedor_Fisico\` ADD CONSTRAINT \`FK_62a664ddcde5064b3750ea14651\` FOREIGN KEY (\`estadoProveedorIdEstadoProveedor\`) REFERENCES \`Estado_Proveedor\`(\`Id_Estado_Proveedor\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`Proveedor_Juridico\` ADD CONSTRAINT \`FK_cca796768bf0dceffd14954f66b\` FOREIGN KEY (\`estadoProveedorIdEstadoProveedor\`) REFERENCES \`Estado_Proveedor\`(\`Id_Estado_Proveedor\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE \`Unidades_Medicion\` ADD CONSTRAINT \`FK_f26dafa50c22a29b350feaff577\` FOREIGN KEY (\`Id_Estado_Unidad_Medicion\`) REFERENCES \`Estado_Unidad_Medicion\`(\`Id_Estado_Unidad_Medicion\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE \`Material\` ADD CONSTRAINT \`FK_41d7dea412109ddab1098d36872\` FOREIGN KEY (\`Id_Estado_Material\`) REFERENCES \`Estado_Material\`(\`Id_Estado_Material\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE \`Material\` ADD CONSTRAINT \`FK_4b2831bac495c87de8aaf49dcd4\` FOREIGN KEY (\`Id_Unidad_Medicion\`) REFERENCES \`Unidades_Medicion\`(\`Id_Unidad_Medicion\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`Material_Categoria\` ADD CONSTRAINT \`FK_53aed793984960104c76a8c4e8e\` FOREIGN KEY (\`Id_Material\`) REFERENCES \`Material\`(\`Id_Material\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`Material_Categoria\` ADD CONSTRAINT \`FK_6c36d9df3a7a8448b27f62419f2\` FOREIGN KEY (\`Id_Categoria\`) REFERENCES \`Categoria\`(\`Id_Categoria\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Material\` ADD CONSTRAINT \`FK_41d7dea412109ddab1098d36872\` FOREIGN KEY (\`Id_Estado_Material\`) REFERENCES \`Estado_Material\`(\`Id_Estado_Material\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Material\` ADD CONSTRAINT \`FK_4b2831bac495c87de8aaf49dcd4\` FOREIGN KEY (\`Id_Unidad_Medicion\`) REFERENCES \`Unidades_Medicion\`(\`Id_Unidad_Medicion\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Unidades_Medicion\` ADD CONSTRAINT \`FK_f26dafa50c22a29b350feaff577\` FOREIGN KEY (\`Id_Estado_Unidad_Medicion\`) REFERENCES \`Estado_Unidad_Medicion\`(\`Id_Estado_Unidad_Medicion\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`Calidad_Agua\` ADD CONSTRAINT \`FK_cfe8a6c6cc48948e728b449a659\` FOREIGN KEY (\`estadoIdEstadoCalidadAgua\`) REFERENCES \`Estado_Calidad_Agua\`(\`Id_Estado_Calidad_Agua\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`Afiliado\` ADD CONSTRAINT \`FK_9bc75692360eaf5d26e99bfbb39\` FOREIGN KEY (\`Id_Estado_Afiliado\`) REFERENCES \`Estado_Afiliado\`(\`Id_Estado_Afiliado\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`Afiliado\` ADD CONSTRAINT \`FK_4668d741a93f7142e8f75821911\` FOREIGN KEY (\`Id_Tipo_Afiliado\`) REFERENCES \`Tipo_Afiliado\`(\`Id_Tipo_Afiliado\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
@@ -62,9 +60,11 @@ export class Test1759194708122 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE \`Afiliado_Fisico\` ADD CONSTRAINT \`FK_a7dee0d026d68c692c7a2d6cb76\` FOREIGN KEY (\`Id_Tipo_Afiliado\`) REFERENCES \`Tipo_Afiliado\`(\`Id_Tipo_Afiliado\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`Afiliado_Juridico\` ADD CONSTRAINT \`FK_086b74e7cd82fd20b69a3b59982\` FOREIGN KEY (\`Id_Estado_Afiliado\`) REFERENCES \`Estado_Afiliado\`(\`Id_Estado_Afiliado\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE \`Afiliado_Juridico\` ADD CONSTRAINT \`FK_c0be3314b39db4744c772e1207d\` FOREIGN KEY (\`Id_Tipo_Afiliado\`) REFERENCES \`Tipo_Afiliado\`(\`Id_Tipo_Afiliado\`) ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE \`Archivo_Acta\` ADD CONSTRAINT \`FK_ff27db7cb09f59850f7a08cce42\` FOREIGN KEY (\`actaIdActa\`) REFERENCES \`Acta\`(\`Id_Acta\`) ON DELETE CASCADE ON UPDATE NO ACTION`);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`ALTER TABLE \`Archivo_Acta\` DROP FOREIGN KEY \`FK_ff27db7cb09f59850f7a08cce42\``);
         await queryRunner.query(`ALTER TABLE \`Afiliado_Juridico\` DROP FOREIGN KEY \`FK_c0be3314b39db4744c772e1207d\``);
         await queryRunner.query(`ALTER TABLE \`Afiliado_Juridico\` DROP FOREIGN KEY \`FK_086b74e7cd82fd20b69a3b59982\``);
         await queryRunner.query(`ALTER TABLE \`Afiliado_Fisico\` DROP FOREIGN KEY \`FK_a7dee0d026d68c692c7a2d6cb76\``);
@@ -72,11 +72,11 @@ export class Test1759194708122 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE \`Afiliado\` DROP FOREIGN KEY \`FK_4668d741a93f7142e8f75821911\``);
         await queryRunner.query(`ALTER TABLE \`Afiliado\` DROP FOREIGN KEY \`FK_9bc75692360eaf5d26e99bfbb39\``);
         await queryRunner.query(`ALTER TABLE \`Calidad_Agua\` DROP FOREIGN KEY \`FK_cfe8a6c6cc48948e728b449a659\``);
-        await queryRunner.query(`ALTER TABLE \`Material_Categoria\` DROP FOREIGN KEY \`FK_6c36d9df3a7a8448b27f62419f2\``);
-        await queryRunner.query(`ALTER TABLE \`Material_Categoria\` DROP FOREIGN KEY \`FK_53aed793984960104c76a8c4e8e\``);
+        await queryRunner.query(`ALTER TABLE \`Unidades_Medicion\` DROP FOREIGN KEY \`FK_f26dafa50c22a29b350feaff577\``);
         await queryRunner.query(`ALTER TABLE \`Material\` DROP FOREIGN KEY \`FK_4b2831bac495c87de8aaf49dcd4\``);
         await queryRunner.query(`ALTER TABLE \`Material\` DROP FOREIGN KEY \`FK_41d7dea412109ddab1098d36872\``);
-        await queryRunner.query(`ALTER TABLE \`Unidades_Medicion\` DROP FOREIGN KEY \`FK_f26dafa50c22a29b350feaff577\``);
+        await queryRunner.query(`ALTER TABLE \`Material_Categoria\` DROP FOREIGN KEY \`FK_6c36d9df3a7a8448b27f62419f2\``);
+        await queryRunner.query(`ALTER TABLE \`Material_Categoria\` DROP FOREIGN KEY \`FK_53aed793984960104c76a8c4e8e\``);
         await queryRunner.query(`ALTER TABLE \`Proveedor_Juridico\` DROP FOREIGN KEY \`FK_cca796768bf0dceffd14954f66b\``);
         await queryRunner.query(`ALTER TABLE \`Proveedor_Fisico\` DROP FOREIGN KEY \`FK_62a664ddcde5064b3750ea14651\``);
         await queryRunner.query(`ALTER TABLE \`Proveedor\` DROP FOREIGN KEY \`FK_6a361e57b117edc51d57a73105f\``);
@@ -90,27 +90,27 @@ export class Test1759194708122 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE \`Solicitudes_Desconexion_Fisica\` DROP FOREIGN KEY \`FK_39e8ee69fbc817322e3c14b4aac\``);
         await queryRunner.query(`ALTER TABLE \`Solicitudes_Afiliacion_Fisica\` DROP FOREIGN KEY \`FK_1651a6f6baebbd8fa0317ee20e8\``);
         await queryRunner.query(`ALTER TABLE \`Solicitud\` DROP FOREIGN KEY \`FK_3a6829abe1186831b46d532c4cc\``);
-        await queryRunner.query(`ALTER TABLE \`Archivo_Acta\` DROP FOREIGN KEY \`FK_ff27db7cb09f59850f7a08cce42\``);
-        await queryRunner.query(`DROP TABLE \`Estado_Afiliado\``);
+        await queryRunner.query(`DROP TABLE \`Archivo_Acta\``);
+        await queryRunner.query(`DROP TABLE \`Acta\``);
+        await queryRunner.query(`DROP TABLE \`Tipo_Afiliado\``);
         await queryRunner.query(`DROP TABLE \`Afiliado_Juridico\``);
         await queryRunner.query(`DROP TABLE \`Afiliado_Fisico\``);
         await queryRunner.query(`DROP INDEX \`IDX_dcd704875268344764a264ef84\` ON \`Afiliado\``);
         await queryRunner.query(`DROP TABLE \`Afiliado\``);
-        await queryRunner.query(`DROP TABLE \`Tipo_Afiliado\``);
+        await queryRunner.query(`DROP TABLE \`Estado_Afiliado\``);
         await queryRunner.query(`DROP TABLE \`Estado_Calidad_Agua\``);
         await queryRunner.query(`DROP TABLE \`Calidad_Agua\``);
-        await queryRunner.query(`DROP TABLE \`Material_Categoria\``);
-        await queryRunner.query(`DROP TABLE \`Categoria\``);
-        await queryRunner.query(`DROP TABLE \`estado_categoria\``);
-        await queryRunner.query(`DROP TABLE \`Material\``);
         await queryRunner.query(`DROP TABLE \`Unidades_Medicion\``);
         await queryRunner.query(`DROP TABLE \`Estado_Unidad_Medicion\``);
+        await queryRunner.query(`DROP TABLE \`Material\``);
+        await queryRunner.query(`DROP TABLE \`Material_Categoria\``);
+        await queryRunner.query(`DROP TABLE \`Categoria\``);
         await queryRunner.query(`DROP TABLE \`Estado_Material\``);
+        await queryRunner.query(`DROP TABLE \`Estado_Proveedor\``);
         await queryRunner.query(`DROP TABLE \`Proveedor_Juridico\``);
         await queryRunner.query(`DROP TABLE \`Proveedor_Fisico\``);
         await queryRunner.query(`DROP INDEX \`IDX_63e1147765fe206aa2191bb94a\` ON \`Proveedor\``);
         await queryRunner.query(`DROP TABLE \`Proveedor\``);
-        await queryRunner.query(`DROP TABLE \`Estado_Proveedor\``);
         await queryRunner.query(`DROP TABLE \`Proyecto\``);
         await queryRunner.query(`DROP TABLE \`Estado_Proyecto\``);
         await queryRunner.query(`DROP TABLE \`Solicitudes_Asociado_Juridica\``);
@@ -124,8 +124,6 @@ export class Test1759194708122 implements MigrationInterface {
         await queryRunner.query(`DROP INDEX \`IDX_c78cd62911db9f9a02fe4b5efd\` ON \`Solicitud\``);
         await queryRunner.query(`DROP TABLE \`Solicitud\``);
         await queryRunner.query(`DROP TABLE \`Estado_Solicitud\``);
-        await queryRunner.query(`DROP TABLE \`Acta\``);
-        await queryRunner.query(`DROP TABLE \`Archivo_Acta\``);
     }
 
 }
