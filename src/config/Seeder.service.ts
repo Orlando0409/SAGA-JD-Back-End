@@ -15,6 +15,7 @@ import { Categoria } from 'src/Modules/Inventario/InventarioEntities/Categoria.E
 import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
 import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoCalidadAgua } from 'src/Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
+import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -39,6 +40,8 @@ export class SeederService implements OnModuleInit {
         private readonly estadoMaterialRepository: Repository<EstadoMaterial>,
         @InjectRepository(Categoria)
         private readonly categoriaMaterialRepository: Repository<Categoria>,
+        @InjectRepository(EstadoCategoria)
+        private readonly estadoCategoriaRepository: Repository<EstadoCategoria>,
         @InjectRepository(EstadoUnidadMedicion)
         private readonly estadoUnidadMedicionRepository: Repository<EstadoUnidadMedicion>,
         @InjectRepository(UnidadMedicion)
@@ -56,6 +59,7 @@ export class SeederService implements OnModuleInit {
         await this.createDefaultTiposAfiliado();
         await this.createDefaultEstadosMaterial();
         await this.createDefaultCategoriasMaterial();
+        await this.createDefaultEstadosCategoria();
         await this.createDefaultEstadosUnidadMedicion();
         await this.createDefaultUnidadesMedicion();
         await this.createDefaultEstadosCalidadAgua();
@@ -183,6 +187,24 @@ export class SeederService implements OnModuleInit {
             if (!existe) {
                 const nuevaCategoria = this.categoriaMaterialRepository.create(categoria);
                 await this.categoriaMaterialRepository.save(nuevaCategoria);
+            }
+        }
+    }
+
+    private async createDefaultEstadosCategoria() {
+        const estados = [
+            { Id_Estado_Categoria: 1, Nombre_Estado_Categoria: 'Activa' },
+            { Id_Estado_Categoria: 2, Nombre_Estado_Categoria: 'Inactiva' },
+        ];
+
+        for (const estado of estados) {
+            const existe = await this.estadoCategoriaRepository.findOne({
+                where: { Id_Estado_Categoria: estado.Id_Estado_Categoria }
+            });
+
+            if (!existe) {
+                const nuevoEstado = this.estadoCategoriaRepository.create(estado);
+                await this.estadoCategoriaRepository.save(nuevoEstado);
             }
         }
     }
