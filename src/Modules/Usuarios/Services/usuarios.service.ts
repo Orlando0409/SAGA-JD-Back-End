@@ -64,7 +64,7 @@ export class UsuariosService {
 
     async AllUser() {
         const users = await this.userRepository.find({ 
-            relations: ['rol', 'rol.permisos'], 
+            relations: ['Rol', 'Rol.Permisos'], 
             withDeleted: true  
         });
         
@@ -73,7 +73,7 @@ export class UsuariosService {
             const { Contraseña, ...userWithoutPassword } = user;
             return {
                 ...userWithoutPassword,
-                rol: user.Rol || 'Este usuario no posee rol'
+                Rol: user.Rol || 'Este usuario no posee rol'
             };
         });
     }
@@ -81,7 +81,7 @@ export class UsuariosService {
     async findOneUser(id: number) {
         const user = await this.userRepository.findOne({
             where: { Id_Usuario: id },
-            relations: ['rol', 'rol.permisos'],
+            relations: ['Rol', 'Rol.Permisos'],
             withDeleted: true
         });
         
@@ -94,7 +94,7 @@ export class UsuariosService {
         
         return {
             ...userWithoutPassword,
-            rol: user.Rol || 'Este usuario no posee rol'
+            Rol: user.Rol || 'Este usuario no posee rol'
         };
     }
 
@@ -102,7 +102,7 @@ async updateUser(id: number, updateUserDto: UpdateUserDto) {
 
     const user = await this.userRepository.findOne({
         where: { Id_Usuario: id },
-        relations: ['rol', 'rol.permisos'],
+        relations: ['Rol', 'Rol.Permisos'],
     });
     
     if (!user) {

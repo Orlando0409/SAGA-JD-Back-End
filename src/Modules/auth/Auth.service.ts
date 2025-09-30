@@ -192,26 +192,10 @@ export class AuthService {
 
     const { Contraseña, ...usuarioSeguro } = usuario;
 
-    // Organizar permisos por módulo
-    const permisosOrganizados = {};
-    if (usuario.Rol?.Permisos) {
-      usuario.Rol.Permisos.forEach(Permiso => {
-        if (!permisosOrganizados[Permiso.Modulo]) {
-          permisosOrganizados[Permiso.Modulo] = { ver: false, editar: false };
-        }
-        if (Permiso.Ver) {
-          permisosOrganizados[Permiso.Modulo].ver = true;
-        }
-        if (Permiso.Editar) {
-          permisosOrganizados[Permiso.Modulo].ver = true; // Editar incluye ver
-          permisosOrganizados[Permiso.Modulo].editar = true;
-        }
-      });
-    }
+
 
     return {
-      ...usuarioSeguro,
-      Permisos: permisosOrganizados
+      ...usuarioSeguro
     };
   }
 

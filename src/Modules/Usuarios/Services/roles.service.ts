@@ -43,7 +43,7 @@ export class RolesService {
     
     AllRoles() {
         return this.rolesRepository.find({ 
-            relations: ['permisos'],
+            relations: ['Permisos'],
             withDeleted: true});
     }
     AllPermission(){
@@ -53,7 +53,7 @@ export class RolesService {
     findOneRoles(id: number) {
         return this.rolesRepository.findOne({ 
             where: { Id_Rol: id }, 
-            relations: ['permisos'],
+            relations: ['Permisos'],
             withDeleted: true
         });
     }
@@ -63,7 +63,7 @@ export class RolesService {
         
         const rol = await this.rolesRepository.findOne({ 
             where: { Id_Rol: id }, 
-            relations: ['permisos'],
+            relations: ['Permisos'],
             withDeleted: true
         });
         
@@ -103,7 +103,7 @@ export class RolesService {
 
         const usersWithRole = await this.userRepository.find({
             where: { Id_Rol: id }, 
-            relations: ['rol', 'rol.permisos'],
+            relations: ['Rol', 'Rol.Permisos'],
             withDeleted: true, 
         });
 
@@ -136,7 +136,7 @@ export class RolesService {
 
         const usersWithRole = await this.userRepository.find({
             where: { Id_Rol: id }, 
-            relations: ['rol', 'rol.permisos'],
+            relations: ['Rol', 'Rol.Permisos'],
             withDeleted: true, 
         });
 
