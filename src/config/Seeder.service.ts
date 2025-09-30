@@ -190,6 +190,15 @@ export class SeederService implements OnModuleInit {
     }
 
     private async createDefaultCategoriasMaterial() {
+        // Buscar el usuario admin para asignarlo como creador
+        const adminUser = await this.userRepository.findOne({
+            where: { Nombre_Usuario: 'admin' }
+        });
+
+        if (!adminUser) {
+            console.warn('Usuario admin no encontrado. Las categorías se crearán sin usuario creador.');
+        }
+
         const categorias = [
             { Id_Categoria: 1, Nombre_Categoria: 'Plomeria', Descripcion_Categoria: 'Materiales relacionados con plomería' },
             { Id_Categoria: 2, Nombre_Categoria: 'Electricidad', Descripcion_Categoria: 'Materiales relacionados con electricidad' },
@@ -204,6 +213,12 @@ export class SeederService implements OnModuleInit {
 
             if (!existe) {
                 const nuevaCategoria = this.categoriaMaterialRepository.create(categoria);
+                
+                // Asignar el usuario creador si existe
+                if (adminUser) {
+                    nuevaCategoria.Usuario_Creador = adminUser;
+                }
+                
                 await this.categoriaMaterialRepository.save(nuevaCategoria);
             }
         }

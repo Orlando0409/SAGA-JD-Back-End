@@ -76,7 +76,7 @@ import { EstadoCategoria } from './Modules/Inventario/InventarioEntities/EstadoC
         UserEntity, UserRol, Permiso, ProveedorEntity, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
         ProyectoEstado, Proyecto, CalidadAgua, EstadoCalidadAgua, Acta, ArchivoActa, Material, EstadoMaterial,
         Categoria, EstadoCategoria, MaterialCategoria, EstadoUnidadMedicion, UnidadMedicion],
-        synchronize: true,
+        synchronize: false,
         dropSchema: false,
       }),
     }),

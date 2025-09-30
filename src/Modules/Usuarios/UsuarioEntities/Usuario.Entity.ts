@@ -3,7 +3,6 @@ import { UserRol } from './UsuarioRol.Entity';
 
 @Entity('Usuario')
 export class UserEntity {
-  
     @PrimaryGeneratedColumn()
     Id_Usuario: number;
 
@@ -29,4 +28,3 @@ export class UserEntity {
     @JoinColumn({ name: 'Id_Rol' })
     Rol: UserRol;
 }
-

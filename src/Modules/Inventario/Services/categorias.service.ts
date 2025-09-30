@@ -6,7 +6,6 @@ import { CreateCategoriaDto } from "../InventarioDTO's/CreateCategoria.dto";
 import { UpdateCategoriaDto } from "../InventarioDTO's/UpdateCategoria.dto";
 import { EstadoCategoria } from '../InventarioEntities/EstadoCategoria.Entity';
 import { UserEntity } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
-import { GetUsuarioCreadorDto } from '../InventarioDTO\'s/getUsuarioCreador.dto';
 
 @Injectable()
 export class CategoriasService {
@@ -22,7 +21,20 @@ export class CategoriasService {
     ) {}
 
     async getAllCategorias() {
-        return this.categoriaRepository.find({ relations: ['Estado_Categoria', 'Usuario_Creador', 'Usuario_Creador.Rol'] });
+        const categorias = await this.categoriaRepository.find({ relations: ['Estado_Categoria', 'Usuario_Creador', 'Usuario_Creador.Rol'] });
+        return categorias.map(categoria => {
+            return {
+                Id_Categoria: categoria.Id_Categoria,
+                Nombre_Categoria: categoria.Nombre_Categoria,
+                Descripcion_Categoria: categoria.Descripcion_Categoria,
+                Estado_Categoria: categoria.Estado_Categoria,
+                Usuario_Creador: {
+                    Id_Usuario: categoria.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: categoria.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: categoria.Usuario_Creador.Id_Rol
+                }
+            };
+        });
     }
 
     async createCategoria(dto: CreateCategoriaDto, idUsuarioCreador: number) {
@@ -44,7 +56,7 @@ export class CategoriasService {
         const categoriaGuardada = await this.categoriaRepository.save(categoria);
         const categoriaCompleta = await this.categoriaRepository.findOne({ 
             where: { Id_Categoria: categoriaGuardada.Id_Categoria }, 
-            relations: ['Estado_Categoria', 'Usuario_Creador', 'Usuario_Creador.Rol'] 
+            relations: ['Estado_Categoria', 'Usuario_Creador', 'Usuario_Creador.Rol']
         });
 
         if (!categoriaCompleta) {
@@ -60,7 +72,7 @@ export class CategoriasService {
             Usuario_Creador: {
                 Id_Usuario: categoriaCompleta.Usuario_Creador.Id_Usuario,
                 Nombre_Usuario: categoriaCompleta.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: categoriaCompleta.Usuario_Creador.Rol?.Id_Rol || null
+                Id_Rol: categoriaCompleta.Usuario_Creador.Id_Rol
             }
         };
     }
