@@ -39,12 +39,18 @@ export class SolicitudAfiliacionFisicaService
         const estadoInicial = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
         if (!estadoInicial) { throw new BadRequestException(`Estado inicial de solicitud no configurado`); }
 
+        const AfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
+        if (AfiliadoExistente) { throw new BadRequestException(`Ya existe un afiliado físico con la identificación ${dto.Identificacion}`); }
+
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
         // Normalizar nombres en el servicio (Apellido2 se maneja automáticamente en la entidad)
         dto.Nombre = dto.Nombre.trim()[0].toUpperCase() + dto.Nombre.trim().slice(1).toLowerCase();
         dto.Apellido1 = dto.Apellido1.trim()[0].toUpperCase() + dto.Apellido1.trim().slice(1).toLowerCase();
+        if (dto.Apellido2) {
+            dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
+        }
 
         const planoFile = files.Planos_Terreno?.[0];
         const escrituraFile = files.Escritura_Terreno?.[0];
@@ -59,7 +65,6 @@ export class SolicitudAfiliacionFisicaService
             Planos_Terreno: planoRes?.url,
             Escritura_Terreno: escrituraRes?.url,
             Estado: estadoInicial,
-            Id_Tipo_Solicitud: 1
         });
 
         return this.solicitudAfiliacionFisicaRepository.save(solicitudAfiliacion);
@@ -68,13 +73,15 @@ export class SolicitudAfiliacionFisicaService
     async updateSolicitudAfiliacion(id: number, dto: UpdateSolicitudAfiliacionFisicaDto, files?: any)
     {
         const solicitud = await this.solicitudAfiliacionFisicaRepository.findOne({ where: { Id_Solicitud: id } });
-        if (!solicitud) { throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`); }
+        if (!solicitud) { throw new BadRequestException(`Solicitud de afiliación física con id ${id} no encontrada`); }
 
         // Manejar archivos si se proporcionan
         let planoUrl = solicitud.Planos_Terreno; // Mantener URL existente por defecto
         let escrituraUrl = solicitud.Escritura_Terreno; // Mantener URL existente por defecto
 
-        // Apellido2 se maneja automáticamente en la entidad
+        if (dto.Apellido2) {
+            dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
+        }
 
         if (files) {
             const planoFile = files.Planos_Terreno?.[0];
