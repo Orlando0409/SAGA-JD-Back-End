@@ -4,30 +4,47 @@ import { Repository } from 'typeorm';
 import { Categoria } from '../InventarioEntities/Categoria.Entity';
 import { CreateCategoriaDto } from "../InventarioDTO's/CreateCategoria.dto";
 import { UpdateCategoriaDto } from "../InventarioDTO's/UpdateCategoria.dto";
+import { EstadoCategoria } from '../InventarioEntities/EstadoCategoria.Entity';
+import { UserEntity } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
 
 @Injectable()
 export class CategoriasService {
     constructor(
         @InjectRepository(Categoria)
         private readonly categoriaRepository: Repository<Categoria>,
+
+        @InjectRepository(EstadoCategoria)
+        private readonly estadoCategoriaRepository: Repository<EstadoCategoria>,
+
+        @InjectRepository(UserEntity)
+        private readonly usuarioRepository: Repository<UserEntity>,
     ) {}
 
-    async getAllCategories() {
-        return this.categoriaRepository.find();
+    async getAllCategorias() {
+        return this.categoriaRepository.find({ relations: ['Estado_Categoria', 'Usuario_Creador', 'Usuario_Creador.rol'] });
     }
 
-    async createCategoria(dto: CreateCategoriaDto) {
+    async createCategoria(dto: CreateCategoriaDto, idUsuarioCreador: number) {
         const CategoriaNormalizada = dto.Nombre_Categoria[0].toUpperCase() + dto.Nombre_Categoria.slice(1).toLowerCase();
 
         const categoriaExistente = await this.categoriaRepository.findOne({ where: { Nombre_Categoria: CategoriaNormalizada } });
         if (categoriaExistente) { throw new BadRequestException(`La categoría "${CategoriaNormalizada}" ya se encuentra registrada`); }
 
+        // Validar que el usuario existe
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador }, relations: ['rol'] });
+        if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuarioCreador} no encontrado`); }
+
         const categoria = this.categoriaRepository.create({
             ...dto,
             Nombre_Categoria: CategoriaNormalizada,
+            Usuario_Creador: usuario,
         });
 
-        return this.categoriaRepository.save(categoria);
+        const categoriaGuardada = await this.categoriaRepository.save(categoria);
+        return this.categoriaRepository.findOne({ 
+            where: { Id_Categoria: categoriaGuardada.Id_Categoria }, 
+            relations: ['Estado_Categoria', 'Usuario_Creador', 'Usuario_Creador.rol'] 
+        });
     }
 
     async updateCategoria(Id_Categoria: number, dto: UpdateCategoriaDto) {
@@ -48,5 +65,18 @@ export class CategoriasService {
         }
         Object.assign(categoriaExistente, datosActualizados);
         return this.categoriaRepository.save(categoriaExistente);
+    }
+
+    async updateEstadoCategoria(Id_Categoria: number, Id_Estado_Categoria: number) {
+        const categoriaExistente = await this.categoriaRepository.findOne({ where: { Id_Categoria: Id_Categoria } });
+        if (!categoriaExistente) { throw new NotFoundException(`Categoría con ID ${Id_Categoria} no encontrada`); }
+
+        // Verificar que el nuevo estado existe
+        const nuevoEstado = await this.estadoCategoriaRepository.findOne({ where: { Id_Estado_Categoria: Id_Estado_Categoria } });
+        if (!nuevoEstado) { throw new NotFoundException(`Estado con ID ${Id_Estado_Categoria} no encontrado en la base de datos`); }
+
+        categoriaExistente.Estado_Categoria = nuevoEstado;
+        await this.categoriaRepository.save(categoriaExistente);
+        return this.categoriaRepository.findOne({ where: { Id_Categoria: Id_Categoria }, relations: ['Estado_Categoria'] });
     }
 }

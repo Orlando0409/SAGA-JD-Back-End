@@ -77,6 +77,7 @@ import { EstadoCategoria } from './Modules/Inventario/InventarioEntities/EstadoC
         ProyectoEstado, Proyecto, CalidadAgua, EstadoCalidadAgua, Acta, ArchivoActa, Material, EstadoMaterial,
         Categoria, EstadoCategoria, MaterialCategoria, EstadoUnidadMedicion, UnidadMedicion],
         synchronize: false,
+        dropSchema: false,
       }),
     }),
     SeederModule,

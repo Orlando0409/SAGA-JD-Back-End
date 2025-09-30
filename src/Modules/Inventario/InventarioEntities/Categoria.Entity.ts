@@ -1,6 +1,7 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { MaterialCategoria } from "./MaterialCategoria.Entity";
 import { EstadoCategoria } from "./EstadoCategoria.Entity";
+import { UserEntity } from "../../Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Entity('Categoria')
 export class Categoria {
@@ -13,11 +14,20 @@ export class Categoria {
     @Column({ nullable: true })
     Descripcion_Categoria?: string;
 
-    @OneToMany(() => EstadoCategoria, estadoCategoria => estadoCategoria.Categorias)
+    @ManyToOne(() => EstadoCategoria, estadoCategoria => estadoCategoria.Categorias, { eager: true })
+    @JoinColumn({ name: 'Id_Estado_Categoria' })
     Estado_Categoria: EstadoCategoria;
+
+    @ManyToOne(() => UserEntity, usuario => usuario.Id_Usuario, { eager: true })
+    @JoinColumn({ name: 'Id_Usuario_Creador' })
+    Usuario_Creador: UserEntity;
 
     @OneToMany(() => MaterialCategoria, materialCategoria => materialCategoria.Categoria)
     Materiales: MaterialCategoria[];
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    setDefaultEstadoCategoria() { this.Estado_Categoria = { Id_Estado_Categoria: 1 } as EstadoCategoria; }
 
     @BeforeInsert()
     @BeforeUpdate()
