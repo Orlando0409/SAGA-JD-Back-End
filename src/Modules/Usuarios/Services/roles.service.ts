@@ -31,11 +31,11 @@ export class RolesService {
         const rol = this.rolesRepository.create(rolData);
         
         if (permisosIds && permisosIds.length > 0) {
-            const permisos = await this.permisosRepository.findBy({ id: In(permisosIds) });
+            const permisos = await this.permisosRepository.findBy({ Id: In(permisosIds) });
             if (permisos.length !== permisosIds.length) {
                 throw new NotFoundException('Uno o más permisos no fueron encontrados');
             }
-            rol.permisos = permisos;
+            rol.Permisos = permisos;
         }
         
         return this.rolesRepository.save(rol);
@@ -75,10 +75,10 @@ export class RolesService {
         
         if (permisosIds !== undefined) {
             if (permisosIds.length > 0) {
-                const permisos = await this.permisosRepository.findBy({ id: In(permisosIds) });
-                rol.permisos = permisos;
+                const permisos = await this.permisosRepository.findBy({ Id: In(permisosIds) });
+                rol.Permisos = permisos;
             } else {
-                rol.permisos = [];
+                rol.Permisos = [];
             }
         }
         
@@ -102,7 +102,7 @@ export class RolesService {
         await this.rolesRepository.softDelete(id);
 
         const usersWithRole = await this.userRepository.find({
-            where: { id_Rol: id }, 
+            where: { Id_Rol: id }, 
             relations: ['rol', 'rol.permisos'],
             withDeleted: true, 
         });
@@ -135,7 +135,7 @@ export class RolesService {
         await this.rolesRepository.restore(id);
 
         const usersWithRole = await this.userRepository.find({
-            where: { id_Rol: id }, 
+            where: { Id_Rol: id }, 
             relations: ['rol', 'rol.permisos'],
             withDeleted: true, 
         });

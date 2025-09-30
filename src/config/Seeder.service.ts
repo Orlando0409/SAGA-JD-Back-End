@@ -58,8 +58,8 @@ export class SeederService implements OnModuleInit {
         await this.createDefaultEstadosAfiliado();
         await this.createDefaultTiposAfiliado();
         await this.createDefaultEstadosMaterial();
-        await this.createDefaultCategoriasMaterial();
         await this.createDefaultEstadosCategoria();
+        await this.createDefaultCategoriasMaterial();
         await this.createDefaultEstadosUnidadMedicion();
         await this.createDefaultUnidadesMedicion();
         await this.createDefaultEstadosCalidadAgua();
@@ -171,26 +171,6 @@ export class SeederService implements OnModuleInit {
         }
     }
 
-    private async createDefaultCategoriasMaterial() {
-        const categorias = [
-            { Id_Categoria: 1, Nombre_Categoria: 'Plomeria' },
-            { Id_Categoria: 2, Nombre_Categoria: 'Electricidad' },
-            { Id_Categoria: 3, Nombre_Categoria: 'Herramientas' },
-            { Id_Categoria: 4, Nombre_Categoria: 'Otros' },
-        ];
-
-        for (const categoria of categorias) {
-            const existe = await this.categoriaMaterialRepository.findOne({
-                where: { Id_Categoria: categoria.Id_Categoria }
-            });
-
-            if (!existe) {
-                const nuevaCategoria = this.categoriaMaterialRepository.create(categoria);
-                await this.categoriaMaterialRepository.save(nuevaCategoria);
-            }
-        }
-    }
-
     private async createDefaultEstadosCategoria() {
         const estados = [
             { Id_Estado_Categoria: 1, Nombre_Estado_Categoria: 'Activa' },
@@ -205,6 +185,26 @@ export class SeederService implements OnModuleInit {
             if (!existe) {
                 const nuevoEstado = this.estadoCategoriaRepository.create(estado);
                 await this.estadoCategoriaRepository.save(nuevoEstado);
+            }
+        }
+    }
+
+    private async createDefaultCategoriasMaterial() {
+        const categorias = [
+            { Id_Categoria: 1, Nombre_Categoria: 'Plomeria', Descripcion_Categoria: 'Materiales relacionados con plomería' },
+            { Id_Categoria: 2, Nombre_Categoria: 'Electricidad', Descripcion_Categoria: 'Materiales relacionados con electricidad' },
+            { Id_Categoria: 3, Nombre_Categoria: 'Herramientas', Descripcion_Categoria: 'Materiales relacionados con herramientas' },
+            { Id_Categoria: 4, Nombre_Categoria: 'Otros', Descripcion_Categoria: 'Materiales de otras categorías' },
+        ];
+
+        for (const categoria of categorias) {
+            const existe = await this.categoriaMaterialRepository.findOne({
+                where: { Id_Categoria: categoria.Id_Categoria }
+            });
+
+            if (!existe) {
+                const nuevaCategoria = this.categoriaMaterialRepository.create(categoria);
+                await this.categoriaMaterialRepository.save(nuevaCategoria);
             }
         }
     }
@@ -303,34 +303,34 @@ export class SeederService implements OnModuleInit {
         for (const modulo of modulos) {
             // Permiso de solo lectura
             await this.createPermisoIfNotExists({
-                modulo,
+                Modulo: modulo,
                 Ver: true,
                 Editar: false,
             });
 
             // Sin permisos
             await this.createPermisoIfNotExists({
-                modulo,
+                Modulo: modulo,
                 Ver: false,
                 Editar: false,
             });
 
             // Permiso completo (ver y editar)
             await this.createPermisoIfNotExists({
-                modulo,
+                Modulo: modulo,
                 Ver: true,
                 Editar: true,
             });
 
             // Permiso de lectura para bitacora
             await this.createPermisoIfNotExists({
-            modulo: 'bitacora',
-            Ver: true,        
-            Editar: false,
+                Modulo: 'bitacora',
+                Ver: true,        
+                Editar: false,
             });
             // Sin permisos para bitacora
             await this.createPermisoIfNotExists({
-                modulo: 'bitacora',
+                Modulo: 'bitacora',
                 Ver: false,
                 Editar: false,
             });
@@ -338,13 +338,13 @@ export class SeederService implements OnModuleInit {
     }
 
     private async createPermisoIfNotExists(permisoData: {
-        modulo: string;
+        Modulo: string;
         Ver: boolean;
         Editar: boolean;
     }) {
         const permisoExistente = await this.permisoRepository.findOne({
             where: {
-                modulo: permisoData.modulo,
+                Modulo: permisoData.Modulo,
                 Ver: permisoData.Ver,
                 Editar: permisoData.Editar
             }
@@ -388,20 +388,20 @@ export class SeederService implements OnModuleInit {
         const todosLosPermisos = await this.permisoRepository.find({
             where: [
                 { Ver: true, Editar: true },
-                { modulo: 'bitacora', Ver: true, Editar: false }
+                { Modulo: 'bitacora', Ver: true, Editar: false }
             ]
         });
 
         // Verificar si ya tiene permisos asignados
-        if (adminRole.permisos && adminRole.permisos.length > 0) {
+        if (adminRole.Permisos && adminRole.Permisos.length > 0) {
             // Verificar si tiene TODOS los permisos
-            if (adminRole.permisos.length === todosLosPermisos.length) {
+            if (adminRole.Permisos.length === todosLosPermisos.length) {
                 return;
             }
         }
 
         // Asignar los permisos al rol Administrador
-        adminRole.permisos = todosLosPermisos;
+        adminRole.Permisos = todosLosPermisos;
         await this.rolRepository.save(adminRole);
         
     }
@@ -425,7 +425,7 @@ export class SeederService implements OnModuleInit {
                     Nombre_Usuario: 'admin',
                     Correo_Electronico: 'admin@saga.com',
                     Contraseña: hashedPassword,
-                    id_Rol: adminRole.Id_Rol
+                    Id_Rol: adminRole.Id_Rol
                 });
 
                 await this.userRepository.save(adminUser);

@@ -48,7 +48,7 @@ export class UsuariosService {
                 ...userData, 
                 Nombre_Usuario,
                 Contraseña: hashedPassword, //  Usar contraseña hasheada
-                id_Rol: Id_Rol,
+                Id_Rol: Id_Rol,
                 Correo_Electronico
             });
             return await this.userRepository.save(user);
@@ -73,7 +73,7 @@ export class UsuariosService {
             const { Contraseña, ...userWithoutPassword } = user;
             return {
                 ...userWithoutPassword,
-                rol: user.rol || 'Este usuario no posee rol'
+                rol: user.Rol || 'Este usuario no posee rol'
             };
         });
     }
@@ -94,7 +94,7 @@ export class UsuariosService {
         
         return {
             ...userWithoutPassword,
-            rol: user.rol || 'Este usuario no posee rol'
+            rol: user.Rol || 'Este usuario no posee rol'
         };
     }
 
@@ -121,15 +121,15 @@ async updateUser(id: number, updateUserDto: UpdateUserDto) {
     // Manejar el rol
     if (updateUserDto.Id_Rol !== undefined) {
         if (updateUserDto.Id_Rol === 0 ) {
-            user.id_Rol = 0;
-            user.rol.Id_Rol = 0; 
+            user.Id_Rol = 0;
+            user.Rol.Id_Rol = 0; 
         } else {
             const nuevoRol = await this.rolRepository.findOneBy({ Id_Rol: updateUserDto.Id_Rol });
             if (!nuevoRol) {
                 throw new NotFoundException('Rol no encontrado');
             } 
-            user.id_Rol = updateUserDto.Id_Rol;
-            user.rol = nuevoRol; 
+            user.Id_Rol = updateUserDto.Id_Rol;
+            user.Rol = nuevoRol; 
         }
     }
 
@@ -174,7 +174,7 @@ async updateUser(id: number, updateUserDto: UpdateUserDto) {
         } 
 
         const isRolActive = await this.rolRepository.findOne({
-            where: { Id_Rol: user.id_Rol },
+            where: { Id_Rol: user.Id_Rol },
             withDeleted: true, 
         });
 
