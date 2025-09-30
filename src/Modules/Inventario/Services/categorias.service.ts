@@ -6,6 +6,7 @@ import { CreateCategoriaDto } from "../InventarioDTO's/CreateCategoria.dto";
 import { UpdateCategoriaDto } from "../InventarioDTO's/UpdateCategoria.dto";
 import { EstadoCategoria } from '../InventarioEntities/EstadoCategoria.Entity';
 import { UserEntity } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
+import { GetUsuarioCreadorDto } from '../InventarioDTO\'s/getUsuarioCreador.dto';
 
 @Injectable()
 export class CategoriasService {
@@ -21,7 +22,7 @@ export class CategoriasService {
     ) {}
 
     async getAllCategorias() {
-        return this.categoriaRepository.find({ relations: ['Estado_Categoria', 'Usuario_Creador', 'Usuario_Creador.rol'] });
+        return this.categoriaRepository.find({ relations: ['Estado_Categoria', 'Usuario_Creador', 'Usuario_Creador.Rol'] });
     }
 
     async createCategoria(dto: CreateCategoriaDto, idUsuarioCreador: number) {
@@ -31,7 +32,7 @@ export class CategoriasService {
         if (categoriaExistente) { throw new BadRequestException(`La categoría "${CategoriaNormalizada}" ya se encuentra registrada`); }
 
         // Validar que el usuario existe
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador }, relations: ['rol'] });
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador }, relations: ['Rol'] });
         if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuarioCreador} no encontrado`); }
 
         const categoria = this.categoriaRepository.create({
@@ -41,10 +42,27 @@ export class CategoriasService {
         });
 
         const categoriaGuardada = await this.categoriaRepository.save(categoria);
-        return this.categoriaRepository.findOne({ 
+        const categoriaCompleta = await this.categoriaRepository.findOne({ 
             where: { Id_Categoria: categoriaGuardada.Id_Categoria }, 
-            relations: ['Estado_Categoria', 'Usuario_Creador', 'Usuario_Creador.rol'] 
+            relations: ['Estado_Categoria', 'Usuario_Creador', 'Usuario_Creador.Rol'] 
         });
+
+        if (!categoriaCompleta) {
+            throw new BadRequestException('Error al recuperar la categoría creada');
+        }
+
+        // Mapear a DTO personalizado
+        return {
+            Id_Categoria: categoriaCompleta.Id_Categoria,
+            Nombre_Categoria: categoriaCompleta.Nombre_Categoria,
+            Descripcion_Categoria: categoriaCompleta.Descripcion_Categoria,
+            Estado_Categoria: categoriaCompleta.Estado_Categoria,
+            Usuario_Creador: {
+                Id_Usuario: categoriaCompleta.Usuario_Creador.Id_Usuario,
+                Nombre_Usuario: categoriaCompleta.Usuario_Creador.Nombre_Usuario,
+                Id_Rol: categoriaCompleta.Usuario_Creador.Rol?.Id_Rol || null
+            }
+        };
     }
 
     async updateCategoria(Id_Categoria: number, dto: UpdateCategoriaDto) {

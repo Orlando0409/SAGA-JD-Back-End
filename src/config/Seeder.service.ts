@@ -377,7 +377,7 @@ export class SeederService implements OnModuleInit {
         // Buscar el rol Administrador con sus permisos actuales
         const adminRole = await this.rolRepository.findOne({
             where: { Nombre_Rol: 'Administrador' },
-            relations: ['permisos']
+            relations: ['Permisos']
         });
 
         if (!adminRole) {

@@ -29,7 +29,7 @@ export class AuthService {
     // Buscar usuario por nombre de usuario
     const usuario = await this.userRepository.findOne({
       where: { Nombre_Usuario },
-      relations: ['rol', 'rol.permisos'],
+      relations: ['Rol', 'Rol.Permisos'],
       withDeleted: true
     });
 
@@ -92,7 +92,7 @@ export class AuthService {
 
       const usuario = await this.userRepository.findOne({
         where: { Id_Usuario: payload.sub },
-        relations: ['rol']
+        relations: ['Rol']
       });
 
       if (!usuario) {
@@ -183,7 +183,7 @@ export class AuthService {
   async getUserProfile(userId: number) {
     const usuario = await this.userRepository.findOne({
       where: { Id_Usuario: userId },
-      relations: ['rol', 'rol.permisos']
+      relations: ['Rol', 'Rol.Permisos']
     });
 
     if (!usuario) {
@@ -195,24 +195,23 @@ export class AuthService {
     // Organizar permisos por módulo
     const permisosOrganizados = {};
     if (usuario.Rol?.Permisos) {
-      usuario.Rol.Permisos.forEach(permiso => {
-        if (!permisosOrganizados[permiso.Modulo]) {
-          permisosOrganizados[permiso.Modulo] = { ver: false, editar: false };
+      usuario.Rol.Permisos.forEach(Permiso => {
+        if (!permisosOrganizados[Permiso.Modulo]) {
+          permisosOrganizados[Permiso.Modulo] = { ver: false, editar: false };
         }
-        
-        if (permiso.Ver) {
-          permisosOrganizados[permiso.Modulo].ver = true;
+        if (Permiso.Ver) {
+          permisosOrganizados[Permiso.Modulo].ver = true;
         }
-        if (permiso.Editar) {
-          permisosOrganizados[permiso.Modulo].ver = true; // Editar incluye ver
-          permisosOrganizados[permiso.Modulo].editar = true;
+        if (Permiso.Editar) {
+          permisosOrganizados[Permiso.Modulo].ver = true; // Editar incluye ver
+          permisosOrganizados[Permiso.Modulo].editar = true;
         }
       });
     }
 
     return {
       ...usuarioSeguro,
-      permisos: permisosOrganizados
+      Permisos: permisosOrganizados
     };
   }
 

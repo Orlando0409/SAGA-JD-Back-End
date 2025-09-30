@@ -35,7 +35,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         // Buscar usuario completo en la base de datos
         const usuario = await this.userRepository.findOne({
             where: { Id_Usuario: payload.sub },
-            relations: ['rol', 'rol.permisos']
+            relations: ['Rol', 'Rol.Permisos']
         });
 
         if (!usuario) {
