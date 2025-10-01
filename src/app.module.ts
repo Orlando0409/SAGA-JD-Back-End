@@ -45,8 +45,9 @@ import { MaterialCategoria } from './Modules/Inventario/InventarioEntities/Mater
 import { UnidadMedicion } from './Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoUnidadMedicion } from './Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
 import { EstadoCalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
-import { SeederModule } from './config/Seeder.module';
+//import { SeederModule } from './config/Seeder.module';
 import { ProveedorEntity, ProveedorFisico, ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
+import { SeederModule } from './Config/Seeder.module';
 
 @Module({
   imports: [
@@ -73,8 +74,8 @@ import { ProveedorEntity, ProveedorFisico, ProveedorJuridico } from './Modules/P
         UserEntity, UserRol, Permiso, ProveedorEntity, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
         ProyectoEstado, Proyecto, CalidadAgua, EstadoCalidadAgua, Acta, ArchivoActa, Material, EstadoMaterial,
         Categoria, MaterialCategoria, EstadoUnidadMedicion, UnidadMedicion],
-        synchronize: false,
-        dropSchema: false,
+        synchronize: true,
+        dropSchema: true,
       }),
     }),
     ProyectoModule,
@@ -96,7 +97,7 @@ import { ProveedorEntity, ProveedorFisico, ProveedorJuridico } from './Modules/P
     CalidadAguaModule,
     AfiliadosModule,
     SolicitudesModule,
-    ActaModule
+    ActasModule
   ],
   controllers: [],
   providers: [
