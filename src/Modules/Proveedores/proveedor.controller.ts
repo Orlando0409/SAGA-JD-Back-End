@@ -9,7 +9,7 @@ import { ProveedorFisico, ProveedorJuridico } from './ProveedorEntities/Proveedo
 export class ProveedorController {
   constructor(private readonly proveedorService: ProveedorService) {}
 
-  @Post('fisico')
+  @Post('fisico/create')
   createFisico(@Body() dto: CreateProveedorFisicoDto): Promise<ProveedorFisico> {
     return this.proveedorService.createFisico(dto);
   }

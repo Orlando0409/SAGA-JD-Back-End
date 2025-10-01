@@ -90,7 +90,11 @@ export class ProveedorService {
 
     async updateFisico(id: number, dto: UpdateProveedorFisicoDto): Promise<ProveedorFisico> {
       const proveedor = await this.findOneFisico(id);
-      Object.assign(proveedor, dto);
+      
+      // Excluir explícitamente tipo_identificacion de la actualización
+      const { Tipo_Identificacion, ...updateData } = dto as any;
+      
+      Object.assign(proveedor, updateData);
       return this.fisicoRepo.save(proveedor);
     }
 
