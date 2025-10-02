@@ -29,7 +29,7 @@ export class AuthService {
     // Buscar usuario por nombre de usuario
     const usuario = await this.userRepository.findOne({
       where: { Nombre_Usuario },
-      relations: ['rol', 'rol.permisos'],
+      relations: ['Rol', 'Rol.Permisos'],
       withDeleted: true
     });
 
@@ -56,7 +56,7 @@ export class AuthService {
     const payload = { 
       sub: usuario.Id_Usuario, 
       email: usuario.Correo_Electronico,
-      rol: usuario.rol?.Nombre_Rol 
+      rol: usuario.Rol?.Nombre_Rol 
     };
 
     const accessToken = await this.jwtService.signAsync(payload, {
@@ -92,7 +92,7 @@ export class AuthService {
 
       const usuario = await this.userRepository.findOne({
         where: { Id_Usuario: payload.sub },
-        relations: ['rol']
+        relations: ['Rol']
       });
 
       if (!usuario) {
@@ -106,7 +106,7 @@ export class AuthService {
       const newPayload = { 
         sub: usuario.Id_Usuario, 
         email: usuario.Correo_Electronico,
-        rol: usuario.rol?.Nombre_Rol 
+        rol: usuario.Rol?.Nombre_Rol 
       };
 
       const newAccessToken = await this.jwtService.signAsync(newPayload, {
@@ -183,7 +183,7 @@ export class AuthService {
   async getUserProfile(userId: number) {
     const usuario = await this.userRepository.findOne({
       where: { Id_Usuario: userId },
-      relations: ['rol', 'rol.permisos']
+      relations: ['Rol', 'Rol.Permisos']
     });
 
     if (!usuario) {
@@ -192,27 +192,10 @@ export class AuthService {
 
     const { Contraseña, ...usuarioSeguro } = usuario;
 
-    // Organizar permisos por módulo
-    const permisosOrganizados = {};
-    if (usuario.rol?.permisos) {
-      usuario.rol.permisos.forEach(permiso => {
-        if (!permisosOrganizados[permiso.modulo]) {
-          permisosOrganizados[permiso.modulo] = { ver: false, editar: false };
-        }
-        
-        if (permiso.Ver) {
-          permisosOrganizados[permiso.modulo].ver = true;
-        }
-        if (permiso.Editar) {
-          permisosOrganizados[permiso.modulo].ver = true; // Editar incluye ver
-          permisosOrganizados[permiso.modulo].editar = true;
-        }
-      });
-    }
+
 
     return {
-      ...usuarioSeguro,
-      permisos: permisosOrganizados
+      ...usuarioSeguro
     };
   }
 

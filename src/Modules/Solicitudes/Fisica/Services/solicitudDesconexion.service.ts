@@ -8,6 +8,8 @@ import { SolicitudDesconexionFisica } from "../../SolicitudEntities/Solicitud.En
 import { EstadoSolicitud } from "../../SolicitudEntities/EstadoSolicitud.Entity";
 import { CreateSolicitudDesconexionFisicaDto } from "../../SolicitudDTO's/CreateSolicitudFisica.dto";
 import { UpdateSolicitudDesconexionFisicaDto } from "../../SolicitudDTO's/UpdateSolicitudFisica.dto";
+import { AfiliadoFisico } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
+import { EstadoAfiliado } from "src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
 
 @Injectable()
 export class SolicitudesDesconexionFisicaService
@@ -19,7 +21,13 @@ export class SolicitudesDesconexionFisicaService
 
         @InjectRepository(EstadoSolicitud)
         private readonly solicitudEstadoRepository: Repository<EstadoSolicitud>,
-        
+
+        @InjectRepository(AfiliadoFisico)
+        private readonly afiliadoFisicoRepository: Repository<AfiliadoFisico>,
+
+        @InjectRepository(EstadoAfiliado)
+        private readonly estadoAfiliadoRepository: Repository<EstadoAfiliado>,
+
         private readonly dropboxFilesService: DropboxFilesService,
 
         private readonly validationsService: ValidationsService,
@@ -46,6 +54,9 @@ export class SolicitudesDesconexionFisicaService
         // Normalizar nombres en el servicio (Apellido2 se maneja automáticamente en la entidad)
         dto.Nombre = dto.Nombre.trim()[0].toUpperCase() + dto.Nombre.trim().slice(1).toLowerCase();
         dto.Apellido1 = dto.Apellido1.trim()[0].toUpperCase() + dto.Apellido1.trim().slice(1).toLowerCase();
+        if (dto.Apellido2) {
+            dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
+        }
 
         const planoFile = files.Planos_Terreno?.[0];
         const escrituraFile = files.Escritura_Terreno?.[0];
@@ -60,7 +71,6 @@ export class SolicitudesDesconexionFisicaService
             Planos_Terreno: planoRes?.url,
             Escritura_Terreno: escrituraRes?.url,
             Estado: estadoInicial,
-            Id_Tipo_Solicitud: 2
         });
 
         return this.solicitudDesconexionFisicaRepository.save(solicitudDesconexion);
@@ -68,15 +78,12 @@ export class SolicitudesDesconexionFisicaService
 
     async updateSolicitudDesconexion(id: number, dto: UpdateSolicitudDesconexionFisicaDto)
     {
-        const solicitud = await this.solicitudDesconexionFisicaRepository.findOne({
-            where: { Id_Solicitud: id }
-        });
+        const solicitud = await this.solicitudDesconexionFisicaRepository.findOne({ where: { Id_Solicitud: id } });
+        if (!solicitud) { throw new BadRequestException(`Solicitud de desconexión física con id ${id} no encontrada`); }
 
-        if (!solicitud) {
-            throw new BadRequestException(`Solicitud de afiliación con id ${id} no encontrada`);
+        if(dto.Apellido2) {
+            dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
         }
-
-        // Apellido2 se maneja automáticamente en la entidad
 
         Object.assign(solicitud, dto);
         return this.solicitudDesconexionFisicaRepository.save(solicitud);
@@ -86,10 +93,26 @@ export class SolicitudesDesconexionFisicaService
     {
         const solicitud = await this.solicitudDesconexionFisicaRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
         if (!solicitud) {throw new BadRequestException(`Solicitud con id ${id} no encontrada`);}
-        
+
         const nuevoEstado = await this.solicitudEstadoRepository.findOne({where: { Id_Estado_Solicitud: nuevoEstadoId }});
         if (!nuevoEstado) {throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);}
-        
+
+        // Actualizar estado de afiliado si la solicitud es aprobada
+        if (nuevoEstadoId === 3) // Estado "Aprobada"
+        {
+            const validacionAfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(solicitud.Identificacion);
+            if (validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
+
+            const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitud.Identificacion } });
+            if (afiliado) {
+                const estadoInactivo = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 2 } });
+                if (estadoInactivo) {
+                    afiliado.Estado = estadoInactivo;
+                    await this.afiliadoFisicoRepository.save(afiliado);
+                }
+            }
+        }
+
         solicitud.Estado = nuevoEstado;
         return this.solicitudDesconexionFisicaRepository.save(solicitud);
     }

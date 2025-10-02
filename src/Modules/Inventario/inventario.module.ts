@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
-import { InventarioService } from './inventario.service';
+import { MaterialService } from './Services/material.service';
+import { CategoriasService } from './Services/categorias.service';
+import { UnidadesDeMedicionService } from './Services/unidadesDeMedicion.service';
 import { InventarioController } from './inventario.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Material } from './InventarioEntities/Material.Entity';
@@ -8,11 +10,13 @@ import { Categoria } from './InventarioEntities/Categoria.Entity';
 import { MaterialCategoria } from './InventarioEntities/MaterialCategoria.Entity';
 import { UnidadMedicion } from './InventarioEntities/UnidadMedicion.Entity';
 import { EstadoUnidadMedicion } from './InventarioEntities/EstadoUnidadMedicion.Entity';
+import { EstadoCategoria } from './InventarioEntities/EstadoCategoria.Entity';
+import { UserEntity } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion])],
+  imports: [TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, UserEntity])],
   controllers: [InventarioController],
-  providers: [InventarioService],
-  exports: [InventarioService],
+  providers: [MaterialService, CategoriasService, UnidadesDeMedicionService],
+  exports: [MaterialService, CategoriasService, UnidadesDeMedicionService],
 })
 export class InventarioModule {}

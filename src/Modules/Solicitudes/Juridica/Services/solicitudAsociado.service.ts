@@ -53,10 +53,6 @@ export class SolicitudAsociadoJuridicaService
         const solicitudAsociado = await this.solicitudAsociadoJuridicaRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
         if (!solicitudAsociado) { throw new BadRequestException(`Solicitud de asociado jurídica con id ${id} no encontrada`); }
 
-        if (dto.Razon_Social) {
-            dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
-        }
-
         Object.assign(solicitudAsociado, dto);
         return this.solicitudAsociadoJuridicaRepository.save(solicitudAsociado);
     }
