@@ -43,16 +43,17 @@ export class AfiliadosController {
         return this.afiliadosService.createAfiliadoJuridico(dto, files);
     }
 
-    @Put('/update/fisico/:cedula')
+    @Put('/update/fisico/:Identificacion')
     @ApiOperation({ summary: 'Actualizar un afiliado físico' })
     @UseInterceptors(FileFieldsInterceptor([ 
         { name: 'Planos_Terreno', maxCount: 1 }, 
         { name: 'Escritura_Terreno', maxCount: 1 }, 
     ]),)
-    updateAfiliadoFisico(@Param('cedula') cedula: string, @Body() dto: UpdateAfiliadoFisicoDto,
+    updateAfiliadoFisico(@Param('Identificacion') Identificacion: string, @Body() dto: UpdateAfiliadoFisicoDto,
     @UploadedFiles() files?: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; }) {
-        return this.afiliadosService.updateAfiliadoFisico(cedula, dto, files);
+        return this.afiliadosService.updateAfiliadoFisico(Identificacion, dto, files);
     }
+    
 
     @Put('/update/juridico/:cedulaJuridica')
     @ApiOperation({ summary: 'Actualizar un afiliado jurídico' })
