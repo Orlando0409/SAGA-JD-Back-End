@@ -22,7 +22,7 @@ import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProye
 import { CalidadAguaModule } from './Modules/CalidadAgua/calidadAgua.module';
 import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity';
 import { EstadoAfiliado } from './Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
-import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica, SolicitudFisica, SolicitudJuridica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
+import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica, SolicitudFisica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { SolicitudAsociadoFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAsociado.module';
 import { SolicitudCambioMedidorFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudCambioMedidor.module';
 import { SolicitudDesconexionFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudDesconexion.module';
@@ -45,9 +45,9 @@ import { MaterialCategoria } from './Modules/Inventario/InventarioEntities/Mater
 import { UnidadMedicion } from './Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoUnidadMedicion } from './Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
 import { EstadoCalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
-import { EstadoCategoria } from './Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
-import { SeederModule } from './config/Seeder.module';
+//import { SeederModule } from './config/Seeder.module';
 import { ProveedorEntity, ProveedorFisico, ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
+import { SeederModule } from './config/Seeder.module';
 
 @Module({
   imports: [
@@ -67,29 +67,21 @@ import { ProveedorEntity, ProveedorFisico, ProveedorJuridico } from './Modules/P
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
         entities: [Solicitud,
-        SolicitudFisica, SolicitudJuridica, SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica,
+        SolicitudFisica, SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica,
         SolicitudDesconexionFisica, SolicitudAsociadoFisica, SolicitudAfiliacionJuridica,
         SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
-        EstadoSolicitud, EstadoAfiliado, TipoAfiliado, Afiliado, AfiliadoFisico, AfiliadoJuridico,
+        EstadoSolicitud, CalidadAgua, EstadoAfiliado, TipoAfiliado, Afiliado, AfiliadoFisico, AfiliadoJuridico,
         UserEntity, UserRol, Permiso, ProveedorEntity, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
         ProyectoEstado, Proyecto, CalidadAgua, EstadoCalidadAgua, Acta, ArchivoActa, Material, EstadoMaterial,
         Categoria, EstadoCategoria, MaterialCategoria, EstadoUnidadMedicion, UnidadMedicion],
         synchronize: false,
-        dropSchema: false,
       }),
     }),
-    SeederModule,
-    AuthModule,
-    RolesModule,
-    UsuariosModule,
-    ProveedorModule,
-    InventarioModule,
-    FacturaModule,
-    AfiliadosModule,
-    SolicitudesModule,
-    CalidadAguaModule,
     ProyectoModule,
-    ActasModule,
+    FacturaModule,
+    InventarioModule,
+    ProveedorModule,
+    UsuariosModule,
     SolicitudAfiliacionFisicaModule,
     SolicitudAfiliacionJuridicaModule,
     SolicitudDesconexionFisicaModule,
@@ -98,6 +90,13 @@ import { ProveedorEntity, ProveedorFisico, ProveedorJuridico } from './Modules/P
     SolicitudCambioMedidorJuridicaModule,
     SolicitudAsociadoFisicaModule,
     SolicitudAsociadoJuridicaModule,
+    RolesModule,
+    AuthModule,
+    SeederModule,
+    CalidadAguaModule,
+    AfiliadosModule,
+    SolicitudesModule,
+    ActasModule
   ],
   controllers: [],
   providers: [
