@@ -23,13 +23,13 @@ export class PermisosGuard implements CanActivate {
             throw new ForbiddenException('Usuario no autenticado');
         }
 
-        if (!usuario?.rol?.permisos) {
+        if (!usuario?.Rol?.Permisos) {
             throw new ForbiddenException('Usuario sin permisos');
         }
 
         // usar datos ya cargados
-        const permisoDelModulo = usuario.rol.permisos.find(
-            permiso => permiso.modulo === permisoRequerido.modulo
+        const permisoDelModulo = usuario.Rol.Permisos.find(
+            permiso => permiso.Modulo === permisoRequerido.modulo
         );
 
         if (!permisoDelModulo) {

@@ -12,4 +12,13 @@ export class CreateCategoriaDto {
     @MaxLength(30, { message: 'La categoría no puede tener más de 30 caracteres' })
     @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s!?¿¡().,-]+$/, { message: 'La categoría solo puede contener letras, números, espacios y los caracteres !?¿¡().,-' })
     Nombre_Categoria: string;
+
+    @ApiProperty({ example: 'Categoría para materiales usados en construcción' })
+    @Transform(({ value }) => value?.trim() ? value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase() : value)
+    @IsString({ message: 'La descripción debe ser un string' })
+    @MaxLength(100, { message: 'La descripción no puede tener más de 100 caracteres' })
+    @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s!?¿¡().,-]*$/, { message: 'La descripción solo puede contener letras, números, espacios y los caracteres !?¿¡().,-' })
+    @IsDefined({ message: 'La descripción no puede estar vacio' })
+    @IsNotEmpty({ message: 'La descripción no puede estar vacío' })
+    Descripcion_Categoria: string;
 }

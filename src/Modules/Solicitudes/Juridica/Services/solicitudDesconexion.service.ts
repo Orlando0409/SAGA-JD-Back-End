@@ -8,6 +8,8 @@ import { SolicitudDesconexionJuridica } from "../../SolicitudEntities/Solicitud.
 import { EstadoSolicitud } from "../../SolicitudEntities/EstadoSolicitud.Entity";
 import { CreateSolicitudDesconexionJuridicaDto } from "../../SolicitudDTO's/CreateSolicitudJuridica.dto";
 import { UpdateSolicitudDesconexionJuridicaDto } from "../../SolicitudDTO's/UpdateSolicitudJuridica.dto";
+import { AfiliadoJuridico } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
+import { EstadoAfiliado } from "src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
 
 @Injectable()
 export class SolicitudDesconexionJuridicaService
@@ -19,6 +21,12 @@ export class SolicitudDesconexionJuridicaService
 
         @InjectRepository(EstadoSolicitud)
         private readonly estadoSolicitudRepository: Repository<EstadoSolicitud>,
+
+        @InjectRepository(AfiliadoJuridico)
+        private readonly afiliadoJuridicoRepository: Repository<AfiliadoJuridico>,
+
+        @InjectRepository(EstadoAfiliado)
+        private readonly estadoAfiliadoRepository: Repository<EstadoAfiliado>,
 
         private readonly dropboxFilesService: DropboxFilesService,
 
@@ -50,7 +58,7 @@ export class SolicitudDesconexionJuridicaService
         const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Desconexion', 'Juridicas', dto.Cedula_Juridica, dto.Razon_Social) : null;
 
         dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
-        
+
         const solicitudDesconexion = this.solicitudDesconexionJuridicaRepository.create({
             ...dto,
             Planos_Terreno: planoRes?.url,
@@ -77,6 +85,22 @@ export class SolicitudDesconexionJuridicaService
 
         const nuevoEstado = await this.estadoSolicitudRepository.findOne({where: { Id_Estado_Solicitud: nuevoEstadoId }});
         if (!nuevoEstado) { throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`); }
+
+        // Actualizar estado de afiliado si la solicitud es aprobada
+        if (nuevoEstadoId === 3) // Estado "Aprobada"
+        {
+            const validacionAfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(solicitud.Cedula_Juridica);
+            if (validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
+
+            const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: solicitud.Cedula_Juridica } });
+            if (afiliado) {
+                const estadoInactivo = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 2 } });
+                if (estadoInactivo) {
+                    afiliado.Estado = estadoInactivo;
+                    await this.afiliadoJuridicoRepository.save(afiliado);
+                }
+            }
+        }
 
         solicitud.Estado = nuevoEstado;
         return this.solicitudDesconexionJuridicaRepository.save(solicitud);

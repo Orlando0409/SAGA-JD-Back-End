@@ -56,7 +56,7 @@ export class ProveedorService {
       where: { Cedula_Juridica: (dto.Cedula_Juridica) },
     });
       if (cedulaExistente) {
-        throw new ConflictException('Esta cédula ya se encuentra registrada');
+        throw new ConflictException('Esta identificación ya se encuentra registrada');
     }
 
     const estado = await this.estadoRepo.findOne({ where: { Id_Estado_Proveedor: dto.Id_Estado_Proveedor } });
@@ -90,7 +90,11 @@ export class ProveedorService {
 
     async updateFisico(id: number, dto: UpdateProveedorFisicoDto): Promise<ProveedorFisico> {
       const proveedor = await this.findOneFisico(id);
-      Object.assign(proveedor, dto);
+      
+      // Excluir explícitamente tipo_identificacion de la actualización
+      const { Tipo_Identificacion, ...updateData } = dto as any;
+      
+      Object.assign(proveedor, updateData);
       return this.fisicoRepo.save(proveedor);
     }
 

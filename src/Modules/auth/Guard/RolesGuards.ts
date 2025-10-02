@@ -25,13 +25,13 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('Usuario no autenticado');
     }
 
-    if (!usuario.rol) {
+    if (!usuario.Rol) {
       throw new ForbiddenException('Usuario sin rol asignado');
     }
 
     // Verificar si el usuario tiene uno de los roles requeridos
     const tieneRolPermitido = rolesRequeridos.some(rol => 
-      usuario.rol.Nombre_Rol === rol
+      usuario.Rol.Nombre_Rol === rol
     );
 
     if (!tieneRolPermitido) {

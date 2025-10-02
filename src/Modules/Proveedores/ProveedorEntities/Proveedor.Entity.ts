@@ -56,4 +56,12 @@ export class ProveedorJuridico extends ProveedorEntity {
 
     @Column({ nullable: false })
     Razon_Social: string;
+
+    //@BeforeInsert()
+    //@BeforeUpdate()
+    //normalizarCedulaJuridica() {
+    //    if (this.Identificacion && this.Tipo_Identificacion === TipoIdentificacion.CEDULA_JURIDICA) {
+    //        this.Identificacion = this.Identificacion.replace(/[\s\-]+/g, '');
+    //    }
+    //}
 }
