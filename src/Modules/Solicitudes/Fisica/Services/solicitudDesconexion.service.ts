@@ -46,7 +46,7 @@ export class SolicitudesDesconexionFisicaService
 
         // Validar que existe un afiliado físico con esa identificación
         const validacionAfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
-        if (validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
+        if (!validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
 
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
@@ -101,7 +101,7 @@ export class SolicitudesDesconexionFisicaService
         if (nuevoEstadoId === 3) // Estado "Aprobada"
         {
             const validacionAfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(solicitud.Identificacion);
-            if (validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
+            if (!validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
 
             const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitud.Identificacion } });
             if (afiliado) {

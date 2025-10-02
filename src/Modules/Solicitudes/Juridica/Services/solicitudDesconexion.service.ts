@@ -46,7 +46,7 @@ export class SolicitudDesconexionJuridicaService
 
         // Validar que existe un afiliado jurídico con esa identificación
         const validacionAfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(dto.Cedula_Juridica);
-        if (validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
+        if (!validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
 
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesJuridicasActivas(dto.Cedula_Juridica);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
@@ -90,7 +90,7 @@ export class SolicitudDesconexionJuridicaService
         if (nuevoEstadoId === 3) // Estado "Aprobada"
         {
             const validacionAfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(solicitud.Cedula_Juridica);
-            if (validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
+            if (!validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
 
             const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: solicitud.Cedula_Juridica } });
             if (afiliado) {
