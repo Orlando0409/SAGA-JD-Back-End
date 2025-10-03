@@ -19,6 +19,12 @@ export abstract class Afiliado {
     @Column({ nullable: false })
     Direccion_Exacta: string;
 
+    @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
+    Fecha_Creacion: Date;
+
+    @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
+    Fecha_Actualizacion: Date;
+
     @Column({ nullable: true })
     Planos_Terreno: string;
 
@@ -28,13 +34,6 @@ export abstract class Afiliado {
     @ManyToOne(() => EstadoAfiliado, estado => estado.Afiliados)
     @JoinColumn({ name: 'Id_Estado_Afiliado' })
     Estado: EstadoAfiliado;
-
-    @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
-    Fecha_Creacion: Date;
-
-    @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
-    Fecha_Actualizacion: Date;
-
     @ManyToOne(() => TipoAfiliado, tipo => tipo.Afiliados)
     @JoinColumn({ name: 'Id_Tipo_Afiliado' })
     Tipo_Afiliado: TipoAfiliado;
@@ -74,14 +73,6 @@ export class AfiliadoFisico extends Afiliado {
 
     @Column({ nullable: false })
     Edad: number;
-
-    @BeforeInsert()
-    @BeforeUpdate()
-    normalizarApellido2() {
-        if (!this.Apellido2 || this.Apellido2.trim() === '' || this.Apellido2 === 'undefined') {
-            this.Apellido2 = 'No Proporcionado';
-        }
-    }
 
     @BeforeInsert()
     setDefaultEstado() { this.Estado = { Id_Estado_Afiliado: 1, Nombre_Estado: 'Activo' } as EstadoAfiliado; }

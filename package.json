@@ -18,9 +18,10 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "mig:gen": "npm run build && npx typeorm migration:generate -d ./dist/data-source.js",
-    "mig:run": "npm run build && npx typeorm migration:run -d ./dist/data-source.js",
-    "mig:rev": "npm run build && npx typeorm migration:revert -d ./dist/data-source.js"
+    "mig:gen": "npx ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:generate ./src/Migrations/migration -d ./data-source.ts",
+    "mig:run": "npx ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d ./data-source.ts",
+    "mig:rev": "npx ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:revert -d ./data-source.ts",
+    "schema:check": "npx ts-node -r tsconfig-paths/register scripts/check-schema-sync.ts"
   },
   "dependencies": {
     "@google-cloud/local-auth": "^3.0.1",

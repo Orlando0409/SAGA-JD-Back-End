@@ -35,20 +35,13 @@ export class CalidadAguaService
 
     async CreateCalidadAgua(dto: CreateCalidadAguaDto, file?: Express.Multer.File)
     {
-        if (!file) {
-            throw new Error('Debe subir un archivo para la calidad de agua');
-        }
+        if (!file) { throw new Error('Debe subir un archivo para la calidad de agua'); }
 
         // Normalizar título antes de procesar
         dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
-        
-        const tituloToUpperCase = dto.Titulo.toUpperCase();
 
         // Subir archivo a Dropbox
-        const fileRes = await this.dropboxFilesService.uploadFile(file, 'Calidad-de-Agua', tituloToUpperCase);
-
-        const now = new Date();
-        now.setSeconds(0, 0);
+        const fileRes = await this.dropboxFilesService.uploadFile(file, 'Calidad-de-Agua', dto.Titulo);
 
         // Crear objeto entidad
         const calidadAgua = this.calidadAguaRepository.create({
@@ -63,8 +56,10 @@ export class CalidadAguaService
     async updateCalidadAgua(Id_Calidad_Agua: number, dto: UpdateCalidadAguaDto, file?: Express.Multer.File)
     {
         const CalidadAgua = await this.calidadAguaRepository.findOne({ where: { Id_Calidad_Agua } });
-        if (!CalidadAgua) {
-            throw new NotFoundException(`Registro con ID ${Id_Calidad_Agua} no encontrado`);
+        if (!CalidadAgua) { throw new NotFoundException(`Registro con ID ${Id_Calidad_Agua} no encontrado`); }
+
+        if( dto.Titulo ) {
+            dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
         }
 
         // Si llega un archivo, subimos uno nuevo

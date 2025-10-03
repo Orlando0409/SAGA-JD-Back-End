@@ -6,4 +6,4 @@ export class getUnidadDeMedidaDTO {
 
     @Expose()
     Nombre_Unidad_Medicion: string;
- }
+    }

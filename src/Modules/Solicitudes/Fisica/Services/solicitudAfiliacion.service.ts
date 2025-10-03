@@ -9,6 +9,7 @@ import { EstadoSolicitud } from "../../SolicitudEntities/EstadoSolicitud.Entity"
 import { CreateSolicitudAfiliacionFisicaDto } from "../../SolicitudDTO's/CreateSolicitudFisica.dto";
 import { UpdateSolicitudAfiliacionFisicaDto } from "../../SolicitudDTO's/UpdateSolicitudFisica.dto";
 import { AfiliadosService } from "src/Modules/Afiliados/afiliados.service";
+import { EmailService } from "src/Modules/Emails/email.service";
 
 @Injectable()
 export class SolicitudAfiliacionFisicaService
@@ -26,6 +27,8 @@ export class SolicitudAfiliacionFisicaService
         private readonly validationsService: ValidationsService,
 
         private readonly afiliadosService: AfiliadosService,
+
+        private readonly emailService: EmailService,
     ) {}
 
     async getAllSolicitudesAfiliacion()
@@ -40,34 +43,39 @@ export class SolicitudAfiliacionFisicaService
         if (!estadoInicial) { throw new BadRequestException(`Estado inicial de solicitud no configurado`); }
 
         const AfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
-        if (AfiliadoExistente) { throw new BadRequestException(`Ya existe un afiliado físico con la identificación ${dto.Identificacion}`); }
+        if (AfiliadoExistente) {
+            const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
+            if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
-        const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
-        if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
+            // Normalizar nombres en el servicio (Apellido2 se maneja automáticamente en la entidad)
+            dto.Nombre = dto.Nombre.trim()[0].toUpperCase() + dto.Nombre.trim().slice(1).toLowerCase();
+            dto.Apellido1 = dto.Apellido1.trim()[0].toUpperCase() + dto.Apellido1.trim().slice(1).toLowerCase();
+            if (dto.Apellido2) {
+                dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
+            }
 
-        // Normalizar nombres en el servicio (Apellido2 se maneja automáticamente en la entidad)
-        dto.Nombre = dto.Nombre.trim()[0].toUpperCase() + dto.Nombre.trim().slice(1).toLowerCase();
-        dto.Apellido1 = dto.Apellido1.trim()[0].toUpperCase() + dto.Apellido1.trim().slice(1).toLowerCase();
-        if (dto.Apellido2) {
-            dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
+            const planoFile = files.Planos_Terreno?.[0];
+            const escrituraFile = files.Escritura_Terreno?.[0];
+            const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
+
+            const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Identificacion, nombre) : null;
+            const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Identificacion, nombre) : null;
+
+            // Crear instancia de la entidad para que se ejecuten los decoradores @BeforeInsert
+            const solicitudAfiliacion = this.solicitudAfiliacionFisicaRepository.create({
+                ...dto,
+                Planos_Terreno: planoRes?.url,
+                Escritura_Terreno: escrituraRes?.url,
+                Estado: estadoInicial,
+            });
+
+            await this.emailService.enviarEmailSolicitudCreada(dto.Correo, 'Afiliación Física', nombre);
+            return this.solicitudAfiliacionFisicaRepository.save(solicitudAfiliacion);
         }
 
-        const planoFile = files.Planos_Terreno?.[0];
-        const escrituraFile = files.Escritura_Terreno?.[0];
-        const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
-
-        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Identificacion, nombre) : null;
-        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Identificacion, nombre) : null;
-
-        // Crear instancia de la entidad para que se ejecuten los decoradores @BeforeInsert
-        const solicitudAfiliacion = this.solicitudAfiliacionFisicaRepository.create({
-            ...dto,
-            Planos_Terreno: planoRes?.url,
-            Escritura_Terreno: escrituraRes?.url,
-            Estado: estadoInicial,
-        });
-
-        return this.solicitudAfiliacionFisicaRepository.save(solicitudAfiliacion);
+        else {
+            throw new BadRequestException(`Ya existe un afiliado físico con la identificación ${dto.Identificacion}`);
+        }
     }
 
     async updateSolicitudAfiliacion(id: number, dto: UpdateSolicitudAfiliacionFisicaDto, files?: any)
@@ -121,10 +129,18 @@ export class SolicitudAfiliacionFisicaService
         solicitud.Estado = nuevoEstado;
         const solicitudActualizada = await this.solicitudAfiliacionFisicaRepository.save(solicitud);
 
+        if (nuevoEstadoId === 2) { // Estado 2 = En revisión
+            const nombre = `${solicitudActualizada.Nombre} ${solicitudActualizada.Apellido1 ?? ''} ${solicitudActualizada.Apellido2 ?? ''}`.trim();
+            await this.emailService.enviarEmailActualizacionEstado(solicitudActualizada.Correo, 'Afiliación Física', 'En revisión', nombre);
+        }
+
         // Si el estado cambia a 3 (Aprobada), crear automáticamente el afiliado
         if (nuevoEstadoId === 3) {
             try {
                 await this.afiliadosService.createAfiliadoFisicoFromSolicitud(solicitudActualizada);
+
+                const nombre = `${solicitudActualizada.Nombre} ${solicitudActualizada.Apellido1 ?? ''} ${solicitudActualizada.Apellido2 ?? ''}`.trim();
+                await this.emailService.enviarEmailActualizacionEstado(solicitudActualizada.Correo, 'Afiliación Física', 'Aprobada', nombre);
             } catch (error) {
                 // Manejar diferentes tipos de errores con mensajes específicos
                 if (error.message.includes('Ya existe un afiliado físico')) {
@@ -137,6 +153,11 @@ export class SolicitudAfiliacionFisicaService
                     throw new BadRequestException(`Error al crear afiliado automáticamente: ${error.message}`);
                 }
             }
+        }
+
+        if (nuevoEstadoId === 4) { // Estado 4 = Rechazada
+            const nombre = `${solicitudActualizada.Nombre} ${solicitudActualizada.Apellido1 ?? ''} ${solicitudActualizada.Apellido2 ?? ''}`.trim();
+            await this.emailService.enviarEmailActualizacionEstado(solicitudActualizada.Correo, 'Afiliación Física', 'Rechazada', nombre);
         }
 
         return solicitudActualizada;
