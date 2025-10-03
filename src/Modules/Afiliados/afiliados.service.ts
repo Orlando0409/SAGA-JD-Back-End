@@ -43,9 +43,6 @@ export class AfiliadosService {
     }
 
     async createAfiliadoFisicoFromSolicitud(solicitud: SolicitudAfiliacionFisica) {
-        const solicitudAprobada = await this.solicitudAfiliacionFisicaRepository.findOne({ where: { Id_Solicitud: solicitud.Id_Solicitud, Estado: { Id_Estado_Solicitud: 3 } }, relations: ['Estado'] });
-        if (!solicitudAprobada) { throw new BadRequestException(`Solicitud de afiliación física con ID ${solicitud.Id_Solicitud} no aprobada`); }
-
         // Verificar que no existe ya un afiliado físico con esa cédula
         const afiliadoExistente = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitud.Identificacion } });
         if (afiliadoExistente) {
@@ -99,9 +96,6 @@ export class AfiliadosService {
     }
 
     async createAfiliadoJuridicoFromSolicitud(solicitud: SolicitudAfiliacionJuridica) {
-        const solicitudAprobada = await this.solicitudAfiliacionJuridicaRepository.findOne({ where: { Id_Solicitud: solicitud.Id_Solicitud, Estado: { Id_Estado_Solicitud: 3 } }, relations: ['Estado'] });
-        if (!solicitudAprobada) { throw new BadRequestException(`Solicitud de afiliación jurídica con ID ${solicitud.Id_Solicitud} no aprobada`); }
-
         // Verificar que no existe ya un afiliado jurídico con esa cédula jurídica
         const afiliadoExistente = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: solicitud.Cedula_Juridica } });
         if (afiliadoExistente) { 
@@ -174,7 +168,6 @@ export class AfiliadosService {
             }
         }
 
-        // Apply other DTO updates
         Object.assign(afiliado, dto);
         return this.afiliadoFisicoRepository.save(afiliado);
     }
@@ -183,12 +176,10 @@ export class AfiliadosService {
         const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: cedulaJuridica } });
         if (!afiliado) { throw new BadRequestException(`Afiliado jurídico con cédula jurídica ${cedulaJuridica} no encontrado`); }
 
-        // Handle file uploads if provided
         if (files) {
             const planoFile = files.Planos_Terreno?.[0];
             const escrituraFile = files.Escritura_Terreno?.[0];
 
-            // Upload new files if provided, otherwise keep existing URLs
             if (planoFile) {
                 const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Juridicas', cedulaJuridica);
                 afiliado.Planos_Terreno = planoRes?.url;
