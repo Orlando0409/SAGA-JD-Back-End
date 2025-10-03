@@ -10,7 +10,7 @@ import { CreateUnidadMedicionDto } from "./InventarioDTO's/CreateUnidadMedicion.
 import { IngresoEgresoMaterialDto } from "./InventarioDTO's/IngresoEgresoMaterial.dto";
 import { UpdateUnidadMedicionDto } from "./InventarioDTO's/UpdateUnidadMedicion.dto";
 import { UpdateCategoriaDto } from './InventarioDTO\'s/UpdateCategoria.dto';
-import { IngresoEgresoService } from './Services/ingresoEgreso.service';
+import { MovimientosService } from './Services/movimientos.service';
 
 @Controller('Inventario')
 @UseInterceptors(ClassSerializerInterceptor) // Agregar el interceptor para serialización
@@ -19,7 +19,7 @@ export class InventarioController {
         private readonly materialService: MaterialService,
         private readonly categoriasService: CategoriasService,
         private readonly unidadesDeMedicionService: UnidadesDeMedicionService,
-        private readonly ingresoEgresoService: IngresoEgresoService
+        private readonly movimientosService: MovimientosService
     ) {}
 
     @Get('/all/materiales')
@@ -49,7 +49,7 @@ export class InventarioController {
     @Get('/all/movimientos')
     @ApiOperation({ summary: 'Obtiene todos los movimientos de inventario.' })
     async getAllMovimientos() {
-        return this.ingresoEgresoService.getAllMovimientos();
+        return this.movimientosService.getAllMovimientos();
     }
 
     @Get('/materiales/with/categorias')
@@ -109,7 +109,7 @@ export class InventarioController {
         @Param('idUsuario', ParseIntPipe) idUsuario: number,
         @Body() dto: IngresoEgresoMaterialDto
     ) {
-        return this.ingresoEgresoService.IngresoMaterial(dto, idUsuario);
+        return this.movimientosService.IngresoMaterial(dto, idUsuario);
     }
 
     @Post('/egreso/material/:idUsuario')
@@ -118,7 +118,7 @@ export class InventarioController {
         @Param('idUsuario', ParseIntPipe) idUsuario: number,
         @Body() dto: IngresoEgresoMaterialDto
     ) {
-        return this.ingresoEgresoService.EgresoMaterial(idUsuario, dto);
+        return this.movimientosService.EgresoMaterial(idUsuario, dto);
     }
 
     @Put('/update/material/:materialId')

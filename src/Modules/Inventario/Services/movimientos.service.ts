@@ -8,10 +8,10 @@ import { IngresoEgresoMaterial } from "../InventarioEntities/IngresoEgreso.Entit
 import { UserEntity } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Injectable()
-export class IngresoEgresoService {
+export class MovimientosService {
     constructor(
         @InjectRepository(IngresoEgresoMaterial)
-        private readonly ingresoEgresoRepository: Repository<IngresoEgresoMaterial>,
+        private readonly movimientoRepository: Repository<IngresoEgresoMaterial>,
 
         @InjectRepository(Material)
         private readonly materialRepository: Repository<Material>,
@@ -24,7 +24,7 @@ export class IngresoEgresoService {
     ) {}
 
     async getAllMovimientos() {
-        const movimientos = await this.ingresoEgresoRepository.createQueryBuilder('movimiento')
+        const movimientos = await this.movimientoRepository.createQueryBuilder('movimiento')
             .leftJoinAndSelect('movimiento.Material', 'material')
             .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
             .leftJoinAndSelect('movimiento.Usuario_Creador', 'usuarioCreador')
@@ -77,8 +77,8 @@ export class IngresoEgresoService {
 
         await this.materialRepository.save(materialExistente);
 
-        // Registrar el movimiento en la tabla IngresoEgreso
-        const movimiento = this.ingresoEgresoRepository.create({
+        // Registrar el movimiento en la tabla Movimientos
+        const movimiento = this.movimientoRepository.create({
             Tipo_Movimiento: 'Entrada',
             Material: materialExistente,
             Cantidad: dto.Cantidad,
@@ -88,7 +88,7 @@ export class IngresoEgresoService {
             Usuario_Creador: usuario
         });
         
-        await this.ingresoEgresoRepository.save(movimiento);
+        await this.movimientoRepository.save(movimiento);
 
         const materialActualizado = await this.materialRepository.createQueryBuilder('material')
             .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
@@ -96,7 +96,7 @@ export class IngresoEgresoService {
             .getOne();
 
         // Obtener el último movimiento creado
-        const ultimoMovimiento = await this.ingresoEgresoRepository.createQueryBuilder('movimiento')
+        const ultimoMovimiento = await this.movimientoRepository.createQueryBuilder('movimiento')
             .leftJoinAndSelect('movimiento.Usuario_Creador', 'usuarioCreador')
             .where('movimiento.Material.Id_Material = :id', { id: dto.Id_Material })
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
@@ -107,8 +107,8 @@ export class IngresoEgresoService {
         }
 
         return {
-            material: materialActualizado,
-            movimiento: {
+            Material: materialActualizado,
+            Movimiento: {
                 Id_Ingreso_Egreso: ultimoMovimiento.Id_Ingreso_Egreso,
                 Tipo_Movimiento: ultimoMovimiento.Tipo_Movimiento,
                 Cantidad: ultimoMovimiento.Cantidad,
@@ -149,8 +149,8 @@ export class IngresoEgresoService {
 
         await this.materialRepository.save(materialExistente);
 
-        // Registrar el movimiento en la tabla IngresoEgreso
-        const movimiento = this.ingresoEgresoRepository.create({
+        // Registrar el movimiento en la tabla Movimientos
+        const movimiento = this.movimientoRepository.create({
             Material: materialExistente,
             Usuario_Creador: usuarioCreador,
             Tipo_Movimiento: 'Salida',
@@ -160,7 +160,7 @@ export class IngresoEgresoService {
             Observaciones: dto.Observaciones
         });
 
-        await this.ingresoEgresoRepository.save(movimiento);
+        await this.movimientoRepository.save(movimiento);
 
         const materialActualizado = await this.materialRepository.createQueryBuilder('material')
             .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
@@ -168,7 +168,7 @@ export class IngresoEgresoService {
             .getOne();
 
         // Obtener el último movimiento creado
-        const ultimoMovimiento = await this.ingresoEgresoRepository.createQueryBuilder('movimiento')
+        const ultimoMovimiento = await this.movimientoRepository.createQueryBuilder('movimiento')
             .leftJoinAndSelect('movimiento.Usuario_Creador', 'usuarioCreador')
             .where('movimiento.Material.Id_Material = :id', { id: dto.Id_Material })
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')

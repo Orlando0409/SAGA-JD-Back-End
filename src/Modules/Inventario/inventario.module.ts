@@ -13,12 +13,12 @@ import { EstadoUnidadMedicion } from './InventarioEntities/EstadoUnidadMedicion.
 import { EstadoCategoria } from './InventarioEntities/EstadoCategoria.Entity';
 import { UserEntity } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 import { IngresoEgresoMaterial } from './InventarioEntities/IngresoEgreso.Entity';
-import { IngresoEgresoService } from './Services/ingresoEgreso.service';
+import { MovimientosService } from './Services/movimientos.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, IngresoEgresoMaterial, UserEntity])],
   controllers: [InventarioController],
-  providers: [MaterialService, CategoriasService, UnidadesDeMedicionService, IngresoEgresoService],
-  exports: [MaterialService, CategoriasService, UnidadesDeMedicionService, IngresoEgresoService],
+  providers: [MaterialService, CategoriasService, UnidadesDeMedicionService, MovimientosService],
+  exports: [MaterialService, CategoriasService, UnidadesDeMedicionService, MovimientosService],
 })
 export class InventarioModule {}
