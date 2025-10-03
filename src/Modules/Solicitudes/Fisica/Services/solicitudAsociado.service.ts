@@ -37,7 +37,7 @@ export class SolicitudAsociadoFisicaService
 
         // Validar que existe un afiliado físico con esa identificación
         const validacionAfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
-        if (validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
+        if (!validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
 
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }

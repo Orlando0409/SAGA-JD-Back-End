@@ -37,7 +37,7 @@ export class SolicitudAsociadoJuridicaService
 
         // Validar que existe un afiliado jurídico con esa cédula jurídica
         const validacionAfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(dto.Cedula_Juridica);
-        if (validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
+        if (!validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
 
         const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesJuridicasActivas(dto.Cedula_Juridica);
         if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
