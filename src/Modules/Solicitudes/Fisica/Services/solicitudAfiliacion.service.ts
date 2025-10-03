@@ -9,6 +9,7 @@ import { EstadoSolicitud } from "../../SolicitudEntities/EstadoSolicitud.Entity"
 import { CreateSolicitudAfiliacionFisicaDto } from "../../SolicitudDTO's/CreateSolicitudFisica.dto";
 import { UpdateSolicitudAfiliacionFisicaDto } from "../../SolicitudDTO's/UpdateSolicitudFisica.dto";
 import { AfiliadosService } from "src/Modules/Afiliados/afiliados.service";
+import { EmailService } from "src/Modules/Emails/email.service";
 
 @Injectable()
 export class SolicitudAfiliacionFisicaService
@@ -26,6 +27,8 @@ export class SolicitudAfiliacionFisicaService
         private readonly validationsService: ValidationsService,
 
         private readonly afiliadosService: AfiliadosService,
+
+        private readonly emailService: EmailService,
     ) {}
 
     async getAllSolicitudesAfiliacion()
@@ -66,6 +69,7 @@ export class SolicitudAfiliacionFisicaService
                 Estado: estadoInicial,
             });
 
+            await this.emailService.enviarEmailSolicitudCreada(dto.Correo, 'Afiliación Física', nombre);
             return this.solicitudAfiliacionFisicaRepository.save(solicitudAfiliacion);
         }
 
@@ -125,10 +129,18 @@ export class SolicitudAfiliacionFisicaService
         solicitud.Estado = nuevoEstado;
         const solicitudActualizada = await this.solicitudAfiliacionFisicaRepository.save(solicitud);
 
+        if (nuevoEstadoId === 2) { // Estado 2 = En revisión
+            const nombre = `${solicitudActualizada.Nombre} ${solicitudActualizada.Apellido1 ?? ''} ${solicitudActualizada.Apellido2 ?? ''}`.trim();
+            await this.emailService.enviarEmailActualizacionEstado(solicitudActualizada.Correo, 'Afiliación Física', 'En revisión', nombre);
+        }
+
         // Si el estado cambia a 3 (Aprobada), crear automáticamente el afiliado
         if (nuevoEstadoId === 3) {
             try {
                 await this.afiliadosService.createAfiliadoFisicoFromSolicitud(solicitudActualizada);
+
+                const nombre = `${solicitudActualizada.Nombre} ${solicitudActualizada.Apellido1 ?? ''} ${solicitudActualizada.Apellido2 ?? ''}`.trim();
+                await this.emailService.enviarEmailActualizacionEstado(solicitudActualizada.Correo, 'Afiliación Física', 'Aprobada', nombre);
             } catch (error) {
                 // Manejar diferentes tipos de errores con mensajes específicos
                 if (error.message.includes('Ya existe un afiliado físico')) {
@@ -141,6 +153,11 @@ export class SolicitudAfiliacionFisicaService
                     throw new BadRequestException(`Error al crear afiliado automáticamente: ${error.message}`);
                 }
             }
+        }
+
+        if (nuevoEstadoId === 4) { // Estado 4 = Rechazada
+            const nombre = `${solicitudActualizada.Nombre} ${solicitudActualizada.Apellido1 ?? ''} ${solicitudActualizada.Apellido2 ?? ''}`.trim();
+            await this.emailService.enviarEmailActualizacionEstado(solicitudActualizada.Correo, 'Afiliación Física', 'Rechazada', nombre);
         }
 
         return solicitudActualizada;
