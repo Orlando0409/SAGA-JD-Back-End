@@ -34,16 +34,17 @@ export class MaterialService {
             .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
             .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
             .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
-            .leftJoinAndSelect('material.materialCategorias', 'materialCategorias')
-            .leftJoinAndSelect('materialCategorias.Categoria', 'categoria')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
             .getMany();
 
         return materiales.map(material => {
-            const { Usuario_Creador, ...materialSinUsuario } = material;
+            const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = material;
             return {
                 ...materialSinUsuario,
+                Categorias: materialCategorias,
                 Usuario_Creador: material.Usuario_Creador ? {
                     Id_Usuario: material.Usuario_Creador.Id_Usuario,
                     Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
@@ -58,17 +59,18 @@ export class MaterialService {
             .leftJoinAndSelect('material.Estado_Material', 'estado')
             .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
             .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
-            .leftJoinAndSelect('material.materialCategorias', 'materialCategorias')
-            .leftJoinAndSelect('materialCategorias.Categoria', 'categoria')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .where('materialCategorias.Id_Material_Categoria IS NOT NULL')
+            .where('Categorias.Id_Material_Categoria IS NOT NULL')
             .getMany();
 
         return materiales.map(material => {
-            const { Usuario_Creador, ...materialSinUsuario } = material;
+            const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = material;
             return {
                 ...materialSinUsuario,
+                Categorias: materialCategorias,
                 Usuario_Creador: material.Usuario_Creador ? {
                     Id_Usuario: material.Usuario_Creador.Id_Usuario,
                     Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
@@ -84,14 +86,15 @@ export class MaterialService {
             .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
             .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoin('material.materialCategorias', 'materialCategorias')
-            .where('materialCategorias.Id_Material_Categoria IS NULL')
+            .leftJoin('material.materialCategorias', 'Categorias')
+            .where('Categorias.Id_Material_Categoria IS NULL')
             .getMany();
 
         return materiales.map(material => {
-            const { Usuario_Creador, ...materialSinUsuario } = material;
+            const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = material;
             return {
                 ...materialSinUsuario,
+                Categorias: materialCategorias,
                 Usuario_Creador: material.Usuario_Creador ? {
                     Id_Usuario: material.Usuario_Creador.Id_Usuario,
                     Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
@@ -106,8 +109,8 @@ export class MaterialService {
             .leftJoinAndSelect('material.Estado_Material', 'estado')
             .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
             .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
-            .leftJoinAndSelect('material.materialCategorias', 'materialCategorias')
-            .leftJoinAndSelect('materialCategorias.Categoria', 'categoria')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
             .where('material.Cantidad > :threshold', { threshold })
@@ -115,9 +118,10 @@ export class MaterialService {
             .getMany();
 
         return materiales.map(material => {
-            const { Usuario_Creador, ...materialSinUsuario } = material;
+            const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = material;
             return {
                 ...materialSinUsuario,
+                Categorias: materialCategorias,
                 Usuario_Creador: material.Usuario_Creador ? {
                     Id_Usuario: material.Usuario_Creador.Id_Usuario,
                     Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
@@ -132,8 +136,8 @@ export class MaterialService {
             .leftJoinAndSelect('material.Estado_Material', 'estado')
             .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
             .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
-            .leftJoinAndSelect('material.materialCategorias', 'materialCategorias')
-            .leftJoinAndSelect('materialCategorias.Categoria', 'categoria')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
             .where('material.Cantidad < :threshold', { threshold })
@@ -141,9 +145,10 @@ export class MaterialService {
             .getMany();
 
         return materiales.map(material => {
-            const { Usuario_Creador, ...materialSinUsuario } = material;
+            const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = material;
             return {
                 ...materialSinUsuario,
+                Categorias: materialCategorias,
                 Usuario_Creador: material.Usuario_Creador ? {
                     Id_Usuario: material.Usuario_Creador.Id_Usuario,
                     Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
@@ -200,8 +205,8 @@ export class MaterialService {
             .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
             .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
             .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
-            .leftJoinAndSelect('material.materialCategorias', 'materialCategorias')
-            .leftJoinAndSelect('materialCategorias.Categoria', 'categoria')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
             .getOne();
@@ -211,10 +216,11 @@ export class MaterialService {
         }
 
         // Excluir Usuario_Creador del spread para evitar duplicados
-        const { Usuario_Creador, ...materialSinUsuario } = materialCreado;
+        const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = materialCreado;
 
         return {
             ...materialSinUsuario,
+            Categorias: materialCategorias,
             Usuario_Creador: {
                 Id_Usuario: usuario.Id_Usuario,
                 Nombre_Usuario: usuario.Nombre_Usuario,
@@ -281,7 +287,7 @@ export class MaterialService {
         const { IDS_Categorias, ...datosActualizacion } = dto;
         
         // Excluir explícitamente las relaciones del merge para evitar conflictos
-        const { materialCategorias, Estado_Material, ...materialSinRelaciones } = materialExistente;
+        const { materialCategorias: categoriasExistentes, Estado_Material, ...materialSinRelaciones } = materialExistente;
         
         const materialActualizado = {
             ...materialSinRelaciones,
@@ -299,8 +305,8 @@ export class MaterialService {
             .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
             .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
             .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
-            .leftJoinAndSelect('material.materialCategorias', 'materialCategorias')
-            .leftJoinAndSelect('materialCategorias.Categoria', 'categoria')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
             .where('material.Id_Material = :id', { id: Id_Material })
@@ -311,10 +317,11 @@ export class MaterialService {
         }
 
         // Excluir Usuario_Creador del spread para evitar duplicados
-        const { Usuario_Creador, ...materialSinUsuario } = materialActualizadoCompleto;
+        const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = materialActualizadoCompleto;
 
         return {
             ...materialSinUsuario,
+            Categorias: materialCategorias,
             Usuario_Creador: {
                 Id_Usuario: materialActualizadoCompleto.Usuario_Creador.Id_Usuario,
                 Nombre_Usuario: materialActualizadoCompleto.Usuario_Creador.Nombre_Usuario,
