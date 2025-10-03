@@ -15,14 +15,14 @@ export abstract class ProveedorEntity {
     @Column({ nullable: false })
     Telefono_Proveedor: string;
 
-    @ManyToOne(() => EstadoProveedor, (estadoProveedor) => estadoProveedor.proveedor)
-    Estado_Proveedor: EstadoProveedor;
-
     @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Creacion: Date;
     
     @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Actualizacion: Date;
+
+    @ManyToOne(() => EstadoProveedor, (estadoProveedor) => estadoProveedor.proveedor)
+    Estado_Proveedor: EstadoProveedor;
 
     @BeforeInsert()
     @BeforeUpdate()

@@ -1,4 +1,4 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { MaterialCategoria } from "./MaterialCategoria.Entity";
 import { EstadoCategoria } from "./EstadoCategoria.Entity";
 import { UserEntity } from "../../Usuarios/UsuarioEntities/Usuario.Entity";
@@ -13,6 +13,12 @@ export class Categoria {
 
     @Column({ nullable: true })
     Descripcion_Categoria?: string;
+
+    @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
+    Fecha_Creacion: Date;
+
+    @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
+    Fecha_Actualizacion: Date;
 
     @ManyToOne(() => EstadoCategoria, estadoCategoria => estadoCategoria.Categorias, { eager: true })
     @JoinColumn({ name: 'Id_Estado_Categoria' })
