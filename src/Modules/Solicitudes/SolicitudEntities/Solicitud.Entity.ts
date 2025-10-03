@@ -43,6 +43,9 @@ export abstract class Solicitud
             }
         }
     }
+
+    @BeforeInsert()
+    SetDefaultEstadoSolicitud() { this.Estado = { Id_Estado_Solicitud: 1 } as EstadoSolicitud; }
 }
 
 export abstract class SolicitudFisica extends Solicitud {
