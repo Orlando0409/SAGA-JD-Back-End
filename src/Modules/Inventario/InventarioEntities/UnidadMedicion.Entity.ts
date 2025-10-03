@@ -1,6 +1,7 @@
 import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Material } from "./Material.Entity";
 import { EstadoUnidadMedicion } from "./EstadoUnidadMedicion.Entity";
+import { UserEntity } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Entity('Unidades_Medicion')
 export class UnidadMedicion {
@@ -16,6 +17,12 @@ export class UnidadMedicion {
     @Column({ nullable: true })
     Descripcion?: string;
 
+    @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
+    Fecha_Creacion: Date;
+
+    @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
+    Fecha_Actualizacion: Date;
+
     @ManyToOne(() => EstadoUnidadMedicion, estadoUnidadMedicion => estadoUnidadMedicion.UnidadesMedicion, { eager: true })
     @JoinColumn({ name: 'Id_Estado_Unidad_Medicion' })
     Estado_Unidad_Medicion: EstadoUnidadMedicion;
@@ -23,11 +30,10 @@ export class UnidadMedicion {
     @OneToMany(() => Material, material => material.Unidad_Medicion)
     Materiales: Material[];
 
-    @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
-    Fecha_Creacion: Date;
+    @ManyToOne(() => UserEntity, usuario => usuario.Id_Usuario, { eager: true })
+    @JoinColumn({ name: 'Id_Usuario_Creador' })
+    Usuario_Creador: UserEntity;
 
-    @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
-    Fecha_Actualizacion: Date;
 
     @BeforeInsert()
     setDefaultEstadoUnidadMedicion() { this.Estado_Unidad_Medicion = { Id_Estado_Unidad_Medicion: 1 } as EstadoUnidadMedicion; }

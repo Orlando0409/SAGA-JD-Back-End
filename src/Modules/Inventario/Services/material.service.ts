@@ -8,7 +8,7 @@ import { Categoria } from '../InventarioEntities/Categoria.Entity';
 import { MaterialCategoria } from '../InventarioEntities/MaterialCategoria.Entity';
 import { UpdateMaterialDto } from "../InventarioDTO's/UpdateMaterial.dto";
 import { UnidadMedicion } from '../InventarioEntities/UnidadMedicion.Entity';
-import { IngresoEgresoMaterialDto } from "../InventarioDTO's/IngresoEgresoMaterial.dto";
+import { UserEntity } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 
 @Injectable()
 export class MaterialService {
@@ -19,60 +19,146 @@ export class MaterialService {
         @InjectRepository(Categoria)
         private readonly categoriaRepository: Repository<Categoria>,
 
-        @InjectRepository(EstadoMaterial)
-        private readonly estadoMaterialRepository: Repository<EstadoMaterial>,
-
         @InjectRepository(MaterialCategoria)
         private readonly materialCategoriaRepository: Repository<MaterialCategoria>,
 
         @InjectRepository(UnidadMedicion)
         private readonly unidadMedicionRepository: Repository<UnidadMedicion>,
+
+        @InjectRepository(UserEntity)
+        private readonly usuarioRepository: Repository<UserEntity>,
     ) {}
 
-    async getAllMaterials() {
-        return this.inventarioRepository.find({ relations: ['Estado_Material', 'Unidad_Medicion', 'materialCategorias', 'materialCategorias.Categoria'] });
+    async getAllMateriales() {
+        const materiales = await this.inventarioRepository.createQueryBuilder('material')
+            .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
+            .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
+            .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
+            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .getMany();
+
+        return materiales.map(material => {
+            const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = material;
+            return {
+                ...materialSinUsuario,
+                Categorias: materialCategorias,
+                Usuario_Creador: material.Usuario_Creador ? {
+                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: material.Usuario_Creador.Id_Rol
+                } : null
+            };
+        });
     }
 
     async getMaterialesConCategorias() {
-        return this.inventarioRepository.createQueryBuilder('material')
+        const materiales = await this.inventarioRepository.createQueryBuilder('material')
             .leftJoinAndSelect('material.Estado_Material', 'estado')
             .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
-            .leftJoinAndSelect('material.materialCategorias', 'materialCategorias')
-            .leftJoinAndSelect('materialCategorias.Categoria', 'categoria')
-            .where('materialCategorias.Id_Material_Categoria IS NOT NULL')
+            .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
+            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .where('Categorias.Id_Material_Categoria IS NOT NULL')
             .getMany();
+
+        return materiales.map(material => {
+            const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = material;
+            return {
+                ...materialSinUsuario,
+                Categorias: materialCategorias,
+                Usuario_Creador: material.Usuario_Creador ? {
+                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: material.Usuario_Creador.Id_Rol
+                } : null
+            };
+        });
     }
 
     async getMaterialesSinCategorias() {
-        return this.inventarioRepository.createQueryBuilder('material')
+        const materiales = await this.inventarioRepository.createQueryBuilder('material')
             .leftJoinAndSelect('material.Estado_Material', 'estado')
             .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
-            .leftJoin('material.materialCategorias', 'materialCategorias')
-            .where('materialCategorias.Id_Material_Categoria IS NULL')
+            .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
+            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoin('material.materialCategorias', 'Categorias')
+            .where('Categorias.Id_Material_Categoria IS NULL')
             .getMany();
+
+        return materiales.map(material => {
+            const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = material;
+            return {
+                ...materialSinUsuario,
+                Categorias: materialCategorias,
+                Usuario_Creador: material.Usuario_Creador ? {
+                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: material.Usuario_Creador.Id_Rol
+                } : null
+            };
+        });
     }
 
     async getMaterialesPorEncimaDeStock(threshold: number) {
-        return this.inventarioRepository.createQueryBuilder('material')
+        const materiales = await this.inventarioRepository.createQueryBuilder('material')
             .leftJoinAndSelect('material.Estado_Material', 'estado')
-            .leftJoinAndSelect('material.materialCategorias', 'materialCategorias')
-            .leftJoinAndSelect('materialCategorias.Categoria', 'categoria')
+            .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
+            .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
+            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
             .where('material.Cantidad > :threshold', { threshold })
             .orderBy('material.Cantidad', 'DESC')
             .getMany();
+
+        return materiales.map(material => {
+            const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = material;
+            return {
+                ...materialSinUsuario,
+                Categorias: materialCategorias,
+                Usuario_Creador: material.Usuario_Creador ? {
+                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: material.Usuario_Creador.Id_Rol
+                } : null
+            };
+        });
     }
 
     async getMaterialesPorDebajoDeStock(threshold: number) {
-        return this.inventarioRepository.createQueryBuilder('material')
+        const materiales = await this.inventarioRepository.createQueryBuilder('material')
             .leftJoinAndSelect('material.Estado_Material', 'estado')
-            .leftJoinAndSelect('material.materialCategorias', 'materialCategorias')
-            .leftJoinAndSelect('materialCategorias.Categoria', 'categoria')
+            .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
+            .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
+            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
             .where('material.Cantidad < :threshold', { threshold })
             .orderBy('material.Cantidad', 'ASC')
             .getMany();
+
+        return materiales.map(material => {
+            const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = material;
+            return {
+                ...materialSinUsuario,
+                Categorias: materialCategorias,
+                Usuario_Creador: material.Usuario_Creador ? {
+                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: material.Usuario_Creador.Id_Rol
+                } : null
+            };
+        });
     }
 
-    async createMaterial(dto: CreateMaterialDto) {
+    async createMaterial(dto: CreateMaterialDto, idUsuarioCreador: number) {
         const NombreNormalizado = dto.Nombre_Material[0].toUpperCase() + dto.Nombre_Material.slice(1).toLowerCase();
 
         const materialExistente = await this.inventarioRepository.findOne({ where: { Nombre_Material: NombreNormalizado }, });
@@ -84,6 +170,9 @@ export class MaterialService {
         if (UnidadMedicionExistente.Estado_Unidad_Medicion.Nombre_Estado_Unidad_Medicion !== 'Activo') {
             throw new BadRequestException('La unidad de medición proporcionada no está activa');
         }
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador }, relations: ['Rol'] });
+        if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuarioCreador} no encontrado`); }
 
         // Validar categorías si se proporcionan
         let categorias: Categoria[] = [];
@@ -98,6 +187,7 @@ export class MaterialService {
             ...dto,
             Nombre_Material: NombreNormalizado,
             Unidad_Medicion: UnidadMedicionExistente,
+            Usuario_Creador: usuario,
         });
 
         const savedMaterial = await this.inventarioRepository.save(material);
@@ -111,7 +201,32 @@ export class MaterialService {
             await this.materialCategoriaRepository.save(materialCategorias);
         }
 
-        return this.inventarioRepository.findOne({ where: { Id_Material: savedMaterial.Id_Material }, relations: ['Estado_Material', 'Unidad_Medicion', 'materialCategorias', 'materialCategorias.Categoria'] });
+        const materialCreado = await this.inventarioRepository.createQueryBuilder('material')
+            .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
+            .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
+            .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
+            .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
+            .getOne();
+
+        if (!materialCreado) {
+            throw new NotFoundException('Error al recuperar el material creado');
+        }
+
+        // Excluir Usuario_Creador del spread para evitar duplicados
+        const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = materialCreado;
+
+        return {
+            ...materialSinUsuario,
+            Categorias: materialCategorias,
+            Usuario_Creador: {
+                Id_Usuario: usuario.Id_Usuario,
+                Nombre_Usuario: usuario.Nombre_Usuario,
+                Id_Rol: usuario.Id_Rol
+            }
+        }
     }
 
     async updateMaterial(Id_Material: number, dto: UpdateMaterialDto) {
@@ -125,7 +240,6 @@ export class MaterialService {
             throw new BadRequestException('La unidad de medición proporcionada no esta activa');
         }
 
-        // Validar si el nuevo nombre ya existe en otro material
         if (dto.Nombre_Material && (dto.Nombre_Material[0].toUpperCase() + dto.Nombre_Material.slice(1).toLowerCase()) !== materialExistente.Nombre_Material) {
             const NombreNormalizado = dto.Nombre_Material[0].toUpperCase() + dto.Nombre_Material.slice(1).toLowerCase();
 
@@ -135,7 +249,6 @@ export class MaterialService {
 
         // Manejar categorias si se proporcionan (incluso si es array vacio)
         if (dto.IDS_Categorias !== undefined) {
-            // Validar que las nuevas categorias existan
             let nuevasCategorias: Categoria[] = [];
             if (dto.IDS_Categorias && dto.IDS_Categorias.length > 0) {
                 nuevasCategorias = await this.categoriaRepository.find({ where: { Id_Categoria: In(dto.IDS_Categorias) } });
@@ -148,7 +261,6 @@ export class MaterialService {
             const idsCategoriasActuales = categoriasActuales.map(mc => mc.Categoria.Id_Categoria);
             const idsCategoriasNuevas = dto.IDS_Categorias || [];
 
-            // Determinar cuales agregar y borrar
             const categoriasParaAgregar = idsCategoriasNuevas.filter(id => !idsCategoriasActuales.includes(id));
             const categoriasParaEliminar = idsCategoriasActuales.filter(id => !idsCategoriasNuevas.includes(id));
 
@@ -175,7 +287,7 @@ export class MaterialService {
         const { IDS_Categorias, ...datosActualizacion } = dto;
         
         // Excluir explícitamente las relaciones del merge para evitar conflictos
-        const { materialCategorias, Estado_Material, ...materialSinRelaciones } = materialExistente;
+        const { materialCategorias: categoriasExistentes, Estado_Material, ...materialSinRelaciones } = materialExistente;
         
         const materialActualizado = {
             ...materialSinRelaciones,
@@ -183,54 +295,38 @@ export class MaterialService {
             Unidad_Medicion: UnidadMedicionExistente,
         };
 
-        // Normalizar nombre si se proporciona
         if (datosActualizacion.Nombre_Material) {
             materialActualizado.Nombre_Material = datosActualizacion.Nombre_Material[0].toUpperCase() + datosActualizacion.Nombre_Material.slice(1).toLowerCase();
         }
 
         await this.inventarioRepository.save(materialActualizado);
 
-        // Retornar el material con todas sus relaciones
-        return this.inventarioRepository.findOne({ where: { Id_Material: Id_Material }, relations: ['Estado_Material', 'Unidad_Medicion', 'materialCategorias', 'materialCategorias.Categoria'] });
-    }
+        const materialActualizadoCompleto = await this.inventarioRepository.createQueryBuilder('material')
+            .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
+            .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
+            .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
+            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .where('material.Id_Material = :id', { id: Id_Material })
+            .getOne();
 
-    async IngresoMaterial(Id_Material: number, dto: IngresoEgresoMaterialDto) {
-        if (dto.Cantidad <= 0) { throw new BadRequestException('La cantidad a ingresar debe ser mayor que cero'); }
-
-        const materialExistente = await this.inventarioRepository.findOne({ where: { Id_Material: Id_Material } });
-        if (!materialExistente) { throw new NotFoundException('Material no encontrado'); }
-
-        materialExistente.Cantidad += dto.Cantidad;
-        if(materialExistente.Cantidad > 0) {
-            const estadoActivo = await this.estadoMaterialRepository.findOne({ where: { Nombre_Estado_Material: 'DISPONIBLE' } });
-            if(estadoActivo) {
-                materialExistente.Estado_Material = estadoActivo;
-            }
+        if (!materialActualizadoCompleto) {
+            throw new NotFoundException('Error al recuperar el material actualizado');
         }
 
-        await this.inventarioRepository.save(materialExistente);
-        return this.inventarioRepository.findOne({ where: { Id_Material: Id_Material }, relations: ['Estado_Material', 'materialCategorias', 'materialCategorias.Categoria'] });
-    }
+        // Excluir Usuario_Creador del spread para evitar duplicados
+        const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = materialActualizadoCompleto;
 
-    async EgresoMaterial(Id_Material: number, dto: IngresoEgresoMaterialDto) {
-        if (dto.Cantidad <= 0) { throw new BadRequestException('La cantidad a egresar debe ser mayor que cero'); }
-
-        const materialExistente = await this.inventarioRepository.findOne({ where: { Id_Material: Id_Material } });
-        if (!materialExistente) { throw new NotFoundException('Material no encontrado'); }
-
-        if (materialExistente.Cantidad < dto.Cantidad) { throw new BadRequestException('No hay suficiente cantidad en inventario para realizar el egreso'); }
-
-        materialExistente.Cantidad -= dto.Cantidad;
-        if(materialExistente.Cantidad === 0) {
-            const estadoInactivo = await this.estadoMaterialRepository.findOne({ where: { Nombre_Estado_Material: 'AGOTADO' } });
-            if(estadoInactivo) {
-                materialExistente.Estado_Material = estadoInactivo;
+        return {
+            ...materialSinUsuario,
+            Categorias: materialCategorias,
+            Usuario_Creador: {
+                Id_Usuario: materialActualizadoCompleto.Usuario_Creador.Id_Usuario,
+                Nombre_Usuario: materialActualizadoCompleto.Usuario_Creador.Nombre_Usuario,
+                Id_Rol: materialActualizadoCompleto.Usuario_Creador.Id_Rol
             }
-        }
-
-        await this.inventarioRepository.save(materialExistente);
-        return this.inventarioRepository.findOne({ where: { Id_Material: Id_Material }, relations: ['Estado_Material', 'Unidad_Medicion', 'materialCategorias', 'materialCategorias.Categoria'] });
+        };
     }
-
-
 }

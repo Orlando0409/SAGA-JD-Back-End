@@ -10,11 +10,11 @@ import { EstadoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/EstadoAfi
 import { TipoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
 import { EstadoMaterial } from 'src/Modules/Inventario/InventarioEntities/EstadoMaterial.Entity';
 import { Categoria } from 'src/Modules/Inventario/InventarioEntities/Categoria.Entity';
+import { SeederService } from './Seeder.service';
 import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
 import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoCalidadAgua } from 'src/Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
-import { SeederService } from './Seeder.service';
 
 @Module({
     imports: [

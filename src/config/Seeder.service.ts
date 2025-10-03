@@ -213,12 +213,12 @@ export class SeederService implements OnModuleInit {
 
             if (!existe) {
                 const nuevaCategoria = this.categoriaMaterialRepository.create(categoria);
-                
+
                 // Asignar el usuario creador si existe
                 if (adminUser) {
                     nuevaCategoria.Usuario_Creador = adminUser;
                 }
-                
+
                 await this.categoriaMaterialRepository.save(nuevaCategoria);
             }
         }
@@ -243,6 +243,15 @@ export class SeederService implements OnModuleInit {
     }
 
     private async createDefaultUnidadesMedicion() {
+        // Buscar el usuario admin para asignarlo como creador
+        const adminUser = await this.userRepository.findOne({
+            where: { Nombre_Usuario: 'admin' }
+        });
+
+        if (!adminUser) {
+            console.warn('Usuario admin no encontrado. Las categorías se crearán sin usuario creador.');
+        }
+
         const unidades = [
             { Id_Unidad_Medicion: 1, Nombre_Unidad: 'Unidad', Abreviatura: 'U', Descripcion: 'Unidades simples', Id_Estado_Unidad_Medicion: 1 },
             { Id_Unidad_Medicion: 2, Nombre_Unidad: 'Paquete', Abreviatura: 'P', Descripcion: 'De entre 4 a 8 por paquete', Id_Estado_Unidad_Medicion: 1 },
@@ -256,6 +265,12 @@ export class SeederService implements OnModuleInit {
 
             if (!existe) {
                 const nuevaUnidad = this.unidadMedicionRepository.create(unidad);
+
+                // Asignar el usuario creador si existe
+                if (adminUser) {
+                    nuevaUnidad.Usuario_Creador = adminUser;
+                }
+
                 await this.unidadMedicionRepository.save(nuevaUnidad);
             }
         }
