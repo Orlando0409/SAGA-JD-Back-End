@@ -7,6 +7,7 @@ import { EstadoSolicitud } from '../../SolicitudEntities/EstadoSolicitud.Entity'
 import { ValidationsModule } from 'src/Validations/Validations.module';
 import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
 import { AfiliadosModule } from 'src/Modules/Afiliados/afiliados.module';
+import { EmailModule } from 'src/Modules/Emails/email.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AfiliadosModule } from 'src/Modules/Afiliados/afiliados.module';
     ValidationsModule,
     DropboxModule,
     AfiliadosModule,
+    EmailModule
   ],
   controllers: [SolicitudAfiliacionJuridicaController],
   providers: [SolicitudAfiliacionJuridicaService],
