@@ -5,7 +5,7 @@ import { Categoria } from '../InventarioEntities/Categoria.Entity';
 import { CreateCategoriaDto } from "../InventarioDTO's/CreateCategoria.dto";
 import { UpdateCategoriaDto } from "../InventarioDTO's/UpdateCategoria.dto";
 import { EstadoCategoria } from '../InventarioEntities/EstadoCategoria.Entity';
-import { UserEntity } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
+import { Usuario } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
 import { plainToClass } from "class-transformer";
 import { GetUsuarioCreadorDto } from '../InventarioDTO\'s/getUsuarioCreador.dto';
 
@@ -18,8 +18,8 @@ export class CategoriasService {
         @InjectRepository(EstadoCategoria)
         private readonly estadoCategoriaRepository: Repository<EstadoCategoria>,
 
-        @InjectRepository(UserEntity)
-        private readonly usuarioRepository: Repository<UserEntity>,
+        @InjectRepository(Usuario)
+        private readonly usuarioRepository: Repository<Usuario>,
     ) {}
 
     async getAllCategorias() {

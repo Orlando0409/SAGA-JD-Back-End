@@ -34,6 +34,7 @@ export abstract class Afiliado {
     @ManyToOne(() => EstadoAfiliado, estado => estado.Afiliados)
     @JoinColumn({ name: 'Id_Estado_Afiliado' })
     Estado: EstadoAfiliado;
+
     @ManyToOne(() => TipoAfiliado, tipo => tipo.Afiliados)
     @JoinColumn({ name: 'Id_Tipo_Afiliado' })
     Tipo_Afiliado: TipoAfiliado;
@@ -75,10 +76,10 @@ export class AfiliadoFisico extends Afiliado {
     Edad: number;
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Afiliado: 1, Nombre_Estado: 'Activo' } as EstadoAfiliado; }
+    setDefaultEstado() { this.Estado = { Id_Estado_Afiliado: 1 } as EstadoAfiliado; }
 
     @BeforeInsert()
-    setTipoAfiliado() { this.Tipo_Afiliado = { Id_Tipo_Afiliado: 1, Nombre_Tipo_Afiliado: 'Abonado' } as TipoAfiliado; }
+    setTipoAfiliado() { this.Tipo_Afiliado = { Id_Tipo_Afiliado: 1 } as TipoAfiliado; }
 }
 
 @Entity('Afiliado_Juridico')
@@ -90,8 +91,8 @@ export class AfiliadoJuridico extends Afiliado {
     Razon_Social: string;
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Afiliado: 1, Nombre_Estado: 'Activo' } as EstadoAfiliado; }
+    setDefaultEstado() { this.Estado = { Id_Estado_Afiliado: 1 } as EstadoAfiliado; }
 
     @BeforeInsert()
-    setTipoAfiliado() { this.Tipo_Afiliado = { Id_Tipo_Afiliado: 1, Nombre_Tipo_Afiliado: 'Abonado' } as TipoAfiliado; }
+    setTipoAfiliado() { this.Tipo_Afiliado = { Id_Tipo_Afiliado: 1 } as TipoAfiliado; }
 }

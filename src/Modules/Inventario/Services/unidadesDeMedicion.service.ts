@@ -9,7 +9,7 @@ import { UpdateUnidadMedicionDto } from "../InventarioDTO's/UpdateUnidadMedicion
 import { getUnidadDeMedidaDTO } from "../InventarioDTO's/getUnidadDeMedida.dto";
 import { plainToClass } from 'class-transformer';
 import { GetUsuarioCreadorDto } from '../InventarioDTO\'s/getUsuarioCreador.dto';
-import { UserEntity } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
+import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 
 @Injectable()
 export class UnidadesDeMedicionService {
@@ -23,8 +23,8 @@ export class UnidadesDeMedicionService {
         @InjectRepository(Material)
         private readonly materialRepository: Repository<Material>,
 
-        @InjectRepository(UserEntity)
-        private readonly usuarioRepository: Repository<UserEntity>,
+        @InjectRepository(Usuario)
+        private readonly usuarioRepository: Repository<Usuario>,
     ) {}
 
     async getAllUnidadesMedicion() {

@@ -69,21 +69,21 @@ export class ProveedorService {
   }
 
     findAllFisico(): Promise<ProveedorFisico[]> {
-      return this.fisicoRepo.find({ relations: ['Estado_Proveedor'] });
+      return this.fisicoRepo.find({ relations: ['Estado_Proveedor', 'Tipo_Proveedor'] });
     }
 
     findAllJuridico(): Promise<ProveedorJuridico[]> {
-      return this.juridicoRepo.find({ relations: ['Estado_Proveedor'] });
+      return this.juridicoRepo.find({ relations: ['Estado_Proveedor', 'Tipo_Proveedor'] });
     }
 
     async findOneFisico(id: number): Promise<ProveedorFisico> {
-      const proveedor = await this.fisicoRepo.findOne({ where: { Id_Proveedor: id }, relations: ['Estado_Proveedor'] });
+      const proveedor = await this.fisicoRepo.findOne({ where: { Id_Proveedor: id }, relations: ['Estado_Proveedor', 'Tipo_Proveedor'] });
         if (!proveedor) throw new NotFoundException(`Proveedor Físico ${id} no encontrado`);
       return proveedor;
     }
 
     async findOneJuridico(id: number): Promise<ProveedorJuridico> {
-      const proveedor = await this.juridicoRepo.findOne({ where: { Id_Proveedor: id }, relations: ['Estado_Proveedor'] });
+      const proveedor = await this.juridicoRepo.findOne({ where: { Id_Proveedor: id }, relations: ['Estado_Proveedor', 'Tipo_Proveedor'] });
         if (!proveedor) throw new NotFoundException(`Proveedor Jurídico ${id} no encontrado`);
       return proveedor;
     }

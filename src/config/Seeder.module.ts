@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Permiso } from 'src/Modules/Usuarios/UsuarioEntities/Permiso.Entity';
-import { UserEntity } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
-import { UserRol } from 'src/Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
-import { EstadoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/EstadoProveedor.Entity';    
+import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
+import { UsuarioRol } from 'src/Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
+import { EstadoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/EstadoProveedor.Entity';
+import { TipoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/TipoProveedor.Entity';    
 import { ProyectoEstado } from 'src/Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 import { EstadoSolicitud } from 'src/Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
 import { EstadoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
@@ -18,7 +19,7 @@ import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/Estad
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([UserEntity, UserRol, Permiso, EstadoProveedor, ProyectoEstado, EstadoSolicitud, EstadoAfiliado, TipoAfiliado, EstadoMaterial, Categoria, EstadoCategoria, EstadoUnidadMedicion, UnidadMedicion, EstadoCalidadAgua])
+        TypeOrmModule.forFeature([Usuario, UsuarioRol, Permiso, EstadoProveedor, TipoProveedor, ProyectoEstado, EstadoSolicitud, EstadoAfiliado, TipoAfiliado, EstadoMaterial, Categoria, EstadoCategoria, EstadoUnidadMedicion, UnidadMedicion, EstadoCalidadAgua])
     ],
     providers: [SeederService],
     exports: [SeederService]

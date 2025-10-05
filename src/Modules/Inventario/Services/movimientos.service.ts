@@ -1,17 +1,17 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { EstadoMaterial } from "../InventarioEntities/EstadoMaterial.Entity";
-import { In, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
-import { IngresoEgresoMaterialDto } from "../InventarioDTO's/IngresoEgresoMaterial.dto";
+import { MovimientoMaterialDto } from "../InventarioDTO's/MovimientoMaterial.dto";
 import { Material } from "../InventarioEntities/Material.Entity";
-import { IngresoEgresoMaterial } from "../InventarioEntities/IngresoEgreso.Entity";
-import { UserEntity } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
+import { MovimientoInventario } from "../InventarioEntities/Movimiento.Entity";
+import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Injectable()
 export class MovimientosService {
     constructor(
-        @InjectRepository(IngresoEgresoMaterial)
-        private readonly movimientoRepository: Repository<IngresoEgresoMaterial>,
+        @InjectRepository(MovimientoInventario)
+        private readonly movimientoRepository: Repository<MovimientoInventario>,
 
         @InjectRepository(Material)
         private readonly materialRepository: Repository<Material>,
@@ -19,8 +19,8 @@ export class MovimientosService {
         @InjectRepository(EstadoMaterial)
         private readonly estadoMaterialRepository: Repository<EstadoMaterial>,
 
-        @InjectRepository(UserEntity)
-        private readonly usuarioRepository: Repository<UserEntity>,
+        @InjectRepository(Usuario)
+        private readonly usuarioRepository: Repository<Usuario>,
     ) {}
 
     async getAllMovimientos() {
@@ -33,7 +33,7 @@ export class MovimientosService {
 
         return movimientos.map(movimiento => {
             return {
-                Id_Ingreso_Egreso: movimiento.Id_Ingreso_Egreso,
+                Id_Ingreso_Egreso: movimiento.Id_Movimiento,
                 Tipo_Movimiento: movimiento.Tipo_Movimiento,
                 Cantidad: movimiento.Cantidad,
                 Cantidad_Anterior: movimiento.Cantidad_Anterior,
@@ -55,7 +55,7 @@ export class MovimientosService {
         });
     }
 
-    async IngresoMaterial(dto: IngresoEgresoMaterialDto, idUsuarioCreador: number) {
+    async IngresoMaterial(dto: MovimientoMaterialDto, idUsuarioCreador: number) {
         if (dto.Cantidad <= 0) { throw new BadRequestException('La cantidad a ingresar debe ser mayor que cero'); }
 
         const materialExistente = await this.materialRepository.findOne({ where: { Id_Material: dto.Id_Material } });
@@ -109,7 +109,7 @@ export class MovimientosService {
         return {
             Material: materialActualizado,
             Movimiento: {
-                Id_Ingreso_Egreso: ultimoMovimiento.Id_Ingreso_Egreso,
+                Id_Ingreso_Egreso: ultimoMovimiento.Id_Movimiento,
                 Tipo_Movimiento: ultimoMovimiento.Tipo_Movimiento,
                 Cantidad: ultimoMovimiento.Cantidad,
                 Cantidad_Anterior: ultimoMovimiento.Cantidad_Anterior,
@@ -125,7 +125,7 @@ export class MovimientosService {
         };
     }
 
-    async EgresoMaterial(Id_Usuario: number, dto: IngresoEgresoMaterialDto) {
+    async EgresoMaterial(Id_Usuario: number, dto: MovimientoMaterialDto) {
         if (dto.Cantidad <= 0) { throw new BadRequestException('La cantidad a egresar debe ser mayor que cero'); }
 
         const materialExistente = await this.materialRepository.findOne({ where: { Id_Material: dto.Id_Material } });
@@ -138,10 +138,10 @@ export class MovimientosService {
 
         // Guardar cantidad anterior para el registro
         const cantidadAnterior = materialExistente.Cantidad;
-        
+
         materialExistente.Cantidad -= dto.Cantidad;
         if(materialExistente.Cantidad === 0) {
-            const estadoInactivo = await this.estadoMaterialRepository.findOne({ where: { Nombre_Estado_Material: 'AGOTADO' } });
+            const estadoInactivo = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 2 } });
             if(estadoInactivo) {
                 materialExistente.Estado_Material = estadoInactivo;
             }
@@ -177,7 +177,7 @@ export class MovimientosService {
         return {
             Material: materialActualizado,
             Movimiento: ultimoMovimiento ? {
-                Id_Ingreso_Egreso: ultimoMovimiento.Id_Ingreso_Egreso,
+                Id_Ingreso_Egreso: ultimoMovimiento.Id_Movimiento,
                 Tipo_Movimiento: ultimoMovimiento.Tipo_Movimiento,
                 Cantidad: ultimoMovimiento.Cantidad,
                 Cantidad_Anterior: ultimoMovimiento.Cantidad_Anterior,

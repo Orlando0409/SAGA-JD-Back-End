@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
-import { UserEntity } from '../Usuarios/UsuarioEntities/Usuario.Entity';
+import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 import { LoginDto } from './DTO/LoginDto';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
@@ -16,10 +16,13 @@ import { ChangePasswordDTO } from './DTO/ChangePasswordDTO';
 export class AuthService {
   usuariosService: any;
   constructor(
+    @InjectRepository(Usuario)
+    private readonly userRepository: Repository<Usuario>,
+
     private readonly jwtService: JwtService,
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
+
     private readonly configService: ConfigService,
+
     private readonly emailService: EmailService,
   ) {}
 
