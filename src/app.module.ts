@@ -46,9 +46,9 @@ import { UnidadMedicion } from './Modules/Inventario/InventarioEntities/UnidadMe
 import { EstadoUnidadMedicion } from './Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
 import { EstadoCalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
 import { EstadoCategoria } from './Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
-import { SeederModule } from './Config/Seeder.module';
 import { ProveedorEntity, ProveedorFisico, ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
 import { IngresoEgresoMaterial } from './Modules/Inventario/InventarioEntities/IngresoEgreso.Entity';
+import { SeederModule } from './config/Seeder.module';
 
 @Module({
   imports: [
