@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { CalidadAgua } from "./CalidadAguaEntities/CalidadAgua.Entity";
@@ -35,10 +35,16 @@ export class CalidadAguaService
 
     async CreateCalidadAgua(dto: CreateCalidadAguaDto, file?: Express.Multer.File)
     {
-        if (!file) { throw new Error('Debe subir un archivo para la calidad de agua'); }
+        if (!file) { throw new BadRequestException('Debe subir un archivo para la calidad de agua'); }
+
+        const estadoInicial = await this.estadoCalidadAguaRepository.findOne({ where: { Id_Estado_Calidad_Agua: 2 } });
+        if (!estadoInicial) { throw new BadRequestException('Estado inicial no encontrado'); }
 
         // Normalizar título antes de procesar
         dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
+
+        const calidadAguaTitulo = await this.calidadAguaRepository.findOne({ where: { Titulo: dto.Titulo } });
+        if (calidadAguaTitulo) { throw new BadRequestException('El título ya existe'); }
 
         // Subir archivo a Dropbox
         const fileRes = await this.dropboxFilesService.uploadFile(file, 'Calidad-de-Agua', dto.Titulo);
@@ -47,9 +53,9 @@ export class CalidadAguaService
         const calidadAgua = this.calidadAguaRepository.create({
             Titulo: dto.Titulo,
             Url_Archivo: fileRes.url,
+            Estado: estadoInicial
         });
 
-        // Guardar en BD
         return await this.calidadAguaRepository.save(calidadAgua);
     }
 

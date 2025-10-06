@@ -33,7 +33,11 @@ export class Categoria {
 
     @BeforeInsert()
     @BeforeUpdate()
-    setDefaultEstadoCategoria() { this.Estado_Categoria = { Id_Estado_Categoria: 1 } as EstadoCategoria; }
+    setDefaultEstadoCategoria() {
+        if (!this.Estado_Categoria) {
+            this.Estado_Categoria = { Id_Estado_Categoria: 1 } as EstadoCategoria;
+        }
+    }
 
     @BeforeInsert()
     @BeforeUpdate()

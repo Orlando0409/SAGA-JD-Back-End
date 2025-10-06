@@ -25,11 +25,17 @@ export class ProyectoService
     @Public()
     async getProyectos()
     {
-        return this.proyectoRepository.find({ relations: ['Estado'],});
+        return this.proyectoRepository.find({ 
+            relations: ['Estado'],
+            order: { Fecha_Creacion: 'DESC' }
+        });
     }
 
     async findProyectobyId(Id_Proyecto: number) {
-        const proyecto = await this.proyectoRepository.findOne({ where: { Id_Proyecto } });
+        const proyecto = await this.proyectoRepository.findOne({ 
+            where: { Id_Proyecto },
+            relations: ['Estado']
+        });
         if (!proyecto) { throw new NotFoundException(`Proyecto con id ${Id_Proyecto} no encontrado`); }
         return proyecto;
     }
@@ -38,21 +44,21 @@ export class ProyectoService
     {
         if (!file) { throw new Error('Debe subir una imagen para el proyecto'); }
 
+        // Obtener estado por defecto "En Planeamiento"
+        const estadoDefault = await this.proyectoEstadoRepository.findOne({ where: { Id_Estado_Proyecto: 1 } });
+        if (!estadoDefault) { throw new Error('Estado por defecto no encontrado'); }
+
         // Normalizar datos antes de procesar
         dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
         dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
-        
-        const TituloToUpperCase = dto.Titulo.toUpperCase();
-        // Subir archivo a Dropbox
-        const Proyecto = await this.dropboxFilesService.uploadFileDownloadOnly(file, 'Proyectos', TituloToUpperCase);
 
-        const now = new Date();
-        now.setSeconds(0, 0);
+        const Proyecto = await this.dropboxFilesService.uploadFileDownloadOnly(file, 'Proyectos', dto.Titulo);
 
         // Crear objeto entidad
-        const proyecto = ({
+        const proyecto = this.proyectoRepository.create({
             ...dto,
             Imagen_Url: Proyecto.url,
+            Estado: estadoDefault
         });
 
         // Guardar en BD

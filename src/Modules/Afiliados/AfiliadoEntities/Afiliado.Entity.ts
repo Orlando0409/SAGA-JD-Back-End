@@ -91,8 +91,16 @@ export class AfiliadoJuridico extends Afiliado {
     Razon_Social: string;
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Afiliado: 1 } as EstadoAfiliado; }
+    setDefaultEstado() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Afiliado: 1 } as EstadoAfiliado;
+        }
+    }
 
     @BeforeInsert()
-    setTipoAfiliado() { this.Tipo_Afiliado = { Id_Tipo_Afiliado: 1 } as TipoAfiliado; }
+    setTipoAfiliado() {
+        if (!this.Tipo_Afiliado) {
+            this.Tipo_Afiliado = { Id_Tipo_Afiliado: 1 } as TipoAfiliado;
+        }
+    }
 }
