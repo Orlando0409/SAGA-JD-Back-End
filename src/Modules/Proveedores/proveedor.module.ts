@@ -2,12 +2,14 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProveedorService } from './proveedor.service';
 import { ProveedorController } from './proveedor.controller';
-import { ProveedorFisico, ProveedorJuridico, ProveedorEntity } from './ProveedorEntities/Proveedor.Entity';
+import { ProveedorFisico, ProveedorJuridico, Proveedor } from './ProveedorEntities/Proveedor.Entity';
 import { EstadoProveedor } from './ProveedorEntities/EstadoProveedor.Entity';
+import { TipoProveedor } from './ProveedorEntities/TipoProveedor.Entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ProveedorEntity, ProveedorFisico, ProveedorJuridico, EstadoProveedor])],
+  imports: [TypeOrmModule.forFeature([Proveedor, ProveedorFisico, ProveedorJuridico, EstadoProveedor, TipoProveedor])],
   providers: [ProveedorService],
   controllers: [ProveedorController],
+  exports: [ProveedorService],
 })
 export class ProveedorModule {}

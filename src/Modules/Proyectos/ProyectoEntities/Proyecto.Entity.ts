@@ -19,9 +19,6 @@ export class Proyecto
   @UpdateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
   Fecha_Actualizacion: Date;
 
-  @BeforeUpdate()
-  updateTimestamp() { this.Fecha_Actualizacion = new Date(); }
-
   @Column({ nullable: false })
   Id_Usuario: number;   // CAMBIAR A USUARIO RELACION
 
@@ -29,9 +26,13 @@ export class Proyecto
   @JoinColumn({ name: 'Id_Estado_Proyecto' })  //LLave Foranea para acceder al estado del proyecto 
   Estado: ProyectoEstado; //Este campo puede ser un ID o un enum dependiendo de la implementación
 
-  @BeforeInsert()
-  setDefaultEstado() { this.Estado = { Id_Estado_Proyecto: 1, Nombre_Estado: 'En planeamiento' } as ProyectoEstado; }
-
   @Column()
   Imagen_Url: string;
+
+  @BeforeInsert()
+  setDefaultEstado() {
+    if (!this.Estado) {
+      this.Estado = { Id_Estado_Proyecto: 1 } as ProyectoEstado; 
+    }
+  }
 }

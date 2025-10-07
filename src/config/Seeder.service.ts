@@ -3,9 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Permiso } from 'src/Modules/Usuarios/UsuarioEntities/Permiso.Entity';
-import { UserEntity } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
-import { UserRol } from 'src/Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
+import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
+import { UsuarioRol } from 'src/Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
 import { EstadoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/EstadoProveedor.Entity';
+import { TipoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/TipoProveedor.Entity';
 import { ProyectoEstado } from 'src/Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 import { EstadoSolicitud } from 'src/Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
 import { EstadoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
@@ -20,14 +21,16 @@ import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/Estad
 @Injectable()
 export class SeederService implements OnModuleInit {
     constructor(
-        @InjectRepository(UserRol)
-        private readonly rolRepository: Repository<UserRol>,
+        @InjectRepository(UsuarioRol)
+        private readonly rolRepository: Repository<UsuarioRol>,
         @InjectRepository(Permiso)
         private readonly permisoRepository: Repository<Permiso>,
-        @InjectRepository(UserEntity)
-        private readonly userRepository: Repository<UserEntity>,
+        @InjectRepository(Usuario)
+        private readonly userRepository: Repository<Usuario>,
         @InjectRepository(EstadoProveedor)
         private readonly estadoProveedorRepo: Repository<EstadoProveedor>,
+        @InjectRepository(TipoProveedor)
+        private readonly tipoProveedorRepository: Repository<TipoProveedor>,
         @InjectRepository(ProyectoEstado)
         private readonly proyectoEstadoRepository: Repository<ProyectoEstado>,
         @InjectRepository(EstadoSolicitud)
@@ -53,6 +56,7 @@ export class SeederService implements OnModuleInit {
     async onModuleInit() {
         await this.createInitialData();
         await this.createDefaultEstadosProveedor();
+        await this.createDefaultTiposProveedor();
         await this.createDefaultEstadosProyecto();
         await this.createDefaultEstadosSolicitud();
         await this.createDefaultEstadosAfiliado();
@@ -102,7 +106,9 @@ export class SeederService implements OnModuleInit {
             { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' },
             { Id_Estado_Solicitud: 2, Nombre_Estado: 'En Revisión' },
             { Id_Estado_Solicitud: 3, Nombre_Estado: 'Aprobada' },
-            { Id_Estado_Solicitud: 4, Nombre_Estado: 'Rechazada' },
+            { Id_Estado_Solicitud: 4, Nombre_Estado: 'En espera' },
+            { Id_Estado_Solicitud: 5, Nombre_Estado: 'Completada' },
+            { Id_Estado_Solicitud: 6, Nombre_Estado: 'Rechazada' },
         ];
 
         for (const estado of estados) {
@@ -135,10 +141,28 @@ export class SeederService implements OnModuleInit {
         }
     }
 
+    private async createDefaultTiposProveedor() {
+        const tipos = [
+            { Id_Tipo_Proveedor: 1, Tipo_Proveedor: 'Fisico' },
+            { Id_Tipo_Proveedor: 2, Tipo_Proveedor: 'Juridico' }
+        ];
+
+        for (const tipo of tipos) {
+            const existe = await this.tipoProveedorRepository.findOne({
+                where: { Id_Tipo_Proveedor: tipo.Id_Tipo_Proveedor }
+            });
+
+            if (!existe) {
+                const nuevoTipo = this.tipoProveedorRepository.create(tipo);
+                await this.tipoProveedorRepository.save(nuevoTipo);
+            }
+        }
+    }
+
     private async createDefaultTiposAfiliado() {
         const tipos = [
             { Id_Tipo_Afiliado: 1, Nombre_Tipo_Afiliado: 'Abonado' },
-            { Id_Tipo_Afiliado: 2, Nombre_Tipo_Afiliado: 'Asociado' },
+            { Id_Tipo_Afiliado: 2, Nombre_Tipo_Afiliado: 'Asociado' }
         ];
 
         for (const tipo of tipos) {
@@ -157,6 +181,8 @@ export class SeederService implements OnModuleInit {
         const estados = [
             { Id_Estado_Material: 1, Nombre_Estado_Material: 'Disponible' },
             { Id_Estado_Material: 2, Nombre_Estado_Material: 'Agotado' },
+            { Id_Estado_Material: 3, Nombre_Estado_Material: 'De baja' },
+            { Id_Estado_Material: 4, Nombre_Estado_Material: 'Agotado y de baja' }
         ];
 
         for (const estado of estados) {
@@ -253,9 +279,9 @@ export class SeederService implements OnModuleInit {
         }
 
         const unidades = [
-            { Id_Unidad_Medicion: 1, Nombre_Unidad: 'Unidad', Abreviatura: 'U', Descripcion: 'Unidades simples', Id_Estado_Unidad_Medicion: 1 },
-            { Id_Unidad_Medicion: 2, Nombre_Unidad: 'Paquete', Abreviatura: 'P', Descripcion: 'De entre 4 a 8 por paquete', Id_Estado_Unidad_Medicion: 1 },
-            { Id_Unidad_Medicion: 3, Nombre_Unidad: 'Litro', Abreviatura: 'L', Descripcion: 'Unidad de medida para líquidos', Id_Estado_Unidad_Medicion: 1 },
+            { Id_Unidad_Medicion: 1, Nombre_Unidad: 'Unidad', Abreviatura: 'u', Descripcion: 'Unidades simples', Id_Estado_Unidad_Medicion: 1 },
+            { Id_Unidad_Medicion: 2, Nombre_Unidad: 'Paquete', Abreviatura: 'p', Descripcion: 'De entre 4 a 8 por paquete', Id_Estado_Unidad_Medicion: 1 },
+            { Id_Unidad_Medicion: 3, Nombre_Unidad: 'Litro', Abreviatura: 'l', Descripcion: 'Unidad de medida para líquidos', Id_Estado_Unidad_Medicion: 1 },
         ];
 
         for (const unidad of unidades) {
@@ -398,7 +424,6 @@ export class SeederService implements OnModuleInit {
                 Nombre_Rol: 'Administrador',
             });
             await this.rolRepository.save(adminRole);
-          
         }
     }
 

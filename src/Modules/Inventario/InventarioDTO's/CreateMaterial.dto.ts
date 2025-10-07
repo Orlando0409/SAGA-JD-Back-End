@@ -20,6 +20,18 @@ export class CreateMaterialDto {
     @IsOptional()
     Descripcion?: string;
 
+    @ApiProperty({ example: [1, 2, 3] })
+    @IsArray({ message: 'Los proveedores físicos deben ser un array [ID]' })
+    @IsInt({ each: true, message: 'Cada proveedor debe ser un número entero' })
+    @IsOptional()
+    IDS_Proveedores_Fisicos?: number[];
+
+    @ApiProperty({ example: [1, 2, 3] })
+    @IsArray({ message: 'Los proveedores jurídicos deben ser un array [ID]' })
+    @IsInt({ each: true, message: 'Cada proveedor debe ser un número entero' })
+    @IsOptional()
+    IDS_Proveedores_Juridicos?: number[];
+
     @ApiProperty({ example: 1 })
     @IsDefined({ message: 'La unidad de medición no puede estar vacio' })
     @IsInt({ message: 'La unidad de medición debe ser un número entero' })
@@ -38,8 +50,8 @@ export class CreateMaterialDto {
     Precio_Unitario: number;
 
     @ApiProperty({ example: [1, 2, 3] })
-    @IsOptional()
     @IsArray({ message: 'Las categorías deben ser un array [ID]' })
     @IsInt({ each: true, message: 'Cada categoría debe ser un número entero' })
+    @IsOptional()
     IDS_Categorias?: number[];
 }

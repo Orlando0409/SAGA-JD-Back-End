@@ -1,7 +1,7 @@
 import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Material } from "./Material.Entity";
 import { EstadoUnidadMedicion } from "./EstadoUnidadMedicion.Entity";
-import { UserEntity } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
+import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Entity('Unidades_Medicion')
 export class UnidadMedicion {
@@ -30,9 +30,9 @@ export class UnidadMedicion {
     @OneToMany(() => Material, material => material.Unidad_Medicion)
     Materiales: Material[];
 
-    @ManyToOne(() => UserEntity, usuario => usuario.Id_Usuario, { eager: true })
+    @ManyToOne(() => Usuario, usuario => usuario.Id_Usuario, { eager: true })
     @JoinColumn({ name: 'Id_Usuario_Creador' })
-    Usuario_Creador: UserEntity;
+    Usuario_Creador: Usuario;
 
 
     @BeforeInsert()
