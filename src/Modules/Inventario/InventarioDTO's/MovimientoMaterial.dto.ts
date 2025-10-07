@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsDefined, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
 
-export class IngresoEgresoMaterialDto {
+export class MovimientoMaterialDto {
     @ApiProperty({ example: 1 })
     @IsDefined({ message: 'El ID del material no puede estar vacío' })
     @IsInt({ message: 'El ID del material debe ser un número entero' })

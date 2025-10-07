@@ -15,8 +15,8 @@ import { EstadoSolicitud } from './Modules/Solicitudes/SolicitudEntities/EstadoS
 import { RolesModule } from './Modules/Usuarios/Modules/roles.module';
 import { UsuariosModule } from './Modules/Usuarios/Modules/usuarios.module';
 import { Permiso } from './Modules/Usuarios/UsuarioEntities/Permiso.Entity';
-import { UserEntity } from './Modules/Usuarios/UsuarioEntities/Usuario.Entity';
-import { UserRol } from './Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
+import { Usuario } from './Modules/Usuarios/UsuarioEntities/Usuario.Entity';
+import { UsuarioRol } from './Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
 import { Proyecto } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
 import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 import { CalidadAguaModule } from './Modules/CalidadAgua/calidadAgua.module';
@@ -46,9 +46,11 @@ import { UnidadMedicion } from './Modules/Inventario/InventarioEntities/UnidadMe
 import { EstadoUnidadMedicion } from './Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
 import { EstadoCalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
 import { EstadoCategoria } from './Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
-import { ProveedorEntity, ProveedorFisico, ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
-import { IngresoEgresoMaterial } from './Modules/Inventario/InventarioEntities/IngresoEgreso.Entity';
-import { SeederModule } from './config/Seeder.module';
+import { SeederModule } from './Config/Seeder.module';
+import { Proveedor, ProveedorFisico, ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
+import { MovimientoInventario } from './Modules/Inventario/InventarioEntities/Movimiento.Entity';
+import { MaterialProveedor } from './Modules/Inventario/InventarioEntities/MaterialProveedor.Entity';
+import { TipoProveedor } from './Modules/Proveedores/ProveedorEntities/TipoProveedor.Entity';
 
 @Module({
   imports: [
@@ -67,14 +69,18 @@ import { SeederModule } from './config/Seeder.module';
         username: config.get<string>('DB_USERNAME'),
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
-        entities: [Solicitud,
-        SolicitudFisica, SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica,
-        SolicitudDesconexionFisica, SolicitudAsociadoFisica, SolicitudAfiliacionJuridica,
-        SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
-        EstadoSolicitud, CalidadAgua, EstadoAfiliado, TipoAfiliado, Afiliado, AfiliadoFisico, AfiliadoJuridico,
-        UserEntity, UserRol, Permiso, ProveedorEntity, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
-        ProyectoEstado, Proyecto, CalidadAgua, EstadoCalidadAgua, Acta, ArchivoActa, Material, EstadoMaterial,
-        Categoria, EstadoCategoria, MaterialCategoria, EstadoUnidadMedicion, UnidadMedicion, IngresoEgresoMaterial],
+        entities: [
+        Usuario, UsuarioRol, Permiso,
+        Solicitud, SolicitudFisica, SolicitudJuridica, EstadoSolicitud,
+        SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudAsociadoFisica,
+        SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
+        Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
+        Proveedor, EstadoProveedor, TipoProveedor, ProveedorFisico, ProveedorJuridico,
+        Proyecto, ProyectoEstado,
+        CalidadAgua, EstadoCalidadAgua,
+        Acta, ArchivoActa,
+        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MaterialProveedor, MovimientoInventario
+        ],
         synchronize: false,
       }),
     }),

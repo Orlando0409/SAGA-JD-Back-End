@@ -8,6 +8,7 @@ import { EstadoSolicitud } from "../../SolicitudEntities/EstadoSolicitud.Entity"
 import { CreateSolicitudAsociadoJuridicaDto } from "../../SolicitudDTO's/CreateSolicitudJuridica.dto";
 import { UpdateSolicitudAsociadoJuridicaDto } from "../../SolicitudDTO's/UpdateSolicitudJuridica.dto";
 import { AfiliadosService } from "src/Modules/Afiliados/afiliados.service";
+import { EmailService } from "src/Modules/Emails/email.service";
 
 @Injectable()
 export class SolicitudAsociadoJuridicaService
@@ -22,6 +23,8 @@ export class SolicitudAsociadoJuridicaService
         private readonly validationsService: ValidationsService,
 
         private readonly afiliadosService: AfiliadosService,
+
+        private readonly emailService: EmailService,
     ) {}
 
     async getAllSolicitudesAsociado()
@@ -32,20 +35,22 @@ export class SolicitudAsociadoJuridicaService
     @Public()
     async createSolicitudAsociado(dto: CreateSolicitudAsociadoJuridicaDto)
     {
-        const estadoInicial = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
-        if (!estadoInicial) {throw new BadRequestException(`Estado inicial de solicitud no configurado`);}
-
         // Validar que existe un afiliado jurídico con esa cédula jurídica
-        const validacionAfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(dto.Cedula_Juridica);
-        if (!validacionAfiliadoExistente) { throw new BadRequestException(validacionAfiliadoExistente); }
+        const AfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(dto.Cedula_Juridica);
+        if (!AfiliadoExistente) {
+            const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesJuridicasActivas(dto.Cedula_Juridica);
+            if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
-        const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesJuridicasActivas(dto.Cedula_Juridica);
-        if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
+            dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
 
-        dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
+            const solicitudAsociado = this.solicitudAsociadoJuridicaRepository.create({...dto});
+            await this.emailService.enviarEmailSolicitudCreada(dto.Correo, 'Asociación', dto.Razon_Social);
+            return this.solicitudAsociadoJuridicaRepository.save(solicitudAsociado);
+        }
 
-        const solicitudAsociado = this.solicitudAsociadoJuridicaRepository.create({...dto, Estado: estadoInicial});
-        return this.solicitudAsociadoJuridicaRepository.save(solicitudAsociado);
+        else {
+            throw new BadRequestException(`No existe un afiliado jurídico con la cédula jurídica ${dto.Cedula_Juridica}`);
+        }
     }
 
     async updateSolicitudAsociado(id: number, dto: UpdateSolicitudAsociadoJuridicaDto)
@@ -65,27 +70,21 @@ export class SolicitudAsociadoJuridicaService
         const nuevoEstado = await this.estadoSolicitudRepository.findOne({where: { Id_Estado_Solicitud: nuevoEstadoId }});
         if (!nuevoEstado) {throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);}
 
-        solicitudAsociado.Estado = nuevoEstado;
-        const solicitudActualizada = await this.solicitudAsociadoJuridicaRepository.save(solicitudAsociado);
+        if (nuevoEstadoId === 2) { // Estado 2 = En revisión
+            await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociación', 'En revisión', solicitudAsociado.Razon_Social);
+        }
 
         // Si el estado cambia a 3 (Aprobada), cambiar el tipo del afiliado existente de "Abonado" a "Asociado"
         if (nuevoEstadoId === 3) {
-            try {
-                await this.afiliadosService.cambiarAbonadoAAsociadoJuridico(solicitudActualizada.Cedula_Juridica);
-            } catch (error) {
-                // Manejar diferentes tipos de errores con mensajes específicos
-                if (error.message.includes('No existe un afiliado jurídico')) {
-                    throw new BadRequestException(`Error al cambiar tipo: No se encontró un afiliado jurídico con la cédula jurídica ${solicitudActualizada.Cedula_Juridica}. La solicitud fue aprobada pero no se pudo cambiar el tipo.`);
-                } else if (error.message.includes('ya es asociado')) {
-                    throw new BadRequestException(`Información: El afiliado con cédula jurídica ${solicitudActualizada.Cedula_Juridica} ya es asociado. La solicitud fue aprobada correctamente.`);
-                } else if (error.message.includes('Tipo "Asociado" no configurado')) {
-                    throw new BadRequestException(`Error de configuración: El tipo "Asociado" no está configurado en el sistema. Contacte al administrador.`);
-                } else {
-                    throw new BadRequestException(`Error al cambiar tipo de afiliado: ${error.message}`);
-                }
-            }
+            await this.afiliadosService.cambiarAbonadoAAsociadoJuridico(solicitudAsociado.Cedula_Juridica);
+            await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociación', 'Aprobada', solicitudAsociado.Razon_Social);
         }
 
-        return solicitudActualizada;
+        if (nuevoEstadoId === 4) { // Estado 4 = Rechazada
+            await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociación', 'Rechazada', solicitudAsociado.Razon_Social);
+        }
+
+        solicitudAsociado.Estado = nuevoEstado;
+        return this.solicitudAsociadoJuridicaRepository.save(solicitudAsociado);
     }
 }

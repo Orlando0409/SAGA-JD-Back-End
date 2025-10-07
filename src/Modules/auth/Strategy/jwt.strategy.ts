@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
+import { Usuario } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
 import { Request } from 'express';
 
 
@@ -12,8 +12,8 @@ import { Request } from 'express';
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(
         private readonly configService: ConfigService,
-        @InjectRepository(UserEntity)
-        private readonly userRepository: Repository<UserEntity>
+        @InjectRepository(Usuario)
+        private readonly userRepository: Repository<Usuario>
     ) {
         super({
             // Soporte para cookies

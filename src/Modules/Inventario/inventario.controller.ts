@@ -7,7 +7,7 @@ import { ApiOperation } from '@nestjs/swagger';
 import { CreateCategoriaDto } from "./InventarioDTO's/CreateCategoria.dto";
 import { UpdateMaterialDto } from "./InventarioDTO's/UpdateMaterial.dto";
 import { CreateUnidadMedicionDto } from "./InventarioDTO's/CreateUnidadMedicion.dto";
-import { IngresoEgresoMaterialDto } from "./InventarioDTO's/IngresoEgresoMaterial.dto";
+import { MovimientoMaterialDto } from "./InventarioDTO's/MovimientoMaterial.dto";
 import { UpdateUnidadMedicionDto } from "./InventarioDTO's/UpdateUnidadMedicion.dto";
 import { UpdateCategoriaDto } from './InventarioDTO\'s/UpdateCategoria.dto';
 import { MovimientosService } from './Services/movimientos.service';
@@ -107,7 +107,7 @@ export class InventarioController {
     @ApiOperation({ summary: 'Registra el ingreso de una cantidad específica de un material al inventario.' })
     async ingresoMaterial(
         @Param('idUsuario', ParseIntPipe) idUsuario: number,
-        @Body() dto: IngresoEgresoMaterialDto
+        @Body() dto: MovimientoMaterialDto
     ) {
         return this.movimientosService.IngresoMaterial(dto, idUsuario);
     }
@@ -116,7 +116,7 @@ export class InventarioController {
     @ApiOperation({ summary: 'Registra el egreso de una cantidad específica de un material del inventario.' })
     async egresoMaterial(
         @Param('idUsuario', ParseIntPipe) idUsuario: number,
-        @Body() dto: IngresoEgresoMaterialDto
+        @Body() dto: MovimientoMaterialDto
     ) {
         return this.movimientosService.EgresoMaterial(idUsuario, dto);
     }
@@ -164,5 +164,14 @@ export class InventarioController {
         @Param('estadoUnidadId', ParseIntPipe) estadoUnidadId: number
     ) {
         return this.unidadesDeMedicionService.updateEstadoUnidadMedicion(unidadId, estadoUnidadId);
+    }
+
+    @Patch('/update/estado/material/:materialId/:estadoMaterialId')
+    @ApiOperation({ summary: 'Cambia el estado de un material. Si el estado es "De baja" (3), actualiza automáticamente la fecha de baja.' })
+    async cambiarEstadoMaterial(
+        @Param('materialId', ParseIntPipe) materialId: number,
+        @Param('estadoMaterialId', ParseIntPipe) estadoMaterialId: number
+    ) {
+        return this.materialService.updateEstadoMaterial(materialId, estadoMaterialId);
     }
 }

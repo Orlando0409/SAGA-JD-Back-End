@@ -23,5 +23,9 @@ export class CalidadAgua
     Estado: EstadoCalidadAgua;
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Calidad_Agua: 2, Nombre_Estado_Calidad_Agua: 'Invisible' } as EstadoCalidadAgua; }
+    setDefaultEstado() { 
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Calidad_Agua: 2 } as EstadoCalidadAgua;
+        }
+    }
 }

@@ -12,27 +12,27 @@ import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 
 @Injectable()
 export class AfiliadosService {
-  constructor (
-    @InjectRepository(AfiliadoFisico)
-    private readonly afiliadoFisicoRepository: Repository<AfiliadoFisico>,
+    constructor (
+        @InjectRepository(AfiliadoFisico)
+        private readonly afiliadoFisicoRepository: Repository<AfiliadoFisico>,
 
-    @InjectRepository(AfiliadoJuridico)
-    private readonly afiliadoJuridicoRepository: Repository<AfiliadoJuridico>,
+        @InjectRepository(AfiliadoJuridico)
+        private readonly afiliadoJuridicoRepository: Repository<AfiliadoJuridico>,
 
-    @InjectRepository(EstadoAfiliado)
-    private readonly estadoAfiliadoRepository: Repository<EstadoAfiliado>,
+        @InjectRepository(EstadoAfiliado)
+        private readonly estadoAfiliadoRepository: Repository<EstadoAfiliado>,
 
-    @InjectRepository(TipoAfiliado)
-    private readonly tipoAfiliadoRepository: Repository<TipoAfiliado>,
+        @InjectRepository(TipoAfiliado)
+        private readonly tipoAfiliadoRepository: Repository<TipoAfiliado>,
 
-    @InjectRepository(SolicitudAfiliacionFisica)
-    private readonly solicitudAfiliacionFisicaRepository: Repository<SolicitudAfiliacionFisica>,
+        @InjectRepository(SolicitudAfiliacionFisica)
+        private readonly solicitudAfiliacionFisicaRepository: Repository<SolicitudAfiliacionFisica>,
 
-    @InjectRepository(SolicitudAfiliacionJuridica)
-    private readonly solicitudAfiliacionJuridicaRepository: Repository<SolicitudAfiliacionJuridica>,
+        @InjectRepository(SolicitudAfiliacionJuridica)
+        private readonly solicitudAfiliacionJuridicaRepository: Repository<SolicitudAfiliacionJuridica>,
 
-    private readonly dropboxFilesService: DropboxFilesService,
-  ) {}
+        private readonly dropboxFilesService: DropboxFilesService,
+    ) {}
 
     async getAfiliadosFisicos() {
         return this.afiliadoFisicoRepository.find({ relations: ['Estado', 'Tipo_Afiliado'] });
@@ -43,9 +43,6 @@ export class AfiliadosService {
     }
 
     async createAfiliadoFisicoFromSolicitud(solicitud: SolicitudAfiliacionFisica) {
-        const solicitudAprobada = await this.solicitudAfiliacionFisicaRepository.findOne({ where: { Id_Solicitud: solicitud.Id_Solicitud, Estado: { Id_Estado_Solicitud: 3 } }, relations: ['Estado'] });
-        if (!solicitudAprobada) { throw new BadRequestException(`Solicitud de afiliación física con ID ${solicitud.Id_Solicitud} no aprobada`); }
-
         // Verificar que no existe ya un afiliado físico con esa cédula
         const afiliadoExistente = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitud.Identificacion } });
         if (afiliadoExistente) {
@@ -99,9 +96,6 @@ export class AfiliadosService {
     }
 
     async createAfiliadoJuridicoFromSolicitud(solicitud: SolicitudAfiliacionJuridica) {
-        const solicitudAprobada = await this.solicitudAfiliacionJuridicaRepository.findOne({ where: { Id_Solicitud: solicitud.Id_Solicitud, Estado: { Id_Estado_Solicitud: 3 } }, relations: ['Estado'] });
-        if (!solicitudAprobada) { throw new BadRequestException(`Solicitud de afiliación jurídica con ID ${solicitud.Id_Solicitud} no aprobada`); }
-
         // Verificar que no existe ya un afiliado jurídico con esa cédula jurídica
         const afiliadoExistente = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: solicitud.Cedula_Juridica } });
         if (afiliadoExistente) { 
@@ -157,12 +151,10 @@ export class AfiliadosService {
         const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: cedula } });
         if (!afiliado) { throw new BadRequestException(`Afiliado físico con cédula ${cedula} no encontrado`); }
 
-        // Handle file uploads if provided
         if (files) {
             const planoFile = files.Planos_Terreno?.[0];
             const escrituraFile = files.Escritura_Terreno?.[0];
 
-            // Upload new files if provided, otherwise keep existing URLs
             if (planoFile) {
                 const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', cedula);
                 afiliado.Planos_Terreno = planoRes?.url;
@@ -174,7 +166,6 @@ export class AfiliadosService {
             }
         }
 
-        // Apply other DTO updates
         Object.assign(afiliado, dto);
         return this.afiliadoFisicoRepository.save(afiliado);
     }
@@ -183,12 +174,10 @@ export class AfiliadosService {
         const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: cedulaJuridica } });
         if (!afiliado) { throw new BadRequestException(`Afiliado jurídico con cédula jurídica ${cedulaJuridica} no encontrado`); }
 
-        // Handle file uploads if provided
         if (files) {
             const planoFile = files.Planos_Terreno?.[0];
             const escrituraFile = files.Escritura_Terreno?.[0];
 
-            // Upload new files if provided, otherwise keep existing URLs
             if (planoFile) {
                 const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Juridicas', cedulaJuridica);
                 afiliado.Planos_Terreno = planoRes?.url;
@@ -200,7 +189,6 @@ export class AfiliadosService {
             }
         }
 
-        // Apply other DTO updates
         Object.assign(afiliado, dto);
         return this.afiliadoJuridicoRepository.save(afiliado);
     }
@@ -208,9 +196,6 @@ export class AfiliadosService {
     async updateEstadoAfiliadoFisico(idafiliado: number, nuevoEstadoId: number) {
         const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Id_Afiliado: idafiliado }, relations: ['Estado'] });
         if (!afiliado) { throw new BadRequestException(`Afiliado físico con ID ${idafiliado} no encontrado`); }
-
-        const estadoInicial = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 1 } });
-        if (!estadoInicial) { throw new BadRequestException('Estado inicial de abonado no configurado'); }
 
         const nuevoEstado = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: nuevoEstadoId } });
         if (!nuevoEstado) { throw new BadRequestException(`Estado con ID ${nuevoEstadoId} no encontrado`); }
@@ -222,9 +207,6 @@ export class AfiliadosService {
     async updateEstadoAfiliadoJuridico(idafiliado: number, nuevoEstadoId: number) {
         const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Id_Afiliado: idafiliado }, relations: ['Estado'] });
         if (!afiliado) { throw new BadRequestException(`Afiliado jurídico con ID ${idafiliado} no encontrado`); }
-
-        const estadoInicial = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 1 } });
-        if (!estadoInicial) { throw new BadRequestException('Estado inicial de abonado no configurado'); }
 
         const nuevoEstado = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: nuevoEstadoId } });
         if (!nuevoEstado) { throw new BadRequestException(`Estado con ID ${nuevoEstadoId} no encontrado`); }
@@ -298,14 +280,10 @@ export class AfiliadosService {
 
     async cambiarAbonadoAAsociadoJuridico(cedulaJuridica: string) {
         const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: cedulaJuridica }, relations: ['Tipo_Afiliado'] });
-        if (!afiliado) { 
-            throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${cedulaJuridica}`); 
-        }
+        if (!afiliado) { throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${cedulaJuridica}`); }
 
         // Verificar que es abonado (ID 1) antes de cambiar a asociado (ID 2)
-        if (afiliado.Tipo_Afiliado.Id_Tipo_Afiliado !== 1) {
-            throw new BadRequestException(`El afiliado con cédula jurídica ${cedulaJuridica} ya es asociado o tiene otro tipo`);
-        }
+        if (afiliado.Tipo_Afiliado.Id_Tipo_Afiliado !== 1) { throw new BadRequestException(`El afiliado con cédula jurídica ${cedulaJuridica} ya es asociado o tiene otro tipo`); }
 
         const tipoAsociado = await this.tipoAfiliadoRepository.findOne({ where: { Id_Tipo_Afiliado: 2 } });
         if (!tipoAsociado) { throw new BadRequestException('Tipo "Asociado" no configurado'); }
