@@ -15,19 +15,19 @@ export abstract class Solicitud
 
     @Column({ nullable: false })
     Numero_Telefono: string;
-
-    @ManyToOne(() => EstadoSolicitud, estado => estado.Solicitudes)
-    @JoinColumn({ name: 'Id_Estado_Solicitud' })
-    Estado: EstadoSolicitud;
-
-    @Column({ nullable: false })
-    Id_Tipo_Solicitud: number;
-
+    
     @CreateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Creacion: Date;
 
     @UpdateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Actualizacion: Date;
+
+    @Column({ nullable: false })
+    Id_Tipo_Solicitud: number;
+
+    @ManyToOne(() => EstadoSolicitud, estado => estado.Solicitudes)
+    @JoinColumn({ name: 'Id_Estado_Solicitud' })
+    Estado: EstadoSolicitud;
 
     @BeforeInsert()
     @BeforeUpdate()
@@ -43,6 +43,9 @@ export abstract class Solicitud
             }
         }
     }
+
+    @BeforeInsert()
+    SetDefaultEstadoSolicitud() { this.Estado = { Id_Estado_Solicitud: 1 } as EstadoSolicitud; }
 }
 
 export abstract class SolicitudFisica extends Solicitud {

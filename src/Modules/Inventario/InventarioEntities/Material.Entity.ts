@@ -1,9 +1,11 @@
-import { BeforeInsert, Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { EstadoMaterial } from "./EstadoMaterial.Entity";
 import { MaterialCategoria } from "./MaterialCategoria.Entity";
 import { UnidadMedicion } from "./UnidadMedicion.Entity";
+import { MovimientoInventario } from "./Movimiento.Entity";
+import { MaterialProveedor } from "./MaterialProveedor.Entity";
 import { Expose } from "class-transformer";
-import { EstadoUnidadMedicion } from "./EstadoUnidadMedicion.Entity";
+import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Entity('Material')
 export class Material {
@@ -22,17 +24,14 @@ export class Material {
     @Column({ nullable: false })
     Precio_Unitario: number;
 
-    @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
+    @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Entrada: Date;
 
-    @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
+    @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Actualizacion: Date;
 
-    @Column({ type: 'datetime', precision: 0, nullable: true })
-    Fecha_Salida: Date;
-
-    @DeleteDateColumn({ name: 'Fecha_Baja', type: 'datetime', precision: 0, nullable: true })
-    Fecha_Baja: Date;
+    @Column({ name: 'Fecha_Baja', type: 'datetime', precision: 0, nullable: true })
+    Ultima_Fecha_Baja: Date;
 
     @ManyToOne(() => EstadoMaterial, estadoMaterial => estadoMaterial.Materiales, { eager: true })
     @JoinColumn({ name: 'Id_Estado_Material' })
@@ -46,6 +45,17 @@ export class Material {
     @JoinColumn({ name: 'Id_Unidad_Medicion' })
     Unidad_Medicion: UnidadMedicion;
 
+    @ManyToOne(() => Usuario, usuario => usuario.Id_Usuario, { eager: true })
+    @JoinColumn({ name: 'Id_Usuario_Creador' })
+    Usuario_Creador: Usuario;
+
+    @OneToMany(() => MaterialProveedor, materialProveedor => materialProveedor.Material, { cascade: true, eager: true })
+    @Expose({ name: 'Proveedores' })
+    materialProveedores: MaterialProveedor[];
+
+    @OneToMany(() => MovimientoInventario, movimiento => movimiento.Material)
+    movimientosInventario: MovimientoInventario[];
+
     @BeforeInsert()
-    setDefaultEstado() { this.Estado_Material = { Id_Estado_Material: 1, Nombre_Estado_Material: 'DISPONIBLE' } as EstadoMaterial; }
+    setDefaultEstado() { this.Estado_Material = { Id_Estado_Material: 1 } as EstadoMaterial; }
 }

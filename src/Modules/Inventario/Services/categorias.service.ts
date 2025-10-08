@@ -5,7 +5,9 @@ import { Categoria } from '../InventarioEntities/Categoria.Entity';
 import { CreateCategoriaDto } from "../InventarioDTO's/CreateCategoria.dto";
 import { UpdateCategoriaDto } from "../InventarioDTO's/UpdateCategoria.dto";
 import { EstadoCategoria } from '../InventarioEntities/EstadoCategoria.Entity';
-import { UserEntity } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
+import { Usuario } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
+import { plainToClass } from "class-transformer";
+import { GetUsuarioCreadorDto } from '../InventarioDTO\'s/getUsuarioCreador.dto';
 
 @Injectable()
 export class CategoriasService {
@@ -16,23 +18,16 @@ export class CategoriasService {
         @InjectRepository(EstadoCategoria)
         private readonly estadoCategoriaRepository: Repository<EstadoCategoria>,
 
-        @InjectRepository(UserEntity)
-        private readonly usuarioRepository: Repository<UserEntity>,
+        @InjectRepository(Usuario)
+        private readonly usuarioRepository: Repository<Usuario>,
     ) {}
 
     async getAllCategorias() {
         const categorias = await this.categoriaRepository.find({ relations: ['Estado_Categoria', 'Usuario_Creador', 'Usuario_Creador.Rol'] });
         return categorias.map(categoria => {
             return {
-                Id_Categoria: categoria.Id_Categoria,
-                Nombre_Categoria: categoria.Nombre_Categoria,
-                Descripcion_Categoria: categoria.Descripcion_Categoria,
-                Estado_Categoria: categoria.Estado_Categoria,
-                Usuario_Creador: {
-                    Id_Usuario: categoria.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: categoria.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: categoria.Usuario_Creador.Id_Rol
-                }
+                ...categoria,
+                Usuario_Creador: categoria.Usuario_Creador ? plainToClass(GetUsuarioCreadorDto, categoria.Usuario_Creador, { excludeExtraneousValues: true }) : null
             };
         });
     }
@@ -43,7 +38,6 @@ export class CategoriasService {
         const categoriaExistente = await this.categoriaRepository.findOne({ where: { Nombre_Categoria: CategoriaNormalizada } });
         if (categoriaExistente) { throw new BadRequestException(`La categoría "${CategoriaNormalizada}" ya se encuentra registrada`); }
 
-        // Validar que el usuario existe
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador }, relations: ['Rol'] });
         if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuarioCreador} no encontrado`); }
 
@@ -72,7 +66,8 @@ export class CategoriasService {
             Usuario_Creador: {
                 Id_Usuario: categoriaCompleta.Usuario_Creador.Id_Usuario,
                 Nombre_Usuario: categoriaCompleta.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: categoriaCompleta.Usuario_Creador.Id_Rol
+                Id_Rol: categoriaCompleta.Usuario_Creador.Id_Rol,
+                Nombre_Rol: categoriaCompleta.Usuario_Creador.Rol?.Nombre_Rol
             }
         };
     }

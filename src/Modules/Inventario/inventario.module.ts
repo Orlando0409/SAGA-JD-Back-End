@@ -11,12 +11,16 @@ import { MaterialCategoria } from './InventarioEntities/MaterialCategoria.Entity
 import { UnidadMedicion } from './InventarioEntities/UnidadMedicion.Entity';
 import { EstadoUnidadMedicion } from './InventarioEntities/EstadoUnidadMedicion.Entity';
 import { EstadoCategoria } from './InventarioEntities/EstadoCategoria.Entity';
-import { UserEntity } from '../Usuarios/UsuarioEntities/Usuario.Entity';
+import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
+import { MovimientoInventario } from './InventarioEntities/Movimiento.Entity';
+import { MaterialProveedor } from './InventarioEntities/MaterialProveedor.Entity';
+import { MovimientosService } from './Services/movimientos.service';
+import { Proveedor, ProveedorFisico, ProveedorJuridico } from '../Proveedores/ProveedorEntities/Proveedor.Entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, UserEntity])],
+  imports: [TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, MaterialProveedor, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Usuario, Proveedor, ProveedorFisico, ProveedorJuridico])],
   controllers: [InventarioController],
-  providers: [MaterialService, CategoriasService, UnidadesDeMedicionService],
-  exports: [MaterialService, CategoriasService, UnidadesDeMedicionService],
+  providers: [MaterialService, CategoriasService, UnidadesDeMedicionService, MovimientosService],
+  exports: [MaterialService, CategoriasService, UnidadesDeMedicionService, MovimientosService],
 })
 export class InventarioModule {}

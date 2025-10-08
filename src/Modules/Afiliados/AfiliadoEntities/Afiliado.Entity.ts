@@ -19,6 +19,12 @@ export abstract class Afiliado {
     @Column({ nullable: false })
     Direccion_Exacta: string;
 
+    @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
+    Fecha_Creacion: Date;
+
+    @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
+    Fecha_Actualizacion: Date;
+
     @Column({ nullable: true })
     Planos_Terreno: string;
 
@@ -28,12 +34,6 @@ export abstract class Afiliado {
     @ManyToOne(() => EstadoAfiliado, estado => estado.Afiliados)
     @JoinColumn({ name: 'Id_Estado_Afiliado' })
     Estado: EstadoAfiliado;
-
-    @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
-    Fecha_Creacion: Date;
-
-    @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
-    Fecha_Actualizacion: Date;
 
     @ManyToOne(() => TipoAfiliado, tipo => tipo.Afiliados)
     @JoinColumn({ name: 'Id_Tipo_Afiliado' })
@@ -76,18 +76,10 @@ export class AfiliadoFisico extends Afiliado {
     Edad: number;
 
     @BeforeInsert()
-    @BeforeUpdate()
-    normalizarApellido2() {
-        if (!this.Apellido2 || this.Apellido2.trim() === '' || this.Apellido2 === 'undefined') {
-            this.Apellido2 = 'No Proporcionado';
-        }
-    }
+    setDefaultEstado() { this.Estado = { Id_Estado_Afiliado: 1 } as EstadoAfiliado; }
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Afiliado: 1, Nombre_Estado: 'Activo' } as EstadoAfiliado; }
-
-    @BeforeInsert()
-    setTipoAfiliado() { this.Tipo_Afiliado = { Id_Tipo_Afiliado: 1, Nombre_Tipo_Afiliado: 'Abonado' } as TipoAfiliado; }
+    setTipoAfiliado() { this.Tipo_Afiliado = { Id_Tipo_Afiliado: 1 } as TipoAfiliado; }
 }
 
 @Entity('Afiliado_Juridico')
@@ -99,8 +91,16 @@ export class AfiliadoJuridico extends Afiliado {
     Razon_Social: string;
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Afiliado: 1, Nombre_Estado: 'Activo' } as EstadoAfiliado; }
+    setDefaultEstado() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Afiliado: 1 } as EstadoAfiliado;
+        }
+    }
 
     @BeforeInsert()
-    setTipoAfiliado() { this.Tipo_Afiliado = { Id_Tipo_Afiliado: 1, Nombre_Tipo_Afiliado: 'Abonado' } as TipoAfiliado; }
+    setTipoAfiliado() {
+        if (!this.Tipo_Afiliado) {
+            this.Tipo_Afiliado = { Id_Tipo_Afiliado: 1 } as TipoAfiliado;
+        }
+    }
 }

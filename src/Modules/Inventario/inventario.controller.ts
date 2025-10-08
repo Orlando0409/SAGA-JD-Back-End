@@ -7,9 +7,10 @@ import { ApiOperation } from '@nestjs/swagger';
 import { CreateCategoriaDto } from "./InventarioDTO's/CreateCategoria.dto";
 import { UpdateMaterialDto } from "./InventarioDTO's/UpdateMaterial.dto";
 import { CreateUnidadMedicionDto } from "./InventarioDTO's/CreateUnidadMedicion.dto";
-import { IngresoEgresoMaterialDto } from "./InventarioDTO's/IngresoEgresoMaterial.dto";
+import { MovimientoMaterialDto } from "./InventarioDTO's/MovimientoMaterial.dto";
 import { UpdateUnidadMedicionDto } from "./InventarioDTO's/UpdateUnidadMedicion.dto";
 import { UpdateCategoriaDto } from './InventarioDTO\'s/UpdateCategoria.dto';
+import { MovimientosService } from './Services/movimientos.service';
 
 @Controller('Inventario')
 @UseInterceptors(ClassSerializerInterceptor) // Agregar el interceptor para serialización
@@ -17,13 +18,14 @@ export class InventarioController {
     constructor(
         private readonly materialService: MaterialService,
         private readonly categoriasService: CategoriasService,
-        private readonly unidadesDeMedicionService: UnidadesDeMedicionService
+        private readonly unidadesDeMedicionService: UnidadesDeMedicionService,
+        private readonly movimientosService: MovimientosService
     ) {}
 
     @Get('/all/materiales')
     @ApiOperation({ summary: 'Obtiene todos los materiales del inventario con su estado.' })
     async getAllMaterials() {
-        return this.materialService.getAllMaterials();
+        return this.materialService.getAllMateriales();
     }
 
     @Get('/all/categorias')
@@ -42,6 +44,12 @@ export class InventarioController {
     @ApiOperation({ summary: 'Obtiene todas las unidades de medición (solo Id y Nombre).' })
     async getAllUnidadesMedicionSimple() {
         return this.unidadesDeMedicionService.getUnidadMedicionSimple();
+    }
+
+    @Get('/all/movimientos')
+    @ApiOperation({ summary: 'Obtiene todos los movimientos de inventario.' })
+    async getAllMovimientos() {
+        return this.movimientosService.getAllMovimientos();
     }
 
     @Get('/materiales/with/categorias')
@@ -68,10 +76,13 @@ export class InventarioController {
         return this.materialService.getMaterialesPorDebajoDeStock(threshold);
     }
 
-    @Post('/create/material')
+    @Post('/create/material/:idUsuarioCreador')
     @ApiOperation({ summary: 'Crea un nuevo material en el inventario.' })
-    async createMaterial(@Body() dto: CreateMaterialDto) {
-        return this.materialService.createMaterial(dto);
+    async createMaterial(
+        @Body() dto: CreateMaterialDto,
+        @Param('idUsuarioCreador', ParseIntPipe) idUsuarioCreador: number
+    ) {
+        return this.materialService.createMaterial(dto, idUsuarioCreador);
     }
 
     @Post('/create/categoria/:idUsuario')
@@ -83,10 +94,31 @@ export class InventarioController {
         return this.categoriasService.createCategoria(dto, idUsuario);
     }
 
-    @Post('/create/unidad-medicion')
+    @Post('/create/unidad-medicion/:idUsuarioCreador')
     @ApiOperation({ summary: 'Crea una nueva unidad de medición.' })
-    async createUnidadMedicion(@Body() dto: CreateUnidadMedicionDto) {
-        return this.unidadesDeMedicionService.createUnidadMedicion(dto);
+    async createUnidadMedicion(
+        @Body() dto: CreateUnidadMedicionDto,
+        @Param('idUsuarioCreador', ParseIntPipe) idUsuarioCreador: number
+    ) {
+        return this.unidadesDeMedicionService.createUnidadMedicion(dto, idUsuarioCreador);
+    }
+
+    @Post('/ingreso/material/:idUsuario')
+    @ApiOperation({ summary: 'Registra el ingreso de una cantidad específica de un material al inventario.' })
+    async ingresoMaterial(
+        @Param('idUsuario', ParseIntPipe) idUsuario: number,
+        @Body() dto: MovimientoMaterialDto
+    ) {
+        return this.movimientosService.IngresoMaterial(dto, idUsuario);
+    }
+
+    @Post('/egreso/material/:idUsuario')
+    @ApiOperation({ summary: 'Registra el egreso de una cantidad específica de un material del inventario.' })
+    async egresoMaterial(
+        @Param('idUsuario', ParseIntPipe) idUsuario: number,
+        @Body() dto: MovimientoMaterialDto
+    ) {
+        return this.movimientosService.EgresoMaterial(idUsuario, dto);
     }
 
     @Put('/update/material/:materialId')
@@ -134,21 +166,12 @@ export class InventarioController {
         return this.unidadesDeMedicionService.updateEstadoUnidadMedicion(unidadId, estadoUnidadId);
     }
 
-    @Patch('/ingreso/material/:materialId')
-    @ApiOperation({ summary: 'Registra el ingreso de una cantidad específica de un material al inventario.' })
-    async ingresoMaterial(
+    @Patch('/update/estado/material/:materialId/:estadoMaterialId')
+    @ApiOperation({ summary: 'Cambia el estado de un material. Si el estado es "De baja" (3), actualiza automáticamente la fecha de baja.' })
+    async cambiarEstadoMaterial(
         @Param('materialId', ParseIntPipe) materialId: number,
-        @Body() dto: IngresoEgresoMaterialDto
+        @Param('estadoMaterialId', ParseIntPipe) estadoMaterialId: number
     ) {
-        return this.materialService.IngresoMaterial(materialId, dto);
-    }
-
-    @Patch('/egreso/material/:materialId')
-    @ApiOperation({ summary: 'Registra el egreso de una cantidad específica de un material del inventario.' })
-    async egresoMaterial(
-        @Param('materialId', ParseIntPipe) materialId: number,
-        @Body() dto: IngresoEgresoMaterialDto
-    ) {
-        return this.materialService.EgresoMaterial(materialId, dto);
+        return this.materialService.updateEstadoMaterial(materialId, estadoMaterialId);
     }
 }
