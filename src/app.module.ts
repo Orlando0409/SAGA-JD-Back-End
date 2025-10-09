@@ -22,11 +22,7 @@ import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProye
 import { CalidadAguaModule } from './Modules/CalidadAgua/calidadAgua.module';
 import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity';
 import { ReportesModule } from './Modules/Reportes/reportes.module';
-import { ReportesEntity } from './Modules/Reportes/ReportesEntity/ReportesEntity';
-import { EstadoReporte } from './Modules/Reportes/ReportesEntity/EstadoReporte';
 import { SugerenciaModule } from './Modules/Sugerencias/sugerencia.module';
-import { SugerenciaEntity } from './Modules/Sugerencias/Entity/SugerenciaEntity';
-import { Estado_Sugerencia } from './Modules/Sugerencias/Entity/EstadoSugerencia';
 import { EstadoAfiliado } from './Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica, SolicitudFisica, SolicitudJuridica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { SolicitudAsociadoFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAsociado.module';
@@ -56,8 +52,7 @@ import { Proveedor, ProveedorFisico, ProveedorJuridico } from './Modules/Proveed
 import { MovimientoInventario } from './Modules/Inventario/InventarioEntities/Movimiento.Entity';
 import { TipoProveedor } from './Modules/Proveedores/ProveedorEntities/TipoProveedor.Entity';
 import { QuejasModule } from './Modules/Quejas/quejas.module';
-import { QuejasEntity } from './Modules/Quejas/Entity/QuejasEntity';
-import { EstadoQueja } from './Modules/Quejas/Entity/EstadoQueja';
+
 
 
 @Module({
@@ -89,7 +84,7 @@ import { EstadoQueja } from './Modules/Quejas/Entity/EstadoQueja';
         Acta, ArchivoActa,
         Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario
         ],
-        synchronize: true,
+        synchronize: false,
         dropSchema: false,
       }),
     }),
