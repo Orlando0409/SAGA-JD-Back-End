@@ -57,6 +57,9 @@ import { Proveedor, ProveedorFisico, ProveedorJuridico } from './Modules/Proveed
 import { MovimientoInventario } from './Modules/Inventario/InventarioEntities/Movimiento.Entity';
 import { MaterialProveedor } from './Modules/Inventario/InventarioEntities/MaterialProveedor.Entity';
 import { TipoProveedor } from './Modules/Proveedores/ProveedorEntities/TipoProveedor.Entity';
+import { QuejasModule } from './Modules/Quejas/quejas.module';
+import { QuejasEntity } from './Modules/Quejas/Entity/QuejasEntity';
+import { EstadoQueja } from './Modules/Quejas/Entity/EstadoQueja';
 
 @Module({
   imports: [
@@ -84,6 +87,7 @@ import { TipoProveedor } from './Modules/Proveedores/ProveedorEntities/TipoProve
         Proveedor, EstadoProveedor, TipoProveedor, ProveedorFisico, ProveedorJuridico,
         Proyecto, ProyectoEstado,CalidadAgua, EstadoCalidadAgua,ReportesEntity, EstadoReporte,Acta, ArchivoActa,
   SugerenciaEntity, Estado_Sugerencia,
+    QuejasEntity, EstadoQueja,
         Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MaterialProveedor, MovimientoInventario
         ],
         synchronize: false,
@@ -111,6 +115,7 @@ import { TipoProveedor } from './Modules/Proveedores/ProveedorEntities/TipoProve
     SolicitudAsociadoJuridicaModule,
     ReportesModule,
     SugerenciaModule,
+    QuejasModule,
   ],
   controllers: [],
   providers: [

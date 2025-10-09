@@ -19,6 +19,7 @@ import { EstadoCalidadAgua } from 'src/Modules/CalidadAgua/CalidadAguaEntities/E
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
 import { EstadoReporte } from 'src/Modules/Reportes/ReportesEntity/EstadoReporte';
 import { Estado_Sugerencia } from 'src/Modules/Sugerencias/Entity/EstadoSugerencia';
+import { EstadoQueja } from 'src/Modules/Quejas/Entity/EstadoQueja';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -57,24 +58,48 @@ export class SeederService implements OnModuleInit {
         private readonly estadoReporteRepository: Repository<EstadoReporte>,
         @InjectRepository(Estado_Sugerencia)
         private readonly estadoSugerenciaRepository: Repository<Estado_Sugerencia>,
+    @InjectRepository(EstadoQueja)
+    private readonly estadoQuejaRepository: Repository<EstadoQueja>,
     ) {}
 
     async onModuleInit() {
-        await this.createInitialData();
-        await this.createDefaultEstadosProveedor();
-        await this.createDefaultTiposProveedor();
-        await this.createDefaultEstadosProyecto();
-        await this.createDefaultEstadosSolicitud();
-        await this.createDefaultEstadosReporte();
-    await this.createDefaultEstadosSugerencia();
-        await this.createDefaultEstadosAfiliado();
-        await this.createDefaultTiposAfiliado();
-        await this.createDefaultEstadosMaterial();
-        await this.createDefaultEstadosCategoria();
-        await this.createDefaultCategoriasMaterial();
-        await this.createDefaultEstadosUnidadMedicion();
-        await this.createDefaultUnidadesMedicion();
-        await this.createDefaultEstadosCalidadAgua();
+        try {
+            await this.createInitialData();
+            await this.createDefaultEstadosProveedor();
+            await this.createDefaultTiposProveedor();
+            await this.createDefaultEstadosProyecto();
+            await this.createDefaultEstadosSolicitud();
+            await this.createDefaultEstadosReporte();
+            await this.createDefaultEstadosSugerencia();
+            await this.createDefaultEstadosQueja();
+            await this.createDefaultEstadosAfiliado();
+            await this.createDefaultTiposAfiliado();
+            await this.createDefaultEstadosMaterial();
+            await this.createDefaultEstadosCategoria();
+            await this.createDefaultCategoriasMaterial();
+            await this.createDefaultEstadosUnidadMedicion();
+            await this.createDefaultUnidadesMedicion();
+            await this.createDefaultEstadosCalidadAgua();
+        } catch (err) {
+            console.error('Error ejecutando Seeder.onModuleInit:', err);
+        }
+    }
+
+    private async createDefaultEstadosQueja() {
+        const estados = [
+            { Id_Estado_Queja: 1, Estado_Queja: 'Pendiente' },
+            { Id_Estado_Queja: 2, Estado_Queja: 'Contestado' },
+        ];
+
+        for (const estado of estados) {
+            const existe = await this.estadoQuejaRepository.findOne({
+                where: { Id_Estado_Queja: estado.Id_Estado_Queja },
+            });
+            if (!existe) {
+                const nuevo = this.estadoQuejaRepository.create(estado as any);
+                await this.estadoQuejaRepository.save(nuevo);
+            }
+        }
     }
 
     private async createDefaultEstadosSugerencia() {
@@ -107,7 +132,7 @@ export class SeederService implements OnModuleInit {
             if (!existe) {
                 const nuevoEstado = this.estadoReporteRepository.create(estado);
                 await this.estadoReporteRepository.save(nuevoEstado);
-            }   
+            }
         }
     }
 
