@@ -450,9 +450,9 @@ export class MaterialService {
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('material.Proveedor', 'proveedorfisico')
-            .leftJoinAndSelect('proveedorfisico.Estado_Proveedor', 'estadoProveedor')
-            .leftJoinAndSelect('proveedorfisico.Tipo_Proveedor', 'tipoProveedor')
+            .leftJoinAndSelect('material.Proveedor', 'proveedor')
+            .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
+            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
             .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
             .getOne();
             
@@ -490,9 +490,9 @@ export class MaterialService {
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('material.Proveedor', 'proveedorjuridico')
-            .leftJoinAndSelect('proveedorjuridico.Estado_Proveedor', 'estadoProveedor')
-            .leftJoinAndSelect('proveedorjuridico.Tipo_Proveedor', 'tipoProveedor')
+            .leftJoinAndSelect('material.Proveedor', 'proveedor')
+            .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
+            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
             .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
             .getOne();
 
@@ -544,7 +544,7 @@ export class MaterialService {
                 Categorias: materialCategorias,
                 Usuario_Creador: {
                     Id_Usuario: usuario.Id_Usuario,
-                    Nombre_Usuario: usuario.Nombre_Usuario,     //sin proveedor
+                    Nombre_Usuario: usuario.Nombre_Usuario,
                     Id_Rol: usuario.Id_Rol
                 }
             };
