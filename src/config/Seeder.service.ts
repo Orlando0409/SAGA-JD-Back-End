@@ -15,6 +15,7 @@ import { EstadoMaterial } from 'src/Modules/Inventario/InventarioEntities/Estado
 import { Categoria } from 'src/Modules/Inventario/InventarioEntities/Categoria.Entity';
 import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
 import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
+import { EstadoCalidadAgua } from 'src/Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
 
 @Injectable()
@@ -48,6 +49,8 @@ export class SeederService implements OnModuleInit {
         private readonly estadoUnidadMedicionRepository: Repository<EstadoUnidadMedicion>,
         @InjectRepository(UnidadMedicion)
         private readonly unidadMedicionRepository: Repository<UnidadMedicion>,
+        @InjectRepository(EstadoCalidadAgua)
+        private readonly estadoCalidadAguaRepository: Repository<EstadoCalidadAgua>,
     ) {}
 
     async onModuleInit() {
@@ -63,6 +66,7 @@ export class SeederService implements OnModuleInit {
         await this.createDefaultCategoriasMaterial();
         await this.createDefaultEstadosUnidadMedicion();
         await this.createDefaultUnidadesMedicion();
+        await this.createDefaultEstadosCalidadAgua();
     }
 
     private async createInitialData() {
@@ -97,13 +101,14 @@ export class SeederService implements OnModuleInit {
         }
     }
 
-    private async createDefaultEstadosSolicitud() {
+    private async createDefaultEstadosSolicitud(){
         const estados = [
             { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' },
             { Id_Estado_Solicitud: 2, Nombre_Estado: 'En Revisión' },
-            { Id_Estado_Solicitud: 3, Nombre_Estado: 'En espera' },
-            { Id_Estado_Solicitud: 4, Nombre_Estado: 'Completada' },
-            { Id_Estado_Solicitud: 5, Nombre_Estado: 'Rechazada' },
+            { Id_Estado_Solicitud: 3, Nombre_Estado: 'Aprobada' },
+            { Id_Estado_Solicitud: 4, Nombre_Estado: 'En espera' },
+            { Id_Estado_Solicitud: 5, Nombre_Estado: 'Completada' },
+            { Id_Estado_Solicitud: 6, Nombre_Estado: 'Rechazada' },
         ];
 
         for (const estado of estados) {
@@ -293,6 +298,25 @@ export class SeederService implements OnModuleInit {
                 }
 
                 await this.unidadMedicionRepository.save(nuevaUnidad);
+            }
+        }
+    }
+
+    private async createDefaultEstadosCalidadAgua() {
+        const estados = [
+            { Id_Estado_Calidad_Agua: 1, Nombre_Estado_Calidad_Agua: 'Visible' },
+            { Id_Estado_Calidad_Agua: 2, Nombre_Estado_Calidad_Agua: 'Invisible' },
+        ];
+
+        for (const estado of estados) {
+            const existe = await this.estadoCalidadAguaRepository.findOne({
+                where: { Id_Estado_Calidad_Agua: estado.Id_Estado_Calidad_Agua }
+                
+            });
+
+            if (!existe) {
+                const nuevoEstado = this.estadoCalidadAguaRepository.create(estado);
+                await this.estadoCalidadAguaRepository.save(nuevoEstado);
             }
         }
     }
