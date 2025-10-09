@@ -117,9 +117,10 @@ export class MovimientosService {
                 Observaciones: ultimoMovimiento.Observaciones,
                 Fecha_Movimiento: ultimoMovimiento.Fecha_Movimiento,
                 Usuario_Creador: {
-                    Id_Usuario: ultimoMovimiento.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: ultimoMovimiento.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: ultimoMovimiento.Usuario_Creador.Id_Rol
+                    Id_Usuario: usuario.Id_Usuario,
+                    Nombre_Usuario: usuario.Nombre_Usuario,
+                    Id_Rol: usuario.Id_Rol,
+                    Nombre_Rol: usuario.Rol?.Nombre_Rol
                 }
             }
         };
@@ -131,8 +132,8 @@ export class MovimientosService {
         const materialExistente = await this.materialRepository.findOne({ where: { Id_Material: dto.Id_Material } });
         if (!materialExistente) { throw new NotFoundException('Material no encontrado'); }
 
-        const usuarioCreador = await this.usuarioRepository.findOne({ where: { Id_Usuario: Id_Usuario }, relations: ['Rol'] });
-        if (!usuarioCreador) { throw new NotFoundException('Usuario no encontrado'); }
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: Id_Usuario }, relations: ['Rol'] });
+        if (!usuario) { throw new NotFoundException('Usuario no encontrado'); }
 
         if (materialExistente.Cantidad < dto.Cantidad) { throw new BadRequestException('No hay suficiente cantidad en inventario para realizar el egreso'); }
 
@@ -152,7 +153,7 @@ export class MovimientosService {
         // Registrar el movimiento en la tabla Movimientos
         const movimiento = this.movimientoRepository.create({
             Material: materialExistente,
-            Usuario_Creador: usuarioCreador,
+            Usuario_Creador: usuario,
             Tipo_Movimiento: 'Salida',
             Cantidad: dto.Cantidad,
             Cantidad_Anterior: cantidadAnterior,
@@ -185,9 +186,10 @@ export class MovimientosService {
                 Observaciones: ultimoMovimiento.Observaciones,
                 Fecha_Movimiento: ultimoMovimiento.Fecha_Movimiento,
                 Usuario_Creador: ultimoMovimiento.Usuario_Creador ? {
-                    Id_Usuario: ultimoMovimiento.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: ultimoMovimiento.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: ultimoMovimiento.Usuario_Creador.Id_Rol
+                    Id_Usuario: usuario.Id_Usuario,
+                    Nombre_Usuario: usuario.Nombre_Usuario,
+                    Id_Rol: usuario.Id_Rol,
+                    Nombre_Rol: usuario.Rol?.Nombre_Rol
                 } : null
             } : null
         };
