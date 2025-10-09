@@ -27,6 +27,26 @@ export class ProyectoService
     ) {}
 
     @Public()
+    async getProyectosVisibles()
+    {
+        const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
+            .leftJoinAndSelect('proyecto.Estado', 'estado')
+            .leftJoinAndSelect('proyecto.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('proyecto.Visible = :visible', { visible: true })
+            .getMany();
+
+        return proyectos.map(proyecto => ({
+            ...proyecto,
+            Usuario_Creador: proyecto.Usuario_Creador ? {
+                Id_Usuario: proyecto.Usuario_Creador.Id_Usuario,
+                Nombre_Usuario: proyecto.Usuario_Creador.Nombre_Usuario,
+                Id_Rol: proyecto.Usuario_Creador.Id_Rol,
+                Nombre_Rol: proyecto.Usuario_Creador.Rol.Nombre_Rol
+            } : null
+        }));
+    }
+
     async getAllProyectos()
     {
         const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
@@ -44,15 +64,6 @@ export class ProyectoService
                 Nombre_Rol: proyecto.Usuario_Creador.Rol.Nombre_Rol
             } : null
         }));
-    }
-
-    async findProyectobyId(Id_Proyecto: number) {
-        const proyecto = await this.proyectoRepository.findOne({ 
-            where: { Id_Proyecto },
-            relations: ['Estado']
-        });
-        if (!proyecto) { throw new NotFoundException(`Proyecto con id ${Id_Proyecto} no encontrado`); }
-        return proyecto;
     }
 
     async CreateProyecto(dto: CreateProyectoDto, idUsuarioCreador: number, file?: Express.Multer.File)

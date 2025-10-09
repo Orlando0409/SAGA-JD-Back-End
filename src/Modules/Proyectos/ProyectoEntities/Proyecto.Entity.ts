@@ -20,7 +20,7 @@ export class Proyecto
     @UpdateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Actualizacion: Date;
 
-    @Column({ type: 'boolean', nullable: false })
+    @Column({ nullable: false, default: false })
     Visible: boolean;
 
     @Column()
@@ -29,7 +29,6 @@ export class Proyecto
     @ManyToOne(() => ProyectoEstado, Estado => Estado.Proyectos)  //Relacion Muchos A uno
     @JoinColumn({ name: 'Id_Estado_Proyecto' })  //LLave Foranea para acceder al estado del proyecto 
     Estado: ProyectoEstado; 
-
 
     @ManyToOne(() => Usuario, usuario => usuario.Id_Usuario, { eager: true })
     @JoinColumn({ name: 'Id_Usuario_Creador' })

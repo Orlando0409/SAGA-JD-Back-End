@@ -12,16 +12,16 @@ export class ProyectoController
   constructor(private readonly proyectoService: ProyectoService) {}
 
   @Public()
+  @Get('/visibles')
+  @ApiOperation({ summary: 'Obtener proyectos visibles (estado activo)' })
+  getProyectosVisibles() {
+    return this.proyectoService.getProyectosVisibles();
+  }
+
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todos los proyectos' })
   getProyectos() {
     return this.proyectoService.getAllProyectos();
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: 'Obtener proyecto por ID' })
-  findProyectobyId(@Param('id', ParseIntPipe) id: number) {
-    return this.proyectoService.findProyectobyId(id);
   }
 
   @Post('/create/:idUsuarioCreador')
