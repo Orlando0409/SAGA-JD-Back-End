@@ -143,8 +143,8 @@ export class SeederService implements OnModuleInit {
 
     private async createDefaultTiposProveedor() {
         const tipos = [
-            { Id_Tipo_Proveedor: 1, Tipo_Proveedor: 'Físico' },
-            { Id_Tipo_Proveedor: 2, Tipo_Proveedor: 'Jurídico' }
+            { Id_Tipo_Proveedor: 1, Tipo_Proveedor: 'Fisico' },
+            { Id_Tipo_Proveedor: 2, Tipo_Proveedor: 'Juridico' }
         ];
 
         for (const tipo of tipos) {

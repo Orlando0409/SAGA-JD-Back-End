@@ -489,11 +489,34 @@ export class MaterialService {
         const material = await this.inventarioRepository.findOne({ where: { Id_Material: Id_Material }, relations: ['Estado_Material'] });
         if (!material) { throw new NotFoundException(`Material con ID ${Id_Material} no encontrado`); }
 
+        const estadoActualId = material.Estado_Material.Id_Estado_Material;
+
+        // Si está "Agotado" (2) y se cambia a "De baja" (3) → cambiar a "Agotado y de baja" (4)
+        if (estadoActualId === 2 && nuevoEstadoId === 3) {
+            const estadoAgotadoYBaja = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 4 } });
+            if (!estadoAgotadoYBaja) { throw new NotFoundException(`Estado "Agotado y de baja" no encontrado`); }
+            
+            material.Estado_Material = estadoAgotadoYBaja;
+            material.Ultima_Fecha_Baja = new Date();
+            return await this.inventarioRepository.save(material);
+        }
+
+        // Si ya estaba "Agotado y de baja" (4) y se cambia a "De baja" (3) → no crear nueva fecha de baja
+        if (estadoActualId === 4 && nuevoEstadoId === 3) {
+            const estadoDeBaja = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 3 } });
+            if (!estadoDeBaja) { throw new NotFoundException(`Estado "De baja" no encontrado`); }
+            
+            material.Estado_Material = estadoDeBaja;
+            // No actualizar Ultima_Fecha_Baja porque ya tenía una fecha de baja anterior
+            return await this.inventarioRepository.save(material);
+        }
+
+        // Para cualquier otro cambio de estado
         const nuevoEstado = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: nuevoEstadoId } });
         if (!nuevoEstado) { throw new NotFoundException(`Estado con ID ${nuevoEstadoId} no encontrado`); }
 
-        // Si el nuevo estado es "De baja" (ID: 3), actualizar fecha de baja
-        if (nuevoEstadoId === 3) {
+        // Si el nuevo estado es "De baja" (3) y no viene de estado 4, actualizar fecha de baja
+        if (nuevoEstadoId === 3 && estadoActualId !== 4) {
             material.Ultima_Fecha_Baja = new Date();
         }
 
