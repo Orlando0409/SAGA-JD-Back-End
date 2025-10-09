@@ -15,7 +15,7 @@ export class ProyectoController
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todos los proyectos' })
   getProyectos() {
-    return this.proyectoService.getProyectos();
+    return this.proyectoService.getAllProyectos();
   }
 
   @Get(':id')
@@ -24,14 +24,15 @@ export class ProyectoController
     return this.proyectoService.findProyectobyId(id);
   }
 
-  @Post('/create')
+  @Post('/create/:idUsuarioCreador')
   @UseInterceptors(FileInterceptor("Imagen_Proyecto"))
   @ApiOperation({ summary: "Crear un nuevo proyecto" })
   CreateProyecto(
       @Body() createProyectoDto: CreateProyectoDto,
+      @Param('idUsuarioCreador', ParseIntPipe) idUsuarioCreador: number,
       @UploadedFile() Imagen_Proyecto: Express.Multer.File,
   ) {
-      return this.proyectoService.CreateProyecto(createProyectoDto, Imagen_Proyecto);
+      return this.proyectoService.CreateProyecto(createProyectoDto, idUsuarioCreador, Imagen_Proyecto);
   }
 
   @Put('/update/:id')
@@ -44,5 +45,11 @@ export class ProyectoController
   @ApiOperation({ summary: 'Actualizar el estado de proyecto por ID' })
   updateEstadoProyecto(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
     return this.proyectoService.updateEstadoProyecto(id, nuevoEstadoId);
+  }
+
+  @Patch('/update/visibilidad/:id')
+  @ApiOperation({ summary: 'Actualizar la visibilidad del proyecto por ID' })
+  updateVisibilidadProyecto(@Param('id', ParseIntPipe) id: number) {
+    return this.proyectoService.updateVisibilidadProyecto(id);
   }
 }
