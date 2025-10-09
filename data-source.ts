@@ -14,9 +14,11 @@ export const AppDataSource = new DataSource({
     username: configService.get("DB_USERNAME"),
     password: configService.get("DB_PASSWORD"),
     database: configService.get("DB_DATABASE"),
-    entities: ['src/**/*.Entity.ts'],
-    migrations: ['src/Migrations/*.ts'],
+    entities: ["src/**/*.Entity{.ts,.js}"],
+    migrations: ["src/Migrations/**/*{.ts,.js}"],
     synchronize: false,
     migrationsRun: true,
     dropSchema: false,
 });
+
+// buscar informacion sobre migraciones en cascada o incrementales

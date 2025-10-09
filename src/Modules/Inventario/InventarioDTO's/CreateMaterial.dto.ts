@@ -20,17 +20,15 @@ export class CreateMaterialDto {
     @IsOptional()
     Descripcion?: string;
 
-    @ApiProperty({ example: [1, 2, 3] })
-    @IsArray({ message: 'Los proveedores físicos deben ser un array [ID]' })
-    @IsInt({ each: true, message: 'Cada proveedor debe ser un número entero' })
+    @ApiProperty({ example: 1 })
+    @IsInt({ message: 'El estado debe ser un número entero' })
     @IsOptional()
-    IDS_Proveedores_Fisicos?: number[];
+    Id_Tipo_Proveedor?: number;
 
-    @ApiProperty({ example: [1, 2, 3] })
-    @IsArray({ message: 'Los proveedores jurídicos deben ser un array [ID]' })
-    @IsInt({ each: true, message: 'Cada proveedor debe ser un número entero' })
+    @ApiProperty({ example: 1 })
+    @IsInt({ message: 'El proveedor debe ser un número entero' })
     @IsOptional()
-    IDS_Proveedores_Juridicos?: number[];
+    Id_Proveedor?: number;
 
     @ApiProperty({ example: 1 })
     @IsDefined({ message: 'La unidad de medición no puede estar vacio' })
