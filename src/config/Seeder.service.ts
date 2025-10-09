@@ -18,6 +18,7 @@ import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/Unidad
 import { EstadoCalidadAgua } from 'src/Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
 import { EstadoReporte } from 'src/Modules/Reportes/ReportesEntity/EstadoReporte';
+import { Estado_Sugerencia } from 'src/Modules/Sugerencias/Entity/EstadoSugerencia';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -54,6 +55,8 @@ export class SeederService implements OnModuleInit {
         private readonly estadoCalidadAguaRepository: Repository<EstadoCalidadAgua>,
         @InjectRepository(EstadoReporte)
         private readonly estadoReporteRepository: Repository<EstadoReporte>,
+        @InjectRepository(Estado_Sugerencia)
+        private readonly estadoSugerenciaRepository: Repository<Estado_Sugerencia>,
     ) {}
 
     async onModuleInit() {
@@ -63,6 +66,7 @@ export class SeederService implements OnModuleInit {
         await this.createDefaultEstadosProyecto();
         await this.createDefaultEstadosSolicitud();
         await this.createDefaultEstadosReporte();
+    await this.createDefaultEstadosSugerencia();
         await this.createDefaultEstadosAfiliado();
         await this.createDefaultTiposAfiliado();
         await this.createDefaultEstadosMaterial();
@@ -71,6 +75,23 @@ export class SeederService implements OnModuleInit {
         await this.createDefaultEstadosUnidadMedicion();
         await this.createDefaultUnidadesMedicion();
         await this.createDefaultEstadosCalidadAgua();
+    }
+
+    private async createDefaultEstadosSugerencia() {
+        const estados = [
+            { Id_EstadoSugerencia: 1, Estado_Sugerencia: 'Pendiente' },
+            { Id_EstadoSugerencia: 2, Estado_Sugerencia: 'Contestado' },
+        ];
+
+        for (const estado of estados) {
+            const existe = await this.estadoSugerenciaRepository.findOne({
+                where: { Id_EstadoSugerencia: estado.Id_EstadoSugerencia },
+            });
+            if (!existe) {
+                const nuevo = this.estadoSugerenciaRepository.create(estado);
+                await this.estadoSugerenciaRepository.save(nuevo);
+            }
+        }
     }
 
     private async createDefaultEstadosReporte() {   

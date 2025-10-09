@@ -17,10 +17,11 @@ import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/Unidad
 import { EstadoCalidadAgua } from 'src/Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
 import { EstadoReporte } from 'src/Modules/Reportes/ReportesEntity/EstadoReporte';
+import { Estado_Sugerencia } from 'src/Modules/Sugerencias/Entity/EstadoSugerencia';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Usuario, UsuarioRol, Permiso, EstadoProveedor, TipoProveedor, ProyectoEstado, EstadoSolicitud, EstadoAfiliado, TipoAfiliado, EstadoMaterial, Categoria, EstadoCategoria, EstadoUnidadMedicion, UnidadMedicion, EstadoCalidadAgua,EstadoReporte])
+    TypeOrmModule.forFeature([Usuario, UsuarioRol, Permiso, EstadoProveedor, TipoProveedor, ProyectoEstado, EstadoSolicitud, EstadoAfiliado, TipoAfiliado, EstadoMaterial, Categoria, EstadoCategoria, EstadoUnidadMedicion, UnidadMedicion, EstadoCalidadAgua, EstadoReporte, Estado_Sugerencia])
     ],
     providers: [SeederService],
     exports: [SeederService]

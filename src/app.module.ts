@@ -24,6 +24,9 @@ import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAg
 import { ReportesModule } from './Modules/Reportes/reportes.module';
 import { ReportesEntity } from './Modules/Reportes/ReportesEntity/ReportesEntity';
 import { EstadoReporte } from './Modules/Reportes/ReportesEntity/EstadoReporte';
+import { SugerenciaModule } from './Modules/Sugerencias/sugerencia.module';
+import { SugerenciaEntity } from './Modules/Sugerencias/Entity/SugerenciaEntity';
+import { Estado_Sugerencia } from './Modules/Sugerencias/Entity/EstadoSugerencia';
 import { EstadoAfiliado } from './Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica, SolicitudFisica, SolicitudJuridica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { SolicitudAsociadoFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAsociado.module';
@@ -80,6 +83,7 @@ import { TipoProveedor } from './Modules/Proveedores/ProveedorEntities/TipoProve
         Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
         Proveedor, EstadoProveedor, TipoProveedor, ProveedorFisico, ProveedorJuridico,
         Proyecto, ProyectoEstado,CalidadAgua, EstadoCalidadAgua,ReportesEntity, EstadoReporte,Acta, ArchivoActa,
+  SugerenciaEntity, Estado_Sugerencia,
         Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MaterialProveedor, MovimientoInventario
         ],
         synchronize: false,
@@ -106,6 +110,7 @@ import { TipoProveedor } from './Modules/Proveedores/ProveedorEntities/TipoProve
     SolicitudAsociadoFisicaModule,
     SolicitudAsociadoJuridicaModule,
     ReportesModule,
+    SugerenciaModule,
   ],
   controllers: [],
   providers: [
