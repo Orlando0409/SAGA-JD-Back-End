@@ -16,9 +16,6 @@ import { Categoria } from 'src/Modules/Inventario/InventarioEntities/Categoria.E
 import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
 import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
-import { EstadoReporte } from 'src/Modules/Reportes/ReportesEntity/EstadoReporte';
-import { Estado_Sugerencia } from 'src/Modules/Sugerencias/Entity/EstadoSugerencia';
-import { EstadoQueja } from 'src/Modules/Quejas/Entity/EstadoQueja';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -51,87 +48,22 @@ export class SeederService implements OnModuleInit {
         private readonly estadoUnidadMedicionRepository: Repository<EstadoUnidadMedicion>,
         @InjectRepository(UnidadMedicion)
         private readonly unidadMedicionRepository: Repository<UnidadMedicion>,
-        @InjectRepository(EstadoReporte)
-        private readonly estadoReporteRepository: Repository<EstadoReporte>,
-        @InjectRepository(Estado_Sugerencia)
-        private readonly estadoSugerenciaRepository: Repository<Estado_Sugerencia>,
-    @InjectRepository(EstadoQueja)
-    private readonly estadoQuejaRepository: Repository<EstadoQueja>,
     ) {}
 
     async onModuleInit() {
-        try {
-            await this.createInitialData();
-            await this.createDefaultEstadosProveedor();
-            await this.createDefaultTiposProveedor();
-            await this.createDefaultEstadosProyecto();
-            await this.createDefaultEstadosSolicitud();
-            await this.createDefaultEstadosReporte();
-            await this.createDefaultEstadosSugerencia();
-            await this.createDefaultEstadosQueja();
-            await this.createDefaultEstadosAfiliado();
-            await this.createDefaultTiposAfiliado();
-            await this.createDefaultEstadosMaterial();
-            await this.createDefaultEstadosCategoria();
-            await this.createDefaultCategoriasMaterial();
-            await this.createDefaultEstadosUnidadMedicion();
-            await this.createDefaultUnidadesMedicion();
-        } catch (err) {
-            console.error('Error ejecutando Seeder.onModuleInit:', err);
-        }
+        await this.createInitialData();
+        await this.createDefaultEstadosProveedor();
+        await this.createDefaultTiposProveedor();
+        await this.createDefaultEstadosProyecto();
+        await this.createDefaultEstadosSolicitud();
+        await this.createDefaultEstadosAfiliado();
+        await this.createDefaultTiposAfiliado();
+        await this.createDefaultEstadosMaterial();
+        await this.createDefaultEstadosCategoria();
+        await this.createDefaultCategoriasMaterial();
+        await this.createDefaultEstadosUnidadMedicion();
+        await this.createDefaultUnidadesMedicion();
     }
-
-    private async createDefaultEstadosQueja() {
-        const estados = [
-            { Id_Estado_Queja: 1, Estado_Queja: 'Pendiente' },
-            { Id_Estado_Queja: 2, Estado_Queja: 'Contestado' },
-        ];
-
-        for (const estado of estados) {
-            const existe = await this.estadoQuejaRepository.findOne({
-                where: { Id_Estado_Queja: estado.Id_Estado_Queja },
-            });
-            if (!existe) {
-                const nuevo = this.estadoQuejaRepository.create(estado as any);
-                await this.estadoQuejaRepository.save(nuevo);
-            }
-        }
-    }
-
-    private async createDefaultEstadosSugerencia() {
-        const estados = [
-            { Id_EstadoSugerencia: 1, Estado_Sugerencia: 'Pendiente' },
-            { Id_EstadoSugerencia: 2, Estado_Sugerencia: 'Contestado' },
-        ];
-
-        for (const estado of estados) {
-            const existe = await this.estadoSugerenciaRepository.findOne({
-                where: { Id_EstadoSugerencia: estado.Id_EstadoSugerencia },
-            });
-            if (!existe) {
-                const nuevo = this.estadoSugerenciaRepository.create(estado);
-                await this.estadoSugerenciaRepository.save(nuevo);
-            }
-        }
-    }
-
-    private async createDefaultEstadosReporte() {   
-        const estados = [   
-        { Id_Estado_Reporte: 1, Estado_Reporte: 'Pendiente' },
-        { Id_Estado_Reporte: 2, Estado_Reporte: 'Contestado' },
-            ];
-      
-        for (const estado of estados) {
-            const existe = await this.estadoReporteRepository.findOne({
-                where: { IdEstadoReporte: estado.Id_Estado_Reporte }
-            });
-            if (!existe) {
-                const nuevoEstado = this.estadoReporteRepository.create(estado);
-                await this.estadoReporteRepository.save(nuevoEstado);
-            }
-        }
-    }
-
 
     private async createInitialData() {
         try {
