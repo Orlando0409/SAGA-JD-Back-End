@@ -64,10 +64,10 @@ export class CategoriasService {
             Descripcion_Categoria: categoriaCompleta.Descripcion_Categoria,
             Estado_Categoria: categoriaCompleta.Estado_Categoria,
             Usuario_Creador: {
-                Id_Usuario: categoriaCompleta.Usuario_Creador.Id_Usuario,
-                Nombre_Usuario: categoriaCompleta.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: categoriaCompleta.Usuario_Creador.Id_Rol,
-                Nombre_Rol: categoriaCompleta.Usuario_Creador.Rol?.Nombre_Rol
+                Id_Usuario: usuario.Id_Usuario,
+                Nombre_Usuario: usuario.Nombre_Usuario,
+                Id_Rol: usuario.Id_Rol,
+                Nombre_Rol: usuario.Rol?.Nombre_Rol
             }
         };
     }

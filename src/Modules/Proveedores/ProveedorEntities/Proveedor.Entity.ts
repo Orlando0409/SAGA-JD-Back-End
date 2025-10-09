@@ -1,8 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, TableInheritance, BeforeInsert, BeforeUpdate, UpdateDateColumn, CreateDateColumn, JoinColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, TableInheritance, BeforeInsert, BeforeUpdate, UpdateDateColumn, CreateDateColumn, JoinColumn, OneToMany } from "typeorm";
 import { EstadoProveedor } from "./EstadoProveedor.Entity";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { TipoProveedor } from "./TipoProveedor.Entity";
+import { Material } from "src/Modules/Inventario/InventarioEntities/Material.Entity";
 
 @Entity("Proveedor")
 @TableInheritance({ column: { type: "varchar", name: "Tipo_Proveedor" } })
@@ -30,7 +31,8 @@ export abstract class Proveedor {
     @JoinColumn({ name: 'Id_Tipo_Proveedor' })
     Tipo_Proveedor: TipoProveedor;
 
-
+    @OneToMany(() => Material, material => material.Proveedor)
+    materiales: Material[];
 
     @BeforeInsert()
     @BeforeUpdate()

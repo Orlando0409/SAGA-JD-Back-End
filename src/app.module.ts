@@ -54,7 +54,6 @@ import { EstadoUnidadMedicion } from './Modules/Inventario/InventarioEntities/Es
 import { EstadoCategoria } from './Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
 import { MovimientoInventario } from './Modules/Inventario/InventarioEntities/Movimiento.Entity';
-import { MaterialProveedor } from './Modules/Inventario/InventarioEntities/MaterialProveedor.Entity';
 import { TipoProveedor } from './Modules/Proveedores/ProveedorEntities/TipoProveedor.Entity';
 import { QuejasModule } from './Modules/Quejas/quejas.module';
 import { QuejasEntity } from './Modules/Quejas/Entity/QuejasEntity';
@@ -85,13 +84,14 @@ import { EstadoQueja } from './Modules/Quejas/Entity/EstadoQueja';
         SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
         Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
         Proveedor, EstadoProveedor, TipoProveedor, ProveedorFisico, ProveedorJuridico,
-        Proyecto, ProyectoEstado,CalidadAgua,ReportesEntity, EstadoReporte,Acta, ArchivoActa,
-        SugerenciaEntity, Estado_Sugerencia,
-        QuejasEntity, EstadoQueja,
-        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MaterialProveedor, MovimientoInventario
+        Proyecto, ProyectoEstado,
+        CalidadAgua,
+        Acta, ArchivoActa,
+        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario
         ],
-        synchronize: false,
-      }) 
+        synchronize: true,
+        dropSchema: false,
+      }),
     }),
     SeederModule,
     AuthModule,
