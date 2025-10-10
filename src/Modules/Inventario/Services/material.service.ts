@@ -37,7 +37,7 @@ export class MaterialService {
 
         @InjectRepository(ProveedorJuridico)
         private readonly proveedorJuridicoRepository: Repository<ProveedorJuridico>
-    ) { }
+    ) {}
 
     async getAllMateriales() {
         const materiales = await this.inventarioRepository.createQueryBuilder('material')
