@@ -7,19 +7,19 @@ export class QuejasEntity {
     Id_Queja: number;
 
     @Column()
-    Nombre: string;
+    name: string;
 
     @Column()
-    Primer_Apellido: string;
+    Papellido: string;
 
     @Column()
-    Segundo_Apellido: string;
+    Sapellido: string;
 
     @Column()
-    Descripcion_Queja: string;
+    descripcion: string;
 
     @Column({ type: 'simple-json', nullable: true })
-    Imagen?: string[];
+    Adjunto?: string[];
 
     @Column({ type: 'text', nullable: true })
     RespuestasReporte?: string;

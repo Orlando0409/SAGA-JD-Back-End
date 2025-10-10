@@ -21,7 +21,10 @@ export class ReportesController {
   }
 
   @Post()
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'Imagen', maxCount: 10 }]))
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'Imagen', maxCount: 10 },
+    { name: 'Adjunto', maxCount: 10 },
+  ]))
   async create(@Body() dto: any, @UploadedFiles() files: any) {
     return this.reportesService.create(dto, files);
   }

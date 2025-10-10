@@ -7,25 +7,25 @@ export class ReportesEntity {
     IdReporte: number;
 
     @Column()
-    Nombre: string;
+    name: string;
 
     @Column({ nullable: true })
-    Primer_Apellido?: string;
+    Papellido?: string;
 
     @Column({ nullable: true })
-    Segundo_Apellido?: string;
+    Sapellido?: string;
 
     @Column({ nullable: true })
-    Ubicacion?: string;
+    ubicacion?: string;
 
     @Column({ nullable: true })
-    Descripcion_Reporte?: string;
+    descripcion?: string;
 
     @Column()
     Fecha_Reporte: Date;
 
     @Column({ type: 'simple-json', nullable: true })
-    Imagen?: string[];
+    Adjunto?: string[];
 
     @Column({ type: 'text', nullable: true })
     RespuestasReporte?: string;
