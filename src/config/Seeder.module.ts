@@ -11,17 +11,17 @@ import { EstadoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/EstadoAfi
 import { TipoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
 import { EstadoMaterial } from 'src/Modules/Inventario/InventarioEntities/EstadoMaterial.Entity';
 import { Categoria } from 'src/Modules/Inventario/InventarioEntities/Categoria.Entity';
-import { SeederService } from './Seeder.service';
 import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
 import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
 import { EstadoReporte } from 'src/Modules/Reportes/ReportesEntity/EstadoReporte';
 import { Estado_Sugerencia } from 'src/Modules/Sugerencias/Entity/EstadoSugerencia';
 import { EstadoQueja } from 'src/Modules/Quejas/Entity/EstadoQueja';
+import { SeederService } from './Seeder.service';
 
 @Module({
     imports: [
-    TypeOrmModule.forFeature([Usuario, UsuarioRol, Permiso, EstadoProveedor, TipoProveedor, ProyectoEstado, EstadoSolicitud, EstadoAfiliado, TipoAfiliado, EstadoMaterial, Categoria, EstadoCategoria, EstadoUnidadMedicion, UnidadMedicion, EstadoCalidadAgua, EstadoReporte, Estado_Sugerencia, EstadoQueja])
+    TypeOrmModule.forFeature([Usuario, UsuarioRol, Permiso, EstadoProveedor, TipoProveedor, ProyectoEstado, EstadoSolicitud, EstadoAfiliado, TipoAfiliado, EstadoMaterial, Categoria, EstadoCategoria, EstadoUnidadMedicion, UnidadMedicion, EstadoReporte, Estado_Sugerencia, EstadoQueja])
     ],
     providers: [SeederService],
     exports: [SeederService]

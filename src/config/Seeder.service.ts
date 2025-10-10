@@ -51,14 +51,12 @@ export class SeederService implements OnModuleInit {
         private readonly estadoUnidadMedicionRepository: Repository<EstadoUnidadMedicion>,
         @InjectRepository(UnidadMedicion)
         private readonly unidadMedicionRepository: Repository<UnidadMedicion>,
-        @InjectRepository(EstadoCalidadAgua)
-        private readonly estadoCalidadAguaRepository: Repository<EstadoCalidadAgua>,
         @InjectRepository(EstadoReporte)
         private readonly estadoReporteRepository: Repository<EstadoReporte>,
         @InjectRepository(Estado_Sugerencia)
         private readonly estadoSugerenciaRepository: Repository<Estado_Sugerencia>,
-    @InjectRepository(EstadoQueja)
-    private readonly estadoQuejaRepository: Repository<EstadoQueja>,
+        @InjectRepository(EstadoQueja)
+        private readonly estadoQuejaRepository: Repository<EstadoQueja>,
     ) {}
 
     async onModuleInit() {
@@ -78,7 +76,6 @@ export class SeederService implements OnModuleInit {
             await this.createDefaultCategoriasMaterial();
             await this.createDefaultEstadosUnidadMedicion();
             await this.createDefaultUnidadesMedicion();
-            await this.createDefaultEstadosCalidadAgua();
         } catch (err) {
             console.error('Error ejecutando Seeder.onModuleInit:', err);
         }

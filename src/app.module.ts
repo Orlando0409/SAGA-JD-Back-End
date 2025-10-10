@@ -46,7 +46,6 @@ import { ArchivoActa } from './Modules/Actas/ActaEntities/ArchivoActa.Entity';
 import { ActasModule } from './Modules/Actas/actas.module';
 import { Material } from './Modules/Inventario/InventarioEntities/Material.Entity';
 import { EstadoMaterial } from './Modules/Inventario/InventarioEntities/EstadoMaterial.Entity';
-import { SeederModule } from './config/Seeder.module';
 import { Categoria } from './Modules/Inventario/InventarioEntities/Categoria.Entity';
 import { MaterialCategoria } from './Modules/Inventario/InventarioEntities/MaterialCategoria.Entity';
 import { UnidadMedicion } from './Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
@@ -58,6 +57,7 @@ import { TipoProveedor } from './Modules/Proveedores/ProveedorEntities/TipoProve
 import { QuejasModule } from './Modules/Quejas/quejas.module';
 import { QuejasEntity } from './Modules/Quejas/Entity/QuejasEntity';
 import { EstadoQueja } from './Modules/Quejas/Entity/EstadoQueja';
+import { SeederModule } from './Config/Seeder.module';
 
 @Module({
   imports: [
@@ -83,10 +83,13 @@ import { EstadoQueja } from './Modules/Quejas/Entity/EstadoQueja';
         SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
         Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
         Proveedor, EstadoProveedor, TipoProveedor, ProveedorFisico, ProveedorJuridico,
-        Proyecto, ProyectoEstado,CalidadAgua, EstadoCalidadAgua,ReportesEntity, EstadoReporte,Acta, ArchivoActa,
-  SugerenciaEntity, Estado_Sugerencia,
-    QuejasEntity, EstadoQueja,
-        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MaterialProveedor, MovimientoInventario
+        Proyecto, ProyectoEstado,
+        CalidadAgua,
+        Acta, ArchivoActa,
+        ReportesEntity, EstadoReporte,
+        SugerenciaEntity, Estado_Sugerencia,
+        QuejasEntity, EstadoQueja,
+        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario
         ],
         synchronize: true,
         dropSchema: true,

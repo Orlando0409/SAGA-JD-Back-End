@@ -8,6 +8,7 @@ import { EstadoCategoria } from '../InventarioEntities/EstadoCategoria.Entity';
 import { Usuario } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
 import { plainToClass } from "class-transformer";
 import { GetUsuarioCreadorDto } from '../InventarioDTO\'s/getUsuarioCreador.dto';
+import { MaterialCategoria } from '../InventarioEntities/MaterialCategoria.Entity';
 
 @Injectable()
 export class CategoriasService {
@@ -20,6 +21,9 @@ export class CategoriasService {
 
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
+
+        @InjectRepository(MaterialCategoria)
+        private readonly materialCategoriaRepository: Repository<MaterialCategoria>,
     ) {}
 
     async getAllCategorias() {
@@ -93,12 +97,28 @@ export class CategoriasService {
     }
 
     async updateEstadoCategoria(Id_Categoria: number, Id_Estado_Categoria: number) {
-        const categoriaExistente = await this.categoriaRepository.findOne({ where: { Id_Categoria: Id_Categoria } });
+        const categoriaExistente = await this.categoriaRepository.findOne({ where: { Id_Categoria: Id_Categoria }, relations: ['Estado_Categoria'] });
         if (!categoriaExistente) { throw new NotFoundException(`Categoría con ID ${Id_Categoria} no encontrada`); }
 
         // Verificar que el nuevo estado existe
         const nuevoEstado = await this.estadoCategoriaRepository.findOne({ where: { Id_Estado_Categoria: Id_Estado_Categoria } });
         if (!nuevoEstado) { throw new NotFoundException(`Estado con ID ${Id_Estado_Categoria} no encontrado en la base de datos`); }
+
+        // VALIDACIÓN DE NEGOCIO: No permitir desactivar si hay materiales usándola
+        if (nuevoEstado.Nombre_Estado_Categoria === 'Inactiva') {
+            const materialesUsandoCategoria = await this.materialCategoriaRepository.count({
+                where: { 
+                    Categoria: { Id_Categoria: Id_Categoria }
+                }
+            });
+
+            if (materialesUsandoCategoria > 0) {
+                throw new BadRequestException(
+                    `No se puede desactivar la categoría "${categoriaExistente.Nombre_Categoria}" porque ${materialesUsandoCategoria} material(es) la están usando actualmente. ` +
+                    `Primero debe cambiar la categoría de estos materiales o eliminarla de ellos.`
+                );
+            }
+        }
 
         categoriaExistente.Estado_Categoria = nuevoEstado;
         await this.categoriaRepository.save(categoriaExistente);
