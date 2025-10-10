@@ -22,34 +22,11 @@ export class InventarioController {
         private readonly movimientosService: MovimientosService
     ) {}
 
+    // ENDPOINTS PARA MATERIALES
     @Get('/all/materiales')
     @ApiOperation({ summary: 'Obtiene todos los materiales del inventario con su estado.' })
     async getAllMaterials() {
         return this.materialService.getAllMateriales();
-    }
-
-    @Get('/all/categorias')
-    @ApiOperation({ summary: 'Obtiene todas las categorías de materiales.' })
-    async getAllCategorias() {
-        return this.categoriasService.getAllCategorias();
-    }
-
-    @Get('/all/unidades-medicion')
-    @ApiOperation({ summary: 'Obtiene todas las unidades de medición activas.' })
-    async getAllUnidadesMedicion() {
-        return this.unidadesDeMedicionService.getAllUnidadesMedicion();
-    }
-
-    @Get('/all/unidades-medicion/simple')
-    @ApiOperation({ summary: 'Obtiene todas las unidades de medición (solo Id y Nombre).' })
-    async getAllUnidadesMedicionSimple() {
-        return this.unidadesDeMedicionService.getUnidadMedicionSimple();
-    }
-
-    @Get('/all/movimientos')
-    @ApiOperation({ summary: 'Obtiene todos los movimientos de inventario.' })
-    async getAllMovimientos() {
-        return this.movimientosService.getAllMovimientos();
     }
 
     @Get('/materiales/with/categorias')
@@ -85,6 +62,33 @@ export class InventarioController {
         return this.materialService.createMaterial(dto, idUsuarioCreador);
     }
 
+    @Put('/update/material/:materialId')
+    @ApiOperation({ summary: 'Actualiza un material existente en el inventario.' })
+    async updateMaterial(
+        @Param('materialId', ParseIntPipe) materialId: number,
+        @Body() dto: UpdateMaterialDto
+    ) {
+        return this.materialService.updateMaterial(materialId, dto);
+    }
+
+    @Patch('/update/estado/material/:materialId/:estadoMaterialId')
+    @ApiOperation({ summary: 'Cambia el estado de un material. Si el estado es "De baja" (3), actualiza automáticamente la fecha de baja.' })
+    async cambiarEstadoMaterial(
+        @Param('materialId', ParseIntPipe) materialId: number,
+        @Param('estadoMaterialId', ParseIntPipe) estadoMaterialId: number
+    ) {
+        return this.materialService.updateEstadoMaterial(materialId, estadoMaterialId);
+    }
+
+
+
+    //ENDPOINTS PARA CATEGORIAS
+    @Get('/all/categorias')
+    @ApiOperation({ summary: 'Obtiene todas las categorías de materiales.' })
+    async getAllCategorias() {
+        return this.categoriasService.getAllCategorias();
+    }
+
     @Post('/create/categoria/:idUsuario')
     @ApiOperation({ summary: 'Crea una nueva categoría de material.' })
     async createCategoria(
@@ -94,6 +98,39 @@ export class InventarioController {
         return this.categoriasService.createCategoria(dto, idUsuario);
     }
 
+    @Put('/update/categoria/:categoriaId')
+    @ApiOperation({ summary: 'Actualiza una categoría existente.' })
+    async updateCategoria(
+        @Param('categoriaId', ParseIntPipe) categoriaId: number,
+        @Body() dto: UpdateCategoriaDto
+    ) {
+        return this.categoriasService.updateCategoria(categoriaId, dto);
+    }
+
+    @Patch('/update/estado/categoria/:categoriaId/:estadoCategoriaId')
+    @ApiOperation({ summary: 'Cambia el estado de una categoría al estado especificado.' })
+    async cambiarEstadoCategoria(
+        @Param('categoriaId', ParseIntPipe) categoriaId: number,
+        @Param('estadoCategoriaId', ParseIntPipe) estadoCategoriaId: number
+    ) {
+        return this.categoriasService.updateEstadoCategoria(categoriaId, estadoCategoriaId);
+    }
+
+
+
+    //ENDPOINTS PARA UNIDADES DE MEDICION
+    @Get('/all/unidades-medicion')
+    @ApiOperation({ summary: 'Obtiene todas las unidades de medición activas.' })
+    async getAllUnidadesMedicion() {
+        return this.unidadesDeMedicionService.getAllUnidadesMedicion();
+    }
+
+    @Get('/all/unidades-medicion/simple')
+    @ApiOperation({ summary: 'Obtiene todas las unidades de medición (solo Id y Nombre).' })
+    async getAllUnidadesMedicionSimple() {
+        return this.unidadesDeMedicionService.getUnidadMedicionSimple();
+    }
+
     @Post('/create/unidad-medicion/:idUsuarioCreador')
     @ApiOperation({ summary: 'Crea una nueva unidad de medición.' })
     async createUnidadMedicion(
@@ -101,6 +138,45 @@ export class InventarioController {
         @Param('idUsuarioCreador', ParseIntPipe) idUsuarioCreador: number
     ) {
         return this.unidadesDeMedicionService.createUnidadMedicion(dto, idUsuarioCreador);
+    }
+
+    @Put('/update/unidad-medicion/:unidadId')
+    @ApiOperation({ summary: 'Actualiza una unidad de medición existente.' })
+    async updateUnidadMedicion(
+        @Param('unidadId', ParseIntPipe) unidadId: number,
+        @Body() dto: UpdateUnidadMedicionDto
+    ) {
+        return this.unidadesDeMedicionService.updateUnidadMedicion(unidadId, dto);
+    }
+
+    @Patch('/update/estado/unidad-medicion/:unidadId/:estadoUnidadId')
+    @ApiOperation({ summary: 'Cambia el estado de una unidad de medición al estado especificado.' })
+    async cambiarEstadoUnidadMedicion(
+        @Param('unidadId', ParseIntPipe) unidadId: number, 
+        @Param('estadoUnidadId', ParseIntPipe) estadoUnidadId: number
+    ) {
+        return this.unidadesDeMedicionService.updateEstadoUnidadMedicion(unidadId, estadoUnidadId);
+    }
+
+
+
+    //ENDPOINTS PARA MOVIMIENTOS
+    @Get('/all/movimientos')
+    @ApiOperation({ summary: 'Obtiene todos los movimientos de inventario.' })
+    async getAllMovimientos() {
+        return this.movimientosService.getAllMovimientos();
+    }
+
+    @Get('/movimientos/entradas')
+    @ApiOperation({ summary: 'Obtiene todos los ingresos de un material específico.' })
+    async getIngresosPorMaterial() {
+        return this.movimientosService.getMovimientosEntradas();
+    }
+
+    @Get('/movimientos/salidas')
+    @ApiOperation({ summary: 'Obtiene todos los egresos de un material específico.' })
+    async getEgresosPorMaterial() {
+        return this.movimientosService.getMovimientosSalidas();
     }
 
     @Post('/ingreso/material/:idUsuario')
@@ -119,59 +195,5 @@ export class InventarioController {
         @Body() dto: MovimientoMaterialDto
     ) {
         return this.movimientosService.EgresoMaterial(idUsuario, dto);
-    }
-
-    @Put('/update/material/:materialId')
-    @ApiOperation({ summary: 'Actualiza un material existente en el inventario.' })
-    async updateMaterial(
-        @Param('materialId', ParseIntPipe) materialId: number,
-        @Body() dto: UpdateMaterialDto
-    ) {
-        return this.materialService.updateMaterial(materialId, dto);
-    }
-
-    @Put('/update/categoria/:categoriaId')
-    @ApiOperation({ summary: 'Actualiza una categoría existente.' })
-    async updateCategoria(
-        @Param('categoriaId', ParseIntPipe) categoriaId: number,
-        @Body() dto: UpdateCategoriaDto
-    ) {
-        return this.categoriasService.updateCategoria(categoriaId, dto);
-    }
-
-    @Put('/update/unidad-medicion/:unidadId')
-    @ApiOperation({ summary: 'Actualiza una unidad de medición existente.' })
-    async updateUnidadMedicion(
-        @Param('unidadId', ParseIntPipe) unidadId: number,
-        @Body() dto: UpdateUnidadMedicionDto
-    ) {
-        return this.unidadesDeMedicionService.updateUnidadMedicion(unidadId, dto);
-    }
-
-    @Patch('/update/estado/categoria/:categoriaId/:estadoCategoriaId')
-    @ApiOperation({ summary: 'Cambia el estado de una categoría al estado especificado.' })
-    async cambiarEstadoCategoria(
-        @Param('categoriaId', ParseIntPipe) categoriaId: number,
-        @Param('estadoCategoriaId', ParseIntPipe) estadoCategoriaId: number
-    ) {
-        return this.categoriasService.updateEstadoCategoria(categoriaId, estadoCategoriaId);
-    }
-
-    @Patch('/update/estado/unidad-medicion/:unidadId/:estadoUnidadId')
-    @ApiOperation({ summary: 'Cambia el estado de una unidad de medición al estado especificado.' })
-    async cambiarEstadoUnidadMedicion(
-        @Param('unidadId', ParseIntPipe) unidadId: number, 
-        @Param('estadoUnidadId', ParseIntPipe) estadoUnidadId: number
-    ) {
-        return this.unidadesDeMedicionService.updateEstadoUnidadMedicion(unidadId, estadoUnidadId);
-    }
-
-    @Patch('/update/estado/material/:materialId/:estadoMaterialId')
-    @ApiOperation({ summary: 'Cambia el estado de un material. Si el estado es "De baja" (3), actualiza automáticamente la fecha de baja.' })
-    async cambiarEstadoMaterial(
-        @Param('materialId', ParseIntPipe) materialId: number,
-        @Param('estadoMaterialId', ParseIntPipe) estadoMaterialId: number
-    ) {
-        return this.materialService.updateEstadoMaterial(materialId, estadoMaterialId);
     }
 }

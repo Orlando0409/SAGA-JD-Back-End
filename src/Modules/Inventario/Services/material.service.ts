@@ -48,6 +48,7 @@ export class MaterialService {
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
@@ -91,7 +92,8 @@ export class MaterialService {
                 Usuario_Creador: material.Usuario_Creador ? {
                     Id_Usuario: material.Usuario_Creador.Id_Usuario,
                     Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: material.Usuario_Creador.Id_Rol
+                    Id_Rol: material.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
                 } : null,
                 Proveedor: proveedorFormateado
             };
@@ -107,6 +109,7 @@ export class MaterialService {
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
@@ -123,7 +126,8 @@ export class MaterialService {
                     Usuario_Creador: material.Usuario_Creador ? {
                         Id_Usuario: material.Usuario_Creador.Id_Usuario,
                         Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
+                        Id_Rol: material.Usuario_Creador.Id_Rol,
+                        Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
                     } : null,
                     Proveedor: material.Proveedor ? {
                         Id_Proveedor: material.Proveedor.Id_Proveedor,
@@ -143,7 +147,8 @@ export class MaterialService {
                     Usuario_Creador: material.Usuario_Creador ? {
                         Id_Usuario: material.Usuario_Creador.Id_Usuario,
                         Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
+                        Id_Rol: material.Usuario_Creador.Id_Rol,
+                        Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
                     } : null,
                     Proveedor: material.Proveedor ? {
                         Id_Proveedor: material.Proveedor.Id_Proveedor,
@@ -164,6 +169,7 @@ export class MaterialService {
             .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
             .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
@@ -181,7 +187,8 @@ export class MaterialService {
                     Usuario_Creador: material.Usuario_Creador ? {
                         Id_Usuario: material.Usuario_Creador.Id_Usuario,
                         Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
+                        Id_Rol: material.Usuario_Creador.Id_Rol,
+                        Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
                     } : null,
                     Proveedor: material.Proveedor ? {
                         Id_Proveedor: material.Proveedor.Id_Proveedor,
@@ -201,7 +208,8 @@ export class MaterialService {
                     Usuario_Creador: material.Usuario_Creador ? {
                         Id_Usuario: material.Usuario_Creador.Id_Usuario,
                         Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
+                        Id_Rol: material.Usuario_Creador.Id_Rol,
+                        Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
                     } : null,
                     Proveedor: material.Proveedor ? {
                         Id_Proveedor: material.Proveedor.Id_Proveedor,
@@ -225,6 +233,7 @@ export class MaterialService {
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
@@ -242,7 +251,8 @@ export class MaterialService {
                     Usuario_Creador: material.Usuario_Creador ? {
                         Id_Usuario: material.Usuario_Creador.Id_Usuario,
                         Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
+                        Id_Rol: material.Usuario_Creador.Id_Rol,
+                        Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
                     } : null,
                     Proveedor: material.Proveedor ? {
                         Id_Proveedor: material.Proveedor.Id_Proveedor,
@@ -262,7 +272,8 @@ export class MaterialService {
                     Usuario_Creador: material.Usuario_Creador ? {
                         Id_Usuario: material.Usuario_Creador.Id_Usuario,
                         Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
+                        Id_Rol: material.Usuario_Creador.Id_Rol,
+                        Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
                     } : null,
                     Proveedor: material.Proveedor ? {
                         Id_Proveedor: material.Proveedor.Id_Proveedor,
@@ -286,6 +297,7 @@ export class MaterialService {
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
@@ -303,7 +315,8 @@ export class MaterialService {
                     Usuario_Creador: material.Usuario_Creador ? {
                         Id_Usuario: material.Usuario_Creador.Id_Usuario,
                         Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
+                        Id_Rol: material.Usuario_Creador.Id_Rol,
+                        Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
                     } : null,
                     Proveedor: material.Proveedor ? {
                         Id_Proveedor: material.Proveedor.Id_Proveedor,
@@ -323,7 +336,8 @@ export class MaterialService {
                     Usuario_Creador: material.Usuario_Creador ? {
                         Id_Usuario: material.Usuario_Creador.Id_Usuario,
                         Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
+                        Id_Rol: material.Usuario_Creador.Id_Rol,
+                        Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
                     } : null,
                     Proveedor: material.Proveedor ? {
                         Id_Proveedor: material.Proveedor.Id_Proveedor,
@@ -431,6 +445,7 @@ export class MaterialService {
                 .leftJoinAndSelect('Categorias.Categoria', 'categoria')
                 .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
                 .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+                .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
                 .leftJoinAndSelect('material.Proveedor', 'proveedor')
                 .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
                 .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
@@ -449,7 +464,8 @@ export class MaterialService {
                 Usuario_Creador: {
                     Id_Usuario: usuario.Id_Usuario,
                     Nombre_Usuario: usuario.Nombre_Usuario,
-                    Id_Rol: usuario.Id_Rol
+                    Id_Rol: usuario.Id_Rol,
+                    Nombre_Rol: usuario.Rol?.Nombre_Rol
                 },
                 Proveedor: materialCreado.Proveedor ? {
                     Id_Proveedor: materialCreado.Proveedor.Id_Proveedor,
@@ -471,6 +487,7 @@ export class MaterialService {
                 .leftJoinAndSelect('Categorias.Categoria', 'categoria')
                 .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
                 .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+                .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
                 .leftJoinAndSelect('material.Proveedor', 'proveedor')
                 .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
                 .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
@@ -489,7 +506,8 @@ export class MaterialService {
                 Usuario_Creador: {
                     Id_Usuario: usuario.Id_Usuario,
                     Nombre_Usuario: usuario.Nombre_Usuario,
-                    Id_Rol: usuario.Id_Rol
+                    Id_Rol: usuario.Id_Rol,
+                    Nombre_Rol: usuario.Rol?.Nombre_Rol
                 },
                 Proveedor: materialCreado.Proveedor ? {
                     Id_Proveedor: materialCreado.Proveedor.Id_Proveedor,
@@ -511,6 +529,7 @@ export class MaterialService {
                 .leftJoinAndSelect('Categorias.Categoria', 'categoria')
                 .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
                 .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+                .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
                 .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
                 .getOne();
 
@@ -526,7 +545,8 @@ export class MaterialService {
                 Usuario_Creador: {
                     Id_Usuario: usuario.Id_Usuario,
                     Nombre_Usuario: usuario.Nombre_Usuario,
-                    Id_Rol: usuario.Id_Rol
+                    Id_Rol: usuario.Id_Rol,
+                    Nombre_Rol: usuario.Rol?.Nombre_Rol
                 }
             };
         }
@@ -612,6 +632,7 @@ export class MaterialService {
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
             .where('material.Id_Material = :id', { id: Id_Material })
             .getOne();
 
@@ -628,7 +649,8 @@ export class MaterialService {
             Usuario_Creador: {
                 Id_Usuario: materialActualizadoCompleto.Usuario_Creador.Id_Usuario,
                 Nombre_Usuario: materialActualizadoCompleto.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: materialActualizadoCompleto.Usuario_Creador.Id_Rol
+                Id_Rol: materialActualizadoCompleto.Usuario_Creador.Id_Rol,
+                Nombre_Rol: materialActualizadoCompleto.Usuario_Creador.Rol?.Nombre_Rol
             }
         };
     }
