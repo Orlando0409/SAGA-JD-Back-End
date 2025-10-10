@@ -60,7 +60,7 @@ export class MaterialService {
             let proveedorFormateado: any = null;
             if (material.Proveedor) {
                 const proveedor = material.Proveedor as any; // Usar any para acceder a campos de subclases
-                
+
                 // Determinar el tipo basándose en los campos que existen
                 let idTipoProveedor: number | null = null;
                 if (proveedor.Tipo_Identificacion !== undefined && proveedor.Identificacion !== undefined) {
@@ -134,7 +134,7 @@ export class MaterialService {
                         Telefono_Proveedor: material.Proveedor.Telefono_Proveedor
                     } : null
                 };
-            }                
+            }
 
             else if (material.Proveedor?.Tipo_Proveedor != null && material.Proveedor?.Tipo_Proveedor.Id_Tipo_Proveedor === 2) {
                 return {
@@ -375,8 +375,8 @@ export class MaterialService {
         let categorias: Categoria[] = [];
         if (dto.IDS_Categorias && dto.IDS_Categorias.length > 0) {
             categorias = await this.categoriaRepository.find({ where: { Id_Categoria: In(dto.IDS_Categorias) } });
-            if (categorias.length !== dto.IDS_Categorias.length) { 
-                throw new BadRequestException('Una o más categorías no existen'); 
+            if (categorias.length !== dto.IDS_Categorias.length) {
+                throw new BadRequestException('Una o más categorías no existen');
             }
         }
 
@@ -385,31 +385,31 @@ export class MaterialService {
 
         if (proveedorFisico && dto.Id_Tipo_Proveedor === 1) {
             Material = this.inventarioRepository.create({
-            Nombre_Material: NombreNormalizado,
-            Descripcion: dto.Descripcion,
-            Cantidad: dto.Cantidad,
-            Proveedor: proveedorFisico,
-            Precio_Unitario: dto.Precio_Unitario,
-            Unidad_Medicion: unidadMedicionExistente,
-            Usuario_Creador: usuario,
-        });
+                Nombre_Material: NombreNormalizado,
+                Descripcion: dto.Descripcion,
+                Cantidad: dto.Cantidad,
+                Proveedor: proveedorFisico,
+                Precio_Unitario: dto.Precio_Unitario,
+                Unidad_Medicion: unidadMedicionExistente,
+                Usuario_Creador: usuario,
+            });
 
-        savedMaterial = await this.inventarioRepository.save(Material);
-    }
+            savedMaterial = await this.inventarioRepository.save(Material);
+        }
 
         else if (proveedorJuridico && dto.Id_Tipo_Proveedor === 2) {
             Material = this.inventarioRepository.create({
-            Nombre_Material: NombreNormalizado,
-            Descripcion: dto.Descripcion,
-            Cantidad: dto.Cantidad,
-            Proveedor: proveedorJuridico,
-            Precio_Unitario: dto.Precio_Unitario,
-            Unidad_Medicion: unidadMedicionExistente,
-            Usuario_Creador: usuario,
-        });
+                Nombre_Material: NombreNormalizado,
+                Descripcion: dto.Descripcion,
+                Cantidad: dto.Cantidad,
+                Proveedor: proveedorJuridico,
+                Precio_Unitario: dto.Precio_Unitario,
+                Unidad_Medicion: unidadMedicionExistente,
+                Usuario_Creador: usuario,
+            });
 
-        savedMaterial = await this.inventarioRepository.save(Material);
-    }
+            savedMaterial = await this.inventarioRepository.save(Material);
+        }
 
         // Crear las relaciones con categorías si existen
         if (categorias.length > 0) {
@@ -424,19 +424,19 @@ export class MaterialService {
 
         if (proveedorFisico && dto.Id_Tipo_Proveedor === 1) {
             const materialCreado = await this.inventarioRepository.createQueryBuilder('material')
-            .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
-            .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
-            .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
-            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
-            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
-            .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('material.Proveedor', 'proveedor')
-            .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
-            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
-            .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
-            .getOne();
-            
+                .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
+                .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
+                .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
+                .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+                .leftJoinAndSelect('Categorias.Categoria', 'categoria')
+                .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
+                .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+                .leftJoinAndSelect('material.Proveedor', 'proveedor')
+                .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
+                .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
+                .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
+                .getOne();
+
             if (!materialCreado) {
                 throw new NotFoundException('Error al recuperar el material creado');
             }
@@ -464,18 +464,18 @@ export class MaterialService {
 
         else if (proveedorJuridico && dto.Id_Tipo_Proveedor === 2) {
             const materialCreado = await this.inventarioRepository.createQueryBuilder('material')
-            .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
-            .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
-            .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
-            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
-            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
-            .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('material.Proveedor', 'proveedor')
-            .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
-            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
-            .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
-            .getOne();
+                .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
+                .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
+                .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
+                .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+                .leftJoinAndSelect('Categorias.Categoria', 'categoria')
+                .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
+                .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+                .leftJoinAndSelect('material.Proveedor', 'proveedor')
+                .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
+                .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
+                .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
+                .getOne();
 
             if (!materialCreado) {
                 throw new NotFoundException('Error al recuperar el material creado');
@@ -504,15 +504,15 @@ export class MaterialService {
 
         else {
             const materialCreado = await this.inventarioRepository.createQueryBuilder('material')
-            .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
-            .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
-            .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
-            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
-            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
-            .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
-            .getOne();
+                .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
+                .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
+                .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
+                .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+                .leftJoinAndSelect('Categorias.Categoria', 'categoria')
+                .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
+                .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+                .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
+                .getOne();
 
             if (!materialCreado) {
                 throw new NotFoundException('Error al recuperar el material creado');
@@ -574,7 +574,7 @@ export class MaterialService {
 
             // Agregar SOLO las categorias nuevas
             if (categoriasParaAgregar.length > 0) {
-                const categoriasAAgregar = nuevasCategorias.filter(cat => 
+                const categoriasAAgregar = nuevasCategorias.filter(cat =>
                     categoriasParaAgregar.includes(cat.Id_Categoria)
                 );
 
@@ -639,24 +639,36 @@ export class MaterialService {
 
         const estadoActualId = material.Estado_Material.Id_Estado_Material;
 
+        if (material.Cantidad === 0 && nuevoEstadoId === 1) {
+            throw new BadRequestException('No se puede cambiar el estado a "Disponible" si la cantidad en stock es 0');
+        }
+
         // Si está "Agotado" (2) y se cambia a "De baja" (3) → cambiar a "Agotado y de baja" (4)
-        if (estadoActualId === 2 && nuevoEstadoId === 3) {
+        else if (estadoActualId === 2 && nuevoEstadoId === 3) {
             const estadoAgotadoYBaja = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 4 } });
             if (!estadoAgotadoYBaja) { throw new NotFoundException(`Estado "Agotado y de baja" no encontrado`); }
-            
+
             material.Estado_Material = estadoAgotadoYBaja;
             material.Ultima_Fecha_Baja = new Date();
             return await this.inventarioRepository.save(material);
         }
 
         // Si ya estaba "Agotado y de baja" (4) y se cambia a "De baja" (3) → no crear nueva fecha de baja
-        if (estadoActualId === 4 && nuevoEstadoId === 3) {
+        else if (estadoActualId === 4 && nuevoEstadoId === 3) {
             const estadoDeBaja = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 3 } });
             if (!estadoDeBaja) { throw new NotFoundException(`Estado "De baja" no encontrado`); }
-            
+
             material.Estado_Material = estadoDeBaja;
             // No actualizar Ultima_Fecha_Baja porque ya tenía una fecha de baja anterior
             return await this.inventarioRepository.save(material);
+        }
+
+        // Si está "Agotado y de baja" (4) y se cambia a "Agotado" (2) → cambiar a "Agotado" sin fecha de baja
+        else if (estadoActualId === 4 && nuevoEstadoId === 2) {
+            const estadoAgotado = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 2 } });
+            if (!estadoAgotado) { throw new NotFoundException(`Estado "Agotado" no encontrado`); }
+
+            material.Estado_Material = estadoAgotado;
         }
 
         // Para cualquier otro cambio de estado
