@@ -81,6 +81,7 @@ import { SeederModule } from './config/Seeder.module';
         Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MaterialProveedor, MovimientoInventario
         ],
         synchronize: false,
+        dropSchema: false,
       }),
     }),
     ProyectoModule,
