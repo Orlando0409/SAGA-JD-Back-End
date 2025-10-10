@@ -1,12 +1,14 @@
 import { IsDefined, IsString, Matches, MaxLength, IsNotEmpty } from 'class-validator';
 
 const NAME_REGEX = /^[A-Za-zÁÉÍÓÚáéíóúÑñ]+$/;
+// Permite nombres compuestos con espacios simples, p.ej. 'Alondra Maria'
+const NAME_WITH_SPACES = /^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?:\s[A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$/;
 
 export class CreateReporteDto {
     @IsDefined({ message: 'El nombre es requerido' })
     @IsString()
     @IsNotEmpty({ message: 'El nombre no puede estar vacío' })
-    @Matches(NAME_REGEX, { message: 'El nombre sólo puede contener letras y sin espacios' })
+    @Matches(NAME_WITH_SPACES, { message: 'El nombre sólo puede contener letras y espacios simples (sin caracteres especiales)' })
     @MaxLength(20, { message: 'El nombre no puede tener más de 20 caracteres' })
     name: string;
 

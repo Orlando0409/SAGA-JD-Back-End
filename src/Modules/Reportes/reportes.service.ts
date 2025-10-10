@@ -39,8 +39,11 @@ export class ReportesService {
   const nombre = (dto.name || dto.Name || dto.Nombre || '')?.toString().trim();
   const primerApellido = (dto.Papellido || dto.P_apellido || dto.Primer_Apellido || '')?.toString().trim();
   const segundoApellido = (dto.Sapellido || dto.S_apellido || dto.Segundo_Apellido || '')?.toString().trim();
-    const primerNombre = nombre ? nombre.split(' ')[0] : '';
-    const folderName = [primerNombre, primerApellido, segundoApellido].filter(Boolean).join(' ').trim();
+    // Usar el nombre completo (puede incluir espacios) y añadir apellidos
+    const fullName = nombre || '';
+  const rawFolder = [fullName, primerApellido, segundoApellido].filter(Boolean).join(' ');
+  // Sanitizar caracteres que puedan romper rutas (/, \\, :, *, ?, ", <, >, |) y normalizar espacios
+  const folderName = rawFolder.replace(/[\\/\:\*\?"<>\|]/g, '').replace(/\s+/g, ' ').trim();
 
     const archivosAdjuntos: string[] = [];
     if (files?.Imagen || files?.Adjunto) {
@@ -67,11 +70,11 @@ export class ReportesService {
     const repo = await this.reportesRepository.findOne({ where: { IdReporte: idNum } });
     if (!repo) throw new BadRequestException(`Reporte con id ${idNum} no encontrado`);
 
-  const nombre = (repo?.name || '').toString().trim();
-  const primerNombre = nombre ? nombre.split(' ')[0] : '';
-    const primerApellido = (repo?.Papellido || '').toString().trim();
-    const segundoApellido = (repo?.Sapellido || '').toString().trim();
-    const folderName = `${[primerNombre, primerApellido, segundoApellido].filter(Boolean).join(' ')}`.trim();
+  const nombre = (repo?.name || '')?.toString().trim();
+  const primerApellido = (repo?.Papellido || '')?.toString().trim();
+    const segundoApellido = (repo?.Sapellido || '')?.toString().trim();
+  const rawFolder = [nombre, primerApellido, segundoApellido].filter(Boolean).join(' ');
+  const folderName = rawFolder.replace(/[\\/\:\*\?"<>\|]/g, '').replace(/\s+/g, ' ').trim();
 
     try {
       await this.dropboxFilesService.deletePath('Contacto', 'Reportes', undefined, folderName);

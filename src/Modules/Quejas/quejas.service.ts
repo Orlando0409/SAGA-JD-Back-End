@@ -38,8 +38,10 @@ export class QuejasService {
   const nombre = (dto.name || dto.Name || dto.Nombre || '')?.toString().trim();
   const primerApellido = (dto.Papellido || dto.P_apellido || dto.Primer_Apellido || '')?.toString().trim();
   const segundoApellido = (dto.Sapellido || dto.S_apellido || dto.Segundo_Apellido || '')?.toString().trim();
-  const primerNombre = nombre ? nombre.split(' ')[0] : '';
-  const folderName = [primerNombre, primerApellido, segundoApellido].filter(Boolean).join(' ').trim();
+  // Usar nombre completo (puede incluir espacios) y añadir apellidos
+  const fullName = nombre || '';
+  const rawFolder = [fullName, primerApellido, segundoApellido].filter(Boolean).join(' ');
+  const folderName = rawFolder.replace(/[\\/\:\*\?"<>\|]/g, '').replace(/\s+/g, ' ').trim();
 
   const archivosAdjuntos: string[] = [];
   if (files?.Imagen || files?.Adjunto) {
@@ -66,11 +68,11 @@ export class QuejasService {
     const repo = await this.quejasRepository.findOne({ where: { Id_Queja: idNum } });
   if (!repo) throw new BadRequestException(`Queja con id ${idNum} no encontrada`);
 
-  const nombre = (repo?.name || '').toString().trim();
-  const primerNombre = nombre ? nombre.split(' ')[0] : '';
-  const primerApellido = (repo?.Papellido || '').toString().trim();
-  const segundoApellido = (repo?.Sapellido || '').toString().trim();
-  const folderName = `${[primerNombre, primerApellido, segundoApellido].filter(Boolean).join(' ')}`.trim();
+  const nombre = (repo?.name || '')?.toString().trim();
+  const primerApellido = (repo?.Papellido || '')?.toString().trim();
+  const segundoApellido = (repo?.Sapellido || '')?.toString().trim();
+  const rawFolder = [nombre, primerApellido, segundoApellido].filter(Boolean).join(' ');
+  const folderName = rawFolder.replace(/[\\/\:\*\?"<>\|]/g, '').replace(/\s+/g, ' ').trim();
 
     try {
       await this.dropboxFilesService.deletePath('Contacto', 'Quejas', undefined, folderName);
