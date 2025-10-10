@@ -79,7 +79,7 @@ import { TipoProveedor } from './Modules/Proveedores/ProveedorEntities/TipoProve
         Acta, ArchivoActa,
         Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario
         ],
-        synchronize: true,
+        synchronize: false,
         dropSchema: false,
       }),
     }),

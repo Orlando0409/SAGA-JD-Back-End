@@ -9,7 +9,7 @@ import { MaterialCategoria } from '../InventarioEntities/MaterialCategoria.Entit
 import { UpdateMaterialDto } from "../InventarioDTO's/UpdateMaterial.dto";
 import { UnidadMedicion } from '../InventarioEntities/UnidadMedicion.Entity';
 import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
-import { Proveedor, ProveedorFisico, ProveedorJuridico } from 'src/Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
+import { ProveedorFisico, ProveedorJuridico } from 'src/Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
 
 @Injectable()
 export class MaterialService {
@@ -31,9 +31,6 @@ export class MaterialService {
 
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
-
-        @InjectRepository(Proveedor)
-        private readonly proveedorRepository: Repository<Proveedor>,
 
         @InjectRepository(ProveedorFisico)
         private readonly proveedorFisicoRepository: Repository<ProveedorFisico>,
@@ -59,57 +56,45 @@ export class MaterialService {
         return materiales.map(material => {
             const { Usuario_Creador, materialCategorias, Proveedor, ...materialSinRelaciones } = material;
 
-            if (material.Proveedor?.Tipo_Proveedor != null && material.Proveedor?.Tipo_Proveedor.Id_Tipo_Proveedor === 1) {
-                return {
-                    ...materialSinRelaciones,
-                    Categorias: materialCategorias,
-                    Usuario_Creador: material.Usuario_Creador ? {
-                        Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                        Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
-                    } : null,
-                    Proveedor: material.Proveedor ? {
-                        Id_Proveedor: material.Proveedor.Id_Proveedor,
-                        Tipo_Proveedor: material.Proveedor.Tipo_Proveedor,
-                        Tipo_Identificacion: (material.Proveedor as ProveedorFisico).Tipo_Identificacion,
-                        Identificacion: (material.Proveedor as ProveedorFisico).Identificacion,
-                        Nombre_Proveedor: material.Proveedor.Nombre_Proveedor,
-                        Telefono_Proveedor: material.Proveedor.Telefono_Proveedor
-                    } : null
+            // Construir objeto de proveedor
+            let proveedorFormateado: any = null;
+            if (material.Proveedor) {
+                const proveedor = material.Proveedor as any; // Usar any para acceder a campos de subclases
+                
+                // Determinar el tipo basándose en los campos que existen
+                let idTipoProveedor: number | null = null;
+                if (proveedor.Tipo_Identificacion !== undefined && proveedor.Identificacion !== undefined) {
+                    idTipoProveedor = 1; // Físico
+                } else if (proveedor.Cedula_Juridica !== undefined && proveedor.Razon_Social !== undefined) {
+                    idTipoProveedor = 2; // Jurídico
+                }
+
+                proveedorFormateado = {
+                    Id_Proveedor: proveedor.Id_Proveedor,
+                    Id_Tipo_Proveedor: idTipoProveedor,
+                    Nombre_Proveedor: proveedor.Nombre_Proveedor,
+                    Telefono_Proveedor: proveedor.Telefono_Proveedor
                 };
+
+                if (idTipoProveedor === 1) {
+                    proveedorFormateado.Tipo_Identificacion = proveedor.Tipo_Identificacion;
+                    proveedorFormateado.Identificacion = proveedor.Identificacion;
+                } else if (idTipoProveedor === 2) {
+                    proveedorFormateado.Cedula_Juridica = proveedor.Cedula_Juridica;
+                    proveedorFormateado.Razon_Social = proveedor.Razon_Social;
+                }
             }
 
-            else if (material.Proveedor?.Tipo_Proveedor != null && material.Proveedor?.Tipo_Proveedor.Id_Tipo_Proveedor === 2) {
-                return {
-                    ...materialSinRelaciones,
-                    Categorias: materialCategorias,
-                    Usuario_Creador: material.Usuario_Creador ? {
-                        Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                        Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
-                    } : null,
-                    Proveedor: material.Proveedor ? {
-                        Id_Proveedor: material.Proveedor.Id_Proveedor,
-                        Tipo_Proveedor: material.Proveedor.Tipo_Proveedor,
-                        Cedula_Juridica: (material.Proveedor as ProveedorJuridico).Cedula_Juridica,
-                        Razon_Social: (material.Proveedor as ProveedorJuridico).Razon_Social,
-                        Nombre_Proveedor: material.Proveedor.Nombre_Proveedor,
-                        Telefono_Proveedor: material.Proveedor.Telefono_Proveedor
-                    } : null
-                };
-            }
-
-            else {
-                return {
-                    ...materialSinRelaciones,
-                    Categorias: materialCategorias,
-                    Usuario_Creador: material.Usuario_Creador ? {
-                        Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                        Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
-                    } : null
-                };
-            }
+            return {
+                ...materialSinRelaciones,
+                Categorias: materialCategorias,
+                Usuario_Creador: material.Usuario_Creador ? {
+                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: material.Usuario_Creador.Id_Rol
+                } : null,
+                Proveedor: proveedorFormateado
+            };
         });
     }
 
@@ -370,10 +355,6 @@ export class MaterialService {
         let proveedorFisico: ProveedorFisico | null = null;
         let proveedorJuridico: ProveedorJuridico | null = null;
 
-        if (dto.Id_Proveedor == null || dto.Id_Tipo_Proveedor == null) {
-            throw new BadRequestException('Se debe proporcionar Id_Proveedor e Id_Tipo_Proveedor');
-        }
-
         if (dto.Id_Tipo_Proveedor === 1) {
             const proveedorFisicoExistente = await this.proveedorFisicoRepository.findOne({ where: { Id_Proveedor: dto.Id_Proveedor }, relations: ['Estado_Proveedor', 'Tipo_Proveedor'] });
             if (!proveedorFisicoExistente) { throw new BadRequestException('Proveedor físico no encontrado'); }
@@ -433,9 +414,9 @@ export class MaterialService {
         // Crear las relaciones con categorías si existen
         if (categorias.length > 0) {
             const materialCategorias = categorias.map(categoria => {
-                return this.materialCategoriaRepository.create({ 
-                    Material: savedMaterial, 
-                    Categoria: categoria 
+                return this.materialCategoriaRepository.create({
+                    Material: savedMaterial,
+                    Categoria: categoria
                 });
             });
             await this.materialCategoriaRepository.save(materialCategorias);
