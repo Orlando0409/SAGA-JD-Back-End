@@ -49,7 +49,8 @@ import { EstadoCategoria } from './Modules/Inventario/InventarioEntities/EstadoC
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
 import { MovimientoInventario } from './Modules/Inventario/InventarioEntities/Movimiento.Entity';
 import { TipoProveedor } from './Modules/Proveedores/ProveedorEntities/TipoProveedor.Entity';
-import { SeederModule } from './config/Seeder.module';
+import { SeederModule } from './Config/Seeder.module';
+
 
 @Module({
   imports: [
@@ -78,7 +79,7 @@ import { SeederModule } from './config/Seeder.module';
         Proyecto, ProyectoEstado,
         CalidadAgua, EstadoCalidadAgua,
         Acta, ArchivoActa,
-        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MaterialProveedor, MovimientoInventario
+        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario
         ],
         synchronize: false,
         dropSchema: false,
