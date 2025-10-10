@@ -98,13 +98,21 @@ export class ValidationsService
         }
     }
 
-    async validarExistenciaAfiliadoFisico(identificacion: string): Promise<boolean> {
+    async validarExistenciaAfiliadoFisico(identificacion: string) {
         const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: identificacion } });
-        return !!afiliado;
+        if (afiliado) {
+            return null; // No hay error
+        }
+
+        return `Ya existe un afiliado físico con la cédula ${identificacion}. No puede realizar una nueva solicitud de afiliación.`;
     }
 
-    async validarExistenciaAfiliadoJuridico(cedulaJuridica: string): Promise<boolean> {
+    async validarExistenciaAfiliadoJuridico(cedulaJuridica: string) {
         const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: cedulaJuridica } });
-        return !!afiliado;
+        if (afiliado) {
+            return null; // No hay error
+        }
+
+        return `Ya existe un afiliado jurídico con la cédula ${cedulaJuridica}. No puede realizar una nueva solicitud de afiliación.`;
     }
 }

@@ -68,9 +68,16 @@ export class MovimientosService {
         const cantidadAnterior = materialExistente.Cantidad;
 
         materialExistente.Cantidad += dto.Cantidad;
-        if(materialExistente.Cantidad > 0) {
-            const estadoActivo = await this.estadoMaterialRepository.findOne({ where: { Nombre_Estado_Material: 'DISPONIBLE' } });
+        if(materialExistente.Cantidad > 0 && materialExistente.Estado_Material.Id_Estado_Material === 4) {
+            const estadoActivo = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 3 } });
             if(estadoActivo) {
+                materialExistente.Estado_Material = estadoActivo;
+            }
+        }
+
+        if (materialExistente.Cantidad > 0 && materialExistente.Estado_Material.Id_Estado_Material === 2) {
+            const estadoActivo = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 1 } });
+            if (estadoActivo) {
                 materialExistente.Estado_Material = estadoActivo;
             }
         }
@@ -141,9 +148,16 @@ export class MovimientosService {
         const cantidadAnterior = materialExistente.Cantidad;
 
         materialExistente.Cantidad -= dto.Cantidad;
-        if(materialExistente.Cantidad === 0) {
-            const estadoInactivo = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 2 } });
+        if(materialExistente.Cantidad === 0 && materialExistente.Estado_Material.Id_Estado_Material === 3) {
+            const estadoInactivo = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 4 } });
             if(estadoInactivo) {
+                materialExistente.Estado_Material = estadoInactivo;
+            }
+        }
+
+        if (materialExistente.Cantidad === 0 && materialExistente.Estado_Material.Id_Estado_Material === 1) {
+            const estadoInactivo = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 2 } });
+            if (estadoInactivo) {
                 materialExistente.Estado_Material = estadoInactivo;
             }
         }
