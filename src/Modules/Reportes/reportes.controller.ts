@@ -6,6 +6,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ReportesService } from './reportes.service';
 import { UpdateReporteEstadoDto } from './ReportesDto/UpdateReporteEstado.dto';
 import { ResponderReporteDto } from './ReportesDto/ResponderReporte.dto';
+import { Public } from '../auth/Decorator/Public.decorator';
 
 @Controller('reportes')
 export class ReportesController {
@@ -20,7 +21,7 @@ export class ReportesController {
   async findOne(@Param('id', NumericParamPipe) id: number) {
     return this.reportesService.getOne(id);
   }
-
+  @Public()
   @Post()
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'Imagen', maxCount: 10 },
