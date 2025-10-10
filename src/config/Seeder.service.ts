@@ -55,8 +55,8 @@ export class SeederService implements OnModuleInit {
         private readonly estadoReporteRepository: Repository<EstadoReporte>,
         @InjectRepository(Estado_Sugerencia)
         private readonly estadoSugerenciaRepository: Repository<Estado_Sugerencia>,
-    @InjectRepository(EstadoQueja)
-    private readonly estadoQuejaRepository: Repository<EstadoQueja>,
+        @InjectRepository(EstadoQueja)
+        private readonly estadoQuejaRepository: Repository<EstadoQueja>,
     ) {}
 
     async onModuleInit() {
@@ -76,7 +76,7 @@ export class SeederService implements OnModuleInit {
             await this.createDefaultCategoriasMaterial();
             await this.createDefaultEstadosUnidadMedicion();
             await this.createDefaultUnidadesMedicion();
-            } catch (err) {
+        } catch (err) {
             console.error('Error ejecutando Seeder.onModuleInit:', err);
         }
     }
@@ -365,7 +365,6 @@ export class SeederService implements OnModuleInit {
             }
         }
     }
-
 
     private async createDefaultEstadosProveedor() {
         const estados = [

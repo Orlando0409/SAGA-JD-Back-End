@@ -10,6 +10,9 @@ export class CalidadAgua
     @Column({ nullable: false })
     Titulo: string;
 
+    @Column({ nullable: false })
+    Descripcion: string;
+
     @CreateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Creacion: Date;
 
