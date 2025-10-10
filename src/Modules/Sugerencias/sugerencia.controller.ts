@@ -21,8 +21,13 @@ export class SugerenciaController {
   }
 
   @Post()
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'Imagen', maxCount: 5 }]))
-  create(@Body() body: CreateSugerenciaDto, @UploadedFiles() files: Record<string, Express.Multer.File[]>) {
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'Adjunto', maxCount: 10 },
+  ]))
+  create(
+    @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true, forbidUnknownValues: false })) body: CreateSugerenciaDto,
+    @UploadedFiles() files: Record<string, Express.Multer.File[]>,
+  ) {
     return this.sugerenciaService.create(body, files);
   }
 

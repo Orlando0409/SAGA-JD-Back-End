@@ -37,7 +37,6 @@ export class SugerenciaService {
     const sugerencia = this.sugerenciaRepository.create({
       ...dto,
       Fecha_Sugerencia: fecha,
-      Imagen: [],
       Estado: estado,
     });
 
@@ -47,20 +46,18 @@ export class SugerenciaService {
   const saved = await this.sugerenciaRepository.findOne({ where: { Id_Sugerencia: generatedId } }) as SugerenciaEntity;
 
     
-    const imagenUrls: string[] = [];
-    if (files?.Imagen) {
-      const archivos = Array.isArray(files.Imagen) ? files.Imagen : [files.Imagen];
+    const adjuntoUrls: string[] = [];
+    if (files?.Adjunto) {
+      const archivos = Array.isArray(files.Adjunto) ? files.Adjunto : [files.Adjunto];
       const folderName = `sugerencia_${saved.Id_Sugerencia}`;
       for (const file of archivos) {
         const res = await this.dropboxFilesService.uploadFile(file, 'Contacto', 'Sugerencias', undefined, folderName);
-        if (res?.url) imagenUrls.push(res.url);
+        if (res?.url) adjuntoUrls.push(res.url);
       }
 
-  
-  saved.Imagen = imagenUrls;
+      saved.Adjunto = adjuntoUrls;
   await this.sugerenciaRepository.save(saved);
     }
-
     return saved;
   }
 

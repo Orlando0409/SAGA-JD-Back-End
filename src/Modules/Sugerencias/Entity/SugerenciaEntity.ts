@@ -10,10 +10,10 @@ export class SugerenciaEntity {
     Fecha_Sugerencia: Date;
 
     @Column()
-    Descripcion: string;
+    Mensaje: string;
 
     @Column({ type: 'simple-json', nullable: true })
-    Imagen?: string[];
+    Adjunto?: string[];
 
     @Column({ type: 'text', nullable: true })
     RespuestasSugerencia?: string;
