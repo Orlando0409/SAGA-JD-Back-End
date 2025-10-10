@@ -14,7 +14,6 @@ import { Categoria } from 'src/Modules/Inventario/InventarioEntities/Categoria.E
 import { SeederService } from './Seeder.service';
 import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
 import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
-import { EstadoCalidadAgua } from 'src/Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
 import { EstadoReporte } from 'src/Modules/Reportes/ReportesEntity/EstadoReporte';
 import { Estado_Sugerencia } from 'src/Modules/Sugerencias/Entity/EstadoSugerencia';
@@ -22,7 +21,7 @@ import { EstadoQueja } from 'src/Modules/Quejas/Entity/EstadoQueja';
 
 @Module({
     imports: [
-    TypeOrmModule.forFeature([Usuario, UsuarioRol, Permiso, EstadoProveedor, TipoProveedor, ProyectoEstado, EstadoSolicitud, EstadoAfiliado, TipoAfiliado, EstadoMaterial, Categoria, EstadoCategoria, EstadoUnidadMedicion, UnidadMedicion, EstadoCalidadAgua, EstadoReporte, Estado_Sugerencia, EstadoQueja])
+    TypeOrmModule.forFeature([Usuario, UsuarioRol, Permiso, EstadoProveedor, TipoProveedor, ProyectoEstado, EstadoSolicitud, EstadoAfiliado, TipoAfiliado, EstadoMaterial, Categoria, EstadoCategoria, EstadoUnidadMedicion, UnidadMedicion, EstadoReporte, Estado_Sugerencia, EstadoQueja])
     ],
     providers: [SeederService],
     exports: [SeederService]

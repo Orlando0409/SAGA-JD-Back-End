@@ -126,18 +126,27 @@ export class SolicitudAfiliacionFisicaService
             await this.emailService.enviarEmailActualizacionEstado(solicitudAfiliacion.Correo, 'Afiliación', 'En revisión', nombre);
         }
 
-        // Si el estado cambia a 3 (Aprobada), crear automáticamente el afiliado
-        if (nuevoEstadoId === 3) {
+        if (nuevoEstadoId === 3) { // Estado 3 = Pendiente de instalar medidor
             await this.afiliadosService.createAfiliadoFisicoFromSolicitud(solicitudAfiliacion);
 
             const nombre = `${solicitudAfiliacion.Nombre} ${solicitudAfiliacion.Apellido1 ?? ''} ${solicitudAfiliacion.Apellido2 ?? ''}`.trim();
             await this.emailService.enviarEmailActualizacionEstado(solicitudAfiliacion.Correo, 'Afiliación', 'Aprobada', nombre);
         }
 
-        if (nuevoEstadoId === 4) { // Estado 4 = Rechazada
+        /*
+        // Si el estado cambia a 4 (Completada), crear automáticamente el afiliado
+        if (nuevoEstadoId === 4) {
+            await this.afiliadosService.createAfiliadoFisicoFromSolicitud(solicitudAfiliacion);
+
+            const nombre = `${solicitudAfiliacion.Nombre} ${solicitudAfiliacion.Apellido1 ?? ''} ${solicitudAfiliacion.Apellido2 ?? ''}`.trim();
+            await this.emailService.enviarEmailActualizacionEstado(solicitudAfiliacion.Correo, 'Afiliación', 'Completada', nombre);
+        }
+
+        if (nuevoEstadoId === 5) { // Estado 5 = Rechazada
             const nombre = `${solicitudAfiliacion.Nombre} ${solicitudAfiliacion.Apellido1 ?? ''} ${solicitudAfiliacion.Apellido2 ?? ''}`.trim();
             await this.emailService.enviarEmailActualizacionEstado(solicitudAfiliacion.Correo, 'Afiliación', 'Rechazada', nombre);
         }
+        */
 
         solicitudAfiliacion.Estado = nuevoEstado;
         return this.solicitudAfiliacionFisicaRepository.save(solicitudAfiliacion);

@@ -3,8 +3,8 @@ import { EstadoMaterial } from "./EstadoMaterial.Entity";
 import { MaterialCategoria } from "./MaterialCategoria.Entity";
 import { UnidadMedicion } from "./UnidadMedicion.Entity";
 import { MovimientoInventario } from "./Movimiento.Entity";
-import { MaterialProveedor } from "./MaterialProveedor.Entity";
 import { Expose } from "class-transformer";
+import { Proveedor, ProveedorFisico, ProveedorJuridico } from "src/Modules/Proveedores/ProveedorEntities/Proveedor.Entity";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Entity('Material')
@@ -49,13 +49,17 @@ export class Material {
     @JoinColumn({ name: 'Id_Usuario_Creador' })
     Usuario_Creador: Usuario;
 
-    @OneToMany(() => MaterialProveedor, materialProveedor => materialProveedor.Material, { cascade: true, eager: true })
-    @Expose({ name: 'Proveedores' })
-    materialProveedores: MaterialProveedor[];
+    @ManyToOne(() => Proveedor, proveedor => proveedor.materiales, { eager: true })
+    @JoinColumn({ name: 'Id_Proveedor' })
+    Proveedor?: ProveedorFisico | ProveedorJuridico;
 
     @OneToMany(() => MovimientoInventario, movimiento => movimiento.Material)
     movimientosInventario: MovimientoInventario[];
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado_Material = { Id_Estado_Material: 1 } as EstadoMaterial; }
+    setDefaultEstado() {
+        if (!this.Estado_Material) {
+            this.Estado_Material = { Id_Estado_Material: 1 } as EstadoMaterial; // Asignar estado "Disponible" por defecto
+        }
+    }
 }
