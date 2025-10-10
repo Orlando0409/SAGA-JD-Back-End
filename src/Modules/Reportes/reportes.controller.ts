@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, UploadedFiles, UseInterceptors, Patch, Res, ValidationPipe } from '@nestjs/common';
+import { CreateReporteDto } from './ReportesDto/CreateReporte.dto';
 import { Response } from 'express';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
@@ -25,7 +26,7 @@ export class ReportesController {
     { name: 'Imagen', maxCount: 10 },
     { name: 'Adjunto', maxCount: 10 },
   ]))
-  async create(@Body() dto: any, @UploadedFiles() files: any) {
+  async create(@Body(new ValidationPipe({ whitelist: true, transform: true })) dto: CreateReporteDto, @UploadedFiles() files: any) {
     return this.reportesService.create(dto, files);
   }
 

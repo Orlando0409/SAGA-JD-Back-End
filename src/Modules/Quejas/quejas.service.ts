@@ -35,30 +35,29 @@ export class QuejasService {
   if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
     const fecha = new Date();
-
-  const nombre = (dto.Nombre || dto.nombre || dto.name || '')?.toString().trim();
-  const primerApellido = (dto.Primer_Apellido || dto.primer_apellido || '')?.toString().trim();
-  const segundoApellido = (dto.Segundo_Apellido || dto.segundo_apellido || '')?.toString().trim();
+  const nombre = (dto.name || dto.Name || dto.Nombre || '')?.toString().trim();
+  const primerApellido = (dto.Papellido || dto.P_apellido || dto.Primer_Apellido || '')?.toString().trim();
+  const segundoApellido = (dto.Sapellido || dto.S_apellido || dto.Segundo_Apellido || '')?.toString().trim();
   const primerNombre = nombre ? nombre.split(' ')[0] : '';
   const folderName = [primerNombre, primerApellido, segundoApellido].filter(Boolean).join(' ').trim();
 
-    const imagenUrls: string[] = [];
-    if (files?.Imagen) {
-      const archivos = Array.isArray(files.Imagen) ? files.Imagen : [files.Imagen];
-      for (const file of archivos) {
-        const res = await this.dropboxFilesService.uploadFile(file, 'Contacto', 'Quejas', undefined, folderName);
-        if (res?.url) imagenUrls.push(res.url);
-      }
+  const archivosAdjuntos: string[] = [];
+  if (files?.Imagen || files?.Adjunto) {
+    const archivos = Array.isArray(files.Imagen) ? files.Imagen : Array.isArray(files.Adjunto) ? files.Adjunto : files.Imagen ? [files.Imagen] : files.Adjunto ? [files.Adjunto] : [];
+    for (const file of archivos) {
+      const res = await this.dropboxFilesService.uploadFile(file, 'Contacto', 'Quejas', undefined, folderName);
+      if (res?.url) archivosAdjuntos.push(res.url);
     }
+  }
 
-    const queja = this.quejasRepository.create({
-      ...dto,
-      Fecha_Queja: fecha,
-      Imagen: imagenUrls,
-      Estado: estado,
-    });
+  const queja = this.quejasRepository.create({
+    ...dto,
+    Fecha_Queja: fecha,
+    Adjunto: archivosAdjuntos,
+    Estado: estado,
+  });
 
-    return this.quejasRepository.save(queja);
+  return this.quejasRepository.save(queja);
   }
 
   async remove(id: number) {
@@ -67,10 +66,10 @@ export class QuejasService {
     const repo = await this.quejasRepository.findOne({ where: { Id_Queja: idNum } });
   if (!repo) throw new BadRequestException(`Queja con id ${idNum} no encontrada`);
 
-  const nombre = (repo?.Nombre || '').toString().trim();
+  const nombre = (repo?.name || '').toString().trim();
   const primerNombre = nombre ? nombre.split(' ')[0] : '';
-  const primerApellido = (repo?.Primer_Apellido || '').toString().trim();
-  const segundoApellido = (repo?.Segundo_Apellido || '').toString().trim();
+  const primerApellido = (repo?.Papellido || '').toString().trim();
+  const segundoApellido = (repo?.Sapellido || '').toString().trim();
   const folderName = `${[primerNombre, primerApellido, segundoApellido].filter(Boolean).join(' ')}`.trim();
 
     try {

@@ -3,6 +3,7 @@ import { Response } from 'express';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { QuejasService } from './quejas.service';
+import { CreateQuejaDto } from './Dto/CreateQueja.dto';
 
 @Controller('quejas')
 export class QuejasController {
@@ -19,8 +20,11 @@ export class QuejasController {
   }
 
   @Post()
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'Imagen', maxCount: 10 }]))
-  async create(@Body() dto: any, @UploadedFiles() files: any) {
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'Imagen', maxCount: 10 },
+    { name: 'Adjunto', maxCount: 10 },
+  ]))
+  async create(@Body(new ValidationPipe({ whitelist: true, transform: true })) dto: CreateQuejaDto, @UploadedFiles() files: any) {
     return this.quejasService.create(dto, files);
   }
 

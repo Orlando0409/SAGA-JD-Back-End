@@ -90,7 +90,8 @@ import { EstadoQueja } from './Modules/Quejas/Entity/EstadoQueja';
     QuejasEntity, EstadoQueja,
         Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MaterialProveedor, MovimientoInventario
         ],
-        synchronize: false,
+        synchronize: true,
+        dropSchema: true,
       }) 
     }),
     SeederModule,
