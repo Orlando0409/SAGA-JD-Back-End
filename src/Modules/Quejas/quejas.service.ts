@@ -2,8 +2,8 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { QuejasEntity } from './Entity/QuejasEntity';
-import { EstadoQueja } from './Entity/EstadoQueja';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
+import { EstadoQueja } from './Entity/EstadoQueja';
 
 @Injectable()
 export class QuejasService {
@@ -71,12 +71,6 @@ export class QuejasService {
   const primerApellido = (repo?.Papellido || '').toString().trim();
   const segundoApellido = (repo?.Sapellido || '').toString().trim();
   const folderName = `${[primerNombre, primerApellido, segundoApellido].filter(Boolean).join(' ')}`.trim();
-
-    try {
-      await this.dropboxFilesService.deletePath('Contacto', 'Quejas', undefined, folderName);
-    } catch (error) {
-      this.logger.warn(`No se pudo eliminar carpeta en Dropbox para queja ${idNum}: ${error}`);
-    }
 
     return this.quejasRepository.remove(repo);
   }

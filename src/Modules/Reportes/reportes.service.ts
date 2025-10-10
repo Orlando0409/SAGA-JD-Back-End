@@ -73,12 +73,6 @@ export class ReportesService {
     const segundoApellido = (repo?.Sapellido || '').toString().trim();
     const folderName = `${[primerNombre, primerApellido, segundoApellido].filter(Boolean).join(' ')}`.trim();
 
-    try {
-      await this.dropboxFilesService.deletePath('Contacto', 'Reportes', undefined, folderName);
-    } catch (error) {
-      this.logger.warn(`No se pudo eliminar carpeta en Dropbox para reporte ${idNum}: ${error}`);
-    }
-
     return this.reportesRepository.remove(repo);
   }
 
