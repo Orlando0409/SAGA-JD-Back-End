@@ -39,8 +39,21 @@ export class SugerenciaController {
   }
 
   @Post(':id/responder')
-  responder(@Param('id', NumericParamPipe) id: number, @Body() body: ResponderSugerenciaDto) {
-    const respuesta = (body as any)?.respuesta ?? (body as any)?.Respuesta ?? (body as any)?.respuesta;
+  responder(
+    @Param('id', NumericParamPipe) id: number,
+    @Body('respuesta') respuestaField: any,
+    @Body() rawBody: any,
+  ) {
+    // extraer la respuesta del body de forma segura (JSON form-data o raw text)
+    let respuesta = respuestaField;
+    if (!respuesta) {
+      if (rawBody && typeof rawBody === 'object') {
+        respuesta = (rawBody as any).respuesta ?? (rawBody as any).Respuesta ?? (rawBody as any).respuesta;
+      } else if (typeof rawBody === 'string') {
+        respuesta = rawBody;
+      }
+    }
+
     if (!respuesta) throw new BadRequestException('respuesta es requerida');
     return this.sugerenciaService.responderSugerencia(id, respuesta);
   }
