@@ -366,24 +366,6 @@ export class SeederService implements OnModuleInit {
         }
     }
 
-    private async createDefaultEstadosCalidadAgua() {
-        const estados = [
-            { Id_Estado_Calidad_Agua: 1, Nombre_Estado_Calidad_Agua: 'Visible' },
-            { Id_Estado_Calidad_Agua: 2, Nombre_Estado_Calidad_Agua: 'Invisible' },
-        ];
-
-        for (const estado of estados) {
-            const existe = await this.estadoCalidadAguaRepository.findOne({
-                where: { Id_Estado_Calidad_Agua: estado.Id_Estado_Calidad_Agua }
-                
-            });
-
-            if (!existe) {
-                const nuevoEstado = this.estadoCalidadAguaRepository.create(estado);
-                await this.estadoCalidadAguaRepository.save(nuevoEstado);
-            }
-        }
-    }
 
     private async createDefaultEstadosProveedor() {
         const estados = [
