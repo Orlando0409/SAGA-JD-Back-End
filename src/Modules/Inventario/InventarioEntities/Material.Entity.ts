@@ -51,7 +51,7 @@ export class Material {
 
     @ManyToOne(() => Proveedor, proveedor => proveedor.materiales, { eager: true })
     @JoinColumn({ name: 'Id_Proveedor' })
-    Proveedor?: ProveedorFisico | ProveedorJuridico;    //si lo hago a proveedor no sirve pq no tiene registros al ser la tablas padre
+    Proveedor?: ProveedorFisico | ProveedorJuridico;
 
     @OneToMany(() => MovimientoInventario, movimiento => movimiento.Material)
     movimientosInventario: MovimientoInventario[];
