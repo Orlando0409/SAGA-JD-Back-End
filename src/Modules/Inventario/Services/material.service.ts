@@ -10,7 +10,6 @@ import { UpdateMaterialDto } from "../InventarioDTO's/UpdateMaterial.dto";
 import { UnidadMedicion } from '../InventarioEntities/UnidadMedicion.Entity';
 import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { ProveedorFisico, ProveedorJuridico } from 'src/Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
-import { EstadoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/EstadoProveedor.Entity';
 
 @Injectable()
 export class MaterialService {

@@ -6,8 +6,6 @@ import { CreateCategoriaDto } from "../InventarioDTO's/CreateCategoria.dto";
 import { UpdateCategoriaDto } from "../InventarioDTO's/UpdateCategoria.dto";
 import { EstadoCategoria } from '../InventarioEntities/EstadoCategoria.Entity';
 import { Usuario } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
-import { plainToClass } from "class-transformer";
-import { GetUsuarioCreadorDto } from '../InventarioDTO\'s/getUsuarioCreador.dto';
 import { MaterialCategoria } from '../InventarioEntities/MaterialCategoria.Entity';
 
 @Injectable()
