@@ -29,6 +29,30 @@ export class InventarioController {
         return this.materialService.getAllMateriales();
     }
 
+    @Get('/materiales/disponibles')
+    @ApiOperation({ summary: 'Obtiene materiales que están disponibles.' })
+    async getMaterialesDisponibles() {
+        return this.materialService.getMaterialesDisponibles();
+    }
+
+    @Get('/materiales/agotados')
+    @ApiOperation({ summary: 'Obtiene materiales que están agotados.' })
+    async getMaterialesAgotados() {
+        return this.materialService.getMaterialesAgotados();
+    }
+
+    @Get('/materiales/de-baja')
+    @ApiOperation({ summary: 'Obtiene materiales que están de baja.' })
+    async getMaterialesDeBaja() {
+        return this.materialService.getMaterialesDeBaja();
+    }
+
+    @Get('/materiales/agotados-de-baja')
+    @ApiOperation({ summary: 'Obtiene materiales que están agotados y de baja.' })
+    async getMaterialesAgotadosDeBaja() {
+        return this.materialService.getMaterialesAgotadosYDeBaja();
+    }
+
     @Get('/materiales/with/categorias')
     @ApiOperation({ summary: 'Obtiene materiales que tienen categorías asignadas' })
     async getMaterialesConCategorias() {
@@ -51,6 +75,15 @@ export class InventarioController {
     @ApiOperation({ summary: 'Obtiene materiales con cantidad por debajo de un umbral dado, ordenados de menor a mayor.' })
     async getMaterialesPorDebajoDeStock(@Param('threshold', ParseIntPipe) threshold: number) {
         return this.materialService.getMaterialesPorDebajoDeStock(threshold);
+    }
+
+    @Get('/materiales/between/priceRange/:min/:max')
+    @ApiOperation({ summary: 'Obtiene materiales cuyo precio está entre un rango dado.' })
+    async getMaterialesEntreRangoDePrecio(
+        @Param('min', ParseIntPipe) min: number,
+        @Param('max', ParseIntPipe) max: number
+    ) {
+        return this.materialService.getMaterialesEntreRangoPrecio(min, max);
     }
 
     @Post('/create/material/:idUsuarioCreador')
@@ -87,6 +120,18 @@ export class InventarioController {
     @ApiOperation({ summary: 'Obtiene todas las categorías de materiales.' })
     async getAllCategorias() {
         return this.categoriasService.getAllCategorias();
+    }
+
+    @Get('/categorias/activas')
+    @ApiOperation({ summary: 'Obtiene todas las categorías activas.' })
+    async getCategoriasActivas() {
+        return this.categoriasService.getCategoriasActivas();
+    }
+
+    @Get('/categorias/inactivas')
+    @ApiOperation({ summary: 'Obtiene todas las categorías inactivas.' })
+    async getCategoriasInactivas() {
+        return this.categoriasService.getCategoriasInactivas();
     }
 
     @Post('/create/categoria/:idUsuario')
@@ -129,6 +174,18 @@ export class InventarioController {
     @ApiOperation({ summary: 'Obtiene todas las unidades de medición (solo Id y Nombre).' })
     async getAllUnidadesMedicionSimple() {
         return this.unidadesDeMedicionService.getUnidadMedicionSimple();
+    }
+
+    @Get('/unidades-medicion/activas')
+    @ApiOperation({ summary: 'Obtiene todas las unidades de medición activas.' })
+    async getUnidadesMedicionActivas() {
+        return this.unidadesDeMedicionService.getUnidadesMedicionActivas();
+    }
+
+    @Get('/unidades-medicion/inactivas')
+    @ApiOperation({ summary: 'Obtiene todas las unidades de medición inactivas.' })
+    async getUnidadesMedicionInactivas() {
+        return this.unidadesDeMedicionService.getUnidadesMedicionInactivas();
     }
 
     @Post('/create/unidad-medicion/:idUsuarioCreador')
@@ -177,6 +234,21 @@ export class InventarioController {
     @ApiOperation({ summary: 'Obtiene todos los egresos de un material específico.' })
     async getEgresosPorMaterial() {
         return this.movimientosService.getMovimientosSalidas();
+    }
+
+    @Get('/movimientos/entre/fechas/:startDate/:endDate')
+    @ApiOperation({ summary: 'Obtiene todos los movimientos entre dos fechas específicas.' })
+    async getMovimientosEntreFechas(
+        @Param('startDate') startDate: string,
+        @Param('endDate') endDate: string
+    ) {
+        return this.movimientosService.getMovimientosEntreFechas(startDate, endDate);
+    }
+
+    @Get('/movimientos/:idUsuarioCreador')
+    @ApiOperation({ summary: 'Obtiene un movimiento por su ID y el ID del usuario creador.' })
+    async getMovimientoPorId(@Param('idUsuarioCreador', ParseIntPipe) idUsuarioCreador: number) {
+        return this.movimientosService.getMovimientosPorUsuarioCreador(idUsuarioCreador);
     }
 
     @Post('/ingreso/material/:idUsuario')

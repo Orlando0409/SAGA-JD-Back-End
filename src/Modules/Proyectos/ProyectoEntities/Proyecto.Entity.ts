@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, UpdateDateColumn, BeforeInsert } from 'typeorm';
-import { ProyectoEstado } from './EstadoProyecto.Entity';
+import { EstadoProyecto } from './EstadoProyecto.Entity';
 import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 
 @Entity('Proyecto')
@@ -26,9 +26,9 @@ export class Proyecto
     @Column()
     Imagen_Url: string;
 
-    @ManyToOne(() => ProyectoEstado, Estado => Estado.Proyectos)  //Relacion Muchos A uno
+    @ManyToOne(() => EstadoProyecto, Estado => Estado.Proyectos)  //Relacion Muchos A uno
     @JoinColumn({ name: 'Id_Estado_Proyecto' })  //LLave Foranea para acceder al estado del proyecto 
-    Estado: ProyectoEstado; 
+    Estado: EstadoProyecto; 
 
     @ManyToOne(() => Usuario, usuario => usuario.Id_Usuario, { eager: true })
     @JoinColumn({ name: 'Id_Usuario_Creador' })
@@ -37,7 +37,7 @@ export class Proyecto
     @BeforeInsert()
     setDefaultEstado() {
       if (!this.Estado) {
-        this.Estado = { Id_Estado_Proyecto: 1 } as ProyectoEstado; 
+        this.Estado = { Id_Estado_Proyecto: 1 } as EstadoProyecto; 
       }
     }
 }

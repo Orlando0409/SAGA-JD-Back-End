@@ -1,3 +1,3 @@
 export class ResponderSugerenciaDto {
-  respuesta: string;
+  Respuesta: string;
 }

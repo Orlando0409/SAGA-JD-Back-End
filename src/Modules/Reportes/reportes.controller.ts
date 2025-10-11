@@ -1,16 +1,16 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, UploadedFiles, UseInterceptors, Patch, Res, ValidationPipe } from '@nestjs/common';
-import { CreateReporteDto } from './ReportesDto/CreateReporte.dto';
 import { Response } from 'express';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ReportesService } from './reportes.service';
-import { UpdateReporteEstadoDto } from './ReportesDto/UpdateReporteEstado.dto';
-import { ResponderReporteDto } from './ReportesDto/ResponderReporte.dto';
+import { CreateReporteDto } from './ReporteDTO\'s/CreateReporte.dto';
+import { UpdateReporteEstadoDto } from './ReporteDTO\'s/UpdateReporteEstado.dto';
+import { ResponderReporteDto } from './ReporteDTO\'s/ResponderReporte.dto';
 import { Public } from '../auth/Decorator/Public.decorator';
 
 @Controller('reportes')
 export class ReportesController {
-  constructor(private readonly reportesService: ReportesService) {}
+  constructor(private readonly reportesService: ReportesService) { }
 
   @Get()
   async findAll() {
@@ -44,7 +44,7 @@ export class ReportesController {
     @Param('id', NumericParamPipe) id: number,
     @Body(new ValidationPipe({ whitelist: true, transform: true })) body: UpdateReporteEstadoDto,
   ) {
-    return this.reportesService.updateEstadoReporte(id, body.IdEstadoReporte);
+    return this.reportesService.updateEstadoReporte(id, body.Id_Estado_Reporte);
   }
 
   @Post(':id/responder')

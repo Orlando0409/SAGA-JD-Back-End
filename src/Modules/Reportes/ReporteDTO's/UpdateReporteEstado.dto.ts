@@ -4,5 +4,5 @@ export class UpdateReporteEstadoDto {
   @IsDefined()
   @IsInt()
   @IsIn([1, 2])
-  IdEstadoReporte: number;
+  Id_Estado_Reporte: number;
 }

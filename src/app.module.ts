@@ -18,15 +18,15 @@ import { Permiso } from './Modules/Usuarios/UsuarioEntities/Permiso.Entity';
 import { Usuario } from './Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { UsuarioRol } from './Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
 import { Proyecto } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
-import { ProyectoEstado } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
+import { EstadoProyecto } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 import { CalidadAguaModule } from './Modules/CalidadAgua/calidadAgua.module';
 import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity';
 import { ReportesModule } from './Modules/Reportes/reportes.module';
-import { ReportesEntity } from './Modules/Reportes/ReportesEntity/ReportesEntity';
-import { EstadoReporte } from './Modules/Reportes/ReportesEntity/EstadoReporte';
+import { Reporte } from './Modules/Reportes/ReporteEntities/Reporte.Entity';
+import { EstadoReporte } from './Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
 import { SugerenciaModule } from './Modules/Sugerencias/sugerencia.module';
-import { SugerenciaEntity } from './Modules/Sugerencias/Entity/SugerenciaEntity';
-import { Estado_Sugerencia } from './Modules/Sugerencias/Entity/EstadoSugerencia';
+import { Sugerencia } from './Modules/Sugerencias/SugerenciaEntities/Sugerencia.Entity';
+import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
 import { EstadoAfiliado } from './Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica, SolicitudFisica, SolicitudJuridica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { SolicitudAsociadoFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAsociado.module';
@@ -55,8 +55,8 @@ import { Proveedor, ProveedorFisico, ProveedorJuridico } from './Modules/Proveed
 import { MovimientoInventario } from './Modules/Inventario/InventarioEntities/Movimiento.Entity';
 import { TipoProveedor } from './Modules/Proveedores/ProveedorEntities/TipoProveedor.Entity';
 import { QuejasModule } from './Modules/Quejas/quejas.module';
-import { QuejasEntity } from './Modules/Quejas/Entity/QuejasEntity';
-import { EstadoQueja } from './Modules/Quejas/Entity/EstadoQueja';
+import { Queja } from './Modules/Quejas/QuejaEntities/Queja.Entity';
+import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
 import { SeederModule } from './Config/Seeder.module';
 
 @Module({
@@ -83,15 +83,15 @@ import { SeederModule } from './Config/Seeder.module';
         SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
         Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
         Proveedor, EstadoProveedor, TipoProveedor, ProveedorFisico, ProveedorJuridico,
-        Proyecto, ProyectoEstado,
+        Proyecto, EstadoProyecto,
         CalidadAgua,
         Acta, ArchivoActa,
-        ReportesEntity, EstadoReporte,
-        SugerenciaEntity, Estado_Sugerencia,
-        QuejasEntity, EstadoQueja,
+        Reporte, EstadoReporte,
+        Sugerencia, EstadoSugerencia,
+        Queja, EstadoQueja,
         Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario
         ],
-        synchronize: false,
+        synchronize: true,
         dropSchema: false,
       }) 
     }),

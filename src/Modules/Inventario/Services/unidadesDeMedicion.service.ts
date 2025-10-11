@@ -7,8 +7,6 @@ import { Material } from '../InventarioEntities/Material.Entity';
 import { CreateUnidadMedicionDto } from "../InventarioDTO's/CreateUnidadMedicion.dto";
 import { UpdateUnidadMedicionDto } from "../InventarioDTO's/UpdateUnidadMedicion.dto";
 import { getUnidadDeMedidaDTO } from "../InventarioDTO's/getUnidadDeMedida.dto";
-import { plainToClass } from 'class-transformer';
-import { GetUsuarioCreadorDto } from '../InventarioDTO\'s/getUsuarioCreador.dto';
 import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 
 @Injectable()
@@ -28,11 +26,21 @@ export class UnidadesDeMedicionService {
     ) {}
 
     async getAllUnidadesMedicion() {
-        const unidades = await this.unidadMedicionRepository.find({ relations: ['Estado_Unidad_Medicion'] });
+        const unidades = await this.unidadMedicionRepository.createQueryBuilder('unidad')
+            .leftJoinAndSelect('unidad.Estado_Unidad_Medicion', 'estado')
+            .leftJoinAndSelect('unidad.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .getMany();
+
         return unidades.map(unidad => {
             return {
                 ...unidad,
-                Usuario_Creador: unidad.Usuario_Creador ? plainToClass(GetUsuarioCreadorDto, unidad.Usuario_Creador, { excludeExtraneousValues: true }) : null
+                Usuario_Creador: {
+                    Id_Usuario: unidad.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: unidad.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: unidad.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: unidad.Usuario_Creador.Rol?.Nombre_Rol
+                }
             };
         });
     }
@@ -44,6 +52,48 @@ export class UnidadesDeMedicionService {
             dto.Id_Unidad_Medicion = unidad.Id_Unidad_Medicion;
             dto.Nombre_Unidad_Medicion = unidad.Nombre_Unidad[0].toUpperCase() + unidad.Nombre_Unidad.slice(1).toLowerCase();
             return dto;
+        });
+    }
+
+    async getUnidadesMedicionActivas() {
+        const unidades = await this.unidadMedicionRepository.createQueryBuilder('unidad')
+            .leftJoinAndSelect('unidad.Estado_Unidad_Medicion', 'estado')
+            .leftJoinAndSelect('unidad.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('estado.Id_Estado_Unidad_Medicion = :estadoId', { estadoId: 1 })
+            .getMany();
+
+        return unidades.map(unidad => {
+            return {
+                ...unidad,
+                Usuario_Creador: {
+                    Id_Usuario: unidad.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: unidad.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: unidad.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: unidad.Usuario_Creador.Rol?.Nombre_Rol
+                }
+            };
+        });
+    }
+
+    async getUnidadesMedicionInactivas() {
+        const unidades = await this.unidadMedicionRepository.createQueryBuilder('unidad')
+            .leftJoinAndSelect('unidad.Estado_Unidad_Medicion', 'estado')
+            .leftJoinAndSelect('unidad.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('estado.Id_Estado_Unidad_Medicion = :estadoId', { estadoId: 2 })
+            .getMany();
+
+        return unidades.map(unidad => {
+            return {
+                ...unidad,
+                Usuario_Creador: {
+                    Id_Usuario: unidad.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: unidad.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: unidad.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: unidad.Usuario_Creador.Rol?.Nombre_Rol
+                }
+            };
         });
     }
 

@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { SugerenciaEntity } from './Entity/SugerenciaEntity';
-import { Estado_Sugerencia } from './Entity/EstadoSugerencia';
+import { Sugerencia } from './SugerenciaEntities/Sugerencia.Entity';
+import { EstadoSugerencia } from './SugerenciaEntities/EstadoSugerencia.Entity';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { CreateSugerenciaDto } from './Dto/CreateSugerencia.dto';
 
@@ -10,11 +10,11 @@ import { CreateSugerenciaDto } from './Dto/CreateSugerencia.dto';
 export class SugerenciaService {
   
   constructor(
-    @InjectRepository(SugerenciaEntity)
-    private readonly sugerenciaRepository: Repository<SugerenciaEntity>,
+    @InjectRepository(Sugerencia)
+    private readonly sugerenciaRepository: Repository<Sugerencia>,
 
-    @InjectRepository(Estado_Sugerencia)
-    private readonly estadoRepository: Repository<Estado_Sugerencia>,
+    @InjectRepository(EstadoSugerencia)
+    private readonly estadoRepository: Repository<EstadoSugerencia>,
 
     private readonly dropboxFilesService: DropboxFilesService,
   ) {}
@@ -44,7 +44,7 @@ export class SugerenciaService {
   
   const insertRes = await this.sugerenciaRepository.insert(sugerencia as any);
   const generatedId = insertRes.identifiers && insertRes.identifiers[0] ? insertRes.identifiers[0].Id_Sugerencia || insertRes.identifiers[0].id : null;
-  const saved = await this.sugerenciaRepository.findOne({ where: { Id_Sugerencia: generatedId } }) as SugerenciaEntity;
+  const saved = await this.sugerenciaRepository.findOne({ where: { Id_Sugerencia: generatedId } }) as Sugerencia;
 
     
     const adjuntoUrls: string[] = [];
@@ -66,7 +66,7 @@ export class SugerenciaService {
     const repo = await this.sugerenciaRepository.findOne({ where: { Id_Sugerencia: id }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Sugerencia con id ${id} no encontrada`);
 
-    const nuevoEstado = await this.estadoRepository.findOne({ where: { Id_EstadoSugerencia: nuevoEstadoId } });
+    const nuevoEstado = await this.estadoRepository.findOne({ where: { Id_Estado_Sugerencia: nuevoEstadoId } });
     if (!nuevoEstado) throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);
 
     repo.Estado = nuevoEstado;
@@ -77,8 +77,8 @@ export class SugerenciaService {
     const repo = await this.sugerenciaRepository.findOne({ where: { Id_Sugerencia: id }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Sugerencia con id ${id} no encontrada`);
 
-    repo.RespuestasSugerencia = respuesta;
-    const estadoContestada = await this.estadoRepository.findOne({ where: { Id_EstadoSugerencia: 2 } });
+    repo.Respuesta_Sugerencia = respuesta;
+    const estadoContestada = await this.estadoRepository.findOne({ where: { Id_Estado_Sugerencia: 2 } });
     if (!estadoContestada) throw new BadRequestException('Estado contestada no encontrado');
 
     repo.Estado = estadoContestada;
