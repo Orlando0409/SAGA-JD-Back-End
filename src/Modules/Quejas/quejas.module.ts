@@ -2,12 +2,12 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { QuejasController } from './quejas.controller';
 import { QuejasService } from './quejas.service';
-import { QuejasEntity } from './Entity/QuejasEntity';
-import { EstadoQueja } from './Entity/EstadoQueja';
+import { Queja } from './QuejaEntities/Queja.Entity';
+import { EstadoQueja } from './QuejaEntities/EstadoQueja.Entity';
 import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([QuejasEntity, EstadoQueja]), DropboxModule],
+  imports: [TypeOrmModule.forFeature([Queja, EstadoQueja]), DropboxModule],
   controllers: [QuejasController],
   providers: [QuejasService],
 })

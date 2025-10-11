@@ -7,7 +7,7 @@ import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { UsuarioRol } from 'src/Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
 import { EstadoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/EstadoProveedor.Entity';
 import { TipoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/TipoProveedor.Entity';
-import { ProyectoEstado } from 'src/Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
+import { EstadoProyecto } from 'src/Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 import { EstadoSolicitud } from 'src/Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
 import { EstadoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { TipoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
@@ -16,9 +16,9 @@ import { Categoria } from 'src/Modules/Inventario/InventarioEntities/Categoria.E
 import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
 import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
-import { EstadoReporte } from 'src/Modules/Reportes/ReportesEntity/EstadoReporte';
-import { Estado_Sugerencia } from 'src/Modules/Sugerencias/Entity/EstadoSugerencia';
-import { EstadoQueja } from 'src/Modules/Quejas/Entity/EstadoQueja';
+import { EstadoReporte } from 'src/Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
+import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
+import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -33,8 +33,8 @@ export class SeederService implements OnModuleInit {
         private readonly estadoProveedorRepo: Repository<EstadoProveedor>,
         @InjectRepository(TipoProveedor)
         private readonly tipoProveedorRepository: Repository<TipoProveedor>,
-        @InjectRepository(ProyectoEstado)
-        private readonly proyectoEstadoRepository: Repository<ProyectoEstado>,
+        @InjectRepository(EstadoProyecto)
+        private readonly proyectoEstadoRepository: Repository<EstadoProyecto>,
         @InjectRepository(EstadoSolicitud)
         private readonly solicitudEstadoRepository: Repository<EstadoSolicitud>,
         @InjectRepository(EstadoAfiliado)
@@ -53,11 +53,11 @@ export class SeederService implements OnModuleInit {
         private readonly unidadMedicionRepository: Repository<UnidadMedicion>,
         @InjectRepository(EstadoReporte)
         private readonly estadoReporteRepository: Repository<EstadoReporte>,
-        @InjectRepository(Estado_Sugerencia)
-        private readonly estadoSugerenciaRepository: Repository<Estado_Sugerencia>,
+        @InjectRepository(EstadoSugerencia)
+        private readonly estadoSugerenciaRepository: Repository<EstadoSugerencia>,
         @InjectRepository(EstadoQueja)
         private readonly estadoQuejaRepository: Repository<EstadoQueja>,
-    ) {}
+    ) { }
 
     async onModuleInit() {
         try {
@@ -100,13 +100,13 @@ export class SeederService implements OnModuleInit {
 
     private async createDefaultEstadosSugerencia() {
         const estados = [
-            { Id_EstadoSugerencia: 1, Estado_Sugerencia: 'Pendiente' },
-            { Id_EstadoSugerencia: 2, Estado_Sugerencia: 'Contestado' },
+            { Id_Estado_Sugerencia: 1, Estado_Sugerencia: 'Pendiente' },
+            { Id_Estado_Sugerencia: 2, Estado_Sugerencia: 'Contestado' },
         ];
 
         for (const estado of estados) {
             const existe = await this.estadoSugerenciaRepository.findOne({
-                where: { Id_EstadoSugerencia: estado.Id_EstadoSugerencia },
+                where: { Id_Estado_Sugerencia: estado.Id_Estado_Sugerencia },
             });
             if (!existe) {
                 const nuevo = this.estadoSugerenciaRepository.create(estado);
@@ -115,15 +115,15 @@ export class SeederService implements OnModuleInit {
         }
     }
 
-    private async createDefaultEstadosReporte() {   
-        const estados = [   
-        { Id_Estado_Reporte: 1, Estado_Reporte: 'Pendiente' },
-        { Id_Estado_Reporte: 2, Estado_Reporte: 'Contestado' },
-            ];
-      
+    private async createDefaultEstadosReporte() {
+        const estados = [
+            { Id_Estado_Reporte: 1, Estado_Reporte: 'Pendiente' },
+            { Id_Estado_Reporte: 2, Estado_Reporte: 'Contestado' },
+        ];
+
         for (const estado of estados) {
             const existe = await this.estadoReporteRepository.findOne({
-                where: { IdEstadoReporte: estado.Id_Estado_Reporte }
+                where: { Id_Estado_Reporte: estado.Id_Estado_Reporte }
             });
             if (!existe) {
                 const nuevoEstado = this.estadoReporteRepository.create(estado);
@@ -140,7 +140,7 @@ export class SeederService implements OnModuleInit {
             await this.createPermisos();
             await this.assignPermisosToAdminRole(); //  Asignar permisos
             await this.createAdminUser();
-        } 
+        }
         catch (error) {
             console.error('Error en seeder:', error);
         }
@@ -386,7 +386,7 @@ export class SeederService implements OnModuleInit {
     }
 
     private async createPermisos() {
-        
+
         const modulos = [
             'usuarios',
             'actas',
@@ -427,7 +427,7 @@ export class SeederService implements OnModuleInit {
             // Permiso de lectura para bitacora
             await this.createPermisoIfNotExists({
                 Modulo: 'bitacora',
-                Ver: true,        
+                Ver: true,
                 Editar: false,
             });
             // Sin permisos para bitacora
@@ -455,11 +455,11 @@ export class SeederService implements OnModuleInit {
         if (!permisoExistente) {
             const permiso = this.permisoRepository.create(permisoData);
             await this.permisoRepository.save(permiso);
-        } 
+        }
     }
 
     private async createAdminRole() {
-        
+
         const adminRoleExistente = await this.rolRepository.findOne({
             where: { Nombre_Rol: 'Administrador' }
         });
@@ -474,7 +474,7 @@ export class SeederService implements OnModuleInit {
 
     // Asignar todos los permisos al rol Administrador
     private async assignPermisosToAdminRole() {
-        
+
         // Buscar el rol Administrador con sus permisos actuales
         const adminRole = await this.rolRepository.findOne({
             where: { Nombre_Rol: 'Administrador' },
@@ -504,11 +504,11 @@ export class SeederService implements OnModuleInit {
         // Asignar los permisos al rol Administrador
         adminRole.Permisos = todosLosPermisos;
         await this.rolRepository.save(adminRole);
-        
+
     }
 
     private async createAdminUser() {
-        
+
         const adminExistente = await this.userRepository.findOne({
             where: { Nombre_Usuario: 'admin' }
         });
@@ -521,7 +521,7 @@ export class SeederService implements OnModuleInit {
 
             if (adminRole) {
                 const hashedPassword = await bcrypt.hash('Admin123', 10);
-                
+
                 const adminUser = this.userRepository.create({
                     Nombre_Usuario: 'admin',
                     Correo_Electronico: 'admin@saga.com',
@@ -530,7 +530,7 @@ export class SeederService implements OnModuleInit {
                 });
 
                 await this.userRepository.save(adminUser);
-            } 
-        } 
+            }
+        }
     }
 }

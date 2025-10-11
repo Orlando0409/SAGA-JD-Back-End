@@ -1,16 +1,16 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ReportesEntity } from './ReportesEntity/ReportesEntity';
-import { EstadoReporte } from './ReportesEntity/EstadoReporte';
+import { Reporte } from './ReporteEntities/Reporte.Entity';
+import { EstadoReporte } from './ReporteEntities/EstadoReporte.Entity';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 
 @Injectable()
 export class ReportesService {
   private readonly logger = new Logger(ReportesService.name);
   constructor(
-    @InjectRepository(ReportesEntity)
-    private readonly reportesRepository: Repository<ReportesEntity>,
+    @InjectRepository(Reporte)
+    private readonly reportesRepository: Repository<Reporte>,
 
     @InjectRepository(EstadoReporte)
     private readonly estadoReporteRepository: Repository<EstadoReporte>,
@@ -25,13 +25,13 @@ export class ReportesService {
   async getOne(id: number) {
     const idNum = Number(id);
     if (!Number.isInteger(idNum) || idNum <= 0) throw new BadRequestException(`Id de reporte invalido: ${id}`);
-    const repo = await this.reportesRepository.findOne({ where: { IdReporte: idNum }, relations: ['Estado'] });
+    const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: idNum }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Reporte con id ${idNum} no encontrado`);
     return repo;
   }
 
   async create(dto: any, files?: any) {
-    const estado = await this.estadoReporteRepository.findOne({ where: { IdEstadoReporte: 1 } });
+    const estado = await this.estadoReporteRepository.findOne({ where: { Id_Estado_Reporte: 1 } });
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
     const fecha = new Date();
@@ -64,13 +64,13 @@ export class ReportesService {
   async remove(id: number) {
     const idNum = Number(id);
     if (!Number.isInteger(idNum) || idNum <= 0) throw new BadRequestException(`Id de reporte inválido: ${id}`);
-    const repo = await this.reportesRepository.findOne({ where: { IdReporte: idNum } });
+    const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: idNum } });
     if (!repo) throw new BadRequestException(`Reporte con id ${idNum} no encontrado`);
 
-  const nombre = (repo?.name || '').toString().trim();
+  const nombre = (repo?.Nombre || '').toString().trim();
   const primerNombre = nombre ? nombre.split(' ')[0] : '';
-    const primerApellido = (repo?.Papellido || '').toString().trim();
-    const segundoApellido = (repo?.Sapellido || '').toString().trim();
+    const primerApellido = (repo?.Primer_Apellido || '').toString().trim();
+    const segundoApellido = (repo?.Segundo_Apellido || '').toString().trim();
     const folderName = `${[primerNombre, primerApellido, segundoApellido].filter(Boolean).join(' ')}`.trim();
 
     try {
@@ -89,10 +89,10 @@ export class ReportesService {
     if (!Number.isInteger(estadoNum) || estadoNum <= 0) throw new BadRequestException(`Id de estado invalido: ${nuevoEstadoId}`);
     // Solo permitir estados 1 (pendiente) y 2 (revisado)
     if (![1, 2].includes(estadoNum)) throw new BadRequestException(`Id de estado no permitido: ${estadoNum}`);
-    const repo = await this.reportesRepository.findOne({ where: { IdReporte: idNum }, relations: ['Estado'] });
+    const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: idNum }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Reporte con id ${idNum} no encontrado`);
 
-    const nuevoEstado = await this.estadoReporteRepository.findOne({ where: { IdEstadoReporte: estadoNum } });
+    const nuevoEstado = await this.estadoReporteRepository.findOne({ where: { Id_Estado_Reporte: estadoNum } });
     if (!nuevoEstado) throw new BadRequestException(`Estado con id ${estadoNum} no encontrado`);
 
     repo.Estado = nuevoEstado;
@@ -103,13 +103,13 @@ export class ReportesService {
     const idNum = Number(id);
     if (!Number.isInteger(idNum) || idNum <= 0) throw new BadRequestException(`Id de reporte invalido: ${id}`);
 
-    const repo = await this.reportesRepository.findOne({ where: { IdReporte: idNum }, relations: ['Estado'] });
+    const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: idNum }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Reporte con id ${idNum} no encontrado`);
 
     // Asignar respuesta y cambiar estado a 2 (contestada)
-    repo.RespuestasReporte = respuesta;
+    repo.Respuesta_Reporte = respuesta;
 
-    const estadoContestada = await this.estadoReporteRepository.findOne({ where: { IdEstadoReporte: 2 } });
+    const estadoContestada = await this.estadoReporteRepository.findOne({ where: { Id_Estado_Reporte: 2 } });
     if (!estadoContestada) throw new BadRequestException('Estado contestada (2) no encontrado');
 
     repo.Estado = estadoContestada;

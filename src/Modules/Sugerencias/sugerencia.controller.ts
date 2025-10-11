@@ -2,9 +2,8 @@ import { Body, Controller, Delete, Get, Param, Post, Patch, UploadedFiles, UseIn
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { SugerenciaService } from './sugerencia.service';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
-import { CreateSugerenciaDto } from './Dto/CreateSugerencia.dto';
-import { UpdateSugerenciaEstadoDto } from './Dto/UpdateSugerenciaEstado.dto';
-import { ResponderSugerenciaDto } from './Dto/ResponderSugerencia.dto';
+import { UpdateSugerenciaEstadoDto } from './SugerenciaDTO\'S/UpdateSugerenciaEstado.dto';
+import { CreateSugerenciaDto } from './SugerenciaDTO\'S/CreateSugerencia.dto';
 
 @Controller('sugerencias')
 export class SugerenciaController {

@@ -3,7 +3,7 @@ import { Response } from 'express';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { QuejasService } from './quejas.service';
-import { CreateQuejaDto } from './Dto/CreateQueja.dto';
+import { CreateQuejaDto } from './QuejaDTO\'s/CreateQueja.dto';
 
 @Controller('quejas')
 export class QuejasController {

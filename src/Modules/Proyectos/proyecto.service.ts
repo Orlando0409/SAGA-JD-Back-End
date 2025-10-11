@@ -4,7 +4,7 @@ import { Repository } from "typeorm";
 import { UpdateProyectoDto } from "./ProyectoDTO's/UpdateProyecto.dto";
 import { CreateProyectoDto } from "./ProyectoDTO's/CreateProyecto.dto";
 import { Proyecto } from "./ProyectoEntities/Proyecto.Entity";
-import { ProyectoEstado } from "./ProyectoEntities/EstadoProyecto.Entity";
+import { EstadoProyecto } from "./ProyectoEntities/EstadoProyecto.Entity";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { Public } from "../auth/Decorator/Public.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
@@ -17,8 +17,8 @@ export class ProyectoService
         @InjectRepository(Proyecto)
         private readonly proyectoRepository: Repository<Proyecto>,
 
-        @InjectRepository(ProyectoEstado)
-        private readonly proyectoEstadoRepository: Repository<ProyectoEstado>,
+        @InjectRepository(EstadoProyecto)
+        private readonly proyectoEstadoRepository: Repository<EstadoProyecto>,
 
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
