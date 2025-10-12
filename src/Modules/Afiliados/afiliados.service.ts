@@ -35,11 +35,11 @@ export class AfiliadosService {
     ) {}
 
     async getAfiliadosFisicos() {
-        return this.afiliadoFisicoRepository.find({ relations: ['Estado', 'Tipo_Afiliado'] });
+        return this.afiliadoFisicoRepository.find({ relations: ['Estado', 'Tipo_Afiliado', 'Medidores'] });
     }
 
     async getAfiliadosJuridicos() {
-        return this.afiliadoJuridicoRepository.find({ relations: ['Estado', 'Tipo_Afiliado'] });
+        return this.afiliadoJuridicoRepository.find({ relations: ['Estado', 'Tipo_Afiliado', 'Medidores'] });
     }
 
     async createAfiliadoFisicoFromSolicitud(solicitud: SolicitudAfiliacionFisica) {

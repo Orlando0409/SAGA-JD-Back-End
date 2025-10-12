@@ -1,8 +1,9 @@
-import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, TableInheritance, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, TableInheritance, UpdateDateColumn } from "typeorm";
 import { EstadoAfiliado } from "./EstadoAfiliado.Entity";
 import { TipoAfiliado } from "./TipoAfiliado.Entity";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
+import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
 
 @Entity('Afiliado')
 @TableInheritance({ column: { type: "varchar", name: "Tipo_Afiliado" } })
@@ -38,6 +39,9 @@ export abstract class Afiliado {
     @ManyToOne(() => TipoAfiliado, tipo => tipo.Afiliados)
     @JoinColumn({ name: 'Id_Tipo_Afiliado' })
     Tipo_Afiliado: TipoAfiliado;
+
+    @OneToMany(() => Medidor, (medidor) => medidor.Afiliado)
+    Medidores: Medidor[];
 
     @BeforeInsert()
     @BeforeUpdate()

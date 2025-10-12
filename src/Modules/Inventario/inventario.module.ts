@@ -15,11 +15,17 @@ import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 import { MovimientoInventario } from './InventarioEntities/Movimiento.Entity';
 import { MovimientosService } from './Services/movimientos.service';
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from '../Proveedores/ProveedorEntities/Proveedor.Entity';
+import { EstadoMedidor } from './InventarioEntities/EstadoMedidor.Entity';
+import { Medidor } from './InventarioEntities/Medidor.Entity';
+import { MedidorService } from './Services/medidor.service';
+import { AfiliadoFisico, AfiliadoJuridico } from '../Afiliados/AfiliadoEntities/Afiliado.Entity';
+import { TipoAfiliado } from '../Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
+import { EstadoAfiliado } from '../Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Usuario, Proveedor, ProveedorFisico, ProveedorJuridico])],
+  imports: [TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor ,Usuario, Proveedor, ProveedorFisico, ProveedorJuridico, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado])],
   controllers: [InventarioController],
-  providers: [MaterialService, CategoriasService, UnidadesDeMedicionService, MovimientosService],
-  exports: [MaterialService, CategoriasService, UnidadesDeMedicionService, MovimientosService],
+  providers: [MaterialService, CategoriasService, UnidadesDeMedicionService, MovimientosService, MedidorService],
+  exports: [MaterialService, CategoriasService, UnidadesDeMedicionService, MovimientosService, MedidorService],
 })
 export class InventarioModule {}

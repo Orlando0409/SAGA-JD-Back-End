@@ -76,7 +76,6 @@ export class DropboxFilesService {
   }
 
   async uploadFile(file: Express.Multer.File, carpetaPrincipal: string, carpetaSecundaria?: string, Identificacion?: string, Nombre?: string, soloDescargar?: boolean) {
-
     const accessToken = await this.dropboxAuthService.getAccessToken();
     const dbx = new Dropbox({ accessToken });
 
@@ -108,7 +107,9 @@ export class DropboxFilesService {
           // Usar Identificacion como nombre de carpeta sin guion
           dropboxPath = `${baseFolder}/${Identificacion}/${file.originalname}`;
         }
-      } else {
+      }
+
+      else {
         // Si no hay Identificacion, pero sí un Nombre, crear carpeta con ese Nombre
         if (Nombre && Nombre.toString().trim() !== '') {
           dropboxPath = `${baseFolder}/${Nombre}/${file.originalname}`;

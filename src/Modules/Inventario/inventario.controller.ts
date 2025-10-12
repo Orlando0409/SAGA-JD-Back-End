@@ -11,6 +11,9 @@ import { MovimientoMaterialDto } from "./InventarioDTO's/MovimientoMaterial.dto"
 import { UpdateUnidadMedicionDto } from "./InventarioDTO's/UpdateUnidadMedicion.dto";
 import { UpdateCategoriaDto } from './InventarioDTO\'s/UpdateCategoria.dto';
 import { MovimientosService } from './Services/movimientos.service';
+import { MedidorService } from './Services/medidor.service';
+import { CreateMedidorDTO } from './InventarioDTO\'s/CreateMedidor.dto';
+import { AsignarMedidorDTO } from './InventarioDTO\'s/AsignarMedidor.dto';
 
 @Controller('Inventario')
 @UseInterceptors(ClassSerializerInterceptor) // Agregar el interceptor para serialización
@@ -19,7 +22,8 @@ export class InventarioController {
         private readonly materialService: MaterialService,
         private readonly categoriasService: CategoriasService,
         private readonly unidadesDeMedicionService: UnidadesDeMedicionService,
-        private readonly movimientosService: MovimientosService
+        private readonly movimientosService: MovimientosService,
+        private readonly medidorService: MedidorService,
     ) {}
 
     // ENDPOINTS PARA MATERIALES
@@ -267,5 +271,57 @@ export class InventarioController {
         @Body() dto: MovimientoMaterialDto
     ) {
         return this.movimientosService.EgresoMaterial(idUsuario, dto);
+    }
+
+
+
+    // ENDPOINTS PARA MEDIDORES
+    @Get('/all/medidores')
+    @ApiOperation({ summary: 'Obtiene todos los medidores con su estado.' })
+    async getAllMedidores() {
+        return this.medidorService.getAllMedidores();
+    }
+
+    @Get('/medidores/no-instalados')
+    @ApiOperation({ summary: 'Obtiene todos los medidores que no están instalados.' })
+    async getMedidoresNoInstalados() {
+        return this.medidorService.getMedidoresNoInstalados();
+    }
+
+    @Get('/medidores/instalados')
+    @ApiOperation({ summary: 'Obtiene todos los medidores que están instalados.' })
+    async getMedidoresInstalados() {
+        return this.medidorService.getMedidoresInstalados();
+    }
+
+    @Get('/medidores/dañados')
+    @ApiOperation({ summary: 'Obtiene todos los medidores que están en estado "Dañado".' })
+    async getMedidoresDañados() {
+        return this.medidorService.getMedidoresDañados();
+    }
+
+    @Get('/medidores/afiliado/:idAfiliado')
+    @ApiOperation({ summary: 'Obtiene todos los medidores asociados a un afiliado específico.' })
+    async getMedidoresAfiliado(
+        @Param('idAfiliado', ParseIntPipe) idAfiliado: number
+    ) {
+        return this.medidorService.getMedidoresAfiliado(idAfiliado);
+    }
+
+    @Post('/create/medidor/:idUsuarioCreador')
+    @ApiOperation({ summary: 'Crea un nuevo medidor en el sistema.' })
+    async createMedidor(
+        @Body() dto: CreateMedidorDTO,
+        @Param('idUsuarioCreador', ParseIntPipe) idUsuarioCreador: number
+    ) {
+        return this.medidorService.createMedidor(dto, idUsuarioCreador);
+    }
+
+    @Post('/asignar/medidor')
+    @ApiOperation({ summary: 'Asigna un medidor a un afiliado específico.' })
+    async asignarMedidor(
+        @Body() dto: AsignarMedidorDTO
+    ) {
+        return this.medidorService.asignarMedidorAAfiliado(dto);
     }
 }
