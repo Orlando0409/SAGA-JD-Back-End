@@ -4,7 +4,8 @@ import { Repository } from 'typeorm';
 import { Sugerencia } from './SugerenciaEntities/Sugerencia.Entity';
 import { EstadoSugerencia } from './SugerenciaEntities/EstadoSugerencia.Entity';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
-import { CreateSugerenciaDto } from './Dto/CreateSugerencia.dto';
+import { CreateSugerenciaDto } from './SugerenciaDTO\'S/CreateSugerencia.dto';
+
 
 @Injectable()
 export class SugerenciaService {
@@ -30,7 +31,7 @@ export class SugerenciaService {
   }
 
   async create(dto: CreateSugerenciaDto, files?: any) {
-    const estado = await this.estadoRepository.findOne({ where: { Id_EstadoSugerencia: 1 } });
+    const estado = await this.estadoRepository.findOne({ where: { Id_Estado_Sugerencia: 1 } });
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
     

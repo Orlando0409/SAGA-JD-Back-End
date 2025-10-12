@@ -91,7 +91,7 @@ import { SeederModule } from './Config/Seeder.module';
         Queja, EstadoQueja,
         Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario
         ],
-        synchronize: true,
+        synchronize: false,
         dropSchema: false,
       }) 
     }),
