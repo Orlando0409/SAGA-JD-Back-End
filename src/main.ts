@@ -57,6 +57,10 @@ async function bootstrap() {
     }, 
   });
 
+  console.log('Entorno actual:', process.env.NODE_ENV);
+  console.log('Base de datos:', process.env.DB_NAME);
+
+
   await app.listen(process.env.PORT || 3000);
 }
 bootstrap();
