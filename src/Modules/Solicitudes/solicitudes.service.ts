@@ -29,20 +29,20 @@ export class SolicitudesService {
     ) {}
 
     async getAllSolicitudesFisicas() {
-        const afiliacion = await this.solicitudAfiliacionFisicaService.getAllSolicitudesAfiliacion();
-        const desconexion = await this.solicitudDesconexionFisicaService.getAllSolicitudesDesconexion();
-        const cambioMedidor = await this.solicitudCambioMedidorFisicaService.getAllSolicitudesCambioMedidor();
-        const asociado = await this.solicitudAsociadoFisicaService.getAllSolicitudesAsociado();
+        const Afiliacion = await this.solicitudAfiliacionFisicaService.getAllSolicitudesAfiliacion();
+        const Desconexion = await this.solicitudDesconexionFisicaService.getAllSolicitudesDesconexion();
+        const CambioMedidor = await this.solicitudCambioMedidorFisicaService.getAllSolicitudesCambioMedidor();
+        const Asociado = await this.solicitudAsociadoFisicaService.getAllSolicitudesAsociado();
 
-        return { afiliacion, desconexion, cambioMedidor, asociado };
+        return { Afiliacion, Desconexion, CambioMedidor, Asociado };
     }
 
     async getAllSolicitudesJuridicas() {
-        const afiliacion = await this.solicitudAfiliacionJuridicaService.getAllSolicitudesAfiliacion();
-        const desconexion = await this.solicitudDesconexionJuridicaService.getAllSolicitudesDesconexion();
-        const cambioMedidor = await this.solicitudCambioMedidorJuridicaService.getAllSolicitudesCambioMedidor();
-        const asociado = await this.solicitudAsociadoJuridicaService.getAllSolicitudesAsociado();
+        const Afiliacion = await this.solicitudAfiliacionJuridicaService.getAllSolicitudesAfiliacion();
+        const Desconexion = await this.solicitudDesconexionJuridicaService.getAllSolicitudesDesconexion();
+        const CambioMedidor = await this.solicitudCambioMedidorJuridicaService.getAllSolicitudesCambioMedidor();
+        const Asociado = await this.solicitudAsociadoJuridicaService.getAllSolicitudesAsociado();
 
-        return { afiliacion, desconexion, cambioMedidor, asociado };
+        return { Afiliacion, Desconexion, CambioMedidor, Asociado };
     }
 }

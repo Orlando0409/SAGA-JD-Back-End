@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
+import { Usuario } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
 import { Request } from 'express';
 
 
@@ -12,8 +12,8 @@ import { Request } from 'express';
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(
         private readonly configService: ConfigService,
-        @InjectRepository(UserEntity)
-        private readonly userRepository: Repository<UserEntity>
+        @InjectRepository(Usuario)
+        private readonly userRepository: Repository<Usuario>
     ) {
         super({
             // Soporte para cookies
@@ -35,7 +35,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         // Buscar usuario completo en la base de datos
         const usuario = await this.userRepository.findOne({
             where: { Id_Usuario: payload.sub },
-            relations: ['rol', 'rol.permisos']
+            relations: ['Rol', 'Rol.Permisos']
         });
 
         if (!usuario) {

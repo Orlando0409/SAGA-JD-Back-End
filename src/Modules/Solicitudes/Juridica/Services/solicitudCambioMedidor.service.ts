@@ -7,6 +7,7 @@ import { SolicitudCambioMedidorJuridica } from "../../SolicitudEntities/Solicitu
 import { EstadoSolicitud } from "../../SolicitudEntities/EstadoSolicitud.Entity";
 import { CreateSolicitudCambioMedidorJuridicaDto } from "../../SolicitudDTO's/CreateSolicitudJuridica.dto";
 import { UpdateSolicitudCambioMedidorJuridicaDto } from "../../SolicitudDTO's/UpdateSolicitudJuridica.dto";
+import { EmailService } from "src/Modules/Emails/email.service";
 
 @Injectable()
 export class SolicitudCambioMedidorJuridicaService
@@ -19,6 +20,8 @@ export class SolicitudCambioMedidorJuridicaService
         private readonly estadoSolicitudRepository: Repository<EstadoSolicitud>,
 
         private readonly validationsService: ValidationsService,
+
+        private readonly emailService: EmailService,
     ) {}
 
     async getAllSolicitudesCambioMedidor()
@@ -29,16 +32,22 @@ export class SolicitudCambioMedidorJuridicaService
     @Public()
     async createSolicitudCambioMedidor(dto: CreateSolicitudCambioMedidorJuridicaDto)
     {
-        const estadoInicial = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: 1 } });
-        if (!estadoInicial) {throw new BadRequestException(`Estado inicial de solicitud no configurado`);}
+        // Validar que existe un afiliado jurídico con esa identificación
+        const AfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(dto.Cedula_Juridica);
+        if (!AfiliadoExistente) {
+            const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesJuridicasActivas(dto.Cedula_Juridica);
+            if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
-        const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesJuridicasActivas(dto.Cedula_Juridica);
-        if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
+            dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
 
-        dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
+            const solicitudCambioMedidor = this.solicitudCambioMedidorJuridicaRepository.create({...dto});
+            await this.emailService.enviarEmailSolicitudCreada(dto.Correo, 'Cambio de Medidor', dto.Razon_Social);
+            return this.solicitudCambioMedidorJuridicaRepository.save(solicitudCambioMedidor);
+        }
 
-        const solicitudCambioMedidor = this.solicitudCambioMedidorJuridicaRepository.create({...dto, Estado: estadoInicial});
-        return this.solicitudCambioMedidorJuridicaRepository.save(solicitudCambioMedidor);
+        else {
+            throw new BadRequestException(`No existe un afiliado jurídico con la cédula jurídica ${dto.Cedula_Juridica}`);
+        }
     }
 
     async updateSolicitudCambioMedidor(id: number, dto: UpdateSolicitudCambioMedidorJuridicaDto)
@@ -46,14 +55,10 @@ export class SolicitudCambioMedidorJuridicaService
         const solicitudCambioMedidor = await this.solicitudCambioMedidorJuridicaRepository.findOne({ where: { Id_Solicitud: id } });
         if (!solicitudCambioMedidor) { throw new BadRequestException(`Solicitud de cambio de medidor jurídica con id ${id} no encontrada`); }
 
-        if (dto.Razon_Social) {
-            dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
-        }
-
         Object.assign(solicitudCambioMedidor, dto);
         return this.solicitudCambioMedidorJuridicaRepository.save(solicitudCambioMedidor);
     }
-    
+
     async UpdateEstadoSolicitudCambioMedidor(id: number, nuevoEstadoId: number)
     {
         const solicitudCambioMedidor = await this.solicitudCambioMedidorJuridicaRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
@@ -61,6 +66,18 @@ export class SolicitudCambioMedidorJuridicaService
 
         const nuevoEstado = await this.estadoSolicitudRepository.findOne({where: { Id_Estado_Solicitud: nuevoEstadoId }});
         if (!nuevoEstado) {throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);}
+
+        if (nuevoEstadoId === 2) { // Estado 2 = En revisión
+            await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'En revisión', solicitudCambioMedidor.Razon_Social);
+        }
+
+        if (nuevoEstadoId === 3) { // Estado 3 = Aprobada
+            await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Aprobada', solicitudCambioMedidor.Razon_Social);
+        }
+
+        if (nuevoEstadoId === 4) { // Estado 4 = Rechazada
+            await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Rechazada', solicitudCambioMedidor.Razon_Social);
+        }
 
         solicitudCambioMedidor.Estado = nuevoEstado;
         return this.solicitudCambioMedidorJuridicaRepository.save(solicitudCambioMedidor);

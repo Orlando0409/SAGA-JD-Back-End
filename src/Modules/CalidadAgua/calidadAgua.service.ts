@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { CalidadAgua } from "./CalidadAguaEntities/CalidadAgua.Entity";
@@ -6,7 +6,7 @@ import { CreateCalidadAguaDto } from "./CalidadAguaDTO's/CreateCalidadAgua.dto";
 import { UpdateCalidadAguaDto } from "./CalidadAguaDTO's/UpdateCalidadAgua.dto";
 import { Public } from "../auth/Decorator/Public.decorator";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
-import { EstadoCalidadAgua } from "./CalidadAguaEntities/EstadoCalidadAgua.Entity";
+import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Injectable()
 export class CalidadAguaService
@@ -16,8 +16,8 @@ export class CalidadAguaService
         @InjectRepository(CalidadAgua)
         private readonly calidadAguaRepository: Repository<CalidadAgua>,
 
-        @InjectRepository(EstadoCalidadAgua)
-        private readonly estadoCalidadAguaRepository: Repository<EstadoCalidadAgua>,
+        @InjectRepository(Usuario)
+        private readonly usuarioRepository: Repository<Usuario>,
 
         private readonly dropboxFilesService: DropboxFilesService,
     ) {}
@@ -25,46 +25,91 @@ export class CalidadAguaService
     @Public()
     async getCalidadAguaVisibles()
     {
-        return this.calidadAguaRepository.find({ where: { Estado: { Id_Estado_Calidad_Agua: 1 } }, relations: ['Estado'] });
+        const calidadAgua = await this.calidadAguaRepository.createQueryBuilder('calidadAgua')
+            .leftJoinAndSelect('calidadAgua.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('calidadAgua.Visible = :visible', { visible: true })
+            .getMany();
+
+        return calidadAgua.map(calidadAgua => ({
+            ...calidadAgua,
+            Usuario_Creador: calidadAgua.Usuario_Creador ? {
+                Id_Usuario: calidadAgua.Usuario_Creador.Id_Usuario,
+                Nombre_Usuario: calidadAgua.Usuario_Creador.Nombre_Usuario,
+                Id_Rol: calidadAgua.Usuario_Creador.Id_Rol,
+                Nombre_Rol: calidadAgua.Usuario_Creador.Rol.Nombre_Rol
+            } : null
+        }));
     }
 
     async getCalidadAgua()
     {
-        return this.calidadAguaRepository.find({ relations: ['Estado'] });
+        const calidadAgua = await this.calidadAguaRepository.createQueryBuilder('calidadAgua')
+            .leftJoinAndSelect('calidadAgua.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .getMany();
+
+        return calidadAgua.map(calidadAgua => ({
+            ...calidadAgua,
+            Usuario_Creador: calidadAgua.Usuario_Creador ? {
+                Id_Usuario: calidadAgua.Usuario_Creador.Id_Usuario,
+                Nombre_Usuario: calidadAgua.Usuario_Creador.Nombre_Usuario,
+                Id_Rol: calidadAgua.Usuario_Creador.Id_Rol,
+                Nombre_Rol: calidadAgua.Usuario_Creador.Rol.Nombre_Rol
+            } : null
+        }));
     }
 
-    async CreateCalidadAgua(dto: CreateCalidadAguaDto, file?: Express.Multer.File)
+    async CreateCalidadAgua(dto: CreateCalidadAguaDto, idUsuarioCreador: number, file?: Express.Multer.File)
     {
-        if (!file) {
-            throw new Error('Debe subir un archivo para la calidad de agua');
-        }
+        if (!file) { throw new BadRequestException('Debe subir un archivo para la calidad de agua'); }
 
-        // Normalizar título antes de procesar
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador }, relations: ['Rol'] });
+        if (!usuario) { throw new BadRequestException('Usuario no encontrado'); }
+
+        // Normalizar antes de procesar
         dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
-        
-        const tituloToUpperCase = dto.Titulo.toUpperCase();
+        dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
+
+        const calidadAguaTitulo = await this.calidadAguaRepository.findOne({ where: { Titulo: dto.Titulo } });
+        if (calidadAguaTitulo) { throw new BadRequestException('El título ya existe'); }
 
         // Subir archivo a Dropbox
-        const fileRes = await this.dropboxFilesService.uploadFile(file, 'Calidad-de-Agua', tituloToUpperCase);
-
-        const now = new Date();
-        now.setSeconds(0, 0);
+        const fileRes = await this.dropboxFilesService.uploadFile(file, 'Calidad-de-Agua', dto.Titulo);
 
         // Crear objeto entidad
         const calidadAgua = this.calidadAguaRepository.create({
             Titulo: dto.Titulo,
+            Descripcion: dto.Descripcion,
             Url_Archivo: fileRes.url,
+            Visible: false,
+            Usuario_Creador: usuario
         });
 
-        // Guardar en BD
-        return await this.calidadAguaRepository.save(calidadAgua);
+        await this.calidadAguaRepository.save(calidadAgua);
+
+        return {
+            ...calidadAgua,
+            Usuario_Creador: {
+                Id_Usuario: usuario.Id_Usuario,
+                Nombre_Usuario: usuario.Nombre_Usuario,
+                Id_Rol: usuario.Id_Rol,
+                Nombre_Rol: usuario.Rol.Nombre_Rol
+            }
+        }
     }
 
     async updateCalidadAgua(Id_Calidad_Agua: number, dto: UpdateCalidadAguaDto, file?: Express.Multer.File)
     {
         const CalidadAgua = await this.calidadAguaRepository.findOne({ where: { Id_Calidad_Agua } });
-        if (!CalidadAgua) {
-            throw new NotFoundException(`Registro con ID ${Id_Calidad_Agua} no encontrado`);
+        if (!CalidadAgua) { throw new NotFoundException(`Registro con ID ${Id_Calidad_Agua} no encontrado`); }
+
+        if( dto.Titulo ) {
+            dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
+        }
+
+        if ( dto.Descripcion ) {
+            dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
         }
 
         // Si llega un archivo, subimos uno nuevo
@@ -81,14 +126,11 @@ export class CalidadAguaService
         return this.calidadAguaRepository.save(CalidadAgua);
     }
 
-    async updateEstadoCalidadAgua(Id_Calidad_Agua: number, Id_Estado_Calidad_Agua: number) {
+    async updateVisibilidadCalidadAgua(Id_Calidad_Agua: number) {
         const calidadAgua = await this.calidadAguaRepository.findOne({ where: { Id_Calidad_Agua } });
         if (!calidadAgua) { throw new NotFoundException(`Registro con ID ${Id_Calidad_Agua} no encontrado`); }
 
-        const estado = await this.estadoCalidadAguaRepository.findOne({ where: { Id_Estado_Calidad_Agua } });
-        if (!estado) { throw new NotFoundException(`Estado con ID ${Id_Estado_Calidad_Agua} no encontrado`); }
-
-        calidadAgua.Estado = estado;
+        calidadAgua.Visible = !calidadAgua.Visible;
         return this.calidadAguaRepository.save(calidadAgua);
     }
 }

@@ -15,11 +15,14 @@ export function IsIdentificacionValida(validationOptions?: ValidationOptions) {
 
                 switch (tipo) {
                     case TipoIdentificacion.CEDULA:
-                        return /^[1-9]\d{8}$/.test(value); // 9 dígitos CR
+                        return /^[1-7]\d{8}$/.test(value); // 7 dígitos CR
                     case TipoIdentificacion.DIMEX:
-                        return /^[1-9]\d{11}$/.test(value); // 12 dígitos Dimex
+                        return /^(12|13|18)\d{9,10}$/.test(value); // 11 - 12 dígitos Dimex
                     case TipoIdentificacion.PASAPORTE:
                         return /^(?=.*[A-Z])(?=([A-Z]*[0-9]*){6,12}$)(?!.*[A-Z].*[A-Z].*[A-Z].*[A-Z])[A-Z0-9]{6,12}$/.test(value); // 6-12 caracteres alfanuméricos, al menos 1 letra, máximo 3 letras
+                    case TipoIdentificacion.CEDULA_JURIDICA:
+                        const cedulaLimpia = value.replace(/[\s\-]+/g, '');
+                        return /^[34]\d{9}$/.test(cedulaLimpia);
                     default:
                         return false;
                 }
@@ -29,9 +32,11 @@ export function IsIdentificacionValida(validationOptions?: ValidationOptions) {
                     case TipoIdentificacion.CEDULA:
                         return `La cédula nacional debe tener 9 dígitos numéricos y no puede comenzar con 0`;
                     case TipoIdentificacion.DIMEX:
-                        return `El DIMEX debe tener 12 dígitos numéricos y no puede comenzar con 0`;
+                        return `El DIMEX debe tener entre 11 y 12 dígitos numéricos y debe comenzar con 12, 13 o 18`;
                     case TipoIdentificacion.PASAPORTE:
                         return `El pasaporte debe tener entre 6 y 12 caracteres alfanuméricos en mayúsculas, con al menos 1 letra y máximo 3 letras`;
+                    case TipoIdentificacion.CEDULA_JURIDICA:
+                        return `La cédula jurídica debe tener 10 dígitos y comenzar con 3 (nacional) o 4 (extranjera). Formatos válidos: 3-101-234567, 3--101--234567, 3 101 234567`;
                     default:
                         return `La identificación no es válida para el tipo seleccionado`;
                     }

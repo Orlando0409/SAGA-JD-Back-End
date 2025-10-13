@@ -2,22 +2,21 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt'; 
-import { UserEntity } from '../UsuarioEntities/Usuario.Entity';
-import { UserRol } from '../UsuarioEntities/UsuarioRol.Entity';
-import { CreateUserDto } from "../UsuarioDTO's/CreateUser.dto";
-import { UpdateUserDto } from "../UsuarioDTO's/UpdateUser.dto";
+import { Usuario } from '../UsuarioEntities/Usuario.Entity';
+import { UsuarioRol } from '../UsuarioEntities/UsuarioRol.Entity';
+import { CreateUsuarioDto } from "../UsuarioDTO's/CreateUser.dto";
+import { UpdateUsuarioDto } from "../UsuarioDTO's/UpdateUser.dto";
 
 @Injectable()
 export class UsuariosService {
-
     constructor(
-        @InjectRepository(UserEntity)
-        private readonly userRepository: Repository<UserEntity>,
-        @InjectRepository(UserRol)
-        private readonly rolRepository: Repository<UserRol>,
+        @InjectRepository(Usuario)
+        private readonly userRepository: Repository<Usuario>,
+        @InjectRepository(UsuarioRol)
+        private readonly rolRepository: Repository<UsuarioRol>,
     ){}
 
-    async createUser(createUserDto: CreateUserDto) {
+    async createUser(createUserDto: CreateUsuarioDto) {
         const { Id_Rol, Contraseña, Correo_Electronico, Nombre_Usuario, ...userData } = createUserDto;  
         // Validar correo existente
         const correoExistente = await this.userRepository.findOne({where : {Correo_Electronico}, withDeleted : true});
@@ -38,7 +37,7 @@ export class UsuariosService {
         if (Contraseña) {
             hashedPassword = await bcrypt.hash(Contraseña, 10);
         }
-        
+
         if (Id_Rol && Id_Rol !== 0) {
             const rol = await this.rolRepository.findOneBy({ Id_Rol: Id_Rol });
             if (!rol) {
@@ -48,7 +47,7 @@ export class UsuariosService {
                 ...userData, 
                 Nombre_Usuario,
                 Contraseña: hashedPassword, //  Usar contraseña hasheada
-                id_Rol: Id_Rol,
+                Id_Rol: Id_Rol,
                 Correo_Electronico
             });
             return await this.userRepository.save(user);
@@ -64,7 +63,7 @@ export class UsuariosService {
 
     async AllUser() {
         const users = await this.userRepository.find({ 
-            relations: ['rol', 'rol.permisos'], 
+            relations: ['Rol', 'Rol.Permisos'], 
             withDeleted: true  
         });
         
@@ -73,7 +72,7 @@ export class UsuariosService {
             const { Contraseña, ...userWithoutPassword } = user;
             return {
                 ...userWithoutPassword,
-                rol: user.rol || 'Este usuario no posee rol'
+                Rol: user.Rol || 'Este usuario no posee rol'
             };
         });
     }
@@ -81,7 +80,7 @@ export class UsuariosService {
     async findOneUser(id: number) {
         const user = await this.userRepository.findOne({
             where: { Id_Usuario: id },
-            relations: ['rol', 'rol.permisos'],
+            relations: ['Rol', 'Rol.Permisos'],
             withDeleted: true
         });
         
@@ -94,51 +93,51 @@ export class UsuariosService {
         
         return {
             ...userWithoutPassword,
-            rol: user.rol || 'Este usuario no posee rol'
+            Rol: user.Rol || 'Este usuario no posee rol'
         };
     }
 
-async updateUser(id: number, updateUserDto: UpdateUserDto) {
-
-    const user = await this.userRepository.findOne({
-        where: { Id_Usuario: id },
-        relations: ['rol', 'rol.permisos'],
-    });
-    
-    if (!user) {
-        throw new NotFoundException('Usuario no encontrado');
-    }
-
-    // Manejar campos específicos
-    if (updateUserDto.Nombre_Usuario !== undefined) {
-        user.Nombre_Usuario = updateUserDto.Nombre_Usuario;
-    }
-    
-    if (updateUserDto.Correo_Electronico !== undefined) {
-        user.Correo_Electronico = updateUserDto.Correo_Electronico;
-    }
-
-    // Manejar el rol
-    if (updateUserDto.Id_Rol !== undefined) {
-        if (updateUserDto.Id_Rol === 0 ) {
-            user.id_Rol = 0;
-            user.rol.Id_Rol = 0; 
-        } else {
-            const nuevoRol = await this.rolRepository.findOneBy({ Id_Rol: updateUserDto.Id_Rol });
-            if (!nuevoRol) {
-                throw new NotFoundException('Rol no encontrado');
-            } 
-            user.id_Rol = updateUserDto.Id_Rol;
-            user.rol = nuevoRol; 
+    async updateUser(id: number, updateUserDto: UpdateUsuarioDto) {
+        const user = await this.userRepository.findOne({
+            where: { Id_Usuario: id },
+            relations: ['Rol', 'Rol.Permisos'],
+        });
+        
+        if (!user) {
+            throw new NotFoundException('Usuario no encontrado');
         }
+
+        // Manejar campos específicos
+        if (updateUserDto.Nombre_Usuario !== undefined) {
+            user.Nombre_Usuario = updateUserDto.Nombre_Usuario;
+        }
+        
+        if (updateUserDto.Correo_Electronico !== undefined) {
+            user.Correo_Electronico = updateUserDto.Correo_Electronico;
+        }
+
+        // Manejar el rol
+        if (updateUserDto.Id_Rol !== undefined) {
+            if (updateUserDto.Id_Rol === 0 ) {
+                user.Id_Rol = 0;
+                user.Rol.Id_Rol = 0; 
+            } else {
+                const nuevoRol = await this.rolRepository.findOneBy({ Id_Rol: updateUserDto.Id_Rol });
+                if (!nuevoRol) {
+                    throw new NotFoundException('Rol no encontrado');
+                } 
+                user.Id_Rol = updateUserDto.Id_Rol;
+                user.Rol = nuevoRol; 
+            }
+        }
+
+        const updatedUser = await this.userRepository.save(user);
+        
+        // Remover la contraseña de la respuesta
+        const { Contraseña, ...userWithoutPassword } = updatedUser;
+        return userWithoutPassword;
     }
 
-    const updatedUser = await this.userRepository.save(user);
-    
-    // Remover la contraseña de la respuesta
-    const { Contraseña, ...userWithoutPassword } = updatedUser;
-    return userWithoutPassword;
-}
     async softDeleteUser(id: number) {
         const user = await this.userRepository.findOne({
             where: { Id_Usuario: id },
@@ -174,7 +173,7 @@ async updateUser(id: number, updateUserDto: UpdateUserDto) {
         } 
 
         const isRolActive = await this.rolRepository.findOne({
-            where: { Id_Rol: user.id_Rol },
+            where: { Id_Rol: user.Id_Rol },
             withDeleted: true, 
         });
 

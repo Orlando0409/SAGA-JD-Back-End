@@ -1,10 +1,9 @@
 import { Column, PrimaryGeneratedColumn, Entity, OneToMany, ManyToMany, JoinTable, DeleteDateColumn } from 'typeorm';
-import { UserEntity } from './Usuario.Entity';
+import { Usuario } from './Usuario.Entity';
 import { Permiso } from './Permiso.Entity';
 
-@Entity('usuario_rol')
-
-export class UserRol {
+@Entity('Usuario_Rol')
+export class UsuarioRol {
   @PrimaryGeneratedColumn()
   Id_Rol: number;
 
@@ -14,16 +13,16 @@ export class UserRol {
   @DeleteDateColumn({ name: 'Fecha_Eliminacion', nullable: true })
   Fecha_Eliminacion: Date;
 
-  @OneToMany(() => UserEntity, user => user.rol)
-  usuarios: UserEntity[];
+  @OneToMany(() => Usuario, usuario => usuario.Rol)
+  Usuarios: Usuario[];
 
-  @ManyToMany(() => Permiso, permiso => permiso.roles)
+  @ManyToMany(() => Permiso, permiso => permiso.Roles)
   @JoinTable(
     {
-      name: 'rol_permiso',
+      name: 'Rol_Permiso',
       joinColumn: { name: 'Id_Rol', referencedColumnName: 'Id_Rol' },
-      inverseJoinColumn: { name: 'Id_Permiso', referencedColumnName: 'id' },
+      inverseJoinColumn: { name: 'Id_Permiso', referencedColumnName: 'Id' },
     }
   )
-  permisos: Permiso[];
+  Permisos: Permiso[];
 }

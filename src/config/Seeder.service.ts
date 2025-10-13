@@ -3,10 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Permiso } from 'src/Modules/Usuarios/UsuarioEntities/Permiso.Entity';
-import { UserEntity } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
-import { UserRol } from 'src/Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
+import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
+import { UsuarioRol } from 'src/Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
 import { EstadoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/EstadoProveedor.Entity';
-import { ProyectoEstado } from 'src/Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
+import { TipoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/TipoProveedor.Entity';
+import { EstadoProyecto } from 'src/Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 import { EstadoSolicitud } from 'src/Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
 import { EstadoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { TipoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
@@ -14,21 +15,27 @@ import { EstadoMaterial } from 'src/Modules/Inventario/InventarioEntities/Estado
 import { Categoria } from 'src/Modules/Inventario/InventarioEntities/Categoria.Entity';
 import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
 import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
-import { EstadoCalidadAgua } from 'src/Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
+import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
+import { EstadoReporte } from 'src/Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
+import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
+import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
+import { EstadoMedidor } from 'src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
     constructor(
-        @InjectRepository(UserRol)
-        private readonly rolRepository: Repository<UserRol>,
+        @InjectRepository(UsuarioRol)
+        private readonly rolRepository: Repository<UsuarioRol>,
         @InjectRepository(Permiso)
         private readonly permisoRepository: Repository<Permiso>,
-        @InjectRepository(UserEntity)
-        private readonly userRepository: Repository<UserEntity>,
+        @InjectRepository(Usuario)
+        private readonly userRepository: Repository<Usuario>,
         @InjectRepository(EstadoProveedor)
         private readonly estadoProveedorRepo: Repository<EstadoProveedor>,
-        @InjectRepository(ProyectoEstado)
-        private readonly proyectoEstadoRepository: Repository<ProyectoEstado>,
+        @InjectRepository(TipoProveedor)
+        private readonly tipoProveedorRepository: Repository<TipoProveedor>,
+        @InjectRepository(EstadoProyecto)
+        private readonly proyectoEstadoRepository: Repository<EstadoProyecto>,
         @InjectRepository(EstadoSolicitud)
         private readonly solicitudEstadoRepository: Repository<EstadoSolicitud>,
         @InjectRepository(EstadoAfiliado)
@@ -39,26 +46,43 @@ export class SeederService implements OnModuleInit {
         private readonly estadoMaterialRepository: Repository<EstadoMaterial>,
         @InjectRepository(Categoria)
         private readonly categoriaMaterialRepository: Repository<Categoria>,
+        @InjectRepository(EstadoCategoria)
+        private readonly estadoCategoriaRepository: Repository<EstadoCategoria>,
         @InjectRepository(EstadoUnidadMedicion)
         private readonly estadoUnidadMedicionRepository: Repository<EstadoUnidadMedicion>,
         @InjectRepository(UnidadMedicion)
         private readonly unidadMedicionRepository: Repository<UnidadMedicion>,
-        @InjectRepository(EstadoCalidadAgua)
-        private readonly estadoCalidadAguaRepository: Repository<EstadoCalidadAgua>,
-    ) {}
+        @InjectRepository(EstadoReporte)
+        private readonly estadoReporteRepository: Repository<EstadoReporte>,
+        @InjectRepository(EstadoSugerencia)
+        private readonly estadoSugerenciaRepository: Repository<EstadoSugerencia>,
+        @InjectRepository(EstadoQueja)
+        private readonly estadoQuejaRepository: Repository<EstadoQueja>,
+        @InjectRepository(EstadoMedidor)
+        private readonly estadoMedidorRepository: Repository<EstadoMedidor>,
+    ) { }
 
     async onModuleInit() {
-        await this.createInitialData();
-        await this.createDefaultEstadosProveedor();
-        await this.createDefaultEstadosProyecto();
-        await this.createDefaultEstadosSolicitud();
-        await this.createDefaultEstadosAfiliado();
-        await this.createDefaultTiposAfiliado();
-        await this.createDefaultEstadosMaterial();
-        await this.createDefaultCategoriasMaterial();
-        await this.createDefaultEstadosUnidadMedicion();
-        await this.createDefaultUnidadesMedicion();
-        await this.createDefaultEstadosCalidadAgua();
+        try {
+            await this.createInitialData();
+            await this.createDefaultEstadosProveedor();
+            await this.createDefaultTiposProveedor();
+            await this.createDefaultEstadosProyecto();
+            await this.createDefaultEstadosSolicitud();
+            await this.createDefaultEstadosReporte();
+            await this.createDefaultEstadosSugerencia();
+            await this.createDefaultEstadosQueja();
+            await this.createDefaultEstadosAfiliado();
+            await this.createDefaultTiposAfiliado();
+            await this.createDefaultEstadosMaterial();
+            await this.createDefaultEstadosCategoria();
+            await this.createDefaultCategoriasMaterial();
+            await this.createDefaultEstadosUnidadMedicion();
+            await this.createDefaultUnidadesMedicion();
+            await this.createDefaultEstadosMedidor();
+        } catch (err) {
+            console.error('Error ejecutando Seeder.onModuleInit:', err);
+        }
     }
 
     private async createInitialData() {
@@ -68,7 +92,7 @@ export class SeederService implements OnModuleInit {
             await this.createPermisos();
             await this.assignPermisosToAdminRole(); //  Asignar permisos
             await this.createAdminUser();
-        } 
+        }
         catch (error) {
             console.error('Error en seeder:', error);
         }
@@ -93,12 +117,14 @@ export class SeederService implements OnModuleInit {
         }
     }
 
-    private async createDefaultEstadosSolicitud(){
+    private async createDefaultEstadosSolicitud() {
         const estados = [
             { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' },
             { Id_Estado_Solicitud: 2, Nombre_Estado: 'En Revisión' },
             { Id_Estado_Solicitud: 3, Nombre_Estado: 'Aprobada' },
-            { Id_Estado_Solicitud: 4, Nombre_Estado: 'Rechazada' },
+            //{ Id_Estado_Solicitud: 3, Nombre_Estado: 'En espera' },
+            //{ Id_Estado_Solicitud: 4, Nombre_Estado: 'Completada' },
+            //{ Id_Estado_Solicitud: 5, Nombre_Estado: 'Rechazada' },
         ];
 
         for (const estado of estados) {
@@ -131,10 +157,28 @@ export class SeederService implements OnModuleInit {
         }
     }
 
+    private async createDefaultTiposProveedor() {
+        const tipos = [
+            { Id_Tipo_Proveedor: 1, Tipo_Proveedor: 'Fisico' },
+            { Id_Tipo_Proveedor: 2, Tipo_Proveedor: 'Juridico' }
+        ];
+
+        for (const tipo of tipos) {
+            const existe = await this.tipoProveedorRepository.findOne({
+                where: { Id_Tipo_Proveedor: tipo.Id_Tipo_Proveedor }
+            });
+
+            if (!existe) {
+                const nuevoTipo = this.tipoProveedorRepository.create(tipo);
+                await this.tipoProveedorRepository.save(nuevoTipo);
+            }
+        }
+    }
+
     private async createDefaultTiposAfiliado() {
         const tipos = [
             { Id_Tipo_Afiliado: 1, Nombre_Tipo_Afiliado: 'Abonado' },
-            { Id_Tipo_Afiliado: 2, Nombre_Tipo_Afiliado: 'Asociado' },
+            { Id_Tipo_Afiliado: 2, Nombre_Tipo_Afiliado: 'Asociado' }
         ];
 
         for (const tipo of tipos) {
@@ -153,6 +197,8 @@ export class SeederService implements OnModuleInit {
         const estados = [
             { Id_Estado_Material: 1, Nombre_Estado_Material: 'Disponible' },
             { Id_Estado_Material: 2, Nombre_Estado_Material: 'Agotado' },
+            { Id_Estado_Material: 3, Nombre_Estado_Material: 'De baja' },
+            { Id_Estado_Material: 4, Nombre_Estado_Material: 'Agotado y de baja' }
         ];
 
         for (const estado of estados) {
@@ -167,12 +213,39 @@ export class SeederService implements OnModuleInit {
         }
     }
 
+    private async createDefaultEstadosCategoria() {
+        const estados = [
+            { Id_Estado_Categoria: 1, Nombre_Estado_Categoria: 'Activa' },
+            { Id_Estado_Categoria: 2, Nombre_Estado_Categoria: 'Inactiva' },
+        ];
+
+        for (const estado of estados) {
+            const existe = await this.estadoCategoriaRepository.findOne({
+                where: { Id_Estado_Categoria: estado.Id_Estado_Categoria }
+            });
+
+            if (!existe) {
+                const nuevoEstado = this.estadoCategoriaRepository.create(estado);
+                await this.estadoCategoriaRepository.save(nuevoEstado);
+            }
+        }
+    }
+
     private async createDefaultCategoriasMaterial() {
+        // Buscar el usuario admin para asignarlo como creador
+        const adminUser = await this.userRepository.findOne({
+            where: { Nombre_Usuario: 'admin' }
+        });
+
+        if (!adminUser) {
+            console.warn('Usuario admin no encontrado. Las categorías se crearán sin usuario creador.');
+        }
+
         const categorias = [
-            { Id_Categoria: 1, Nombre_Categoria: 'Plomeria' },
-            { Id_Categoria: 2, Nombre_Categoria: 'Electricidad' },
-            { Id_Categoria: 3, Nombre_Categoria: 'Herramientas' },
-            { Id_Categoria: 4, Nombre_Categoria: 'Otros' },
+            { Id_Categoria: 1, Nombre_Categoria: 'Plomeria', Descripcion_Categoria: 'Materiales relacionados con plomería' },
+            { Id_Categoria: 2, Nombre_Categoria: 'Electricidad', Descripcion_Categoria: 'Materiales relacionados con electricidad' },
+            { Id_Categoria: 3, Nombre_Categoria: 'Herramientas', Descripcion_Categoria: 'Materiales relacionados con herramientas' },
+            { Id_Categoria: 4, Nombre_Categoria: 'Otros', Descripcion_Categoria: 'Materiales de otras categorías' },
         ];
 
         for (const categoria of categorias) {
@@ -182,6 +255,12 @@ export class SeederService implements OnModuleInit {
 
             if (!existe) {
                 const nuevaCategoria = this.categoriaMaterialRepository.create(categoria);
+
+                // Asignar el usuario creador si existe
+                if (adminUser) {
+                    nuevaCategoria.Usuario_Creador = adminUser;
+                }
+
                 await this.categoriaMaterialRepository.save(nuevaCategoria);
             }
         }
@@ -206,10 +285,19 @@ export class SeederService implements OnModuleInit {
     }
 
     private async createDefaultUnidadesMedicion() {
+        // Buscar el usuario admin para asignarlo como creador
+        const adminUser = await this.userRepository.findOne({
+            where: { Nombre_Usuario: 'admin' }
+        });
+
+        if (!adminUser) {
+            console.warn('Usuario admin no encontrado. Las categorías se crearán sin usuario creador.');
+        }
+
         const unidades = [
-            { Id_Unidad_Medicion: 1, Nombre_Unidad: 'Unidad', Abreviatura: 'U', Descripcion: 'Unidades simples', Id_Estado_Unidad_Medicion: 1 },
-            { Id_Unidad_Medicion: 2, Nombre_Unidad: 'Paquete', Abreviatura: 'P', Descripcion: 'De entre 4 a 8 por paquete', Id_Estado_Unidad_Medicion: 1 },
-            { Id_Unidad_Medicion: 3, Nombre_Unidad: 'Litro', Abreviatura: 'L', Descripcion: 'Unidad de medida para líquidos', Id_Estado_Unidad_Medicion: 1 },
+            { Id_Unidad_Medicion: 1, Nombre_Unidad: 'Unidad', Abreviatura: 'u', Descripcion: 'Unidades simples', Id_Estado_Unidad_Medicion: 1 },
+            { Id_Unidad_Medicion: 2, Nombre_Unidad: 'Paquete', Abreviatura: 'p', Descripcion: 'De entre 4 a 8 por paquete', Id_Estado_Unidad_Medicion: 1 },
+            { Id_Unidad_Medicion: 3, Nombre_Unidad: 'Litro', Abreviatura: 'l', Descripcion: 'Unidad de medida para líquidos', Id_Estado_Unidad_Medicion: 1 },
         ];
 
         for (const unidad of unidades) {
@@ -219,25 +307,32 @@ export class SeederService implements OnModuleInit {
 
             if (!existe) {
                 const nuevaUnidad = this.unidadMedicionRepository.create(unidad);
+
+                // Asignar el usuario creador si existe
+                if (adminUser) {
+                    nuevaUnidad.Usuario_Creador = adminUser;
+                }
+
                 await this.unidadMedicionRepository.save(nuevaUnidad);
             }
         }
     }
 
-    private async createDefaultEstadosCalidadAgua() {
+    private async createDefaultEstadosMedidor() {
         const estados = [
-            { Id_Estado_Calidad_Agua: 1, Nombre_Estado_Calidad_Agua: 'Visible' },
-            { Id_Estado_Calidad_Agua: 2, Nombre_Estado_Calidad_Agua: 'Invisible' },
+            { Id_Estado_Medidor: 1, Nombre_Estado_Medidor: 'No instalado' },
+            { Id_Estado_Medidor: 2, Nombre_Estado_Medidor: 'Instalado' },
+            { Id_Estado_Medidor: 3, Nombre_Estado_Medidor: 'Averiado' },
         ];
 
         for (const estado of estados) {
-            const existe = await this.estadoCalidadAguaRepository.findOne({
-                where: { Id_Estado_Calidad_Agua: estado.Id_Estado_Calidad_Agua }
+            const existe = await this.estadoMedidorRepository.findOne({
+                where: { Id_Estado_Medidor: estado.Id_Estado_Medidor }
             });
 
             if (!existe) {
-                const nuevoEstado = this.estadoCalidadAguaRepository.create(estado);
-                await this.estadoCalidadAguaRepository.save(nuevoEstado);
+                const nuevoEstado = this.estadoMedidorRepository.create(estado);
+                await this.estadoMedidorRepository.save(nuevoEstado);
             }
         }
     }
@@ -261,8 +356,58 @@ export class SeederService implements OnModuleInit {
         }
     }
 
+    private async createDefaultEstadosQueja() {
+        const estados = [
+            { Id_Estado_Queja: 1, Estado_Queja: 'Pendiente' },
+            { Id_Estado_Queja: 2, Estado_Queja: 'Contestado' },
+        ];
+
+        for (const estado of estados) {
+            const existe = await this.estadoQuejaRepository.findOne({
+                where: { Id_Estado_Queja: estado.Id_Estado_Queja },
+            });
+            if (!existe) {
+                const nuevo = this.estadoQuejaRepository.create(estado as any);
+                await this.estadoQuejaRepository.save(nuevo);
+            }
+        }
+    }
+
+    private async createDefaultEstadosSugerencia() {
+        const estados = [
+            { Id_Estado_Sugerencia: 1, Estado_Sugerencia: 'Pendiente' },
+            { Id_Estado_Sugerencia: 2, Estado_Sugerencia: 'Contestado' },
+        ];
+
+        for (const estado of estados) {
+            const existe = await this.estadoSugerenciaRepository.findOne({
+                where: { Id_Estado_Sugerencia: estado.Id_Estado_Sugerencia },
+            });
+            if (!existe) {
+                const nuevo = this.estadoSugerenciaRepository.create(estado);
+                await this.estadoSugerenciaRepository.save(nuevo);
+            }
+        }
+    }
+
+    private async createDefaultEstadosReporte() {
+        const estados = [
+            { Id_Estado_Reporte: 1, Estado_Reporte: 'Pendiente' },
+            { Id_Estado_Reporte: 2, Estado_Reporte: 'Contestado' },
+        ];
+
+        for (const estado of estados) {
+            const existe = await this.estadoReporteRepository.findOne({
+                where: { Id_Estado_Reporte: estado.Id_Estado_Reporte }
+            });
+            if (!existe) {
+                const nuevoEstado = this.estadoReporteRepository.create(estado);
+                await this.estadoReporteRepository.save(nuevoEstado);
+            }
+        }
+    }
+
     private async createPermisos() {
-        
         const modulos = [
             'usuarios',
             'actas',
@@ -281,34 +426,34 @@ export class SeederService implements OnModuleInit {
         for (const modulo of modulos) {
             // Permiso de solo lectura
             await this.createPermisoIfNotExists({
-                modulo,
+                Modulo: modulo,
                 Ver: true,
                 Editar: false,
             });
 
             // Sin permisos
             await this.createPermisoIfNotExists({
-                modulo,
+                Modulo: modulo,
                 Ver: false,
                 Editar: false,
             });
 
             // Permiso completo (ver y editar)
             await this.createPermisoIfNotExists({
-                modulo,
+                Modulo: modulo,
                 Ver: true,
                 Editar: true,
             });
 
             // Permiso de lectura para bitacora
             await this.createPermisoIfNotExists({
-            modulo: 'bitacora',
-            Ver: true,        
-            Editar: false,
+                Modulo: 'bitacora',
+                Ver: true,
+                Editar: false,
             });
             // Sin permisos para bitacora
             await this.createPermisoIfNotExists({
-                modulo: 'bitacora',
+                Modulo: 'bitacora',
                 Ver: false,
                 Editar: false,
             });
@@ -316,13 +461,13 @@ export class SeederService implements OnModuleInit {
     }
 
     private async createPermisoIfNotExists(permisoData: {
-        modulo: string;
+        Modulo: string;
         Ver: boolean;
         Editar: boolean;
     }) {
         const permisoExistente = await this.permisoRepository.findOne({
             where: {
-                modulo: permisoData.modulo,
+                Modulo: permisoData.Modulo,
                 Ver: permisoData.Ver,
                 Editar: permisoData.Editar
             }
@@ -331,11 +476,11 @@ export class SeederService implements OnModuleInit {
         if (!permisoExistente) {
             const permiso = this.permisoRepository.create(permisoData);
             await this.permisoRepository.save(permiso);
-        } 
+        }
     }
 
     private async createAdminRole() {
-        
+
         const adminRoleExistente = await this.rolRepository.findOne({
             where: { Nombre_Rol: 'Administrador' }
         });
@@ -345,17 +490,16 @@ export class SeederService implements OnModuleInit {
                 Nombre_Rol: 'Administrador',
             });
             await this.rolRepository.save(adminRole);
-          
         }
     }
 
     // Asignar todos los permisos al rol Administrador
     private async assignPermisosToAdminRole() {
-        
+
         // Buscar el rol Administrador con sus permisos actuales
         const adminRole = await this.rolRepository.findOne({
             where: { Nombre_Rol: 'Administrador' },
-            relations: ['permisos']
+            relations: ['Permisos']
         });
 
         if (!adminRole) {
@@ -366,26 +510,26 @@ export class SeederService implements OnModuleInit {
         const todosLosPermisos = await this.permisoRepository.find({
             where: [
                 { Ver: true, Editar: true },
-                { modulo: 'bitacora', Ver: true, Editar: false }
+                { Modulo: 'bitacora', Ver: true, Editar: false }
             ]
         });
 
         // Verificar si ya tiene permisos asignados
-        if (adminRole.permisos && adminRole.permisos.length > 0) {
+        if (adminRole.Permisos && adminRole.Permisos.length > 0) {
             // Verificar si tiene TODOS los permisos
-            if (adminRole.permisos.length === todosLosPermisos.length) {
+            if (adminRole.Permisos.length === todosLosPermisos.length) {
                 return;
             }
         }
 
         // Asignar los permisos al rol Administrador
-        adminRole.permisos = todosLosPermisos;
+        adminRole.Permisos = todosLosPermisos;
         await this.rolRepository.save(adminRole);
-        
+
     }
 
     private async createAdminUser() {
-        
+
         const adminExistente = await this.userRepository.findOne({
             where: { Nombre_Usuario: 'admin' }
         });
@@ -398,16 +542,16 @@ export class SeederService implements OnModuleInit {
 
             if (adminRole) {
                 const hashedPassword = await bcrypt.hash('Admin123', 10);
-                
+
                 const adminUser = this.userRepository.create({
                     Nombre_Usuario: 'admin',
                     Correo_Electronico: 'admin@saga.com',
                     Contraseña: hashedPassword,
-                    id_Rol: adminRole.Id_Rol
+                    Id_Rol: adminRole.Id_Rol
                 });
 
                 await this.userRepository.save(adminUser);
-            } 
-        } 
+            }
+        }
     }
 }

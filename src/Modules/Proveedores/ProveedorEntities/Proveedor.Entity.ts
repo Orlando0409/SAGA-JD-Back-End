@@ -1,11 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, TableInheritance, BeforeInsert, BeforeUpdate, UpdateDateColumn, CreateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, TableInheritance, BeforeInsert, BeforeUpdate, UpdateDateColumn, CreateDateColumn, JoinColumn, OneToMany, ChildEntity } from "typeorm";
 import { EstadoProveedor } from "./EstadoProveedor.Entity";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
+import { TipoProveedor } from "./TipoProveedor.Entity";
+import { Material } from "src/Modules/Inventario/InventarioEntities/Material.Entity";
 
 @Entity("Proveedor")
-@TableInheritance({ column: { type: "varchar", name: "Tipo_Proveedor" } })
-export abstract class ProveedorEntity {
+export abstract class Proveedor {
     @PrimaryGeneratedColumn()
     Id_Proveedor: number;
 
@@ -15,14 +16,22 @@ export abstract class ProveedorEntity {
     @Column({ nullable: false })
     Telefono_Proveedor: string;
 
-    @ManyToOne(() => EstadoProveedor, (estadoProveedor) => estadoProveedor.proveedor)
-    Estado_Proveedor: EstadoProveedor;
-
     @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Creacion: Date;
-    
+
     @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Actualizacion: Date;
+
+    @ManyToOne(() => EstadoProveedor, (estadoProveedor) => estadoProveedor.proveedor)
+    @JoinColumn({ name: 'Id_Estado_Proveedor' })
+    Estado_Proveedor: EstadoProveedor;
+
+    @ManyToOne(() => TipoProveedor, (tipoProveedor) => tipoProveedor.Proveedores)
+    @JoinColumn({ name: 'Id_Tipo_Proveedor' })
+    Tipo_Proveedor: TipoProveedor;
+
+    @OneToMany(() => Material, material => material.Proveedor)
+    materiales: Material[];
 
     @BeforeInsert()
     @BeforeUpdate()
@@ -40,20 +49,26 @@ export abstract class ProveedorEntity {
     }
 }
 
-@Entity("Proveedor_Fisico")
-export class ProveedorFisico extends ProveedorEntity {
+@Entity('Proveedor_Fisico')
+export class ProveedorFisico extends Proveedor {
     @Column({ type: 'enum', enum: TipoIdentificacion, nullable: false })
     Tipo_Identificacion: TipoIdentificacion;
 
     @Column({ type: 'varchar', length: 20, nullable: false })
     Identificacion: string;
+
+    @BeforeInsert()
+    SetDefaultTipoProveedor() { this.Tipo_Proveedor = { Id_Tipo_Proveedor: 1 } as TipoProveedor; }
 }
 
-@Entity("Proveedor_Juridico")
-export class ProveedorJuridico extends ProveedorEntity {
+@Entity('Proveedor_Juridico')
+export class ProveedorJuridico extends Proveedor {
     @Column({ type: "varchar", length: 25 })
     Cedula_Juridica: string;
 
     @Column({ nullable: false })
     Razon_Social: string;
+
+    @BeforeInsert()
+    SetDefaultTipoProveedor() { this.Tipo_Proveedor = { Id_Tipo_Proveedor: 2 } as TipoProveedor; }
 }

@@ -1,13 +1,13 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from "typeorm";
-import { UserRol } from "./UsuarioRol.Entity";
+import { UsuarioRol } from "./UsuarioRol.Entity";
 
-@Entity("permisos")
+@Entity("Permisos")
 export class Permiso {
   @PrimaryGeneratedColumn()
-  id: number;
+  Id: number;
 
   @Column()
-  modulo: string;
+  Modulo: string;
 
   @Column({default: true})
   Ver: boolean;
@@ -15,6 +15,6 @@ export class Permiso {
   @Column({default: false})
   Editar: boolean;
 
-  @ManyToMany(() => UserRol, rol => rol.permisos)
-  roles: UserRol[];
+  @ManyToMany(() => UsuarioRol, rol => rol.Permisos)
+  Roles: UsuarioRol[];
 }

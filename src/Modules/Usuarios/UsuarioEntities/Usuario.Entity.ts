@@ -1,9 +1,8 @@
-import {Entity,PrimaryGeneratedColumn,Column, ManyToOne,JoinColumn,DeleteDateColumn} from 'typeorm';
-import { UserRol } from './UsuarioRol.Entity';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, DeleteDateColumn } from 'typeorm';
+import { UsuarioRol } from './UsuarioRol.Entity';
 
-@Entity('usuario')
-export class UserEntity {
-  
+@Entity('Usuario')
+export class Usuario {
     @PrimaryGeneratedColumn()
     Id_Usuario: number;
 
@@ -23,10 +22,9 @@ export class UserEntity {
     Fecha_Eliminacion: Date;
 
     @Column({ nullable: true })
-    id_Rol: number; 
+    Id_Rol: number; 
 
-    @ManyToOne(() => UserRol, rol => rol.usuarios, { nullable: true })
-    @JoinColumn({ name: 'id_Rol' })
-    rol: UserRol;
+    @ManyToOne(() => UsuarioRol, rol => rol.Usuarios, { nullable: true })
+    @JoinColumn({ name: 'Id_Rol' })
+    Rol: UsuarioRol;
 }
-

@@ -6,9 +6,12 @@ import { DropboxModule } from "src/Dropbox/Files/DropboxFiles.module";
 import { ValidationsModule } from "src/Validations/Validations.module";
 import { SolicitudesDesconexionFisicaService } from "../Services/solicitudDesconexion.service";
 import { SolicitudDesconexionFisica } from "../../SolicitudEntities/Solicitud.Entity";
+import { AfiliadoFisico } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
+import { EstadoAfiliado } from "src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
+import { EmailModule } from "src/Modules/Emails/email.module";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([SolicitudDesconexionFisica, EstadoSolicitud]), DropboxModule, ValidationsModule],
+    imports: [TypeOrmModule.forFeature([SolicitudDesconexionFisica, EstadoSolicitud, AfiliadoFisico, EstadoAfiliado]), DropboxModule, ValidationsModule, EmailModule],
     controllers: [SolicitudDesconexionFisicaController],
     providers: [SolicitudesDesconexionFisicaService],
     exports: [SolicitudesDesconexionFisicaService],

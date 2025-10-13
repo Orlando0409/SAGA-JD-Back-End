@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Proyecto } from './Proyecto.Entity';
 
 @Entity('Estado_Proyecto')
-export class ProyectoEstado
+export class EstadoProyecto
 {
   @PrimaryGeneratedColumn()
   Id_Estado_Proyecto: number;

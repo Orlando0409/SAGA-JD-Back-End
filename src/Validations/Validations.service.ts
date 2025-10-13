@@ -100,17 +100,19 @@ export class ValidationsService
 
     async validarExistenciaAfiliadoFisico(identificacion: string) {
         const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: identificacion } });
-        if (!afiliado) {
-            return `No existe un afiliado físico con la cédula ${identificacion}. Debe ser afiliado antes de realizar esta solicitud.`;
+        if (afiliado) {
+            return null; // No hay error
         }
-        return null; // No hay error
+
+        return `Ya existe un afiliado físico con la cédula ${identificacion}. No puede realizar una nueva solicitud de afiliación.`;
     }
 
     async validarExistenciaAfiliadoJuridico(cedulaJuridica: string) {
         const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: cedulaJuridica } });
-        if (!afiliado) {
-            return `No existe un afiliado jurídico con la cédula ${cedulaJuridica}. Debe ser afiliado antes de realizar esta solicitud.`;
+        if (afiliado) {
+            return null; // No hay error
         }
-        return null; // No hay error
+
+        return `Ya existe un afiliado jurídico con la cédula ${cedulaJuridica}. No puede realizar una nueva solicitud de afiliación.`;
     }
 }

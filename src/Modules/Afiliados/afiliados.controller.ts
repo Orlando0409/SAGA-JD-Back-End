@@ -9,6 +9,12 @@ import { FileFieldsInterceptor } from "@nestjs/platform-express/multer";
 export class AfiliadosController {
     constructor(private readonly afiliadosService: AfiliadosService) {}
 
+    @Get('/all')
+    @ApiOperation({ summary: 'Obtener todos los afiliados' })
+    findAll() {
+        return this.afiliadosService.getAfiliados();
+    }
+
     @Get('/fisico/all')
     @ApiOperation({ summary: 'Obtener todos los afiliados físicos' })
     findAllFisicos() {

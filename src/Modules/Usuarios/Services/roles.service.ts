@@ -4,21 +4,20 @@ import{Repository, In}from'typeorm';
 import { CreateRolesDto } from '../UsuarioDTO\'s/CreateRoles.dto';
 import { UpdateRolesDto } from '../UsuarioDTO\'s/UpdateRoles.dto';
 import { Permiso } from '../UsuarioEntities/Permiso.Entity';
-import { UserRol } from '../UsuarioEntities/UsuarioRol.Entity';
-import { UserEntity } from '../UsuarioEntities/Usuario.Entity';
-
+import { UsuarioRol } from '../UsuarioEntities/UsuarioRol.Entity';
+import { Usuario } from '../UsuarioEntities/Usuario.Entity';
 
 @Injectable()
 export class RolesService {
     constructor(
-        @InjectRepository(UserRol)
-        private readonly rolesRepository: Repository<UserRol>,
+        @InjectRepository(UsuarioRol)
+        private readonly rolesRepository: Repository<UsuarioRol>,
         @InjectRepository(Permiso)
         private readonly permisosRepository: Repository<Permiso>,
-        @InjectRepository(UserEntity)
-        private readonly userRepository: Repository<UserEntity>,
+        @InjectRepository(Usuario)
+        private readonly userRepository: Repository<Usuario>,
     ) {}
-    
+
     async createRoles(createRolesDto: CreateRolesDto) {
         const { permisosIds, ...rolData } = createRolesDto;
 
@@ -27,64 +26,66 @@ export class RolesService {
         {
             throw new NotFoundException('El nombre del rol ya está registrado');
         }
-        
+
         const rol = this.rolesRepository.create(rolData);
-        
+
         if (permisosIds && permisosIds.length > 0) {
-            const permisos = await this.permisosRepository.findBy({ id: In(permisosIds) });
+            const permisos = await this.permisosRepository.findBy({ Id: In(permisosIds) });
             if (permisos.length !== permisosIds.length) {
                 throw new NotFoundException('Uno o más permisos no fueron encontrados');
             }
-            rol.permisos = permisos;
+            rol.Permisos = permisos;
         }
-        
+
         return this.rolesRepository.save(rol);
     }
-    
-    AllRoles() {
+
+    async AllRoles() {
         return this.rolesRepository.find({ 
-            relations: ['permisos'],
-            withDeleted: true});
+            relations: ['Permisos'],
+            withDeleted: true
+        });
     }
-    AllPermission(){
+
+    async AllPermission(){
         return this.permisosRepository.find();
     }
-    
-    findOneRoles(id: number) {
+
+    async findOneRoles(id: number) {
         return this.rolesRepository.findOne({ 
             where: { Id_Rol: id }, 
-            relations: ['permisos'],
+            relations: ['Permisos'],
             withDeleted: true
         });
     }
     
     async updateRoles(id: number, updateRolesDto: UpdateRolesDto) {
         const { permisosIds, ...rolData } = updateRolesDto;
-        
+
         const rol = await this.rolesRepository.findOne({ 
             where: { Id_Rol: id }, 
-            relations: ['permisos'],
+            relations: ['Permisos'],
             withDeleted: true
         });
-        
+
         if (!rol) {
             throw new NotFoundException('Rol no encontrado');
         }
-        
+
         Object.assign(rol, rolData);
-        
+
         if (permisosIds !== undefined) {
             if (permisosIds.length > 0) {
-                const permisos = await this.permisosRepository.findBy({ id: In(permisosIds) });
-                rol.permisos = permisos;
+                const permisos = await this.permisosRepository.findBy({ Id: In(permisosIds) });
+                rol.Permisos = permisos;
             } else {
-                rol.permisos = [];
+                rol.Permisos = [];
             }
         }
         
         return this.rolesRepository.save(rol);
     }
-    
+
     async softDeleteRol(id: number) {
         const role = await this.rolesRepository.findOne({
             where: { Id_Rol: id },
@@ -102,8 +103,8 @@ export class RolesService {
         await this.rolesRepository.softDelete(id);
 
         const usersWithRole = await this.userRepository.find({
-            where: { id_Rol: id }, 
-            relations: ['rol', 'rol.permisos'],
+            where: { Id_Rol: id }, 
+            relations: ['Rol', 'Rol.Permisos'],
             withDeleted: true, 
         });
 
@@ -135,8 +136,8 @@ export class RolesService {
         await this.rolesRepository.restore(id);
 
         const usersWithRole = await this.userRepository.find({
-            where: { id_Rol: id }, 
-            relations: ['rol', 'rol.permisos'],
+            where: { Id_Rol: id }, 
+            relations: ['Rol', 'Rol.Permisos'],
             withDeleted: true, 
         });
 

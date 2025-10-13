@@ -21,6 +21,16 @@ export class CreateMaterialDto {
     Descripcion?: string;
 
     @ApiProperty({ example: 1 })
+    @IsInt({ message: 'El estado debe ser un número entero' })
+    @IsOptional()
+    Id_Tipo_Proveedor?: number;
+
+    @ApiProperty({ example: 1 })
+    @IsInt({ message: 'El proveedor debe ser un número entero' })
+    @IsOptional()
+    Id_Proveedor?: number;
+
+    @ApiProperty({ example: 1 })
     @IsDefined({ message: 'La unidad de medición no puede estar vacio' })
     @IsInt({ message: 'La unidad de medición debe ser un número entero' })
     Id_Unidad_Medicion: number;
@@ -38,8 +48,8 @@ export class CreateMaterialDto {
     Precio_Unitario: number;
 
     @ApiProperty({ example: [1, 2, 3] })
-    @IsOptional()
     @IsArray({ message: 'Las categorías deben ser un array [ID]' })
     @IsInt({ each: true, message: 'Cada categoría debe ser un número entero' })
+    @IsOptional()
     IDS_Categorias?: number[];
 }

@@ -12,4 +12,14 @@ export class CreateCalidadAguaDto {
     @MaxLength(100, { message: 'El título no puede tener más de 100 caracteres' })
     @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s!?¿¡().,-]+$/, { message: 'El título solo puede contener letras, números, espacios y los caracteres !?¿¡().,-' })
     Titulo: string;
+
+    @ApiProperty({ example: 'El agua del Ebais de Juan Diaz cumple con los parámetros de calidad establecidos por el Ministerio de Salud.' })
+    @IsString({ message: 'La descripción debe ser un string' })
+    @IsDefined({ message: 'La descripción no puede estar vacio' })
+    @Transform(({ value }) => value?.trim() ? value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase() : value)
+    @IsNotEmpty({ message: 'La descripción no puede estar vacío' })
+    @MinLength(10, { message: 'La descripción debe tener al menos 10 caracteres' })
+    @MaxLength(500, { message: 'La descripción no puede tener más de 500 caracteres' })
+    @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s!?¿¡().,-]+$/, { message: 'La descripción solo puede contener letras, números, espacios y los caracteres !?¿¡().,-' })
+    Descripcion: string;
 }

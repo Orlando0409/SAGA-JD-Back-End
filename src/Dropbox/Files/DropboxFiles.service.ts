@@ -21,6 +21,47 @@ export class DropboxFilesService {
     return this.previewableExtensions.includes(extension);
   }
 
+  // 🧹 Eliminar una carpeta o ruta en Dropbox construida igual que en uploadFile
+  async deletePath(carpetaPrincipal: string, carpetaSecundaria?: string, Identificacion?: string, Nombre?: string) {
+    const accessToken = await this.dropboxAuthService.getAccessToken();
+    const dbx = new Dropbox({ accessToken });
+
+    if (!accessToken) {
+      throw new Error('Dropbox access token is not available');
+    }
+
+    const folderPath = process.env.DROPBOX_FOLDER_PATH;
+    const baseFolder = carpetaSecundaria ? `${folderPath}/${carpetaPrincipal}/${carpetaSecundaria}` : `${folderPath}/${carpetaPrincipal}`;
+
+    let dropboxPath: string;
+    if (Identificacion) {
+      if (Nombre && Nombre.toString().trim() !== '') {
+        dropboxPath = `${baseFolder}/${Identificacion} - ${Nombre}`;
+      } else {
+        dropboxPath = `${baseFolder}/${Identificacion}`;
+      }
+    } else {
+      if (Nombre && Nombre.toString().trim() !== '') {
+        dropboxPath = `${baseFolder}/${Nombre}`;
+      } else {
+        dropboxPath = baseFolder;
+      }
+    }
+
+    try {
+      await dbx.filesDeleteV2({ path: dropboxPath });
+      return { deleted: true, path: dropboxPath };
+    } catch (error: any) {
+      // Si la ruta no existe, tratar como éxito silencioso
+      const errString = JSON.stringify(error || {});
+      if (errString.includes('not_found') || errString.includes('path') ) {
+        return { deleted: false, path: dropboxPath, reason: 'not_found' };
+      }
+      console.error('Error eliminando ruta en Dropbox:', error);
+      throw error;
+    }
+  }
+
   // 📂 Método para obtener el tipo de archivo
   private getFileType(filename: string): string {
     const extension = filename.toLowerCase().substring(filename.lastIndexOf('.'));
@@ -35,7 +76,6 @@ export class DropboxFilesService {
   }
 
   async uploadFile(file: Express.Multer.File, carpetaPrincipal: string, carpetaSecundaria?: string, Identificacion?: string, Nombre?: string, soloDescargar?: boolean) {
-
     const accessToken = await this.dropboxAuthService.getAccessToken();
     const dbx = new Dropbox({ accessToken });
 
@@ -54,9 +94,29 @@ export class DropboxFilesService {
       const folderPath = process.env.DROPBOX_FOLDER_PATH;
 
       // 📂 Construcción de la ruta en Dropbox
-      let dropboxPath = Identificacion
-        ? `${folderPath}/${carpetaPrincipal}/${carpetaSecundaria}/${Identificacion} - ${Nombre}/${file.originalname}`
-        : `${folderPath}/${carpetaPrincipal}/${carpetaSecundaria}/${file.originalname}`;
+      // Si se suministra Identificacion usamos una carpeta con ese identificador.
+      // Si también se suministra Nombre, usamos el formato "Identificacion - Nombre".
+      // Si no hay Identificacion, subimos directamente a la carpeta secundaria.
+      let dropboxPath: string;
+      const baseFolder = carpetaSecundaria ? `${folderPath}/${carpetaPrincipal}/${carpetaSecundaria}` : `${folderPath}/${carpetaPrincipal}`;
+
+      if (Identificacion) {
+        if (Nombre && Nombre.toString().trim() !== '') {
+          dropboxPath = `${baseFolder}/${Identificacion} - ${Nombre}/${file.originalname}`;
+        } else {
+          // Usar Identificacion como nombre de carpeta sin guion
+          dropboxPath = `${baseFolder}/${Identificacion}/${file.originalname}`;
+        }
+      }
+
+      else {
+        // Si no hay Identificacion, pero sí un Nombre, crear carpeta con ese Nombre
+        if (Nombre && Nombre.toString().trim() !== '') {
+          dropboxPath = `${baseFolder}/${Nombre}/${file.originalname}`;
+        } else {
+          dropboxPath = `${baseFolder}/${file.originalname}`;
+        }
+      }
 
       // 🚀 Subir archivo a Dropbox
       const uploadRes = await dbx.filesUpload({

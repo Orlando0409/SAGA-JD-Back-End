@@ -1,14 +1,19 @@
-import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, TableInheritance, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, Table, TableInheritance, UpdateDateColumn } from "typeorm";
 import { EstadoAfiliado } from "./EstadoAfiliado.Entity";
 import { TipoAfiliado } from "./TipoAfiliado.Entity";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
+import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
+import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
+import { Expose } from "class-transformer";
 
-@Entity('Afiliado')
-@TableInheritance({ column: { type: "varchar", name: "Tipo_Afiliado" } })
+@Entity('afiliado')
 export abstract class Afiliado {
     @PrimaryGeneratedColumn()
     Id_Afiliado: number;
+
+    @Column({ type: 'enum', enum: TipoEntidad, nullable: false })
+    Tipo_Entidad: TipoEntidad;
 
     @Column({ nullable: false })
     Correo: string;
@@ -19,25 +24,29 @@ export abstract class Afiliado {
     @Column({ nullable: false })
     Direccion_Exacta: string;
 
-    @Column({ nullable: true })
-    Planos_Terreno: string;
-
-    @Column({ nullable: true })
-    Escritura_Terreno: string;
-
-    @ManyToOne(() => EstadoAfiliado, estado => estado.Afiliados)
-    @JoinColumn({ name: 'Id_Estado_Afiliado' })
-    Estado: EstadoAfiliado;
-
     @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Creacion: Date;
 
     @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Actualizacion: Date;
 
+    @Column({ nullable: false })
+    Planos_Terreno: string;
+
+    @Column({ nullable: false })
+    Escritura_Terreno: string;
+
+    @ManyToOne(() => EstadoAfiliado, estado => estado.Afiliados)
+    @JoinColumn({ name: 'Id_Estado_Afiliado' })
+    Estado: EstadoAfiliado;
+
     @ManyToOne(() => TipoAfiliado, tipo => tipo.Afiliados)
     @JoinColumn({ name: 'Id_Tipo_Afiliado' })
     Tipo_Afiliado: TipoAfiliado;
+
+    @OneToMany(() => Medidor, (medidor) => medidor.Afiliado)
+    @JoinColumn({ name: 'Id_Medidor' })
+    Medidores: Medidor[];
 
     @BeforeInsert()
     @BeforeUpdate()
@@ -76,18 +85,25 @@ export class AfiliadoFisico extends Afiliado {
     Edad: number;
 
     @BeforeInsert()
-    @BeforeUpdate()
-    normalizarApellido2() {
-        if (!this.Apellido2 || this.Apellido2.trim() === '' || this.Apellido2 === 'undefined') {
-            this.Apellido2 = 'No Proporcionado';
+    setDefaultEstado() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Afiliado: 1 } as EstadoAfiliado;
         }
     }
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Afiliado: 1, Nombre_Estado: 'Activo' } as EstadoAfiliado; }
+    setTipoAfiliado() {
+        if (!this.Tipo_Afiliado) {
+            this.Tipo_Afiliado = { Id_Tipo_Afiliado: 1 } as TipoAfiliado;
+        }
+    }
 
     @BeforeInsert()
-    setTipoAfiliado() { this.Tipo_Afiliado = { Id_Tipo_Afiliado: 1, Nombre_Tipo_Afiliado: 'Abonado' } as TipoAfiliado; }
+    setDefaultTipoEntidad() {
+        if (!this.Tipo_Entidad) {
+            this.Tipo_Entidad = TipoEntidad.Física;
+        }
+    }
 }
 
 @Entity('Afiliado_Juridico')
@@ -99,8 +115,23 @@ export class AfiliadoJuridico extends Afiliado {
     Razon_Social: string;
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Afiliado: 1, Nombre_Estado: 'Activo' } as EstadoAfiliado; }
+    setDefaultEstado() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Afiliado: 1 } as EstadoAfiliado;
+        }
+    }
 
     @BeforeInsert()
-    setTipoAfiliado() { this.Tipo_Afiliado = { Id_Tipo_Afiliado: 1, Nombre_Tipo_Afiliado: 'Abonado' } as TipoAfiliado; }
+    setTipoAfiliado() {
+        if (!this.Tipo_Afiliado) {
+            this.Tipo_Afiliado = { Id_Tipo_Afiliado: 2 } as TipoAfiliado;
+        }
+    }
+
+    @BeforeInsert()
+    setDefaultTipoEntidad() {
+        if (!this.Tipo_Entidad) {
+            this.Tipo_Entidad = TipoEntidad.Jurídica;
+        }
+    }
 }

@@ -2,8 +2,8 @@ import { Controller, Get, Post, Body, Param, Delete, Put,Patch, ParseIntPipe } f
 import { RequierePermisos } from 'src/Modules/auth/Decorator/Permiso.decorator';
 import { RequiereRoles } from 'src/Modules/auth/Decorator/Rol.decorator';
 import { UsuariosService } from "../Services/usuarios.service";
-import { CreateUserDto } from "../UsuarioDTO's/CreateUser.dto";
-import { UpdateUserDto } from "../UsuarioDTO's/UpdateUser.dto";
+import { CreateUsuarioDto } from "../UsuarioDTO's/CreateUser.dto";
+import { UpdateUsuarioDto } from "../UsuarioDTO's/UpdateUser.dto";
 
 @Controller('usuarios')
 
@@ -13,7 +13,6 @@ export class UsuariosController
 
   @Get()
   @RequierePermisos('usuarios', 'ver')
-  
   AllUsuario()
    {
     return this.usuariosService.AllUser();
@@ -26,25 +25,25 @@ export class UsuariosController
 
    @Post()
   @RequiereRoles('Administrador')
-  CreateUsuario(@Body() createUserDto: CreateUserDto) {
-    return this.usuariosService.createUser(createUserDto);
+  CreateUsuario(@Body() createUsuarioDto: CreateUsuarioDto) {
+    return this.usuariosService.createUser(createUsuarioDto);
   }
 
   @Put(':id')
   @RequiereRoles('Administrador')
-  UpdateUser(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
-    return this.usuariosService.updateUser(id, updateUserDto);
+  UpdateUsuario(@Param('id', ParseIntPipe) id: number, @Body() updateUsuarioDto: UpdateUsuarioDto) {
+    return this.usuariosService.updateUser(id, updateUsuarioDto);
   }
 
   @Delete(':id')
   @RequiereRoles('Administrador')
-  DeleteUser(@Param('id',ParseIntPipe) id: number) {
+  DeleteUsuario(@Param('id',ParseIntPipe) id: number) {
     return this.usuariosService.softDeleteUser(id);
   }
 
   @Patch('restaurar/:id')
   @RequiereRoles('Administrador')
-  restoreUser(@Param('id', ParseIntPipe) id: number) {
+  restoreUsuario(@Param('id', ParseIntPipe) id: number) {
     return this.usuariosService.restoreUser(id);
   }
 }

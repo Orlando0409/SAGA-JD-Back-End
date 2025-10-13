@@ -8,8 +8,8 @@ import { EmailModule } from '../Emails/email.module';
 
 // Entities
 import { Permiso } from '../Usuarios/UsuarioEntities/Permiso.Entity';
-import { UserEntity } from '../Usuarios/UsuarioEntities/Usuario.Entity';
-import { UserRol } from '../Usuarios/UsuarioEntities/UsuarioRol.Entity';
+import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
+import { UsuarioRol } from '../Usuarios/UsuarioEntities/UsuarioRol.Entity';
 
 // Controller
 import { AuthController } from './Auth.controller';
@@ -40,7 +40,7 @@ import { AuthService } from './Auth.service';
                 },
             }),
         }),
-        TypeOrmModule.forFeature([UserEntity, UserRol, Permiso]),
+        TypeOrmModule.forFeature([Usuario, UsuarioRol, Permiso]),
     ],
     controllers: [AuthController],
     providers: [

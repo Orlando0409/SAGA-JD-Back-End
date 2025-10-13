@@ -4,9 +4,7 @@ import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 
 @Entity('Solicitud')
-@TableInheritance({ column: { type: "int", name: "Id_Tipo_Solicitud" } })
-export abstract class Solicitud
-{
+export abstract class Solicitud {
     @PrimaryGeneratedColumn()
     Id_Solicitud: number;
 
@@ -16,18 +14,18 @@ export abstract class Solicitud
     @Column({ nullable: false })
     Numero_Telefono: string;
 
-    @ManyToOne(() => EstadoSolicitud, estado => estado.Solicitudes)
-    @JoinColumn({ name: 'Id_Estado_Solicitud' })
-    Estado: EstadoSolicitud;
+    @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
+    Fecha_Creacion: Date;
+
+    @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
+    Fecha_Actualizacion: Date;
 
     @Column({ nullable: false })
     Id_Tipo_Solicitud: number;
 
-    @CreateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
-    Fecha_Creacion: Date;
-
-    @UpdateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
-    Fecha_Actualizacion: Date;
+    @ManyToOne(() => EstadoSolicitud, estado => estado.Solicitudes)
+    @JoinColumn({ name: 'Id_Estado_Solicitud' })
+    Estado: EstadoSolicitud;
 
     @BeforeInsert()
     @BeforeUpdate()
@@ -43,8 +41,12 @@ export abstract class Solicitud
             }
         }
     }
+
+    @BeforeInsert()
+    SetDefaultEstadoSolicitud() { this.Estado = { Id_Estado_Solicitud: 1 } as EstadoSolicitud; }
 }
 
+@Entity('Solicitudes_Fisica')
 export abstract class SolicitudFisica extends Solicitud {
     @Column({ type: 'enum', enum: TipoIdentificacion, nullable: false })
     Tipo_Identificacion: TipoIdentificacion;
@@ -70,6 +72,7 @@ export abstract class SolicitudFisica extends Solicitud {
     }
 }
 
+@Entity('Solicitudes_Juridica')
 export class SolicitudJuridica extends Solicitud {
     @Column({ type: 'varchar', length: 20, nullable: false })
     Cedula_Juridica: string;

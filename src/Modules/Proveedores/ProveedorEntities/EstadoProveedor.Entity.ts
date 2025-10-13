@@ -1,5 +1,5 @@
 import{ Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
-import { ProveedorEntity } from "./Proveedor.Entity";
+import { Proveedor } from "./Proveedor.Entity";
 
 @Entity('Estado_Proveedor')
 export class EstadoProveedor{  
@@ -10,6 +10,6 @@ export class EstadoProveedor{
     Estado_Proveedor : string;
 
     //Un estado puede tener varios proveedores
-    @OneToMany(() => ProveedorEntity, (proveedor) => proveedor.Estado_Proveedor)
-    proveedor: ProveedorEntity[];
+    @OneToMany(() => Proveedor, (proveedor) => proveedor.Estado_Proveedor)
+    proveedor: Proveedor[];
 }
