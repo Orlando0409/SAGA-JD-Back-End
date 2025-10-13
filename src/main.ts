@@ -16,7 +16,7 @@ async function bootstrap() {
   
   // Configurar CORS correctamente para cookies
   app.enableCors({
-    origin: [process.env.FRONTEND_URL?.split(',')], // URLs del frontend
+    origin: process.env.FRONTEND_URL?.split(','), // URLs del frontend
     credentials: true, //  IMPORTANTE: Permitir cookies
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'cookie']
