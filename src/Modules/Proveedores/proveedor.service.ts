@@ -1,15 +1,19 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProveedorFisico, ProveedorJuridico } from './ProveedorEntities/Proveedor.Entity';
+import { Proveedor, ProveedorFisico, ProveedorJuridico } from './ProveedorEntities/Proveedor.Entity';
 import { CreateProveedorFisicoDto, CreateProveedorJuridicoDto } from './ProveedoresDTOs/CreateProveedor.dto';
 import { UpdateProveedorFisicoDto, UpdateProveedorJuridicoDto } from './ProveedoresDTOs/UpdateProveedor.dto';
 import { EstadoProveedor } from './ProveedorEntities/EstadoProveedor.Entity';
 import { UpdateEstadoProveedorDto } from './ProveedoresDTOs/UpdateEstadoProveedor.dto';
+import { TipoProveedor } from './ProveedorEntities/TipoProveedor.Entity';
 
 @Injectable()
 export class ProveedorService {
   constructor(
+    @InjectRepository(Proveedor)
+    private proveedorRepo: Repository<Proveedor>,
+
     @InjectRepository(ProveedorFisico)
     private fisicoRepo: Repository<ProveedorFisico>,
 
@@ -40,8 +44,20 @@ export class ProveedorService {
         throw new NotFoundException('El estado seleccionado no es válido');
     }
 
-    const proveedor = this.fisicoRepo.create({ ...dto, Estado_Proveedor: estado });
-    return this.fisicoRepo.save(proveedor);
+    const proveedor = this.proveedorRepo.create({
+      ...dto,
+      Tipo_Proveedor: { Id_Tipo_Proveedor: 1 } as any, // Físico
+      Estado_Proveedor: estado
+    });
+      await this.proveedorRepo.save(proveedor);
+
+    const proveedorFisico = this.fisicoRepo.create({
+      ...dto,
+      Tipo_Proveedor: { Tipo_Proveedor: 'Fisico' } as any,
+      Estado_Proveedor: estado
+    });
+
+    return this.fisicoRepo.save(proveedorFisico);
   }
 
   async createJuridico(dto: CreateProveedorJuridicoDto): Promise<ProveedorJuridico> {
@@ -64,8 +80,19 @@ export class ProveedorService {
         throw new NotFoundException('El estado seleccionado no es válido');
     }
 
-    const proveedor = this.juridicoRepo.create({ ...dto, Estado_Proveedor: estado });
-    return this.juridicoRepo.save(proveedor);
+    const proveedor = this.proveedorRepo.create({
+      ...dto,
+      Tipo_Proveedor: { Id_Tipo_Proveedor: 2 } as any, // Jurídico
+      Estado_Proveedor: estado
+    });
+      await this.proveedorRepo.save(proveedor);
+
+    const proveedorJuridico = this.juridicoRepo.create({
+      ...dto,
+      Tipo_Proveedor: { Tipo_Proveedor: 'Juridico' } as any,
+      Estado_Proveedor: estado
+    });
+    return this.juridicoRepo.save(proveedorJuridico);
   }
 
     findAllFisico(): Promise<ProveedorFisico[]> {

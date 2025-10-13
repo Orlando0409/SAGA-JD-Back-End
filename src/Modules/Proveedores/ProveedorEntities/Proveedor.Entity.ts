@@ -6,7 +6,6 @@ import { TipoProveedor } from "./TipoProveedor.Entity";
 import { Material } from "src/Modules/Inventario/InventarioEntities/Material.Entity";
 
 @Entity("Proveedor")
-@TableInheritance({ column: { type: "int", name: "Id_Tipo_Proveedor" } })
 export abstract class Proveedor {
     @PrimaryGeneratedColumn()
     Id_Proveedor: number;
@@ -50,8 +49,7 @@ export abstract class Proveedor {
     }
 }
 
-@ChildEntity(1)
-@Entity("Proveedor_Fisico")
+@Entity('Proveedor_Fisico')
 export class ProveedorFisico extends Proveedor {
     @Column({ type: 'enum', enum: TipoIdentificacion, nullable: false })
     Tipo_Identificacion: TipoIdentificacion;
@@ -63,8 +61,7 @@ export class ProveedorFisico extends Proveedor {
     SetDefaultTipoProveedor() { this.Tipo_Proveedor = { Id_Tipo_Proveedor: 1 } as TipoProveedor; }
 }
 
-@ChildEntity(2)
-@Entity("Proveedor_Juridico")
+@Entity('Proveedor_Juridico')
 export class ProveedorJuridico extends Proveedor {
     @Column({ type: "varchar", length: 25 })
     Cedula_Juridica: string;

@@ -58,6 +58,8 @@ import { QuejasModule } from './Modules/Quejas/quejas.module';
 import { Queja } from './Modules/Quejas/QuejaEntities/Queja.Entity';
 import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
 import { SeederModule } from './Config/Seeder.module';
+import { EstadoMedidor } from './Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
+import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity';
 
 @Module({
   imports: [
@@ -89,11 +91,11 @@ import { SeederModule } from './Config/Seeder.module';
         Reporte, EstadoReporte,
         Sugerencia, EstadoSugerencia,
         Queja, EstadoQueja,
-        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario
+        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor
         ],
         synchronize: false,
         dropSchema: false,
-      }) 
+      })
     }),
     SeederModule,
     AuthModule,
