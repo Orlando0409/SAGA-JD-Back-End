@@ -18,6 +18,12 @@ export class ProyectoController
     return this.proyectoService.getProyectosVisibles();
   }
 
+  @Get('/invisibles')
+  @ApiOperation({ summary: 'Obtener proyectos invisibles (estado inactivo)' })
+  getProyectosInvisibles() {
+    return this.proyectoService.getProyectosInvisibles();
+  }
+
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todos los proyectos' })
   getProyectos() {

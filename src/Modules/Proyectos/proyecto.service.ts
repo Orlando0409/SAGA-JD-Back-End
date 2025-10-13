@@ -47,6 +47,26 @@ export class ProyectoService
         }));
     }
 
+    async getProyectosInvisibles()
+    {
+        const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
+            .leftJoinAndSelect('proyecto.Estado', 'estado')
+            .leftJoinAndSelect('proyecto.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('proyecto.Visible = :visible', { visible: false })
+            .getMany();
+
+        return proyectos.map(proyecto => ({
+            ...proyecto,
+            Usuario_Creador: proyecto.Usuario_Creador ? {
+                Id_Usuario: proyecto.Usuario_Creador.Id_Usuario,
+                Nombre_Usuario: proyecto.Usuario_Creador.Nombre_Usuario,
+                Id_Rol: proyecto.Usuario_Creador.Id_Rol,
+                Nombre_Rol: proyecto.Usuario_Creador.Rol.Nombre_Rol
+            } : null
+        }));
+    }
+
     async getAllProyectos()
     {
         const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
