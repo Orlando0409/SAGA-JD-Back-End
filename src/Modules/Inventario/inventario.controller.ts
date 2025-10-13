@@ -294,10 +294,10 @@ export class InventarioController {
         return this.medidorService.getMedidoresInstalados();
     }
 
-    @Get('/medidores/dañados')
-    @ApiOperation({ summary: 'Obtiene todos los medidores que están en estado "Dañado".' })
-    async getMedidoresDañados() {
-        return this.medidorService.getMedidoresDañados();
+    @Get('/medidores/averiados')
+    @ApiOperation({ summary: 'Obtiene todos los medidores que están en estado "Averiado".' })
+    async getMedidoresAveriados() {
+        return this.medidorService.getMedidoresAveriados();
     }
 
     @Get('/medidores/afiliado/:idAfiliado')

@@ -35,111 +35,310 @@ export class MedidorService {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
-            .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
             .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .getMany();
 
-        return medidores.map(medidor => ({
-            ...medidor,
-            Afiliado: medidor.Afiliado ? {
-                Id_Afiliado: medidor.Afiliado.Id_Afiliado,
-                Tipo_Afiliado: medidor.Afiliado.Tipo_Afiliado.Id_Tipo_Afiliado,
-                Nombre: (medidor.Afiliado as AfiliadoFisico).Nombre,
-                Primer_Apellido: (medidor.Afiliado as AfiliadoFisico).Apellido1,
-                Segundo_Apellido: (medidor.Afiliado as AfiliadoFisico).Apellido2,
-            } : null,
-            Usuario_Creador: medidor.Usuario_Creador ? {
-                Id_Usuario: medidor.Usuario_Creador.Id_Usuario,
-                Nombre_Usuario: medidor.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: medidor.Usuario_Creador.Id_Rol,
-                Nombre_Rol: medidor.Usuario_Creador.Rol?.Nombre_Rol
-            } : null
-        }));
+        // Mapear cada medidor y obtener info completa del afiliado
+        const medidoresConAfiliados = await Promise.all(
+            medidores.map(async (medidor) => {
+                let afiliadoDetalle: any = null;
+
+                if (medidor.Afiliado) {
+                    if (medidor.Afiliado.Tipo_Entidad === TipoEntidad.Física) {
+                        const afiliadoFisico = await this.afiliadoFisicoRepository.findOne({
+                            where: { Id_Afiliado: medidor.Afiliado.Id_Afiliado }
+                        });
+
+                        if (afiliadoFisico) {
+                            afiliadoDetalle = {
+                                Id_Afiliado: medidor.Afiliado.Id_Afiliado,
+                                Tipo_Entidad: medidor.Afiliado.Tipo_Entidad,
+                                Tipo_Identificacion: afiliadoFisico.Tipo_Identificacion,
+                                Identificacion: afiliadoFisico.Identificacion,
+                                Nombre: afiliadoFisico.Nombre,
+                                Primer_Apellido: afiliadoFisico.Apellido1,
+                                Segundo_Apellido: afiliadoFisico.Apellido2,
+                            };
+                        }
+                    } else if (medidor.Afiliado.Tipo_Entidad === TipoEntidad.Jurídica) {
+                        const afiliadoJuridico = await this.afiliadoJuridicoRepository.findOne({
+                            where: { Id_Afiliado: medidor.Afiliado.Id_Afiliado }
+                        });
+
+                        if (afiliadoJuridico) {
+                            afiliadoDetalle = {
+                                Id_Afiliado: medidor.Afiliado.Id_Afiliado,
+                                Tipo_Entidad: medidor.Afiliado.Tipo_Entidad,
+                                Cedula_Juridica: afiliadoJuridico.Cedula_Juridica,
+                                Razon_Social: afiliadoJuridico.Razon_Social
+                            };
+                        }
+                    }
+                }
+
+                return {
+                    ...medidor,
+                    Afiliado: afiliadoDetalle,
+                    Usuario_Creador: medidor.Usuario_Creador ? {
+                        Id_Usuario: medidor.Usuario_Creador.Id_Usuario,
+                        Nombre_Usuario: medidor.Usuario_Creador.Nombre_Usuario,
+                        Id_Rol: medidor.Usuario_Creador.Id_Rol,
+                        Nombre_Rol: medidor.Usuario_Creador.Rol?.Nombre_Rol
+                    } : null
+                };
+            })
+        );
+
+        return medidoresConAfiliados;
     }
 
     async getMedidoresNoInstalados() {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
-            .leftJoinAndSelect('medidor.Id_Tipo_Afiliado', 'tipoAfiliado')
-            .leftJoinAndSelect('medidor.Id_Afiliado', 'afiliado')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
             .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('estado.Id_Estado_Medidor = :estado', { estado: 1 }) // 1 = No Instalado
             .getMany();
 
-        return medidores.map(medidor => ({
-            ...medidor,
-            Usuario_Creador: medidor.Usuario_Creador ? {
-                Id_Usuario: medidor.Usuario_Creador.Id_Usuario,
-                Nombre_Usuario: medidor.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: medidor.Usuario_Creador.Id_Rol,
-                Nombre_Rol: medidor.Usuario_Creador.Rol?.Nombre_Rol
-            } : null
-        }));
+        const medidoresConAfiliados = await Promise.all(
+            medidores.map(async (medidor) => {
+                let afiliadoDetalle: any = null;
+
+                if (medidor.Afiliado) {
+                    if (medidor.Afiliado.Tipo_Entidad === TipoEntidad.Física) {
+                        const afiliadoFisico = await this.afiliadoFisicoRepository.findOne({
+                            where: { Id_Afiliado: medidor.Afiliado.Id_Afiliado }
+                        });
+
+                        if (afiliadoFisico) {
+                            afiliadoDetalle = {
+                                Id_Afiliado: medidor.Afiliado.Id_Afiliado,
+                                Tipo_Entidad: medidor.Afiliado.Tipo_Entidad,
+                                Tipo_Identificacion: afiliadoFisico.Tipo_Identificacion,
+                                Identificacion: afiliadoFisico.Identificacion,
+                                Nombre: afiliadoFisico.Nombre,
+                                Primer_Apellido: afiliadoFisico.Apellido1,
+                                Segundo_Apellido: afiliadoFisico.Apellido2,
+                            };
+                        }
+                    } else if (medidor.Afiliado.Tipo_Entidad === TipoEntidad.Jurídica) {
+                        const afiliadoJuridico = await this.afiliadoJuridicoRepository.findOne({
+                            where: { Id_Afiliado: medidor.Afiliado.Id_Afiliado }
+                        });
+
+                        if (afiliadoJuridico) {
+                            afiliadoDetalle = {
+                                Id_Afiliado: medidor.Afiliado.Id_Afiliado,
+                                Tipo_Entidad: medidor.Afiliado.Tipo_Entidad,
+                                Cedula_Juridica: afiliadoJuridico.Cedula_Juridica,
+                                Razon_Social: afiliadoJuridico.Razon_Social
+                            };
+                        }
+                    }
+                }
+
+                return {
+                    ...medidor,
+                    Afiliado: afiliadoDetalle,
+                    Usuario_Creador: medidor.Usuario_Creador ? {
+                        Id_Usuario: medidor.Usuario_Creador.Id_Usuario,
+                        Nombre_Usuario: medidor.Usuario_Creador.Nombre_Usuario,
+                        Id_Rol: medidor.Usuario_Creador.Id_Rol,
+                        Nombre_Rol: medidor.Usuario_Creador.Rol?.Nombre_Rol
+                    } : null
+                };
+            })
+        );
+
+        return medidoresConAfiliados;
     }
 
     async getMedidoresInstalados() {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
-            .leftJoinAndSelect('medidor.Id_Tipo_Afiliado', 'tipoAfiliado')
-            .leftJoinAndSelect('medidor.Id_Afiliado', 'afiliado')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
             .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('estado.Id_Estado_Medidor = :estado', { estado: 2 }) // 2 = Instalado
             .getMany();
 
-        return medidores.map(medidor => ({
-            ...medidor,
-            Usuario_Creador: medidor.Usuario_Creador ? {
-                Id_Usuario: medidor.Usuario_Creador.Id_Usuario,
-                Nombre_Usuario: medidor.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: medidor.Usuario_Creador.Id_Rol,
-                Nombre_Rol: medidor.Usuario_Creador.Rol?.Nombre_Rol
-            } : null
-        }));
+        const medidoresConAfiliados = await Promise.all(
+            medidores.map(async (medidor) => {
+                let afiliadoDetalle: any = null;
+
+                if (medidor.Afiliado) {
+                    if (medidor.Afiliado.Tipo_Entidad === TipoEntidad.Física) {
+                        const afiliadoFisico = await this.afiliadoFisicoRepository.findOne({
+                            where: { Id_Afiliado: medidor.Afiliado.Id_Afiliado }
+                        });
+
+                        if (afiliadoFisico) {
+                            afiliadoDetalle = {
+                                Id_Afiliado: medidor.Afiliado.Id_Afiliado,
+                                Tipo_Entidad: medidor.Afiliado.Tipo_Entidad,
+                                Tipo_Identificacion: afiliadoFisico.Tipo_Identificacion,
+                                Identificacion: afiliadoFisico.Identificacion,
+                                Nombre: afiliadoFisico.Nombre,
+                                Primer_Apellido: afiliadoFisico.Apellido1,
+                                Segundo_Apellido: afiliadoFisico.Apellido2,
+                            };
+                        }
+                    } else if (medidor.Afiliado.Tipo_Entidad === TipoEntidad.Jurídica) {
+                        const afiliadoJuridico = await this.afiliadoJuridicoRepository.findOne({
+                            where: { Id_Afiliado: medidor.Afiliado.Id_Afiliado }
+                        });
+
+                        if (afiliadoJuridico) {
+                            afiliadoDetalle = {
+                                Id_Afiliado: medidor.Afiliado.Id_Afiliado,
+                                Tipo_Entidad: medidor.Afiliado.Tipo_Entidad,
+                                Cedula_Juridica: afiliadoJuridico.Cedula_Juridica,
+                                Razon_Social: afiliadoJuridico.Razon_Social
+                            };
+                        }
+                    }
+                }
+
+                return {
+                    ...medidor,
+                    Afiliado: afiliadoDetalle,
+                    Usuario_Creador: medidor.Usuario_Creador ? {
+                        Id_Usuario: medidor.Usuario_Creador.Id_Usuario,
+                        Nombre_Usuario: medidor.Usuario_Creador.Nombre_Usuario,
+                        Id_Rol: medidor.Usuario_Creador.Id_Rol,
+                        Nombre_Rol: medidor.Usuario_Creador.Rol?.Nombre_Rol
+                    } : null
+                };
+            })
+        );
+
+        return medidoresConAfiliados;
     }
 
-    async getMedidoresDañados() {
+    async getMedidoresAveriados() {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
-            .leftJoinAndSelect('medidor.Id_Tipo_Afiliado', 'tipoAfiliado')
-            .leftJoinAndSelect('medidor.Id_Afiliado', 'afiliado')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
             .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
-            .where('estado.Id_Estado_Medidor = :estado', { estado: 3 }) // 3 = Dañado
+            .where('estado.Id_Estado_Medidor = :estado', { estado: 3 }) // 3 = Averiado
             .getMany();
 
-        return medidores.map(medidor => ({
-            ...medidor,
-            Usuario_Creador: medidor.Usuario_Creador ? {
-                Id_Usuario: medidor.Usuario_Creador.Id_Usuario,
-                Nombre_Usuario: medidor.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: medidor.Usuario_Creador.Id_Rol,
-                Nombre_Rol: medidor.Usuario_Creador.Rol?.Nombre_Rol
-            } : null
-        }));
+        const medidoresConAfiliados = await Promise.all(
+            medidores.map(async (medidor) => {
+                let afiliadoDetalle: any = null;
+
+                if (medidor.Afiliado) {
+                    if (medidor.Afiliado.Tipo_Entidad === TipoEntidad.Física) {
+                        const afiliadoFisico = await this.afiliadoFisicoRepository.findOne({
+                            where: { Id_Afiliado: medidor.Afiliado.Id_Afiliado }
+                        });
+
+                        if (afiliadoFisico) {
+                            afiliadoDetalle = {
+                                Id_Afiliado: medidor.Afiliado.Id_Afiliado,
+                                Tipo_Entidad: medidor.Afiliado.Tipo_Entidad,
+                                Tipo_Identificacion: afiliadoFisico.Tipo_Identificacion,
+                                Identificacion: afiliadoFisico.Identificacion,
+                                Nombre: afiliadoFisico.Nombre,
+                                Primer_Apellido: afiliadoFisico.Apellido1,
+                                Segundo_Apellido: afiliadoFisico.Apellido2,
+                            };
+                        }
+                    } else if (medidor.Afiliado.Tipo_Entidad === TipoEntidad.Jurídica) {
+                        const afiliadoJuridico = await this.afiliadoJuridicoRepository.findOne({
+                            where: { Id_Afiliado: medidor.Afiliado.Id_Afiliado }
+                        });
+
+                        if (afiliadoJuridico) {
+                            afiliadoDetalle = {
+                                Id_Afiliado: medidor.Afiliado.Id_Afiliado,
+                                Tipo_Entidad: medidor.Afiliado.Tipo_Entidad,
+                                Cedula_Juridica: afiliadoJuridico.Cedula_Juridica,
+                                Razon_Social: afiliadoJuridico.Razon_Social
+                            };
+                        }
+                    }
+                }
+
+                return {
+                    ...medidor,
+                    Afiliado: afiliadoDetalle,
+                    Usuario_Creador: medidor.Usuario_Creador ? {
+                        Id_Usuario: medidor.Usuario_Creador.Id_Usuario,
+                        Nombre_Usuario: medidor.Usuario_Creador.Nombre_Usuario,
+                        Id_Rol: medidor.Usuario_Creador.Id_Rol,
+                        Nombre_Rol: medidor.Usuario_Creador.Rol?.Nombre_Rol
+                    } : null
+                };
+            })
+        );
+
+        return medidoresConAfiliados;
     }
 
     async getMedidoresAfiliado(idAfiliado: number) {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
-            .leftJoinAndSelect('medidor.Id_Tipo_Afiliado', 'tipoAfiliado')
-            .leftJoinAndSelect('medidor.Id_Afiliado', 'afiliado')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
             .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
-            .where('medidor.Id_Afiliado = :idAfiliado', { idAfiliado })
+            .where('medidor.Afiliado.Id_Afiliado = :idAfiliado', { idAfiliado })
             .getMany();
 
-        return medidores.map(medidor => ({
-            ...medidor,
-            Usuario_Creador: medidor.Usuario_Creador ? {
-                Id_Usuario: medidor.Usuario_Creador.Id_Usuario,
-                Nombre_Usuario: medidor.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: medidor.Usuario_Creador.Id_Rol,
-                Nombre_Rol: medidor.Usuario_Creador.Rol?.Nombre_Rol
-            } : null
-        }));
+        const medidoresConAfiliados = await Promise.all(
+            medidores.map(async (medidor) => {
+                let afiliadoDetalle: any = null;
+
+                if (medidor.Afiliado) {
+                    if (medidor.Afiliado.Tipo_Entidad === TipoEntidad.Física) {
+                        const afiliadoFisico = await this.afiliadoFisicoRepository.findOne({
+                            where: { Id_Afiliado: medidor.Afiliado.Id_Afiliado }
+                        });
+
+                        if (afiliadoFisico) {
+                            afiliadoDetalle = {
+                                Id_Afiliado: medidor.Afiliado.Id_Afiliado,
+                                Tipo_Entidad: medidor.Afiliado.Tipo_Entidad,
+                                Tipo_Identificacion: afiliadoFisico.Tipo_Identificacion,
+                                Identificacion: afiliadoFisico.Identificacion,
+                                Nombre: afiliadoFisico.Nombre,
+                                Primer_Apellido: afiliadoFisico.Apellido1,
+                                Segundo_Apellido: afiliadoFisico.Apellido2,
+                            };
+                        }
+                    } else if (medidor.Afiliado.Tipo_Entidad === TipoEntidad.Jurídica) {
+                        const afiliadoJuridico = await this.afiliadoJuridicoRepository.findOne({
+                            where: { Id_Afiliado: medidor.Afiliado.Id_Afiliado }
+                        });
+
+                        if (afiliadoJuridico) {
+                            afiliadoDetalle = {
+                                Id_Afiliado: medidor.Afiliado.Id_Afiliado,
+                                Tipo_Entidad: medidor.Afiliado.Tipo_Entidad,
+                                Cedula_Juridica: afiliadoJuridico.Cedula_Juridica,
+                                Razon_Social: afiliadoJuridico.Razon_Social
+                            };
+                        }
+                    }
+                }
+
+                return {
+                    ...medidor,
+                    Afiliado: afiliadoDetalle,
+                    Usuario_Creador: medidor.Usuario_Creador ? {
+                        Id_Usuario: medidor.Usuario_Creador.Id_Usuario,
+                        Nombre_Usuario: medidor.Usuario_Creador.Nombre_Usuario,
+                        Id_Rol: medidor.Usuario_Creador.Id_Rol,
+                        Nombre_Rol: medidor.Usuario_Creador.Rol?.Nombre_Rol
+                    } : null
+                };
+            })
+        );
+
+        return medidoresConAfiliados;
     }
 
     async createMedidor(dto: CreateMedidorDTO, idUsuarioCreador: number) {

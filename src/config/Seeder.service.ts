@@ -322,7 +322,7 @@ export class SeederService implements OnModuleInit {
         const estados = [
             { Id_Estado_Medidor: 1, Nombre_Estado_Medidor: 'No instalado' },
             { Id_Estado_Medidor: 2, Nombre_Estado_Medidor: 'Instalado' },
-            { Id_Estado_Medidor: 3, Nombre_Estado_Medidor: 'Dañado' },
+            { Id_Estado_Medidor: 3, Nombre_Estado_Medidor: 'Averiado' },
         ];
 
         for (const estado of estados) {
