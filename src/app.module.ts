@@ -65,6 +65,10 @@ import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity'
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath:
+        process.env.NODE_ENV === 'production'
+          ? '.env.production'
+          : '.env.development',
     }),
 
     TypeOrmModule.forRootAsync({
