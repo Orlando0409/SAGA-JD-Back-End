@@ -13,10 +13,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   // Configurar cookie parser
   app.use(cookieParser());
-  
+
   // Configurar CORS correctamente para cookies
   app.enableCors({
-    origin: [process.env.FRONTEND_URL?.split(',')], // URLs del frontend
+    origin: process.env.FRONTEND_URL?.split(','), // URLs del frontend
     credentials: true, //  IMPORTANTE: Permitir cookies
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'cookie']
@@ -63,5 +63,4 @@ bootstrap();
 
 console.log('Entorno actual:', process.env.NODE_ENV);
 console.log('Base de datos:', process.env.DB_DATABASE);
-
-// Usar la URL 'http://localhost:3000/api' para abrir el Swagger UI
+console.log('URL de frontend:', process.env.FRONTEND_URL);
