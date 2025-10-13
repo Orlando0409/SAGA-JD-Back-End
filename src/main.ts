@@ -57,12 +57,10 @@ async function bootstrap() {
     }, 
   });
 
-  console.log('Entorno actual:', process.env.NODE_ENV);
-  console.log('Base de datos:', process.env.DB_NAME);
-
-
   await app.listen(process.env.PORT || 3000);
 }
 bootstrap();
 
+  console.log('Entorno actual:', process.env.NODE_ENV);
+  console.log('Base de datos:', process.env.DB_DATABASE);
 // Usar la URL 'http://localhost:3000/api' para abrir el Swagger UI
