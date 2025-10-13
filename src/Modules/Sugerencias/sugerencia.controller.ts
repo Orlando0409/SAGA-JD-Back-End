@@ -4,6 +4,7 @@ import { SugerenciaService } from './sugerencia.service';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 import { UpdateSugerenciaEstadoDto } from './SugerenciaDTO\'S/UpdateSugerenciaEstado.dto';
 import { CreateSugerenciaDto } from './SugerenciaDTO\'S/CreateSugerencia.dto';
+import { Public } from '../auth/Decorator/Public.decorator';
 
 @Controller('sugerencias')
 export class SugerenciaController {
@@ -19,6 +20,7 @@ export class SugerenciaController {
     return this.sugerenciaService.getOne(id);
   }
 
+  @Public()
   @Post()
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'Adjunto', maxCount: 10 },
