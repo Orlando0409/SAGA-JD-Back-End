@@ -28,6 +28,7 @@ export class MovimientosService {
             .leftJoinAndSelect('movimiento.Material', 'material')
             .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
             .leftJoinAndSelect('movimiento.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getMany();
 
@@ -49,7 +50,163 @@ export class MovimientosService {
                 Usuario_Creador: movimiento.Usuario_Creador ? {
                     Id_Usuario: movimiento.Usuario_Creador.Id_Usuario,
                     Nombre_Usuario: movimiento.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: movimiento.Usuario_Creador.Id_Rol
+                    Id_Rol: movimiento.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: movimiento.Usuario_Creador.Rol?.Nombre_Rol
+                } : null
+            };
+        });
+    }
+
+    async getMovimientosEntradas() {
+        const movimientos = await this.movimientoRepository.createQueryBuilder('movimiento')
+            .leftJoinAndSelect('movimiento.Material', 'material')
+            .leftJoinAndSelect('movimiento.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .where('movimiento.Tipo_Movimiento = :tipo', { tipo: 'Entrada' })
+            .orderBy('movimiento.Fecha_Movimiento', 'DESC')
+            .getMany();
+
+        return movimientos.map(movimiento => {
+            return {
+                Id_Ingreso_Egreso: movimiento.Id_Movimiento,
+                Tipo_Movimiento: movimiento.Tipo_Movimiento,
+                Cantidad: movimiento.Cantidad,
+                Cantidad_Anterior: movimiento.Cantidad_Anterior,
+                Cantidad_Nueva: movimiento.Cantidad_Nueva,
+                Observaciones: movimiento.Observaciones,
+                Fecha_Movimiento: movimiento.Fecha_Movimiento,
+                Material: {
+                    Id_Material: movimiento.Material.Id_Material,
+                    Nombre_Material: movimiento.Material.Nombre_Material,
+                    Cantidad: movimiento.Material.Cantidad,
+                    Estado_Material: movimiento.Material.Estado_Material
+                },
+                Usuario_Creador: movimiento.Usuario_Creador ? {
+                    Id_Usuario: movimiento.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: movimiento.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: movimiento.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: movimiento.Usuario_Creador.Rol?.Nombre_Rol
+                } : null
+            };
+        });
+    }
+
+    async getMovimientosSalidas() {
+        const movimientos = await this.movimientoRepository.createQueryBuilder('movimiento')
+            .leftJoinAndSelect('movimiento.Material', 'material')
+            .leftJoinAndSelect('movimiento.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .where('movimiento.Tipo_Movimiento = :tipo', { tipo: 'Salida' })
+            .orderBy('movimiento.Fecha_Movimiento', 'DESC')
+            .getMany();
+
+        return movimientos.map(movimiento => {
+            return {
+                Id_Ingreso_Egreso: movimiento.Id_Movimiento,
+                Tipo_Movimiento: movimiento.Tipo_Movimiento,
+                Cantidad: movimiento.Cantidad,
+                Cantidad_Anterior: movimiento.Cantidad_Anterior,
+                Cantidad_Nueva: movimiento.Cantidad_Nueva,
+                Observaciones: movimiento.Observaciones,
+                Fecha_Movimiento: movimiento.Fecha_Movimiento,
+                Material: {
+                    Id_Material: movimiento.Material.Id_Material,
+                    Nombre_Material: movimiento.Material.Nombre_Material,
+                    Cantidad: movimiento.Material.Cantidad,
+                    Estado_Material: movimiento.Material.Estado_Material
+                },
+                Usuario_Creador: movimiento.Usuario_Creador ? {
+                    Id_Usuario: movimiento.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: movimiento.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: movimiento.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: movimiento.Usuario_Creador.Rol?.Nombre_Rol
+                } : null
+            };
+        });
+    }
+
+    async getMovimientosEntreFechas(fechaInicio: string, fechaFin: string) {
+        function parseDDMMYYYY(dateStr: string): Date {
+            // Espera formato DD-MM-YYYY
+            const [day, month, year] = dateStr.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+
+        const fechaInicioDate = parseDDMMYYYY(fechaInicio);
+        const fechaFinDate = parseDDMMYYYY(fechaFin);
+        fechaFinDate.setDate(fechaFinDate.getDate() + 1);
+
+        if (isNaN(fechaInicioDate.getTime()) || isNaN(fechaFinDate.getTime())) {
+            throw new BadRequestException('Fechas inválidas');
+        }
+
+        const movimientos = await this.movimientoRepository.createQueryBuilder('movimiento')
+            .leftJoinAndSelect('movimiento.Material', 'material')
+            .leftJoinAndSelect('movimiento.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .where('movimiento.Fecha_Movimiento BETWEEN :fechaInicio AND :fechaFin', { fechaInicio: fechaInicioDate, fechaFin: fechaFinDate })
+            .orderBy('movimiento.Fecha_Movimiento', 'DESC')
+            .getMany();
+
+        return movimientos.map(movimiento => {
+            return {
+                Id_Ingreso_Egreso: movimiento.Id_Movimiento,
+                Tipo_Movimiento: movimiento.Tipo_Movimiento,
+                Cantidad: movimiento.Cantidad,
+                Cantidad_Anterior: movimiento.Cantidad_Anterior,
+                Cantidad_Nueva: movimiento.Cantidad_Nueva,
+                Observaciones: movimiento.Observaciones,
+                Fecha_Movimiento: movimiento.Fecha_Movimiento,
+                Material: {
+                    Id_Material: movimiento.Material.Id_Material,
+                    Nombre_Material: movimiento.Material.Nombre_Material,
+                    Cantidad: movimiento.Material.Cantidad,
+                    Estado_Material: movimiento.Material.Estado_Material
+                },
+                Usuario_Creador: movimiento.Usuario_Creador ? {
+                    Id_Usuario: movimiento.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: movimiento.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: movimiento.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: movimiento.Usuario_Creador.Rol?.Nombre_Rol
+                } : null
+            };
+        });
+    }
+
+
+    async getMovimientosPorUsuarioCreador(Id_Usuario: number) {
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: Id_Usuario } });
+        if (!usuario) { throw new NotFoundException('Usuario no encontrado'); }
+
+        const movimientos = await this.movimientoRepository.createQueryBuilder('movimiento')
+            .leftJoinAndSelect('movimiento.Material', 'material')
+            .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
+            .leftJoinAndSelect('movimiento.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .where('movimiento.Usuario_Creador = :idUsuario', { idUsuario: Id_Usuario })
+            .orderBy('movimiento.Fecha_Movimiento', 'DESC')
+            .getMany();
+
+        return movimientos.map(movimiento => {
+            return {
+                Id_Ingreso_Egreso: movimiento.Id_Movimiento,
+                Tipo_Movimiento: movimiento.Tipo_Movimiento,
+                Cantidad: movimiento.Cantidad,
+                Cantidad_Anterior: movimiento.Cantidad_Anterior,
+                Cantidad_Nueva: movimiento.Cantidad_Nueva,
+                Observaciones: movimiento.Observaciones,
+                Fecha_Movimiento: movimiento.Fecha_Movimiento,
+                Material: {
+                    Id_Material: movimiento.Material.Id_Material,
+                    Nombre_Material: movimiento.Material.Nombre_Material,
+                    Cantidad: movimiento.Material.Cantidad,
+                    Estado_Material: movimiento.Material.Estado_Material
+                },
+                Usuario_Creador: movimiento.Usuario_Creador ? {
+                    Id_Usuario: movimiento.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: movimiento.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: movimiento.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: movimiento.Usuario_Creador.Rol?.Nombre_Rol
                 } : null
             };
         });
@@ -68,9 +225,16 @@ export class MovimientosService {
         const cantidadAnterior = materialExistente.Cantidad;
 
         materialExistente.Cantidad += dto.Cantidad;
-        if(materialExistente.Cantidad > 0) {
-            const estadoActivo = await this.estadoMaterialRepository.findOne({ where: { Nombre_Estado_Material: 'DISPONIBLE' } });
+        if(materialExistente.Cantidad > 0 && materialExistente.Estado_Material.Id_Estado_Material === 4) {
+            const estadoActivo = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 3 } });
             if(estadoActivo) {
+                materialExistente.Estado_Material = estadoActivo;
+            }
+        }
+
+        if (materialExistente.Cantidad > 0 && materialExistente.Estado_Material.Id_Estado_Material === 2) {
+            const estadoActivo = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 1 } });
+            if (estadoActivo) {
                 materialExistente.Estado_Material = estadoActivo;
             }
         }
@@ -141,9 +305,16 @@ export class MovimientosService {
         const cantidadAnterior = materialExistente.Cantidad;
 
         materialExistente.Cantidad -= dto.Cantidad;
-        if(materialExistente.Cantidad === 0) {
-            const estadoInactivo = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 2 } });
+        if(materialExistente.Cantidad === 0 && materialExistente.Estado_Material.Id_Estado_Material === 3) {
+            const estadoInactivo = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 4 } });
             if(estadoInactivo) {
+                materialExistente.Estado_Material = estadoInactivo;
+            }
+        }
+
+        if (materialExistente.Cantidad === 0 && materialExistente.Estado_Material.Id_Estado_Material === 1) {
+            const estadoInactivo = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 2 } });
+            if (estadoInactivo) {
                 materialExistente.Estado_Material = estadoInactivo;
             }
         }

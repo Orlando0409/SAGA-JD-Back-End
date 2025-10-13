@@ -67,8 +67,9 @@ export class CalidadAguaService
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador }, relations: ['Rol'] });
         if (!usuario) { throw new BadRequestException('Usuario no encontrado'); }
 
-        // Normalizar título antes de procesar
+        // Normalizar antes de procesar
         dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
+        dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
 
         const calidadAguaTitulo = await this.calidadAguaRepository.findOne({ where: { Titulo: dto.Titulo } });
         if (calidadAguaTitulo) { throw new BadRequestException('El título ya existe'); }
@@ -79,6 +80,7 @@ export class CalidadAguaService
         // Crear objeto entidad
         const calidadAgua = this.calidadAguaRepository.create({
             Titulo: dto.Titulo,
+            Descripcion: dto.Descripcion,
             Url_Archivo: fileRes.url,
             Visible: false,
             Usuario_Creador: usuario
@@ -104,6 +106,10 @@ export class CalidadAguaService
 
         if( dto.Titulo ) {
             dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
+        }
+
+        if ( dto.Descripcion ) {
+            dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
         }
 
         // Si llega un archivo, subimos uno nuevo

@@ -3,7 +3,8 @@ import { Response } from 'express';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { QuejasService } from './quejas.service';
-import { CreateQuejaDto } from './Dto/CreateQueja.dto';
+import { CreateQuejaDto } from './QuejaDTO\'s/CreateQueja.dto';
+import { Public } from '../auth/Decorator/Public.decorator';
 
 @Controller('quejas')
 export class QuejasController {
@@ -19,6 +20,7 @@ export class QuejasController {
     return this.quejasService.getOne(id);
   }
 
+  @Public()
   @Post()
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'Imagen', maxCount: 10 },

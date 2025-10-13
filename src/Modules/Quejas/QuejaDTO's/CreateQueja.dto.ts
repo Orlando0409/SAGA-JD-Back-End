@@ -23,11 +23,6 @@ export class CreateQuejaDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(50, { message: 'La ubicación no puede tener más de 50 caracteres' })
-  ubicacion?: string;
-
-  @IsOptional()
-  @IsString()
   @MaxLength(50, { message: 'La descripción no puede tener más de 50 caracteres' })
   descripcion?: string;
 }

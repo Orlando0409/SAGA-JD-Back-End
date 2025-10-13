@@ -9,4 +9,7 @@ export class GetUsuarioCreadorDto {
 
     @Expose()
     Id_Rol: number;
+
+    @Expose()
+    Nombre_Rol: string;
 }

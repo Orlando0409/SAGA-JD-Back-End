@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Acta } from "./ActaEntities/Actas.Entity";
 import { Repository } from "typeorm";
@@ -23,7 +23,7 @@ export class ActasService {
         // Normalizar título antes de procesar
         dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
         dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
-        
+
         const TituloToUpperCase = dto.Titulo.toUpperCase();
 
         const ArchivosSubidos = await Promise.all(

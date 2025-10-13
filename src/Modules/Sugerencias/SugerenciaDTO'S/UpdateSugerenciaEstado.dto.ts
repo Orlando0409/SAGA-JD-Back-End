@@ -1,3 +1,3 @@
 export class UpdateSugerenciaEstadoDto {
-  Id_EstadoSugerencia: number;
+  Id_Estado_Sugerencia: number;
 }

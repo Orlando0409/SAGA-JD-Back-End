@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Material } from '../InventarioEntities/Material.Entity';
 import { In, Repository } from 'typeorm';
@@ -36,7 +36,7 @@ export class MaterialService {
         private readonly proveedorFisicoRepository: Repository<ProveedorFisico>,
 
         @InjectRepository(ProveedorJuridico)
-        private readonly proveedorJuridicoRepository: Repository<ProveedorJuridico>
+        private readonly proveedorJuridicoRepository: Repository<ProveedorJuridico>,
     ) {}
 
     async getAllMateriales() {
@@ -48,6 +48,7 @@ export class MaterialService {
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
@@ -59,7 +60,7 @@ export class MaterialService {
             // Construir objeto de proveedor
             let proveedorFormateado: any = null;
             if (material.Proveedor) {
-                const proveedor = material.Proveedor as any; // Usar any para acceder a campos de subclases
+                const proveedor = material.Proveedor as any;
 
                 // Determinar el tipo basándose en los campos que existen
                 let idTipoProveedor: number | null = null;
@@ -73,7 +74,8 @@ export class MaterialService {
                     Id_Proveedor: proveedor.Id_Proveedor,
                     Id_Tipo_Proveedor: idTipoProveedor,
                     Nombre_Proveedor: proveedor.Nombre_Proveedor,
-                    Telefono_Proveedor: proveedor.Telefono_Proveedor
+                    Telefono_Proveedor: proveedor.Telefono_Proveedor,
+                    Estado_Proveedor: proveedor.Estado_Proveedor
                 };
 
                 if (idTipoProveedor === 1) {
@@ -91,9 +93,126 @@ export class MaterialService {
                 Usuario_Creador: material.Usuario_Creador ? {
                     Id_Usuario: material.Usuario_Creador.Id_Usuario,
                     Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: material.Usuario_Creador.Id_Rol
+                    Id_Rol: material.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
                 } : null,
                 Proveedor: proveedorFormateado
+            };
+        });
+    }
+
+    async getMaterialesDisponibles() {
+        const materiales = await this.inventarioRepository.createQueryBuilder('material')
+            .leftJoinAndSelect('material.Estado_Material', 'estado')
+            .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
+            .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
+            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Proveedor', 'proveedor')
+            .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
+            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
+            .where('estado.Id_Estado_Material = :estado', { estado: 1 }) // 1 = Activa
+            .getMany();
+
+        return materiales.map(material => {
+            return {
+                ...material,
+                Usuario_Creador: {
+                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: material.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
+                },
+            };
+        });
+    }
+
+    async getMaterialesAgotados() {
+        const materiales = await this.inventarioRepository.createQueryBuilder('material')
+            .leftJoinAndSelect('material.Estado_Material', 'estado')
+            .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
+            .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
+            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Proveedor', 'proveedor')
+            .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
+            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
+            .where('estado.Id_Estado_Material = :estado', { estado: 2 }) // 2 = Agotado
+            .getMany();
+
+        return materiales.map(material => {
+            return {
+                ...material,
+                Usuario_Creador: {
+                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: material.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
+                },
+            };
+        });
+    }
+
+    async getMaterialesDeBaja() {
+        const materiales = await this.inventarioRepository.createQueryBuilder('material')
+            .leftJoinAndSelect('material.Estado_Material', 'estado')
+            .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
+            .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
+            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Proveedor', 'proveedor')
+            .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
+            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
+            .where('estado.Id_Estado_Material = :estado', { estado: 3 }) // 3 = De baja
+            .getMany();
+
+        return materiales.map(material => {
+            return {
+                ...material,
+                Usuario_Creador: {
+                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: material.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
+                },
+            };
+        });
+    }
+
+    async getMaterialesAgotadosYDeBaja() {
+        const materiales = await this.inventarioRepository.createQueryBuilder('material')
+            .leftJoinAndSelect('material.Estado_Material', 'estado')
+            .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
+            .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
+            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Proveedor', 'proveedor')
+            .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
+            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
+            .where('estado.Id_Estado_Material = :estado', { estado: 4 }) // 4 = Agotado y de baja
+            .getMany();
+
+        return materiales.map(material => {
+            return {
+                ...material,
+                Usuario_Creador: {
+                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: material.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
+                },
             };
         });
     }
@@ -107,6 +226,7 @@ export class MaterialService {
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
@@ -114,47 +234,15 @@ export class MaterialService {
             .getMany();
 
         return materiales.map(material => {
-            const { Usuario_Creador, materialCategorias, Proveedor, ...materialSinRelaciones } = material;
-
-            if (material.Proveedor?.Tipo_Proveedor != null && material.Proveedor?.Tipo_Proveedor.Id_Tipo_Proveedor === 1) {
-                return {
-                    ...materialSinRelaciones,
-                    Categorias: materialCategorias,
-                    Usuario_Creador: material.Usuario_Creador ? {
-                        Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                        Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
-                    } : null,
-                    Proveedor: material.Proveedor ? {
-                        Id_Proveedor: material.Proveedor.Id_Proveedor,
-                        Tipo_Proveedor: material.Proveedor.Tipo_Proveedor,
-                        Tipo_Identificacion: (material.Proveedor as ProveedorFisico).Tipo_Identificacion,
-                        Identificacion: (material.Proveedor as ProveedorFisico).Identificacion,
-                        Nombre_Proveedor: material.Proveedor.Nombre_Proveedor,
-                        Telefono_Proveedor: material.Proveedor.Telefono_Proveedor
-                    } : null
-                };
-            }
-
-            else if (material.Proveedor?.Tipo_Proveedor != null && material.Proveedor?.Tipo_Proveedor.Id_Tipo_Proveedor === 2) {
-                return {
-                    ...materialSinRelaciones,
-                    Categorias: materialCategorias,
-                    Usuario_Creador: material.Usuario_Creador ? {
-                        Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                        Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
-                    } : null,
-                    Proveedor: material.Proveedor ? {
-                        Id_Proveedor: material.Proveedor.Id_Proveedor,
-                        Tipo_Proveedor: material.Proveedor.Tipo_Proveedor,
-                        Cedula_Juridica: (material.Proveedor as ProveedorJuridico).Cedula_Juridica,
-                        Razon_Social: (material.Proveedor as ProveedorJuridico).Razon_Social,
-                        Nombre_Proveedor: material.Proveedor.Nombre_Proveedor,
-                        Telefono_Proveedor: material.Proveedor.Telefono_Proveedor
-                    } : null
-                };
-            }
+            return {
+                ...material,
+                Usuario_Creador: material.Usuario_Creador ? {
+                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: material.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
+                } : null,
+            };
         });
     }
 
@@ -164,6 +252,7 @@ export class MaterialService {
             .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
             .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
@@ -172,47 +261,16 @@ export class MaterialService {
             .getMany();
 
         return materiales.map(material => {
-            const { Usuario_Creador, materialCategorias, Proveedor, ...materialSinRelaciones } = material;
-
-            if (material.Proveedor?.Tipo_Proveedor != null && material.Proveedor?.Tipo_Proveedor.Id_Tipo_Proveedor === 1) {
-                return {
-                    ...materialSinRelaciones,
-                    Categorias: [],
-                    Usuario_Creador: material.Usuario_Creador ? {
-                        Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                        Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
-                    } : null,
-                    Proveedor: material.Proveedor ? {
-                        Id_Proveedor: material.Proveedor.Id_Proveedor,
-                        Tipo_Proveedor: material.Proveedor.Tipo_Proveedor,
-                        tipo_Identificacion: (material.Proveedor as ProveedorFisico).Tipo_Identificacion,
-                        Identificacion: (material.Proveedor as ProveedorFisico).Identificacion,
-                        Nombre_Proveedor: material.Proveedor.Nombre_Proveedor,
-                        Telefono_Proveedor: material.Proveedor.Telefono_Proveedor
-                    } : null
-                };
-            }
-
-            else if (material.Proveedor?.Tipo_Proveedor != null && material.Proveedor?.Tipo_Proveedor.Id_Tipo_Proveedor === 2) {
-                return {
-                    ...materialSinRelaciones,
-                    Categorias: [],
-                    Usuario_Creador: material.Usuario_Creador ? {
-                        Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                        Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
-                    } : null,
-                    Proveedor: material.Proveedor ? {
-                        Id_Proveedor: material.Proveedor.Id_Proveedor,
-                        Tipo_Proveedor: material.Proveedor.Tipo_Proveedor,
-                        Cedula_Juridica: (material.Proveedor as ProveedorJuridico).Cedula_Juridica,
-                        Razon_Social: (material.Proveedor as ProveedorJuridico).Razon_Social,
-                        Nombre_Proveedor: material.Proveedor.Nombre_Proveedor,
-                        Telefono_Proveedor: material.Proveedor.Telefono_Proveedor
-                    } : null
-                };
-            }
+            return {
+                ...material,
+                Categorias: [],
+                Usuario_Creador: material.Usuario_Creador ? {
+                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: material.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
+                } : null,
+            };
         });
     }
 
@@ -225,6 +283,7 @@ export class MaterialService {
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
@@ -233,47 +292,15 @@ export class MaterialService {
             .getMany();
 
         return materiales.map(material => {
-            const { Usuario_Creador, materialCategorias, Proveedor, ...materialSinRelaciones } = material;
-
-            if (material.Proveedor?.Tipo_Proveedor != null && material.Proveedor?.Tipo_Proveedor.Id_Tipo_Proveedor === 1) {
-                return {
-                    ...materialSinRelaciones,
-                    Categorias: materialCategorias,
-                    Usuario_Creador: material.Usuario_Creador ? {
-                        Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                        Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
-                    } : null,
-                    Proveedor: material.Proveedor ? {
-                        Id_Proveedor: material.Proveedor.Id_Proveedor,
-                        Tipo_Proveedor: material.Proveedor.Tipo_Proveedor,
-                        tipo_Identificacion: (material.Proveedor as ProveedorFisico).Tipo_Identificacion,
-                        Identificacion: (material.Proveedor as ProveedorFisico).Identificacion,
-                        Nombre_Proveedor: material.Proveedor.Nombre_Proveedor,
-                        Telefono_Proveedor: material.Proveedor.Telefono_Proveedor
-                    } : null
-                };
-            }
-
-            else if (material.Proveedor?.Tipo_Proveedor != null && material.Proveedor?.Tipo_Proveedor.Id_Tipo_Proveedor === 2) {
-                return {
-                    ...materialSinRelaciones,
-                    Categorias: materialCategorias,
-                    Usuario_Creador: material.Usuario_Creador ? {
-                        Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                        Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
-                    } : null,
-                    Proveedor: material.Proveedor ? {
-                        Id_Proveedor: material.Proveedor.Id_Proveedor,
-                        Tipo_Proveedor: material.Proveedor.Tipo_Proveedor,
-                        Cedula_Juridica: (material.Proveedor as ProveedorJuridico).Cedula_Juridica,
-                        Razon_Social: (material.Proveedor as ProveedorJuridico).Razon_Social,
-                        Nombre_Proveedor: material.Proveedor.Nombre_Proveedor,
-                        Telefono_Proveedor: material.Proveedor.Telefono_Proveedor
-                    } : null
-                };
-            }
+            return {
+                ...material,
+                Usuario_Creador: material.Usuario_Creador ? {
+                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: material.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
+                } : null,
+            };
         });
     }
 
@@ -286,6 +313,7 @@ export class MaterialService {
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
@@ -294,47 +322,48 @@ export class MaterialService {
             .getMany();
 
         return materiales.map(material => {
-            const { Usuario_Creador, materialCategorias, Proveedor, ...materialSinRelaciones } = material;
+            return {
+                ...material,
+                Usuario_Creador: material.Usuario_Creador ? {
+                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: material.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
+                } : null,
+            };
+        });
+    }
 
-            if (material.Proveedor?.Tipo_Proveedor != null && material.Proveedor?.Tipo_Proveedor.Id_Tipo_Proveedor === 1) {
-                return {
-                    ...materialSinRelaciones,
-                    Categorias: materialCategorias,
-                    Usuario_Creador: material.Usuario_Creador ? {
-                        Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                        Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
-                    } : null,
-                    Proveedor: material.Proveedor ? {
-                        Id_Proveedor: material.Proveedor.Id_Proveedor,
-                        Tipo_Proveedor: material.Proveedor.Tipo_Proveedor,
-                        tipo_Identificacion: (material.Proveedor as ProveedorFisico).Tipo_Identificacion,
-                        Identificacion: (material.Proveedor as ProveedorFisico).Identificacion,
-                        Nombre_Proveedor: material.Proveedor.Nombre_Proveedor,
-                        Telefono_Proveedor: material.Proveedor.Telefono_Proveedor
-                    } : null
-                };
-            }
+    async getMaterialesEntreRangoPrecio(minPrice: number, maxPrice: number) {
+        if (minPrice < 0 || maxPrice < 0) {
+            throw new BadRequestException('Los precios no pueden ser negativos');
+        }
 
-            else if (material.Proveedor?.Tipo_Proveedor != null && material.Proveedor?.Tipo_Proveedor.Id_Tipo_Proveedor === 2) {
-                return {
-                    ...materialSinRelaciones,
-                    Categorias: materialCategorias,
-                    Usuario_Creador: material.Usuario_Creador ? {
-                        Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                        Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: material.Usuario_Creador.Id_Rol
-                    } : null,
-                    Proveedor: material.Proveedor ? {
-                        Id_Proveedor: material.Proveedor.Id_Proveedor,
-                        Tipo_Proveedor: material.Proveedor.Tipo_Proveedor,
-                        Cedula_Juridica: (material.Proveedor as ProveedorJuridico).Cedula_Juridica,
-                        Razon_Social: (material.Proveedor as ProveedorJuridico).Razon_Social,
-                        Nombre_Proveedor: material.Proveedor.Nombre_Proveedor,
-                        Telefono_Proveedor: material.Proveedor.Telefono_Proveedor
-                    } : null
-                };
-            }
+        const materiales = await this.inventarioRepository.createQueryBuilder('material')
+            .leftJoinAndSelect('material.Estado_Material', 'estado')
+            .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
+            .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
+            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Proveedor', 'proveedor')
+            .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
+            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
+            .where('material.Precio_Unitario BETWEEN :minPrice AND :maxPrice', { minPrice, maxPrice })
+            .getMany();
+
+        return materiales.map(material => {
+            return {
+                ...material,
+                Usuario_Creador: {
+                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: material.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
+                },
+            };
         });
     }
 
@@ -431,6 +460,7 @@ export class MaterialService {
                 .leftJoinAndSelect('Categorias.Categoria', 'categoria')
                 .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
                 .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+                .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
                 .leftJoinAndSelect('material.Proveedor', 'proveedor')
                 .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
                 .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
@@ -449,7 +479,8 @@ export class MaterialService {
                 Usuario_Creador: {
                     Id_Usuario: usuario.Id_Usuario,
                     Nombre_Usuario: usuario.Nombre_Usuario,
-                    Id_Rol: usuario.Id_Rol
+                    Id_Rol: usuario.Id_Rol,
+                    Nombre_Rol: usuario.Rol?.Nombre_Rol
                 },
                 Proveedor: materialCreado.Proveedor ? {
                     Id_Proveedor: materialCreado.Proveedor.Id_Proveedor,
@@ -471,6 +502,7 @@ export class MaterialService {
                 .leftJoinAndSelect('Categorias.Categoria', 'categoria')
                 .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
                 .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+                .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
                 .leftJoinAndSelect('material.Proveedor', 'proveedor')
                 .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
                 .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
@@ -489,7 +521,8 @@ export class MaterialService {
                 Usuario_Creador: {
                     Id_Usuario: usuario.Id_Usuario,
                     Nombre_Usuario: usuario.Nombre_Usuario,
-                    Id_Rol: usuario.Id_Rol
+                    Id_Rol: usuario.Id_Rol,
+                    Nombre_Rol: usuario.Rol?.Nombre_Rol
                 },
                 Proveedor: materialCreado.Proveedor ? {
                     Id_Proveedor: materialCreado.Proveedor.Id_Proveedor,
@@ -511,6 +544,7 @@ export class MaterialService {
                 .leftJoinAndSelect('Categorias.Categoria', 'categoria')
                 .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
                 .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+                .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
                 .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
                 .getOne();
 
@@ -526,7 +560,8 @@ export class MaterialService {
                 Usuario_Creador: {
                     Id_Usuario: usuario.Id_Usuario,
                     Nombre_Usuario: usuario.Nombre_Usuario,
-                    Id_Rol: usuario.Id_Rol
+                    Id_Rol: usuario.Id_Rol,
+                    Nombre_Rol: usuario.Rol?.Nombre_Rol
                 }
             };
         }
@@ -612,6 +647,7 @@ export class MaterialService {
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
             .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
             .where('material.Id_Material = :id', { id: Id_Material })
             .getOne();
 
@@ -628,7 +664,8 @@ export class MaterialService {
             Usuario_Creador: {
                 Id_Usuario: materialActualizadoCompleto.Usuario_Creador.Id_Usuario,
                 Nombre_Usuario: materialActualizadoCompleto.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: materialActualizadoCompleto.Usuario_Creador.Id_Rol
+                Id_Rol: materialActualizadoCompleto.Usuario_Creador.Id_Rol,
+                Nombre_Rol: materialActualizadoCompleto.Usuario_Creador.Rol?.Nombre_Rol
             }
         };
     }

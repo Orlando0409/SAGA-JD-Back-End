@@ -6,8 +6,6 @@ import { CreateCategoriaDto } from "../InventarioDTO's/CreateCategoria.dto";
 import { UpdateCategoriaDto } from "../InventarioDTO's/UpdateCategoria.dto";
 import { EstadoCategoria } from '../InventarioEntities/EstadoCategoria.Entity';
 import { Usuario } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
-import { plainToClass } from "class-transformer";
-import { GetUsuarioCreadorDto } from '../InventarioDTO\'s/getUsuarioCreador.dto';
 import { MaterialCategoria } from '../InventarioEntities/MaterialCategoria.Entity';
 
 @Injectable()
@@ -27,11 +25,63 @@ export class CategoriasService {
     ) {}
 
     async getAllCategorias() {
-        const categorias = await this.categoriaRepository.find({ relations: ['Estado_Categoria', 'Usuario_Creador', 'Usuario_Creador.Rol'] });
+        const categorias = await this.categoriaRepository.createQueryBuilder('categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
+            .leftJoinAndSelect('categoria.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .getMany();
+
         return categorias.map(categoria => {
             return {
                 ...categoria,
-                Usuario_Creador: categoria.Usuario_Creador ? plainToClass(GetUsuarioCreadorDto, categoria.Usuario_Creador, { excludeExtraneousValues: true }) : null
+                Usuario_Creador: {
+                    Id_Usuario: categoria.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: categoria.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: categoria.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: categoria.Usuario_Creador.Rol?.Nombre_Rol
+                }
+            };
+        });
+    }
+
+    async getCategoriasActivas() {
+        const categorias = await this.categoriaRepository.createQueryBuilder('categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
+            .leftJoinAndSelect('categoria.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('estado.Id_Estado_Categoria = :estado', { estado: 1 }) // 1 = Activa
+            .getMany();
+
+        return categorias.map(categoria => {
+            return {
+                ...categoria,
+                Usuario_Creador: {
+                    Id_Usuario: categoria.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: categoria.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: categoria.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: categoria.Usuario_Creador.Rol?.Nombre_Rol
+                }
+            };
+        });
+    }
+
+    async getCategoriasInactivas() {
+        const categorias = await this.categoriaRepository.createQueryBuilder('categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
+            .leftJoinAndSelect('categoria.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('estado.Id_Estado_Categoria = :estado', { estado: 2 }) // 2 = Inactiva
+            .getMany();
+
+        return categorias.map(categoria => {
+            return {
+                ...categoria,
+                Usuario_Creador: {
+                    Id_Usuario: categoria.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: categoria.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: categoria.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: categoria.Usuario_Creador.Rol?.Nombre_Rol
+                }
             };
         });
     }
