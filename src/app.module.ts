@@ -95,7 +95,7 @@ import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity'
         ],
         synchronize: false,
         dropSchema: false,
-      }) 
+      })
     }),
     SeederModule,
     AuthModule,

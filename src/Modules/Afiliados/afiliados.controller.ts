@@ -9,6 +9,12 @@ import { FileFieldsInterceptor } from "@nestjs/platform-express/multer";
 export class AfiliadosController {
     constructor(private readonly afiliadosService: AfiliadosService) {}
 
+    @Get('/all')
+    @ApiOperation({ summary: 'Obtener todos los afiliados' })
+    findAll() {
+        return this.afiliadosService.getAfiliados();
+    }
+
     @Get('/fisico/all')
     @ApiOperation({ summary: 'Obtener todos los afiliados físicos' })
     findAllFisicos() {
@@ -19,6 +25,18 @@ export class AfiliadosController {
     @ApiOperation({ summary: 'Obtener todos los afiliados jurídicos' })
     findAllJuridicos() {
         return this.afiliadosService.getAfiliadosJuridicos();
+    }
+
+    @Get('/fisico/all/con-medidores')
+    @ApiOperation({ summary: 'Obtener todos los afiliados físicos con resumen de medidores para tabla' })
+    findAllFisicosConMedidores() {
+        return this.afiliadosService.getAfiliadosFisicosConMedidores();
+    }
+
+    @Get('/juridico/all/con-medidores')
+    @ApiOperation({ summary: 'Obtener todos los afiliados jurídicos con resumen de medidores para tabla' })
+    findAllJuridicosConMedidores() {
+        return this.afiliadosService.getAfiliadosJuridicosConMedidores();
     }
 
     @Post('/fisico/create')

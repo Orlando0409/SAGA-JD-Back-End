@@ -7,6 +7,7 @@ import { CreateMedidorDTO } from "../InventarioDTO's/CreateMedidor.dto";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { AsignarMedidorDTO } from "../InventarioDTO's/AsignarMedidor.dto";
+import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
 
 @Injectable()
 export class MedidorService {
@@ -19,6 +20,9 @@ export class MedidorService {
 
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
+
+        @InjectRepository(Afiliado)
+        private readonly afiliadoRepository: Repository<Afiliado>,
 
         @InjectRepository(AfiliadoFisico)
         private readonly afiliadoFisicoRepository: Repository<AfiliadoFisico>,
@@ -187,64 +191,110 @@ export class MedidorService {
         if (medidor.Estado_Medidor.Id_Estado_Medidor === 3) { throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} está dañado y no puede ser asignado.`); }
 
         const TipoAfiliadoValido = [1, 2]; // 1 = Físico, 2 = Jurídico
-        if (!TipoAfiliadoValido.includes(dto.Id_Tipo_Afiliado)) { throw new BadRequestException(`Tipo de afiliado inválido. Los valores permitidos son: ${TipoAfiliadoValido.join(' y ')}`); }
+        if (!TipoAfiliadoValido.includes(dto.Id_Tipo_Entidad)) { throw new BadRequestException(`Tipo de afiliado inválido. Los valores permitidos son: ${TipoAfiliadoValido.join(' y ')}`); }
 
-        let afiliado: Afiliado | null = null;
+        // Buscar directamente en la tabla padre y validar el tipo
+        const afiliado = await this.afiliadoRepository.findOne({ where: { Id_Afiliado: dto.Id_Afiliado, Tipo_Entidad: dto.Id_Tipo_Entidad === 1 ? TipoEntidad.Física : TipoEntidad.Jurídica }, relations: ['Medidores'] });
+        if (!afiliado) { throw new BadRequestException(`Afiliado ${dto.Id_Tipo_Entidad === 1 ? 'Físico' : 'Jurídico'} con ID ${dto.Id_Afiliado} no encontrado`); }
 
-        if (dto.Id_Tipo_Afiliado === 1) { // Afiliado Físico
-            afiliado = await this.afiliadoFisicoRepository.findOneBy({ Id_Afiliado: dto.Id_Afiliado });
-            if (!afiliado) { throw new BadRequestException(`Afiliado Físico con ID ${dto.Id_Afiliado} no encontrado`); }
-        }
+        const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
+        if (!estadoInstalado) { throw new BadRequestException('Estado "Instalado" no encontrado'); }
 
-        else if (dto.Id_Tipo_Afiliado === 2) { // Afiliado Jurídico
-            afiliado = await this.afiliadoJuridicoRepository.findOneBy({ Id_Afiliado: dto.Id_Afiliado });
-            if (!afiliado) { throw new BadRequestException(`Afiliado Jurídico con ID ${dto.Id_Afiliado} no encontrado`); }
-        }
-
-        if (!afiliado) throw new BadRequestException('Afiliado no encontrado');
-
-        if (afiliado.Medidores && afiliado.Medidores.length > 0) {
-            throw new BadRequestException(`El afiliado con ID ${dto.Id_Afiliado} ya tiene un medidor asignado.`);
-        }
-
-        // Asignar el medidor al afiliado
-        //afiliado.Medidores.push(medidor);
-        //await (dto.Id_Tipo_Afiliado === 1 ? this.afiliadoFisicoRepository.save(afiliado) : this.afiliadoJuridicoRepository.save(afiliado));
-
-        medidor.Estado_Medidor = { Id_Estado_Medidor: 2, Nombre_Estado_Medidor: 'Instalado' } as EstadoMedidor; // Cambiar estado a "Instalado"
-        //medidor.Afiliado = afiliado;
+        // Asignar el afiliado al medidor y cambiar el estado
+        medidor.Afiliado = afiliado;
+        medidor.Estado_Medidor = estadoInstalado;
         await this.medidorRepository.save(medidor);
-        await this.estadoMedidorRepository.save(medidor.Estado_Medidor);
 
-        // Recargar el medidor con todas sus relaciones
-        await this.medidorRepository.findOne({ where: { Id_Medidor: medidor.Id_Medidor }, relations: ['Estado_Medidor', 'Usuario_Creador'] });
-
-        const Medidor = await this.medidorRepository.createQueryBuilder('medidor')
+        // Obtener el medidor actualizado con todas sus relaciones
+        const medidorActualizado = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('medidor.Id_Medidor = :id', { id: dto.Id_Medidor })
             .getOne();
 
-        if (!Medidor) { throw new BadRequestException(`Medidor con ID ${dto.Id_Medidor} no encontrado`); }
+        if (!medidorActualizado) { throw new BadRequestException(`Error al recuperar el medidor actualizado con ID ${dto.Id_Medidor}`); }
+
+        // Obtener información específica del afiliado desde la tabla hija correspondiente
+        let afiliadoDetalle: any = null;
+
+        if (afiliado.Tipo_Entidad === TipoEntidad.Física) { 
+            const afiliadoFisico = await this.afiliadoFisicoRepository.findOne({ where: { Id_Afiliado: afiliado.Id_Afiliado } });
+
+            if (afiliadoFisico) {
+                afiliadoDetalle = {
+                    Id_Afiliado: afiliado.Id_Afiliado,
+                    Tipo_Entidad: afiliado.Tipo_Entidad,
+                    Tipo_Identificacion: afiliadoFisico.Tipo_Identificacion,
+                    Identificacion: afiliadoFisico.Identificacion,
+                    Nombre: afiliadoFisico.Nombre,
+                    Primer_Apellido: afiliadoFisico.Apellido1,
+                    Segundo_Apellido: afiliadoFisico.Apellido2,
+                };
+            }
+        } else if (afiliado.Tipo_Entidad === TipoEntidad.Jurídica) {
+            // Consultar tabla afiliado_juridico directamente por Id_Afiliado
+            const afiliadoJuridico = await this.afiliadoJuridicoRepository.findOne({
+                where: { Id_Afiliado: afiliado.Id_Afiliado }
+            });
+
+            if (afiliadoJuridico) {
+                afiliadoDetalle = {
+                    Id_Afiliado: afiliado.Id_Afiliado,
+                    Tipo_Entidad: afiliado.Tipo_Entidad,
+                    Cedula_Juridica: afiliadoJuridico.Cedula_Juridica,
+                    Razon_Social: afiliadoJuridico.Razon_Social
+                };
+            }
+        }
+
+        if (!afiliadoDetalle) {
+            afiliadoDetalle = {
+                Id_Afiliado: afiliado.Id_Afiliado,
+                Tipo_Entidad: afiliado.Tipo_Entidad,
+                Correo: afiliado.Correo,
+                Numero_Telefono: afiliado.Numero_Telefono,
+                Direccion_Exacta: afiliado.Direccion_Exacta
+            };
+        }
 
         return {
-            ...Medidor,
-            Afiliado: afiliado ? {
-                Id_Afiliado: (afiliado as Afiliado).Id_Afiliado,
-                Id_Tipo_Afiliado: dto.Id_Tipo_Afiliado,
-                Tipo_Identificacion: (afiliado as AfiliadoFisico).Tipo_Identificacion,
-                Identificacion: (afiliado as AfiliadoFisico).Identificacion,
-                Cedula_Juridica: (afiliado as AfiliadoJuridico).Cedula_Juridica,
-                Razon_Social: (afiliado as AfiliadoJuridico).Razon_Social,
-                Nombre: (afiliado as AfiliadoFisico).Nombre,
-                Primer_Apellido: (afiliado as AfiliadoFisico).Apellido1,
-                Segundo_Apellido: (afiliado as AfiliadoFisico).Apellido2,
-            } : null,
-            Usuario_Creador: Medidor.Usuario_Creador ? {
-                Id_Usuario: Medidor.Usuario_Creador.Id_Usuario,
-                Nombre_Usuario: Medidor.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: Medidor.Usuario_Creador.Id_Rol,
-                Nombre_Rol: Medidor.Usuario_Creador.Rol?.Nombre_Rol
+            ...medidorActualizado,
+            Afiliado: afiliadoDetalle,
+            Usuario_Creador: medidorActualizado.Usuario_Creador ? {
+                Id_Usuario: medidorActualizado.Usuario_Creador.Id_Usuario,
+                Nombre_Usuario: medidorActualizado.Usuario_Creador.Nombre_Usuario,
+                Id_Rol: medidorActualizado.Usuario_Creador.Id_Rol,
+                Nombre_Rol: medidorActualizado.Usuario_Creador.Rol?.Nombre_Rol
             } : null
         };
+    }
+
+    async updateEstadoMedidor(Id_Medidor: number, Id_Estado_Medidor: number) {
+        const medidor = await this.medidorRepository.findOne({ where: { Id_Medidor }, relations: ['Estado_Medidor'] });
+        const nuevoEstado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor } });
+
+        if (!medidor) {
+            throw new BadRequestException(`Medidor con ID ${Id_Medidor} no encontrado`);
+        }
+
+        if (!nuevoEstado) {
+            throw new BadRequestException(`Estado con ID ${Id_Estado_Medidor} no encontrado`);
+        }
+
+        medidor.Estado_Medidor = nuevoEstado;
+        await this.medidorRepository.save(medidor);
+        const medidorActualizado = await this.medidorRepository.createQueryBuilder('medidor')
+            .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
+            .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('medidor.Id_Medidor = :id', { id: Id_Medidor })
+            .getOne();
+
+        if (!medidorActualizado) {
+            throw new BadRequestException(`Error al recuperar el medidor actualizado con ID ${Id_Medidor}`);
+        }
+
+        return medidorActualizado;
     }
 }

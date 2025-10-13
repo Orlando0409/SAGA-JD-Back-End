@@ -324,4 +324,12 @@ export class InventarioController {
     ) {
         return this.medidorService.asignarMedidorAAfiliado(dto);
     }
+
+    @Patch('/update/estado/medidor/:idMedidor/:nuevoEstadoId')
+    async updateEstadoMedidor(
+        @Param('idMedidor', ParseIntPipe) idMedidor: number,
+        @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number
+    ) {
+        return this.medidorService.updateEstadoMedidor(idMedidor, nuevoEstadoId);
+    }
 }

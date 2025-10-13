@@ -1,15 +1,19 @@
-import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, TableInheritance, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, Table, TableInheritance, UpdateDateColumn } from "typeorm";
 import { EstadoAfiliado } from "./EstadoAfiliado.Entity";
 import { TipoAfiliado } from "./TipoAfiliado.Entity";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
+import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
+import { Expose } from "class-transformer";
 
-@Entity('Afiliado')
-@TableInheritance({ column: { type: "varchar", name: "Tipo_Afiliado" } })
+@Entity('afiliado')
 export abstract class Afiliado {
     @PrimaryGeneratedColumn()
     Id_Afiliado: number;
+
+    @Column({ type: 'enum', enum: TipoEntidad, nullable: false })
+    Tipo_Entidad: TipoEntidad;
 
     @Column({ nullable: false })
     Correo: string;
@@ -26,10 +30,10 @@ export abstract class Afiliado {
     @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Actualizacion: Date;
 
-    @Column({ nullable: true })
+    @Column({ nullable: false })
     Planos_Terreno: string;
 
-    @Column({ nullable: true })
+    @Column({ nullable: false })
     Escritura_Terreno: string;
 
     @ManyToOne(() => EstadoAfiliado, estado => estado.Afiliados)
@@ -41,6 +45,7 @@ export abstract class Afiliado {
     Tipo_Afiliado: TipoAfiliado;
 
     @OneToMany(() => Medidor, (medidor) => medidor.Afiliado)
+    @JoinColumn({ name: 'Id_Medidor' })
     Medidores: Medidor[];
 
     @BeforeInsert()
@@ -80,10 +85,25 @@ export class AfiliadoFisico extends Afiliado {
     Edad: number;
 
     @BeforeInsert()
-    setDefaultEstado() { this.Estado = { Id_Estado_Afiliado: 1 } as EstadoAfiliado; }
+    setDefaultEstado() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Afiliado: 1 } as EstadoAfiliado;
+        }
+    }
 
     @BeforeInsert()
-    setTipoAfiliado() { this.Tipo_Afiliado = { Id_Tipo_Afiliado: 1 } as TipoAfiliado; }
+    setTipoAfiliado() {
+        if (!this.Tipo_Afiliado) {
+            this.Tipo_Afiliado = { Id_Tipo_Afiliado: 1 } as TipoAfiliado;
+        }
+    }
+
+    @BeforeInsert()
+    setDefaultTipoEntidad() {
+        if (!this.Tipo_Entidad) {
+            this.Tipo_Entidad = TipoEntidad.Física;
+        }
+    }
 }
 
 @Entity('Afiliado_Juridico')
@@ -104,7 +124,14 @@ export class AfiliadoJuridico extends Afiliado {
     @BeforeInsert()
     setTipoAfiliado() {
         if (!this.Tipo_Afiliado) {
-            this.Tipo_Afiliado = { Id_Tipo_Afiliado: 1 } as TipoAfiliado;
+            this.Tipo_Afiliado = { Id_Tipo_Afiliado: 2 } as TipoAfiliado;
+        }
+    }
+
+    @BeforeInsert()
+    setDefaultTipoEntidad() {
+        if (!this.Tipo_Entidad) {
+            this.Tipo_Entidad = TipoEntidad.Jurídica;
         }
     }
 }

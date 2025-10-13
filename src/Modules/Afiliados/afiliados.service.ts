@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { AfiliadoFisico, AfiliadoJuridico } from "./AfiliadoEntities/Afiliado.Entity";
+import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from "./AfiliadoEntities/Afiliado.Entity";
 import { EstadoAfiliado } from "./AfiliadoEntities/EstadoAfiliado.Entity";
 import { SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica } from "src/Modules/Solicitudes/SolicitudEntities/Solicitud.Entity";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -9,10 +9,14 @@ import { TipoAfiliado } from "./AfiliadoEntities/TipoAfiliado.Entity";
 import { CreateAfiliadoFisicoDto } from "./AfiliadoDTO's/CreateAfiliado.dto";
 import { CreateAfiliacionJuridicaDto } from "src/Modules/Solicitudes/SolicitudDTO's/CreateSolicitudJuridica.dto";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
+import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
 
 @Injectable()
 export class AfiliadosService {
     constructor (
+        @InjectRepository(Afiliado)
+        private readonly afiliadoRepository: Repository<Afiliado>,
+
         @InjectRepository(AfiliadoFisico)
         private readonly afiliadoFisicoRepository: Repository<AfiliadoFisico>,
 
@@ -34,12 +38,64 @@ export class AfiliadosService {
         private readonly dropboxFilesService: DropboxFilesService,
     ) {}
 
+    async getAfiliados() {
+        const afiliados = await this.afiliadoRepository.createQueryBuilder('afiliado')
+            .leftJoinAndSelect('afiliado.Estado', 'estado')
+            .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
+            .leftJoinAndSelect('afiliado.Medidores', 'medidores')
+            .leftJoinAndSelect('medidores.Estado_Medidor', 'estadoMedidor')
+            .getMany();
+
+        return afiliados.map(afiliado => ({
+            ...afiliado,
+            ResumenMedidores: {
+                Total: afiliado.Medidores?.length || 0,
+                Activos: afiliado.Medidores?.filter(m => m.Estado_Medidor?.Id_Estado_Medidor === 1).length || 0,
+                Instalados: afiliado.Medidores?.filter(m => m.Estado_Medidor?.Id_Estado_Medidor === 2).length || 0,
+                Lista: afiliado.Medidores?.map(m => `Medidor N°${m.Numero_Medidor}`).join(', ') || 'Sin medidores'
+            }
+        }));
+    }
+
     async getAfiliadosFisicos() {
         return this.afiliadoFisicoRepository.find({ relations: ['Estado', 'Tipo_Afiliado', 'Medidores'] });
     }
 
     async getAfiliadosJuridicos() {
         return this.afiliadoJuridicoRepository.find({ relations: ['Estado', 'Tipo_Afiliado', 'Medidores'] });
+    }
+
+    // Métodos optimizados para mostrar en tabla con información de medidores
+    async getAfiliadosFisicosConMedidores() {
+        const afiliados = await this.afiliadoFisicoRepository.find({ 
+            relations: ['Estado', 'Tipo_Afiliado', 'Medidores', 'Medidores.Estado_Medidor'] 
+        });
+
+        return afiliados.map(afiliado => ({
+            ...afiliado,
+            resumenMedidores: {
+                total: afiliado.Medidores?.length || 0,
+                activos: afiliado.Medidores?.filter(m => m.Estado_Medidor?.Id_Estado_Medidor === 1).length || 0,
+                instalados: afiliado.Medidores?.filter(m => m.Estado_Medidor?.Id_Estado_Medidor === 2).length || 0,
+                lista: afiliado.Medidores?.map(m => `M${m.Numero_Medidor}`).join(', ') || 'Sin medidores'
+            }
+        }));
+    }
+
+    async getAfiliadosJuridicosConMedidores() {
+        const afiliados = await this.afiliadoJuridicoRepository.find({ 
+            relations: ['Estado', 'Tipo_Afiliado', 'Medidores', 'Medidores.Estado_Medidor'] 
+        });
+
+        return afiliados.map(afiliado => ({
+            ...afiliado,
+            resumenMedidores: {
+                total: afiliado.Medidores?.length || 0,
+                activos: afiliado.Medidores?.filter(m => m.Estado_Medidor?.Id_Estado_Medidor === 1).length || 0,
+                instalados: afiliado.Medidores?.filter(m => m.Estado_Medidor?.Id_Estado_Medidor === 2).length || 0,
+                lista: afiliado.Medidores?.map(m => `M${m.Numero_Medidor}`).join(', ') || 'Sin medidores'
+            }
+        }));
     }
 
     async createAfiliadoFisicoFromSolicitud(solicitud: SolicitudAfiliacionFisica) {
@@ -67,9 +123,7 @@ export class AfiliadosService {
     async createAfiliadoFisico(dto: CreateAfiliadoFisicoDto, files: any) {
         // Verificar que no existe ya un afiliado físico con esa identificación
         const afiliadoExistente = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: dto.Identificacion } });
-        if (afiliadoExistente) {
-            throw new BadRequestException(`Ya existe un afiliado físico con la identificación ${dto.Identificacion}`);
-        }
+        if (afiliadoExistente) { throw new BadRequestException(`Ya existe un afiliado físico con la identificación ${dto.Identificacion}`); }
 
         const estadoInicial = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 1 } });
         if (!estadoInicial) { throw new BadRequestException('Estado inicial de afiliado no configurado'); }
@@ -84,7 +138,17 @@ export class AfiliadosService {
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Identificacion, nombre) : null;
         const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Identificacion, nombre) : null;
 
-        const afiliado = this.afiliadoFisicoRepository.create({
+        const afiliado = this.afiliadoRepository.create({
+            ...dto,
+            Planos_Terreno: planoRes?.url,
+            Escritura_Terreno: escrituraRes?.url,
+            Estado: estadoInicial,
+            Tipo_Afiliado: tipoAfiliado,
+            Tipo_Entidad: TipoEntidad.Física
+        });
+        await this.afiliadoRepository.save(afiliado);
+
+        const afiliadoFisico = this.afiliadoFisicoRepository.create({
             ...dto,
             Planos_Terreno: planoRes?.url,
             Escritura_Terreno: escrituraRes?.url,
@@ -92,7 +156,7 @@ export class AfiliadosService {
             Tipo_Afiliado: tipoAfiliado
         });
 
-        return this.afiliadoFisicoRepository.save(afiliado);
+        return this.afiliadoFisicoRepository.save(afiliadoFisico);
     }
 
     async createAfiliadoJuridicoFromSolicitud(solicitud: SolicitudAfiliacionJuridica) {
@@ -136,7 +200,17 @@ export class AfiliadosService {
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Juridicas', dto.Cedula_Juridica, dto.Razon_Social) : null;
         const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Afiliacion', 'Juridicas', dto.Cedula_Juridica, dto.Razon_Social) : null;
 
-        const afiliado = this.afiliadoJuridicoRepository.create({
+        const afiliado = this.afiliadoRepository.create({
+            ...dto,
+            Planos_Terreno: planoRes?.url,
+            Escritura_Terreno: escrituraRes?.url,
+            Estado: estadoInicial,
+            Tipo_Afiliado: tipoAfiliado,
+            Tipo_Entidad: TipoEntidad.Jurídica
+        });
+        await this.afiliadoRepository.save(afiliado);
+
+        const afiliadoJuridico = this.afiliadoJuridicoRepository.create({
             ...dto,
             Estado: estadoInicial,
             Tipo_Afiliado: tipoAfiliado,
@@ -144,7 +218,7 @@ export class AfiliadosService {
             Escritura_Terreno: escrituraRes?.url
         });
 
-        return this.afiliadoJuridicoRepository.save(afiliado);
+        return this.afiliadoJuridicoRepository.save(afiliadoJuridico);
     }
 
     async updateAfiliadoFisico(cedula: string, dto: UpdateAfiliadoFisicoDto, files?: any) {

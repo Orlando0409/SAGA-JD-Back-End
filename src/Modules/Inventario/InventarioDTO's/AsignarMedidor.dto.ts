@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDefined, IsInt } from "class-validator";
+import { IsDefined, IsEnum, IsInt } from "class-validator";
+import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
 
 export class AsignarMedidorDTO {
     @ApiProperty({ example: 1 })
@@ -8,9 +9,9 @@ export class AsignarMedidorDTO {
     Id_Medidor: number;
 
     @ApiProperty({ example: 1 })
-    @IsDefined({ message: 'El ID del tipo de afiliado no puede estar vacio' })
-    @IsInt({ message: 'El ID del tipo de afiliado debe ser un número entero' })
-    Id_Tipo_Afiliado: number;
+    @IsDefined({ message: 'El ID del tipo de entidad no puede estar vacio' })
+    @IsEnum(TipoEntidad, { message: 'El tipo de entidad debe ser 1 (Física) o 2 (Jurídica)' })
+    Id_Tipo_Entidad: TipoEntidad;
 
     @ApiProperty({ example: 1 })
     @IsDefined({ message: 'El ID del afiliado no puede estar vacio' })
