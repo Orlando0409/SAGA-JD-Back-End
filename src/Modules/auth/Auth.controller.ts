@@ -77,7 +77,7 @@ export class AuthController {
     return this.authService.changePassword(changePasswordDto);
   }
 
-  @Public()
+  @UseGuards(JwtAuthGuard)
   @Get('me')
   @ApiOperation({ summary: 'Obtener información del usuario actual' })
   async getCurrentUser(@Req() req) {
