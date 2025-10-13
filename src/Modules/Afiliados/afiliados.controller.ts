@@ -27,18 +27,6 @@ export class AfiliadosController {
         return this.afiliadosService.getAfiliadosJuridicos();
     }
 
-    @Get('/fisico/all/con-medidores')
-    @ApiOperation({ summary: 'Obtener todos los afiliados físicos con resumen de medidores para tabla' })
-    findAllFisicosConMedidores() {
-        return this.afiliadosService.getAfiliadosFisicosConMedidores();
-    }
-
-    @Get('/juridico/all/con-medidores')
-    @ApiOperation({ summary: 'Obtener todos los afiliados jurídicos con resumen de medidores para tabla' })
-    findAllJuridicosConMedidores() {
-        return this.afiliadosService.getAfiliadosJuridicosConMedidores();
-    }
-
     @Post('/fisico/create')
     @ApiOperation({ summary: 'Crear un nuevo afiliado físico' })
     @UseInterceptors(FileFieldsInterceptor([ 

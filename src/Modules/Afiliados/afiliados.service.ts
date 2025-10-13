@@ -58,42 +58,39 @@ export class AfiliadosService {
     }
 
     async getAfiliadosFisicos() {
-        return this.afiliadoFisicoRepository.find({ relations: ['Estado', 'Tipo_Afiliado', 'Medidores'] });
-    }
-
-    async getAfiliadosJuridicos() {
-        return this.afiliadoJuridicoRepository.find({ relations: ['Estado', 'Tipo_Afiliado', 'Medidores'] });
-    }
-
-    // Métodos optimizados para mostrar en tabla con información de medidores
-    async getAfiliadosFisicosConMedidores() {
-        const afiliados = await this.afiliadoFisicoRepository.find({ 
-            relations: ['Estado', 'Tipo_Afiliado', 'Medidores', 'Medidores.Estado_Medidor'] 
-        });
+        const afiliados = await this.afiliadoFisicoRepository.createQueryBuilder('afiliado')
+            .leftJoinAndSelect('afiliado.Estado', 'estado')
+            .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
+            .leftJoinAndSelect('afiliado.Medidores', 'medidores')
+            .leftJoinAndSelect('medidores.Estado_Medidor', 'estadoMedidor')
+            .getMany();
 
         return afiliados.map(afiliado => ({
             ...afiliado,
-            resumenMedidores: {
-                total: afiliado.Medidores?.length || 0,
-                activos: afiliado.Medidores?.filter(m => m.Estado_Medidor?.Id_Estado_Medidor === 1).length || 0,
-                instalados: afiliado.Medidores?.filter(m => m.Estado_Medidor?.Id_Estado_Medidor === 2).length || 0,
-                lista: afiliado.Medidores?.map(m => `M${m.Numero_Medidor}`).join(', ') || 'Sin medidores'
+            ResumenMedidores: {
+                Total: afiliado.Medidores?.length || 0,
+                Activos: afiliado.Medidores?.filter(m => m.Estado_Medidor?.Id_Estado_Medidor === 1).length || 0,
+                Instalados: afiliado.Medidores?.filter(m => m.Estado_Medidor?.Id_Estado_Medidor === 2).length || 0,
+                Lista: afiliado.Medidores?.map(m => `Medidor N°${m.Numero_Medidor}`).join(', ') || 'Sin medidores'
             }
         }));
     }
 
-    async getAfiliadosJuridicosConMedidores() {
-        const afiliados = await this.afiliadoJuridicoRepository.find({ 
-            relations: ['Estado', 'Tipo_Afiliado', 'Medidores', 'Medidores.Estado_Medidor'] 
-        });
+    async getAfiliadosJuridicos() {
+        const afiliados = await this.afiliadoJuridicoRepository.createQueryBuilder('afiliado')
+            .leftJoinAndSelect('afiliado.Estado', 'estado')
+            .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
+            .leftJoinAndSelect('afiliado.Medidores', 'medidores')
+            .leftJoinAndSelect('medidores.Estado_Medidor', 'estadoMedidor')
+            .getMany();
 
         return afiliados.map(afiliado => ({
             ...afiliado,
-            resumenMedidores: {
-                total: afiliado.Medidores?.length || 0,
-                activos: afiliado.Medidores?.filter(m => m.Estado_Medidor?.Id_Estado_Medidor === 1).length || 0,
-                instalados: afiliado.Medidores?.filter(m => m.Estado_Medidor?.Id_Estado_Medidor === 2).length || 0,
-                lista: afiliado.Medidores?.map(m => `M${m.Numero_Medidor}`).join(', ') || 'Sin medidores'
+            ResumenMedidores: {
+                Total: afiliado.Medidores?.length || 0,
+                Activos: afiliado.Medidores?.filter(m => m.Estado_Medidor?.Id_Estado_Medidor === 1).length || 0,
+                Instalados: afiliado.Medidores?.filter(m => m.Estado_Medidor?.Id_Estado_Medidor === 2).length || 0,
+                Lista: afiliado.Medidores?.map(m => `Medidor N°${m.Numero_Medidor}`).join(', ') || 'Sin medidores'
             }
         }));
     }
