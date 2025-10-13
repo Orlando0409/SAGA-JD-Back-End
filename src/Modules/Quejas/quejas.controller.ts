@@ -38,9 +38,9 @@ export class QuejasController {
   @Patch(':id/estado')
   async updateEstado(
     @Param('id', NumericParamPipe) id: number,
-    @Body() body: any,
+    @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: any,
   ) {
-    const nuevo = body?.Id_Estado_Queja ?? body?.IdEstadoQueja ?? body?.Id_EstadoQueja ?? body?.IdEstado_Queja ?? body?.Id_Estado_Queja;
+    const nuevo = body?.Id_Estado_Queja ?? body?.IdEstadoQueja ?? body?.Id_EstadoQueja ?? body?.IdEstado_Queja ?? body?.Id_Estado_Queja ?? body?.Id_EstadoQueja;
     return this.quejasService.updateEstado(id, nuevo);
   }
 
