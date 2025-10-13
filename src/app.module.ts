@@ -65,19 +65,23 @@ import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity'
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath:
+        process.env.NODE_ENV === 'production'
+          ? '.env.production'
+          : '.env.development',
     }),
 
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      inject:[ConfigService],
+      inject:[ConfigService], 
 
       useFactory: (config: ConfigService) => ({
         type: 'mysql',
-        host: config.get<string>('DB_HOST'),
-        port: config.get<number>('DB_PORT'),
-        username: config.get<string>('DB_USERNAME'),
-        password: config.get<string>('DB_PASSWORD'),
-        database: config.get<string>('DB_DATABASE'),
+        host: process.env.DB_HOST,
+        port: Number(process.env.DB_PORT),
+        username: process.env.DB_USERNAME,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_DATABASE,
         entities: [
         Usuario, UsuarioRol, Permiso,
         Solicitud, SolicitudFisica, SolicitudJuridica, EstadoSolicitud,

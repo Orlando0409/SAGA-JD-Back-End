@@ -5,9 +5,8 @@ import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
 import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
-import { Expose } from "class-transformer";
 
-@Entity('afiliado')
+@Entity('Afiliado')
 export abstract class Afiliado {
     @PrimaryGeneratedColumn()
     Id_Afiliado: number;
