@@ -510,7 +510,7 @@ export class SeederService implements OnModuleInit {
         const todosLosPermisos = await this.permisoRepository.find({
             where: [
                 { Ver: true, Editar: true },
-                { Modulo: 'bitacora', Ver: true, Editar: false }
+                { Modulo: 'auditoria', Ver: true, Editar: false }
             ]
         });
 
