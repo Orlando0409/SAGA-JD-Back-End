@@ -256,7 +256,7 @@ export class AuthService {
     // Cookie para access token
     response.cookie('accessToken', accessToken, {
       httpOnly: true,
-      secure: !!process.env.COOKIE_SECURE,
+      secure: true,
       sameSite: 'none',
       maxAge: 15 * 60 * 1000, // 15 minutos
       path: '/'
@@ -265,7 +265,7 @@ export class AuthService {
     // Cookie para refresh token
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: !!process.env.COOKIE_SECURE,
+      secure: true,
       sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
       path: '/'
