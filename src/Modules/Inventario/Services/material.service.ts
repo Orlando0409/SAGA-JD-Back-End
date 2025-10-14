@@ -380,25 +380,28 @@ export class MaterialService {
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador }, relations: ['Rol'] });
         if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuarioCreador} no encontrado`); }
 
-        // Validar y obtener proveedor según su tipo
+        // Validar y obtener proveedor según su tipo (opcional)
         let proveedorFisico: ProveedorFisico | null = null;
         let proveedorJuridico: ProveedorJuridico | null = null;
 
-        if (dto.Id_Tipo_Proveedor === 1) {
-            const proveedorFisicoExistente = await this.proveedorFisicoRepository.findOne({ where: { Id_Proveedor: dto.Id_Proveedor }, relations: ['Estado_Proveedor', 'Tipo_Proveedor'] });
-            if (!proveedorFisicoExistente) { throw new BadRequestException('Proveedor físico no encontrado'); }
-            if (proveedorFisicoExistente.Estado_Proveedor.Id_Estado_Proveedor !== 1) { throw new BadRequestException('El proveedor físico no está activo'); }
-            proveedorFisico = dto.Id_Proveedor ? proveedorFisicoExistente : null;
-        }
+        // Solo validar proveedor si se proporciona
+        if (dto.Id_Proveedor && dto.Id_Tipo_Proveedor) {
+            if (dto.Id_Tipo_Proveedor === 1) {
+                const proveedorFisicoExistente = await this.proveedorFisicoRepository.findOne({ where: { Id_Proveedor: dto.Id_Proveedor }, relations: ['Estado_Proveedor', 'Tipo_Proveedor'] });
+                if (!proveedorFisicoExistente) { throw new BadRequestException('Proveedor físico no encontrado'); }
+                if (proveedorFisicoExistente.Estado_Proveedor.Id_Estado_Proveedor !== 1) { throw new BadRequestException('El proveedor físico no está activo'); }
+                proveedorFisico = proveedorFisicoExistente;
+            }
 
-        else if (dto.Id_Tipo_Proveedor === 2) {
-            const proveedorJuridicoExistente = await this.proveedorJuridicoRepository.findOne({ where: { Id_Proveedor: dto.Id_Proveedor }, relations: ['Estado_Proveedor', 'Tipo_Proveedor'] });
-            if (!proveedorJuridicoExistente) { throw new BadRequestException('Proveedor jurídico no encontrado'); }
-            if (proveedorJuridicoExistente.Estado_Proveedor.Id_Estado_Proveedor !== 1) { throw new BadRequestException('El proveedor jurídico no está activo'); }
-            proveedorJuridico = dto.Id_Proveedor ? proveedorJuridicoExistente : null;
-        }
+            else if (dto.Id_Tipo_Proveedor === 2) {
+                const proveedorJuridicoExistente = await this.proveedorJuridicoRepository.findOne({ where: { Id_Proveedor: dto.Id_Proveedor }, relations: ['Estado_Proveedor', 'Tipo_Proveedor'] });
+                if (!proveedorJuridicoExistente) { throw new BadRequestException('Proveedor jurídico no encontrado'); }
+                if (proveedorJuridicoExistente.Estado_Proveedor.Id_Estado_Proveedor !== 1) { throw new BadRequestException('El proveedor jurídico no está activo'); }
+                proveedorJuridico = proveedorJuridicoExistente;
+            }
 
-        else { throw new BadRequestException('El tipo de proveedor debe ser 1 (físico) o 2 (jurídico)'); }
+            else { throw new BadRequestException('El tipo de proveedor debe ser 1 (físico) o 2 (jurídico)'); }
+        }
 
         // Validar categorías si se proporcionan
         let categorias: Categoria[] = [];
@@ -409,36 +412,25 @@ export class MaterialService {
             }
         }
 
-        let Material: Material;
-        var savedMaterial;
+        // Crear el material con o sin proveedor
+        const materialData: any = {
+            Nombre_Material: NombreNormalizado,
+            Descripcion: dto.Descripcion,
+            Cantidad: dto.Cantidad,
+            Precio_Unitario: dto.Precio_Unitario,
+            Unidad_Medicion: unidadMedicionExistente,
+            Usuario_Creador: usuario,
+        };
 
-        if (proveedorFisico && dto.Id_Tipo_Proveedor === 1) {
-            Material = this.inventarioRepository.create({
-                Nombre_Material: NombreNormalizado,
-                Descripcion: dto.Descripcion,
-                Cantidad: dto.Cantidad,
-                Proveedor: proveedorFisico,
-                Precio_Unitario: dto.Precio_Unitario,
-                Unidad_Medicion: unidadMedicionExistente,
-                Usuario_Creador: usuario,
-            });
-
-            savedMaterial = await this.inventarioRepository.save(Material);
+        // Solo agregar proveedor si existe
+        if (proveedorFisico) {
+            materialData.Proveedor = proveedorFisico;
+        } else if (proveedorJuridico) {
+            materialData.Proveedor = proveedorJuridico;
         }
 
-        else if (proveedorJuridico && dto.Id_Tipo_Proveedor === 2) {
-            Material = this.inventarioRepository.create({
-                Nombre_Material: NombreNormalizado,
-                Descripcion: dto.Descripcion,
-                Cantidad: dto.Cantidad,
-                Proveedor: proveedorJuridico,
-                Precio_Unitario: dto.Precio_Unitario,
-                Unidad_Medicion: unidadMedicionExistente,
-                Usuario_Creador: usuario,
-            });
-
-            savedMaterial = await this.inventarioRepository.save(Material);
-        }
+        const nuevoMaterial = this.inventarioRepository.create(materialData);
+        const savedMaterial = await this.inventarioRepository.save(nuevoMaterial) as unknown as Material;
 
         // Crear las relaciones con categorías si existen
         if (categorias.length > 0) {
@@ -451,120 +443,64 @@ export class MaterialService {
             await this.materialCategoriaRepository.save(materialCategorias);
         }
 
-        if (proveedorFisico && dto.Id_Tipo_Proveedor === 1) {
-            const materialCreado = await this.inventarioRepository.createQueryBuilder('material')
-                .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
-                .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
-                .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
-                .leftJoinAndSelect('material.materialCategorias', 'Categorias')
-                .leftJoinAndSelect('Categorias.Categoria', 'categoria')
-                .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-                .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-                .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
-                .leftJoinAndSelect('material.Proveedor', 'proveedor')
-                .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
-                .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
-                .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
-                .getOne();
+        // Obtener el material creado con todas sus relaciones
+        const materialCreado = await this.inventarioRepository.createQueryBuilder('material')
+            .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
+            .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
+            .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
+            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Proveedor', 'proveedor')
+            .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
+            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
+            .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
+            .getOne();
 
-            if (!materialCreado) {
-                throw new NotFoundException('Error al recuperar el material creado');
-            }
-
-            const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = materialCreado;
-
-            return {
-                ...materialSinUsuario,
-                Categorias: materialCategorias,
-                Usuario_Creador: {
-                    Id_Usuario: usuario.Id_Usuario,
-                    Nombre_Usuario: usuario.Nombre_Usuario,
-                    Id_Rol: usuario.Id_Rol,
-                    Nombre_Rol: usuario.Rol?.Nombre_Rol
-                },
-                Proveedor: materialCreado.Proveedor ? {
-                    Id_Proveedor: materialCreado.Proveedor.Id_Proveedor,
-                    Tipo_Proveedor: materialCreado.Proveedor.Tipo_Proveedor,
-                    Tipo_Identificacion: (materialCreado.Proveedor as ProveedorFisico).Tipo_Identificacion,
-                    Identificacion: (materialCreado.Proveedor as ProveedorFisico).Identificacion,
-                    Nombre_Proveedor: materialCreado.Proveedor.Nombre_Proveedor,
-                    Telefono_Proveedor: materialCreado.Proveedor.Telefono_Proveedor
-                } : null
-            };
+        if (!materialCreado) {
+            throw new NotFoundException('Error al recuperar el material creado');
         }
 
-        else if (proveedorJuridico && dto.Id_Tipo_Proveedor === 2) {
-            const materialCreado = await this.inventarioRepository.createQueryBuilder('material')
-                .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
-                .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
-                .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
-                .leftJoinAndSelect('material.materialCategorias', 'Categorias')
-                .leftJoinAndSelect('Categorias.Categoria', 'categoria')
-                .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-                .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-                .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
-                .leftJoinAndSelect('material.Proveedor', 'proveedor')
-                .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
-                .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
-                .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
-                .getOne();
+        const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = materialCreado;
 
-            if (!materialCreado) {
-                throw new NotFoundException('Error al recuperar el material creado');
-            }
-
-            const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = materialCreado;
-
-            return {
-                ...materialSinUsuario,
-                Categorias: materialCategorias,
-                Usuario_Creador: {
-                    Id_Usuario: usuario.Id_Usuario,
-                    Nombre_Usuario: usuario.Nombre_Usuario,
-                    Id_Rol: usuario.Id_Rol,
-                    Nombre_Rol: usuario.Rol?.Nombre_Rol
-                },
-                Proveedor: materialCreado.Proveedor ? {
-                    Id_Proveedor: materialCreado.Proveedor.Id_Proveedor,
-                    Tipo_Proveedor: materialCreado.Proveedor.Tipo_Proveedor,
-                    Cedula_Juridica: (materialCreado.Proveedor as ProveedorJuridico).Cedula_Juridica,
-                    Razon_Social: (materialCreado.Proveedor as ProveedorJuridico).Razon_Social,
-                    Nombre_Proveedor: materialCreado.Proveedor.Nombre_Proveedor,
-                    Telefono_Proveedor: materialCreado.Proveedor.Telefono_Proveedor
-                } : null
+        // Formatear proveedor según su tipo
+        let proveedorFormateado: any = null;
+        if (materialCreado.Proveedor) {
+            const proveedor = materialCreado.Proveedor as any;
+            
+            proveedorFormateado = {
+                Id_Proveedor: proveedor.Id_Proveedor,
+                Tipo_Proveedor: proveedor.Tipo_Proveedor,
+                Nombre_Proveedor: proveedor.Nombre_Proveedor,
+                Telefono_Proveedor: proveedor.Telefono_Proveedor,
+                Estado_Proveedor: proveedor.Estado_Proveedor
             };
+
+            // Agregar campos específicos según el tipo
+            if (proveedor.Tipo_Identificacion !== undefined && proveedor.Identificacion !== undefined) {
+                // Es proveedor físico
+                proveedorFormateado.Tipo_Identificacion = proveedor.Tipo_Identificacion;
+                proveedorFormateado.Identificacion = proveedor.Identificacion;
+            } else if (proveedor.Cedula_Juridica !== undefined && proveedor.Razon_Social !== undefined) {
+                // Es proveedor jurídico
+                proveedorFormateado.Cedula_Juridica = proveedor.Cedula_Juridica;
+                proveedorFormateado.Razon_Social = proveedor.Razon_Social;
+            }
         }
 
-        else {
-            const materialCreado = await this.inventarioRepository.createQueryBuilder('material')
-                .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
-                .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
-                .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
-                .leftJoinAndSelect('material.materialCategorias', 'Categorias')
-                .leftJoinAndSelect('Categorias.Categoria', 'categoria')
-                .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-                .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-                .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
-                .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
-                .getOne();
-
-            if (!materialCreado) {
-                throw new NotFoundException('Error al recuperar el material creado');
-            }
-
-            const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = materialCreado;
-
-            return {
-                ...materialSinUsuario,
-                Categorias: materialCategorias,
-                Usuario_Creador: {
-                    Id_Usuario: usuario.Id_Usuario,
-                    Nombre_Usuario: usuario.Nombre_Usuario,
-                    Id_Rol: usuario.Id_Rol,
-                    Nombre_Rol: usuario.Rol?.Nombre_Rol
-                }
-            };
-        }
+        return {
+            ...materialSinUsuario,
+            Categorias: materialCategorias,
+            Usuario_Creador: {
+                Id_Usuario: usuario.Id_Usuario,
+                Nombre_Usuario: usuario.Nombre_Usuario,
+                Id_Rol: usuario.Id_Rol,
+                Nombre_Rol: usuario.Rol?.Nombre_Rol
+            },
+            Proveedor: proveedorFormateado
+        };
     }
 
     async updateMaterial(Id_Material: number, dto: UpdateMaterialDto) {
