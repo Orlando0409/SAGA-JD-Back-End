@@ -445,15 +445,15 @@ export class SeederService implements OnModuleInit {
                 Editar: true,
             });
 
-            // Permiso de lectura para bitacora
+            // Permiso de lectura para auditoria
             await this.createPermisoIfNotExists({
-                Modulo: 'bitacora',
+                Modulo: 'auditoria',
                 Ver: true,
                 Editar: false,
             });
-            // Sin permisos para bitacora
+            // Sin permisos para auditoria
             await this.createPermisoIfNotExists({
-                Modulo: 'bitacora',
+                Modulo: 'auditoria',
                 Ver: false,
                 Editar: false,
             });
