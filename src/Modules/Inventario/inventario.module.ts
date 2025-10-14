@@ -21,9 +21,13 @@ import { MedidorService } from './Services/medidor.service';
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from '../Afiliados/AfiliadoEntities/Afiliado.Entity';
 import { TipoAfiliado } from '../Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
 import { EstadoAfiliado } from '../Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
+import { AuditoriaModule } from '../Auditoria/auditoria.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor ,Usuario, Proveedor, ProveedorFisico, ProveedorJuridico, Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado])],
+  imports: [
+    TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor ,Usuario, Proveedor, ProveedorFisico, ProveedorJuridico, Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado]),
+    AuditoriaModule
+  ],
   controllers: [InventarioController],
   providers: [MaterialService, CategoriasService, UnidadesDeMedicionService, MovimientosService, MedidorService],
   exports: [MaterialService, CategoriasService, UnidadesDeMedicionService, MovimientosService, MedidorService],

@@ -147,22 +147,24 @@ export class InventarioController {
         return this.categoriasService.createCategoria(dto, idUsuario);
     }
 
-    @Put('/update/categoria/:categoriaId')
+    @Put('/update/categoria/:categoriaId/:usuarioId')
     @ApiOperation({ summary: 'Actualiza una categoría existente.' })
     async updateCategoria(
         @Param('categoriaId', ParseIntPipe) categoriaId: number,
-        @Body() dto: UpdateCategoriaDto
+        @Body() dto: UpdateCategoriaDto,
+        @Param('usuarioId', ParseIntPipe) usuarioId: number
     ) {
-        return this.categoriasService.updateCategoria(categoriaId, dto);
+        return this.categoriasService.updateCategoria(categoriaId, dto, usuarioId);
     }
 
-    @Patch('/update/estado/categoria/:categoriaId/:estadoCategoriaId')
+    @Patch('/update/estado/categoria/:categoriaId/:estadoCategoriaId/:usuarioId')
     @ApiOperation({ summary: 'Cambia el estado de una categoría al estado especificado.' })
     async cambiarEstadoCategoria(
         @Param('categoriaId', ParseIntPipe) categoriaId: number,
-        @Param('estadoCategoriaId', ParseIntPipe) estadoCategoriaId: number
+        @Param('estadoCategoriaId', ParseIntPipe) estadoCategoriaId: number,
+        @Param('usuarioId', ParseIntPipe) usuarioId: number
     ) {
-        return this.categoriasService.updateEstadoCategoria(categoriaId, estadoCategoriaId);
+        return this.categoriasService.updateEstadoCategoria(categoriaId, estadoCategoriaId, usuarioId);
     }
 
 
@@ -317,19 +319,21 @@ export class InventarioController {
         return this.medidorService.createMedidor(dto, idUsuarioCreador);
     }
 
-    @Post('/asignar/medidor')
+    @Post('/asignar/medidor/:usuarioId')
     @ApiOperation({ summary: 'Asigna un medidor a un afiliado específico.' })
     async asignarMedidor(
-        @Body() dto: AsignarMedidorDTO
+        @Body() dto: AsignarMedidorDTO,
+        @Param('usuarioId', ParseIntPipe) usuarioId: number
     ) {
-        return this.medidorService.asignarMedidorAAfiliado(dto);
+        return this.medidorService.asignarMedidorAAfiliado(dto, usuarioId);
     }
 
-    @Patch('/update/estado/medidor/:idMedidor/:nuevoEstadoId')
+    @Patch('/update/estado/medidor/:idMedidor/:nuevoEstadoId/:usuarioId')
     async updateEstadoMedidor(
         @Param('idMedidor', ParseIntPipe) idMedidor: number,
-        @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number
+        @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number,
+        @Param('usuarioId', ParseIntPipe) usuarioId: number
     ) {
-        return this.medidorService.updateEstadoMedidor(idMedidor, nuevoEstadoId);
+        return this.medidorService.updateEstadoMedidor(idMedidor, nuevoEstadoId, usuarioId);
     }
 }

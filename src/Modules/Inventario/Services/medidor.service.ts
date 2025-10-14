@@ -8,6 +8,7 @@ import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { AsignarMedidorDTO } from "../InventarioDTO's/AsignarMedidor.dto";
 import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
+import { AuditoriaService } from "src/Modules/Auditoria/auditoria.service";
 
 @Injectable()
 export class MedidorService {
@@ -28,7 +29,9 @@ export class MedidorService {
         private readonly afiliadoFisicoRepository: Repository<AfiliadoFisico>,
 
         @InjectRepository(AfiliadoJuridico)
-        private readonly afiliadoJuridicoRepository: Repository<AfiliadoJuridico>
+        private readonly afiliadoJuridicoRepository: Repository<AfiliadoJuridico>,
+
+        private readonly auditoriaService: AuditoriaService
     ) { }
 
     async getAllMedidores() {
@@ -359,6 +362,22 @@ export class MedidorService {
 
         const medidorGuardado = await this.medidorRepository.save(medidor);
 
+        // Registrar en auditoría
+        try {
+            await this.auditoriaService.logCreacion(
+                'Medidor',
+                idUsuarioCreador,
+                medidorGuardado.Id_Medidor,
+                {
+                    Id_Medidor: medidorGuardado.Id_Medidor,
+                    Numero_Medidor: medidorGuardado.Numero_Medidor,
+                    Estado_Inicial: 'Disponible'
+                }
+            );
+        } catch (error) {
+            console.error('Error al registrar auditoría de creación de medidor:', error);
+        }
+
         // Recargar el medidor con todas sus relaciones
         const medidorCompleto = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
@@ -382,7 +401,7 @@ export class MedidorService {
         };
     }
 
-    async asignarMedidorAAfiliado(dto: AsignarMedidorDTO) {
+    async asignarMedidorAAfiliado(dto: AsignarMedidorDTO, usuarioId: number) {
         const medidor = await this.medidorRepository.findOne({ where: { Id_Medidor: dto.Id_Medidor }, relations: ['Estado_Medidor'] });
         if (!medidor) { throw new BadRequestException(`Medidor con ID ${dto.Id_Medidor} no encontrado`); }
 
@@ -403,6 +422,30 @@ export class MedidorService {
         medidor.Afiliado = afiliado;
         medidor.Estado_Medidor = estadoInstalado;
         await this.medidorRepository.save(medidor);
+
+        // Registrar en auditoría si se proporciona usuarioId
+        if (usuarioId) {
+            try {
+                await this.auditoriaService.logActualizacion(
+                    'Medidor',
+                    usuarioId,
+                    dto.Id_Medidor,
+                    {
+                        Estado_Anterior: 'Disponible',
+                        Afiliado_Anterior: null
+                    },
+                    {
+                        Estado_Nuevo: 'Instalado',
+                        Afiliado_Asignado: {
+                            Id: afiliado.Id_Afiliado,
+                            Tipo: dto.Id_Tipo_Entidad === 1 ? 'Físico' : 'Jurídico'
+                        }
+                    }
+                );
+            } catch (error) {
+                console.error('Error al registrar auditoría de asignación de medidor:', error);
+            }
+        }
 
         // Obtener el medidor actualizado con todas sus relaciones
         const medidorActualizado = await this.medidorRepository.createQueryBuilder('medidor')
@@ -469,7 +512,7 @@ export class MedidorService {
         };
     }
 
-    async updateEstadoMedidor(Id_Medidor: number, Id_Estado_Medidor: number) {
+    async updateEstadoMedidor(Id_Medidor: number, Id_Estado_Medidor: number, usuarioId: number) {
         const medidor = await this.medidorRepository.findOne({ where: { Id_Medidor }, relations: ['Estado_Medidor'] });
         const nuevoEstado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor } });
 
@@ -481,8 +524,35 @@ export class MedidorService {
             throw new BadRequestException(`Estado con ID ${Id_Estado_Medidor} no encontrado`);
         }
 
+        const estadoAnterior = medidor.Estado_Medidor;
+
         medidor.Estado_Medidor = nuevoEstado;
         await this.medidorRepository.save(medidor);
+
+        // Registrar en auditoría si se proporciona usuarioId
+        if (usuarioId) {
+            try {
+                await this.auditoriaService.logActualizacion(
+                    'Medidor',
+                    usuarioId,
+                    Id_Medidor,
+                    {
+                        Estado_Anterior: {
+                            Id: estadoAnterior.Id_Estado_Medidor,
+                            Nombre: estadoAnterior.Nombre_Estado_Medidor
+                        }
+                    },
+                    {
+                        Estado_Nuevo: {
+                            Id: nuevoEstado.Id_Estado_Medidor,
+                            Nombre: nuevoEstado.Nombre_Estado_Medidor
+                        }
+                    }
+                );
+            } catch (error) {
+                console.error('Error al registrar auditoría de actualización de medidor:', error);
+            }
+        }
         const medidorActualizado = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')

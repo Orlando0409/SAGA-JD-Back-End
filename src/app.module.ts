@@ -60,6 +60,8 @@ import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
 import { SeederModule } from './Config/Seeder.module';
 import { EstadoMedidor } from './Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
 import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity';
+import { Auditoria } from './Modules/Auditoria/AuditoriaEntities/Auditoria.Entities';
+import { AuditoriaModule } from './Modules/Auditoria/auditoria.module';
 
 @Module({
   imports: [
@@ -94,7 +96,8 @@ import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity'
         Reporte, EstadoReporte,
         Sugerencia, EstadoSugerencia,
         Queja, EstadoQueja,
-        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor
+        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
+        Auditoria
         ],
         synchronize: false,
         dropSchema: false,
@@ -104,6 +107,7 @@ import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity'
     AuthModule,
     RolesModule,
     UsuariosModule,
+    AuditoriaModule,
     ProveedorModule,
     InventarioModule,
     FacturaModule,
