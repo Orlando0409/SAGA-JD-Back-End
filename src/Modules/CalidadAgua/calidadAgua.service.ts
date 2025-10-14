@@ -7,6 +7,7 @@ import { UpdateCalidadAguaDto } from "./CalidadAguaDTO's/UpdateCalidadAgua.dto";
 import { Public } from "../auth/Decorator/Public.decorator";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
+import { AuditoriaService } from "../Auditoria/auditoria.service";
 
 @Injectable()
 export class CalidadAguaService
@@ -20,6 +21,8 @@ export class CalidadAguaService
         private readonly usuarioRepository: Repository<Usuario>,
 
         private readonly dropboxFilesService: DropboxFilesService,
+
+        private readonly auditoriaService: AuditoriaService,
     ) {}
 
     @Public()
@@ -86,6 +89,7 @@ export class CalidadAguaService
             Usuario_Creador: usuario
         });
 
+        await this.auditoriaService.createAuditoria('Calidad de Agua', 'Insert', calidadAgua.Id_Calidad_Agua, idUsuarioCreador);
         await this.calidadAguaRepository.save(calidadAgua);
 
         return {

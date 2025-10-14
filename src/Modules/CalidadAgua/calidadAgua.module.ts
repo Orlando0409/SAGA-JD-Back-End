@@ -5,11 +5,13 @@ import { CalidadAguaController } from "./calidadAgua.controller";
 import { CalidadAguaService } from "./calidadAgua.service";
 import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
+import { AuditoriaModule } from '../Auditoria/auditoria.module';
 
 @Module({
-    imports: [ TypeOrmModule.forFeature([CalidadAgua, Usuario]), DropboxModule ],
+    imports: [ TypeOrmModule.forFeature([CalidadAgua, Usuario]), DropboxModule, AuditoriaModule ],
     controllers: [CalidadAguaController],
     providers: [CalidadAguaService],
+    exports: [CalidadAguaService]
 })
 
 export class CalidadAguaModule {}
