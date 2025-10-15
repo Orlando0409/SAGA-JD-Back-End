@@ -9,20 +9,23 @@ export class ReportesEntity {
     @Column()
     name: string;
 
-    @Column({ nullable: true })
-    Papellido?: string;
+    @Column()
+    Papellido: string;
 
-    @Column({ nullable: true })
-    Sapellido?: string;
+    @Column()
+    Sapellido: string;
 
-    @Column({ nullable: true })
-    ubicacion?: string;
+    @Column()
+    ubicacion: string;
 
-    @Column({ nullable: true })
-    descripcion?: string;
+    @Column()
+    descripcion: string;
 
     @Column()
     Fecha_Reporte: Date;
+
+    @Column()
+    Correo: string;
 
     @Column({ type: 'simple-json', nullable: true })
     Adjunto?: string[];

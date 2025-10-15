@@ -5,6 +5,7 @@ import { createEmailDTO } from './DTO/createEmailDTO';
 import { EstadoSolicitudEmailDTO } from './DTO/EstadoSolicitudEmail.dto';
 import { RecoverPasswordMail } from './Template/RecoverPasswordMail';
 import { SolicitudCreadaExitosamenteMail, EstadoSolicitudMail } from './Template/SolicitudMail';
+import { ReporteMail } from './Template/PlantillaReporte';
 
 
 @Injectable()
@@ -111,6 +112,41 @@ export class EmailService {
       console.log('Email de actualización de estado enviado exitosamente');
     } catch (error) {
       console.error('Error al enviar el email de actualización de estado:', error);
+      throw error;
+    }
+  }
+
+  // Enviar email al crear un reporte
+  async enviarEmailReporte(reporteData: {
+    name?: string;
+    Papellido?: string;
+    Sapellido?: string;
+    Correo?: string;
+    ubicacion?: string;
+    descripcion?: string;
+    adjuntos?: string[];
+  }) {
+    try {
+      const to = reporteData.Correo;
+      if (!to) {
+        throw new Error('Correo destinatario no proporcionado');
+      }
+
+      await this.mailService.sendMail({
+        to,
+        subject: 'Confirmación de recepción de tu reporte',
+        html: ReporteMail(reporteData),
+        attachments: [
+          {
+            filename: 'logo.jpeg',
+            path: process.cwd() + '/src/Modules/Emails/Logo/logo.jpeg',
+            cid: 'logo',
+          },
+        ],
+      });
+      console.log('Email de reporte enviado a', to);
+    } catch (error) {
+      console.error('Error al enviar email de reporte:', error);
       throw error;
     }
   }

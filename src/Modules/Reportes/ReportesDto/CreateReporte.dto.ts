@@ -1,4 +1,4 @@
-import { IsDefined, IsString, Matches, MaxLength, IsNotEmpty } from 'class-validator';
+import { IsDefined, IsString, Matches, MaxLength, IsNotEmpty, IsEmail } from 'class-validator';
 
 const NAME_REGEX = /^[A-Za-zÁÉÍÓÚáéíóúÑñ]+$/;
 // Permite nombres compuestos con espacios simples, p.ej. 'Alondra Maria'
@@ -25,6 +25,14 @@ export class CreateReporteDto {
     @Matches(NAME_REGEX, { message: 'El segundo apellido sólo puede contener letras y sin espacios' })
     @MaxLength(20, { message: 'El segundo apellido no puede tener más de 20 caracteres' })
     Sapellido: string;
+
+    @IsDefined({ message: 'El correo es requerido' })
+    @IsString()
+    @IsNotEmpty({ message: 'El correo no puede estar vacío' })
+    @MaxLength(50, { message: 'El correo no puede tener más de 50 caracteres' })
+    @IsEmail({}, { message: 'El correo electrónico debe ser válido' })
+    Correo: string;
+
 
     @IsDefined({ message: 'La ubicación es requerida' })
     @IsString()

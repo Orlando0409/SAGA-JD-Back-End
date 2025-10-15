@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { ReportesEntity } from './ReportesEntity/ReportesEntity';
 import { EstadoReporte } from './ReportesEntity/EstadoReporte';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
+import { EmailService } from 'src/Modules/Emails/email.service';
 
 @Injectable()
 export class ReportesService {
@@ -16,6 +17,7 @@ export class ReportesService {
     private readonly estadoReporteRepository: Repository<EstadoReporte>,
 
     private readonly dropboxFilesService: DropboxFilesService,
+    private readonly emailService: EmailService,
   ) {}
 
   async getAll() {
@@ -60,8 +62,28 @@ export class ReportesService {
       Adjunto: archivosAdjuntos,
       Estado: estado,
     });
+    const saved = await this.reportesRepository.save(reporte);
 
-    return this.reportesRepository.save(reporte);
+    // Intentar enviar correo al usuario con la información del reporte.
+    // No debe bloquear la operación principal si falla el envío.
+    (async () => {
+      try {
+        await this.emailService.enviarEmailReporte({
+          name: dto.name,
+          Papellido: dto.Papellido,
+          Sapellido: dto.Sapellido,
+          Correo: dto.Correo,
+          ubicacion: dto.ubicacion,
+          descripcion: dto.descripcion,
+          adjuntos: archivosAdjuntos,
+        });
+      } catch (err) {
+        const savedId = Array.isArray(saved) ? (saved[0] as any)?.IdReporte : (saved as any)?.IdReporte;
+        this.logger.warn(`No se pudo enviar email de reporte para id ${savedId}: ${err}`);
+      }
+    })();
+
+    return saved;
   }
 
   async remove(id: number) {
