@@ -99,22 +99,24 @@ export class InventarioController {
         return this.materialService.createMaterial(dto, idUsuarioCreador);
     }
 
-    @Put('/update/material/:materialId')
+    @Put('/update/material/:materialId/:usuarioId')
     @ApiOperation({ summary: 'Actualiza un material existente en el inventario.' })
     async updateMaterial(
         @Param('materialId', ParseIntPipe) materialId: number,
+        @Param('usuarioId', ParseIntPipe) usuarioId: number,
         @Body() dto: UpdateMaterialDto
     ) {
-        return this.materialService.updateMaterial(materialId, dto);
+        return this.materialService.updateMaterial(materialId, dto, usuarioId);
     }
 
-    @Patch('/update/estado/material/:materialId/:estadoMaterialId')
+    @Patch('/update/estado/material/:materialId/:estadoMaterialId/:usuarioId')
     @ApiOperation({ summary: 'Cambia el estado de un material. Si el estado es "De baja" (3), actualiza automáticamente la fecha de baja.' })
     async cambiarEstadoMaterial(
         @Param('materialId', ParseIntPipe) materialId: number,
-        @Param('estadoMaterialId', ParseIntPipe) estadoMaterialId: number
+        @Param('estadoMaterialId', ParseIntPipe) estadoMaterialId: number,
+        @Param('usuarioId', ParseIntPipe) usuarioId: number
     ) {
-        return this.materialService.updateEstadoMaterial(materialId, estadoMaterialId);
+        return this.materialService.updateEstadoMaterial(materialId, estadoMaterialId, usuarioId);
     }
 
 
@@ -203,22 +205,24 @@ export class InventarioController {
         return this.unidadesDeMedicionService.createUnidadMedicion(dto, idUsuarioCreador);
     }
 
-    @Put('/update/unidad-medicion/:unidadId')
+    @Put('/update/unidad-medicion/:unidadId/:usuarioId')
     @ApiOperation({ summary: 'Actualiza una unidad de medición existente.' })
     async updateUnidadMedicion(
         @Param('unidadId', ParseIntPipe) unidadId: number,
-        @Body() dto: UpdateUnidadMedicionDto
+        @Body() dto: UpdateUnidadMedicionDto,
+        @Param('usuarioId', ParseIntPipe) usuarioId: number
     ) {
-        return this.unidadesDeMedicionService.updateUnidadMedicion(unidadId, dto);
+        return this.unidadesDeMedicionService.updateUnidadMedicion(unidadId, dto, usuarioId);
     }
 
-    @Patch('/update/estado/unidad-medicion/:unidadId/:estadoUnidadId')
+    @Patch('/update/estado/unidad-medicion/:unidadId/:estadoUnidadId/:usuarioId')
     @ApiOperation({ summary: 'Cambia el estado de una unidad de medición al estado especificado.' })
     async cambiarEstadoUnidadMedicion(
         @Param('unidadId', ParseIntPipe) unidadId: number, 
-        @Param('estadoUnidadId', ParseIntPipe) estadoUnidadId: number
+        @Param('estadoUnidadId', ParseIntPipe) estadoUnidadId: number,
+        @Param('usuarioId', ParseIntPipe) usuarioId: number
     ) {
-        return this.unidadesDeMedicionService.updateEstadoUnidadMedicion(unidadId, estadoUnidadId);
+        return this.unidadesDeMedicionService.updateEstadoUnidadMedicion(unidadId, estadoUnidadId, usuarioId);
     }
 
 

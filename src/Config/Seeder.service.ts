@@ -6,7 +6,6 @@ import { Permiso } from 'src/Modules/Usuarios/UsuarioEntities/Permiso.Entity';
 import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { UsuarioRol } from 'src/Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
 import { EstadoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/EstadoProveedor.Entity';
-import { TipoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/TipoProveedor.Entity';
 import { EstadoProyecto } from 'src/Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 import { EstadoSolicitud } from 'src/Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
 import { EstadoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
@@ -32,8 +31,6 @@ export class SeederService implements OnModuleInit {
         private readonly userRepository: Repository<Usuario>,
         @InjectRepository(EstadoProveedor)
         private readonly estadoProveedorRepo: Repository<EstadoProveedor>,
-        @InjectRepository(TipoProveedor)
-        private readonly tipoProveedorRepository: Repository<TipoProveedor>,
         @InjectRepository(EstadoProyecto)
         private readonly proyectoEstadoRepository: Repository<EstadoProyecto>,
         @InjectRepository(EstadoSolicitud)
@@ -66,7 +63,6 @@ export class SeederService implements OnModuleInit {
         try {
             await this.createInitialData();
             await this.createDefaultEstadosProveedor();
-            await this.createDefaultTiposProveedor();
             await this.createDefaultEstadosProyecto();
             await this.createDefaultEstadosSolicitud();
             await this.createDefaultEstadosReporte();
@@ -153,24 +149,6 @@ export class SeederService implements OnModuleInit {
             if (!existe) {
                 const nuevoEstado = this.afiliadoEstadoRepository.create(estado);
                 await this.afiliadoEstadoRepository.save(nuevoEstado);
-            }
-        }
-    }
-
-    private async createDefaultTiposProveedor() {
-        const tipos = [
-            { Id_Tipo_Proveedor: 1, Tipo_Proveedor: 'Fisico' },
-            { Id_Tipo_Proveedor: 2, Tipo_Proveedor: 'Juridico' }
-        ];
-
-        for (const tipo of tipos) {
-            const existe = await this.tipoProveedorRepository.findOne({
-                where: { Id_Tipo_Proveedor: tipo.Id_Tipo_Proveedor }
-            });
-
-            if (!existe) {
-                const nuevoTipo = this.tipoProveedorRepository.create(tipo);
-                await this.tipoProveedorRepository.save(nuevoTipo);
             }
         }
     }

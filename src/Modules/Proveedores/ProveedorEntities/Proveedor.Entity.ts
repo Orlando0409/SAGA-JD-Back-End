@@ -2,13 +2,16 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, TableInheritance, Be
 import { EstadoProveedor } from "./EstadoProveedor.Entity";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
-import { TipoProveedor } from "./TipoProveedor.Entity";
 import { Material } from "src/Modules/Inventario/InventarioEntities/Material.Entity";
+import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
 
 @Entity("Proveedor")
 export abstract class Proveedor {
     @PrimaryGeneratedColumn()
     Id_Proveedor: number;
+
+    @Column({ type: 'enum', enum: TipoEntidad, nullable: false })
+    Tipo_Entidad: TipoEntidad;
 
     @Column({ nullable: false })
     Nombre_Proveedor: string;
@@ -25,10 +28,6 @@ export abstract class Proveedor {
     @ManyToOne(() => EstadoProveedor, (estadoProveedor) => estadoProveedor.proveedor)
     @JoinColumn({ name: 'Id_Estado_Proveedor' })
     Estado_Proveedor: EstadoProveedor;
-
-    @ManyToOne(() => TipoProveedor, (tipoProveedor) => tipoProveedor.Proveedores)
-    @JoinColumn({ name: 'Id_Tipo_Proveedor' })
-    Tipo_Proveedor: TipoProveedor;
 
     @OneToMany(() => Material, material => material.Proveedor)
     materiales: Material[];
@@ -58,7 +57,11 @@ export class ProveedorFisico extends Proveedor {
     Identificacion: string;
 
     @BeforeInsert()
-    SetDefaultTipoProveedor() { this.Tipo_Proveedor = { Id_Tipo_Proveedor: 1 } as TipoProveedor; }
+    SetDefaultTipoEntidad() {
+        if (!this.Tipo_Entidad) {
+            this.Tipo_Entidad = TipoEntidad.Física;
+        }
+    }
 }
 
 @Entity('Proveedor_Juridico')
@@ -70,5 +73,9 @@ export class ProveedorJuridico extends Proveedor {
     Razon_Social: string;
 
     @BeforeInsert()
-    SetDefaultTipoProveedor() { this.Tipo_Proveedor = { Id_Tipo_Proveedor: 2 } as TipoProveedor; }
+    SetDefaultTipoProveedor() {
+        if (!this.Tipo_Entidad) {
+            this.Tipo_Entidad = TipoEntidad.Jurídica;
+        }
+    }
 }

@@ -297,4 +297,26 @@ export class CategoriasService {
             }
         };
     }
+
+    /**
+     * Formatea la información de una categoría para responses públicos
+     * Solo devuelve información básica y necesaria
+     */
+    async FormatearCategoriaParaResponse(categoria: Categoria): Promise<{
+        Id_Categoria: number;
+        Nombre_Categoria: string;
+        Estado: {
+            Id_Estado_Categoria: number;
+            Nombre_Estado_Categoria: string;
+        };
+    }> {
+        return {
+            Id_Categoria: categoria.Id_Categoria,
+            Nombre_Categoria: categoria.Nombre_Categoria,
+            Estado: {
+                Id_Estado_Categoria: categoria.Estado_Categoria?.Id_Estado_Categoria || 0,
+                Nombre_Estado_Categoria: categoria.Estado_Categoria?.Nombre_Estado_Categoria || 'Sin estado'
+            }
+        };
+    }
 }

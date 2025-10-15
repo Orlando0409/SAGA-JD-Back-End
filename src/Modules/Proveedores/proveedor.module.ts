@@ -4,10 +4,9 @@ import { ProveedorService } from './proveedor.service';
 import { ProveedorController } from './proveedor.controller';
 import { ProveedorFisico, ProveedorJuridico, Proveedor } from './ProveedorEntities/Proveedor.Entity';
 import { EstadoProveedor } from './ProveedorEntities/EstadoProveedor.Entity';
-import { TipoProveedor } from './ProveedorEntities/TipoProveedor.Entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Proveedor, ProveedorFisico, ProveedorJuridico, EstadoProveedor, TipoProveedor])],
+  imports: [TypeOrmModule.forFeature([Proveedor, ProveedorFisico, ProveedorJuridico, EstadoProveedor])],
   providers: [ProveedorService],
   controllers: [ProveedorController],
   exports: [ProveedorService],
