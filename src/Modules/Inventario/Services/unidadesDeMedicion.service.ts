@@ -8,6 +8,8 @@ import { CreateUnidadMedicionDto } from "../InventarioDTO's/CreateUnidadMedicion
 import { UpdateUnidadMedicionDto } from "../InventarioDTO's/UpdateUnidadMedicion.dto";
 import { getUnidadDeMedidaDTO } from "../InventarioDTO's/getUnidadDeMedida.dto";
 import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
+import { AuditoriaService } from 'src/Modules/Auditoria/auditoria.service';
+import { UsuariosService } from 'src/Modules/Usuarios/Services/usuarios.service';
 
 @Injectable()
 export class UnidadesDeMedicionService {
@@ -23,6 +25,10 @@ export class UnidadesDeMedicionService {
 
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
+
+        private readonly auditoriaService: AuditoriaService,
+
+        private readonly usuariosService: UsuariosService
     ) {}
 
     async getAllUnidadesMedicion() {
@@ -32,17 +38,12 @@ export class UnidadesDeMedicionService {
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .getMany();
 
-        return unidades.map(unidad => {
+        return Promise.all(unidades.map(async (unidad) => {
             return {
                 ...unidad,
-                Usuario_Creador: {
-                    Id_Usuario: unidad.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: unidad.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: unidad.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: unidad.Usuario_Creador.Rol?.Nombre_Rol
-                }
+                Usuario_Creador: await this.usuariosService.FormatearUsuarioResponse(unidad.Usuario_Creador)
             };
-        });
+        }));
     }
 
     async getUnidadMedicionSimple(): Promise<getUnidadDeMedidaDTO[]> {
@@ -63,17 +64,12 @@ export class UnidadesDeMedicionService {
             .where('estado.Id_Estado_Unidad_Medicion = :estadoId', { estadoId: 1 })
             .getMany();
 
-        return unidades.map(unidad => {
+        return Promise.all(unidades.map(async (unidad) => {
             return {
                 ...unidad,
-                Usuario_Creador: {
-                    Id_Usuario: unidad.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: unidad.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: unidad.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: unidad.Usuario_Creador.Rol?.Nombre_Rol
-                }
+                Usuario_Creador: await this.usuariosService.FormatearUsuarioResponse(unidad.Usuario_Creador)
             };
-        });
+        }));
     }
 
     async getUnidadesMedicionInactivas() {
@@ -84,17 +80,12 @@ export class UnidadesDeMedicionService {
             .where('estado.Id_Estado_Unidad_Medicion = :estadoId', { estadoId: 2 })
             .getMany();
 
-        return unidades.map(unidad => {
+        return Promise.all(unidades.map(async (unidad) => {
             return {
                 ...unidad,
-                Usuario_Creador: {
-                    Id_Usuario: unidad.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: unidad.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: unidad.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: unidad.Usuario_Creador.Rol?.Nombre_Rol
-                }
+                Usuario_Creador: await this.usuariosService.FormatearUsuarioResponse(unidad.Usuario_Creador)
             };
-        });
+        }));
     }
 
     async createUnidadMedicion(dto: CreateUnidadMedicionDto, idUsuarioCreador: number) {
@@ -121,6 +112,25 @@ export class UnidadesDeMedicionService {
         });
 
         const unidadGuardada = await this.unidadMedicionRepository.save(unidad);
+
+        // Registrar en auditoría
+        try {
+            await this.auditoriaService.logCreacion(
+                'Unidad de Medicion',
+                idUsuarioCreador,
+                unidadGuardada.Id_Unidad_Medicion,
+                {
+                    Id_Unidad_Medicion: unidadGuardada.Id_Unidad_Medicion,
+                    Nombre_Unidad: unidadGuardada.Nombre_Unidad,
+                    Abreviatura: unidadGuardada.Abreviatura,
+                    Descripcion: unidadGuardada.Descripcion,
+                    Estado_Inicial: 'Activo'
+                }
+            );
+        } catch (error) {
+            console.error('Error al registrar auditoría de creación de unidad de medición:', error);
+        }
+
         const unidadCompleta = await this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: unidadGuardada.Id_Unidad_Medicion }, relations: ['Estado_Unidad_Medicion', 'Usuario_Creador', 'Usuario_Creador.Rol'] });
 
         if (!unidadCompleta) {
@@ -129,17 +139,20 @@ export class UnidadesDeMedicionService {
 
         return {
             ...unidadCompleta,
-            Usuario_Creador: {
-                Id_Usuario: unidadCompleta.Usuario_Creador.Id_Usuario,
-                Nombre_Usuario: unidadCompleta.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: unidadCompleta.Usuario_Creador.Id_Rol,
-            }
+            Usuario_Creador: await this.usuariosService.FormatearUsuarioResponse(unidadCompleta.Usuario_Creador)
         }
     }
 
-    async updateUnidadMedicion(Id_Unidad_Medicion: number, dto: UpdateUnidadMedicionDto) {
+    async updateUnidadMedicion(Id_Unidad_Medicion: number, dto: UpdateUnidadMedicionDto, usuarioId?: number) {
         const unidadExistente = await this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: Id_Unidad_Medicion } });
         if (!unidadExistente) { throw new NotFoundException(`Unidad de medición con ID ${Id_Unidad_Medicion} no encontrada`); }
+
+        // Guardar datos anteriores para auditoría
+        const datosAnteriores = {
+            Nombre_Unidad: unidadExistente.Nombre_Unidad,
+            Abreviatura: unidadExistente.Abreviatura,
+            Descripcion: unidadExistente.Descripcion
+        };
 
         // Validar nombre único si se está actualizando
         if (dto.Nombre_Unidad_Medicion && (dto.Nombre_Unidad_Medicion[0].toUpperCase() + dto.Nombre_Unidad_Medicion.slice(1).toLowerCase()) !== unidadExistente.Nombre_Unidad) {
@@ -169,16 +182,55 @@ export class UnidadesDeMedicionService {
             unidadActualizada.Abreviatura = dto.Abreviatura.toLowerCase();
         }
 
-        return this.unidadMedicionRepository.save(unidadActualizada);
+        const unidadGuardada = await this.unidadMedicionRepository.save(unidadActualizada);
+
+        // Registrar en auditoría si se proporciona usuarioId
+        if (usuarioId) {
+            try {
+                await this.auditoriaService.logActualizacion(
+                    'Unidad de Medicion',
+                    usuarioId,
+                    Id_Unidad_Medicion,
+                    datosAnteriores,
+                    {
+                        Nombre_Unidad: unidadGuardada.Nombre_Unidad,
+                        Abreviatura: unidadGuardada.Abreviatura,
+                        Descripcion: unidadGuardada.Descripcion
+                    }
+                );
+            } catch (error) {
+                console.error('Error al registrar auditoría de actualización de unidad de medición:', error);
+            }
+        }
+
+        // Recargar con las relaciones necesarias y formato controlado
+        const unidadCompleta = await this.unidadMedicionRepository.createQueryBuilder('unidad')
+            .leftJoinAndSelect('unidad.Estado_Unidad_Medicion', 'estado')
+            .leftJoinAndSelect('unidad.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('unidad.Id_Unidad_Medicion = :id', { id: Id_Unidad_Medicion })
+            .getOne();
+
+        if (!unidadCompleta) {
+            throw new NotFoundException(`Error al recuperar la unidad de medición actualizada con ID ${Id_Unidad_Medicion}`);
+        }
+
+        return {
+            ...unidadCompleta,
+            Usuario_Creador: await this.usuariosService.FormatearUsuarioResponse(unidadCompleta.Usuario_Creador)
+        };
     }
 
-    async updateEstadoUnidadMedicion(Id_Unidad_Medicion: number, Id_Estado_Unidad_Medicion: number) {
+    async updateEstadoUnidadMedicion(Id_Unidad_Medicion: number, Id_Estado_Unidad_Medicion: number, usuarioId?: number) {
         const unidadExistente = await this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: Id_Unidad_Medicion }, relations: ['Estado_Unidad_Medicion'] });
         if (!unidadExistente) { throw new NotFoundException(`Unidad de medición con ID ${Id_Unidad_Medicion} no encontrada`); }
 
         // Verificar que el nuevo estado existe
         const nuevoEstado = await this.estadoUnidadMedicionRepository.findOne({ where: { Id_Estado_Unidad_Medicion: Id_Estado_Unidad_Medicion } });
         if (!nuevoEstado) { throw new NotFoundException(`Estado con ID ${Id_Estado_Unidad_Medicion} no encontrado en la base de datos`); }
+
+        // Guardar estado anterior para auditoría
+        const estadoAnterior = unidadExistente.Estado_Unidad_Medicion;
 
         // VALIDACIÓN DE NEGOCIO: No permitir desactivar si hay materiales usándola
         if (nuevoEstado.Nombre_Estado_Unidad_Medicion === 'Inactivo') {
@@ -200,6 +252,71 @@ export class UnidadesDeMedicionService {
         // Actualizar el estado de la unidad
         unidadExistente.Estado_Unidad_Medicion = nuevoEstado;
         await this.unidadMedicionRepository.save(unidadExistente);
-        return this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: Id_Unidad_Medicion }, relations: ['Estado_Unidad_Medicion'] });
+
+        // Registrar en auditoría si se proporciona usuarioId
+        if (usuarioId) {
+            try {
+                await this.auditoriaService.logActualizacion(
+                    'Unidad de Medicion',
+                    usuarioId,
+                    Id_Unidad_Medicion,
+                    {
+                        Estado_Anterior: {
+                            Id: estadoAnterior.Id_Estado_Unidad_Medicion,
+                            Nombre: estadoAnterior.Nombre_Estado_Unidad_Medicion
+                        }
+                    },
+                    {
+                        Estado_Nuevo: {
+                            Id: nuevoEstado.Id_Estado_Unidad_Medicion,
+                            Nombre: nuevoEstado.Nombre_Estado_Unidad_Medicion
+                        }
+                    }
+                );
+            } catch (error) {
+                console.error('Error al registrar auditoría de cambio de estado de unidad de medición:', error);
+            }
+        }
+
+        // Recargar con las relaciones necesarias y formato controlado
+        const unidadCompleta = await this.unidadMedicionRepository.createQueryBuilder('unidad')
+            .leftJoinAndSelect('unidad.Estado_Unidad_Medicion', 'estado')
+            .leftJoinAndSelect('unidad.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('unidad.Id_Unidad_Medicion = :id', { id: Id_Unidad_Medicion })
+            .getOne();
+
+        if (!unidadCompleta) {
+            throw new NotFoundException(`Error al recuperar la unidad de medición actualizada con ID ${Id_Unidad_Medicion}`);
+        }
+
+        return {
+            ...unidadCompleta,
+            Usuario_Creador: await this.usuariosService.FormatearUsuarioResponse(unidadCompleta.Usuario_Creador)
+        };
+    }
+
+    /**
+     * Formatea la información de una unidad de medición para responses públicos
+     * Solo devuelve información básica y necesaria
+     */
+    async FormatearUnidadMedicionParaResponse(unidad: UnidadMedicion): Promise<{
+        Id_Unidad_Medicion: number;
+        Nombre_Unidad_Medicion: string;
+        Abreviatura: string;
+        Estado: {
+            Id_Estado_Unidad_Medicion: number;
+            Nombre_Estado_Unidad_Medicion: string;
+        };
+    }> {
+        return {
+            Id_Unidad_Medicion: unidad.Id_Unidad_Medicion,
+            Nombre_Unidad_Medicion: unidad.Nombre_Unidad,
+            Abreviatura: unidad.Abreviatura,
+            Estado: {
+                Id_Estado_Unidad_Medicion: unidad.Estado_Unidad_Medicion?.Id_Estado_Unidad_Medicion || 0,
+                Nombre_Estado_Unidad_Medicion: unidad.Estado_Unidad_Medicion?.Nombre_Estado_Unidad_Medicion || 'Sin estado'
+            }
+        };
     }
 }

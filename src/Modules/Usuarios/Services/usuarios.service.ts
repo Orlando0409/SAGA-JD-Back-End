@@ -186,4 +186,31 @@ export class UsuariosService {
             message: 'El usuario ha sido restaurado correctamente.',
         };
     }
+
+    async FormatearUsuarioResponse(usuario: Usuario): Promise<{
+        Id_Usuario: number;
+        Nombre_Usuario: string;
+        Id_Rol: number;
+        Nombre_Rol: string;
+    }> {
+        // Si la relación Rol no está cargada, cargarla manualmente
+        let nombreRol = 'Sin rol';
+        
+        if (usuario.Rol && usuario.Rol.Nombre_Rol) {
+            nombreRol = usuario.Rol.Nombre_Rol;
+        }
+
+        else if (usuario.Id_Rol && usuario.Id_Rol !== 0) {
+            // Si no está cargada la relación pero tenemos el ID, buscar el rol
+            const rol = await this.rolRepository.findOne({ where: { Id_Rol: usuario.Id_Rol } });
+            nombreRol = rol ? rol.Nombre_Rol : 'Rol no encontrado';
+        }
+
+        return {
+            Id_Usuario: usuario.Id_Usuario,
+            Nombre_Usuario: usuario.Nombre_Usuario,
+            Id_Rol: usuario.Id_Rol,
+            Nombre_Rol: nombreRol
+        };
+    }
 }

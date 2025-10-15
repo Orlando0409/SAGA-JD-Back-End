@@ -53,7 +53,6 @@ import { EstadoUnidadMedicion } from './Modules/Inventario/InventarioEntities/Es
 import { EstadoCategoria } from './Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
 import { MovimientoInventario } from './Modules/Inventario/InventarioEntities/Movimiento.Entity';
-import { TipoProveedor } from './Modules/Proveedores/ProveedorEntities/TipoProveedor.Entity';
 import { QuejasModule } from './Modules/Quejas/quejas.module';
 import { Queja } from './Modules/Quejas/QuejaEntities/Queja.Entity';
 import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
@@ -89,7 +88,7 @@ import { AuditoriaModule } from './Modules/Auditoria/auditoria.module';
         SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudAsociadoFisica,
         SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
         Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
-        Proveedor, EstadoProveedor, TipoProveedor, ProveedorFisico, ProveedorJuridico,
+        Proveedor, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
         Proyecto, EstadoProyecto,
         CalidadAgua,
         Acta, ArchivoActa,

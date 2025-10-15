@@ -10,5 +10,6 @@ import { Permiso } from '../UsuarioEntities/Permiso.Entity';
   imports: [TypeOrmModule.forFeature([Usuario, UsuarioRol, Permiso])],
   controllers: [ UsuariosController ],
   providers: [UsuariosService],
+  exports: [UsuariosService],
 })
 export class UsuariosModule {}
