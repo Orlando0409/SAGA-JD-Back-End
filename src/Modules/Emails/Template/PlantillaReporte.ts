@@ -5,40 +5,43 @@ export function ReporteMail(data: {
   Correo?: string;
   ubicacion?: string;
   descripcion?: string;
-  adjuntos?: string[]; // URLs
 }) {
   const fullName = [data.name, data.Papellido, data.Sapellido].filter(Boolean).join(' ');
 
-  const adjuntosHtml = (data.adjuntos || []).map((url) => {
-    // Si el adjunto es una imagen (simple heurística), mostrarla inline
-    const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)(\?.*)?$/i.test(url);
-    if (isImage) {
-      return `<div style="margin-bottom:12px;"><img src="${url}" alt="Adjunto" style="max-width:420px; height:auto; display:block; border-radius:6px;"/></div>`;
-    }
-    return `<div style="margin-bottom:6px;"><a href="${url}" target="_blank">Ver adjunto</a></div>`;
-  }).join('');
-
   return `
-  <div style="font-family:Arial,Helvetica,sans-serif;color:#222;line-height:1.4">
-    <div style="padding:20px;background:#f6f6f6;border-radius:8px;">
-      <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;">
-        <img src="cid:logo" alt="logo" style="width:72px;height:72px;border-radius:8px;object-fit:cover;"/>
-        <div>
-          <h2 style="margin:0;font-size:18px;color:#1a1a1a;">Nuevo reporte recibido</h2>
-          <div style="color:#666;font-size:13px;">Gracias por reportar. Se ha recibido la siguiente información:</div>
-        </div>
+  <div style="font-family: 'Helvetica', Arial, sans-serif; background-color: #f4f6f8; padding: 40px; text-align: center;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+      <div style="margin-bottom: 25px;">
+        <img  src="cid:logo" alt="Logo ASADA Juan Díaz" 
+             style="
+               width: 100px; 
+               height: 100px; 
+               border-radius: 50%; 
+               object-fit: cover;
+               box-shadow: 0 2px 8px rgba(0,123,255,0.2);
+               margin-bottom: 15px;
+             " />
+        <h1 style="color: #007bff; margin: 0; font-size: 24px; font-weight: bold;">ASADA Juan Díaz</h1>
       </div>
 
-      <div style="background:#fff;padding:14px;border-radius:8px;border:1px solid #e9e9e9">
-        <p style="margin:6px 0"><strong>Nombre:</strong> ${fullName || 'N/A'}</p>
+      <h2 style="color: #333333; margin-bottom: 20px;">📩 Confirmación de reporte recibido</h2>
+
+      <p style="color: #555555; font-size: 16px; line-height: 1.5; text-align:left;">
+        Hola <strong>${fullName || 'Usuario'}</strong>, hemos recibido tu reporte. A continuación encontrarás un resumen y el adjunto en formato PDF.
+      </p>
+
+      <div style="text-align:left; background:#f9fbff; padding:12px; border-radius:8px; border:1px solid #eef6ff;">
         <p style="margin:6px 0"><strong>Correo:</strong> ${data.Correo || 'N/A'}</p>
         <p style="margin:6px 0"><strong>Ubicación:</strong> ${data.ubicacion || 'N/A'}</p>
         <p style="margin:6px 0"><strong>Descripción:</strong><br/>${data.descripcion || 'N/A'}</p>
-
-        ${adjuntosHtml || ''}
       </div>
 
-      <p style="color:#888;font-size:12px;margin-top:12px">Si no solicitaste este reporte, ignora este mensaje.</p>
+      <p style="color: #999999; font-size: 14px; line-height: 1.5; margin-top:18px;">Se ha adjuntado un archivo PDF con la imagen enviada y los detalles del reporte.</p>
+
+      <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+
+      <p style="color: #aaaaaa; font-size: 12px;">ASADA Juan Díaz <br/>© ${new Date().getFullYear()} Todos los derechos reservados.</p>
     </div>
-  </div>`;
+  </div>
+  `;
 }
