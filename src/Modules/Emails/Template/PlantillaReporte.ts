@@ -27,7 +27,7 @@ export function ReporteMail(data: {
       <h2 style="color: #333333; margin-bottom: 20px;">📩 Confirmación de reporte recibido</h2>
 
       <p style="color: #555555; font-size: 16px; line-height: 1.5; text-align:left;">
-        Hola <strong>${fullName || 'Usuario'}</strong>, hemos recibido tu reporte. A continuación encontrarás un resumen y el adjunto en formato PDF.
+        Hola <strong>${fullName || 'Usuario'}</strong>, hemos recibido tu reporte. A continuación encontrarás un resumen de tu reporte.
       </p>
 
       <div style="text-align:left; background:#f9fbff; padding:12px; border-radius:8px; border:1px solid #eef6ff;">
@@ -35,9 +35,6 @@ export function ReporteMail(data: {
         <p style="margin:6px 0"><strong>Ubicación:</strong> ${data.ubicacion || 'N/A'}</p>
         <p style="margin:6px 0"><strong>Descripción:</strong><br/>${data.descripcion || 'N/A'}</p>
       </div>
-
-      <p style="color: #999999; font-size: 14px; line-height: 1.5; margin-top:18px;">Se ha adjuntado un archivo PDF con la imagen enviada y los detalles del reporte.</p>
-
       <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
 
       <p style="color: #aaaaaa; font-size: 12px;">ASADA Juan Díaz <br/>© ${new Date().getFullYear()} Todos los derechos reservados.</p>

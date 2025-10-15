@@ -6,7 +6,6 @@ import { EstadoSolicitudEmailDTO } from './DTO/EstadoSolicitudEmail.dto';
 import { RecoverPasswordMail } from './Template/RecoverPasswordMail';
 import { SolicitudCreadaExitosamenteMail, EstadoSolicitudMail } from './Template/SolicitudMail';
 import { ReporteMail } from './Template/PlantillaReporte';
-import { generarReportePDF } from './Template/ReportePDF';
 
 
 @Injectable()
@@ -132,21 +131,6 @@ export class EmailService {
       if (!to) {
         throw new Error('Correo destinatario no proporcionado');
       }
-      // Generar PDF en memoria (si hay adjuntos, tomar la primera imagen)
-      let pdfBuffer: Buffer | undefined;
-      const imagenUrl = Array.isArray(reporteData.adjuntos) && reporteData.adjuntos.length > 0 ? reporteData.adjuntos[0] : undefined;
-      try {
-        pdfBuffer = await generarReportePDF({
-          fullName: [reporteData.name, reporteData.Papellido, reporteData.Sapellido].filter(Boolean).join(' '),
-          correo: reporteData.Correo,
-          ubicacion: reporteData.ubicacion,
-          descripcion: reporteData.descripcion,
-          imagenUrl,
-        });
-      } catch (pdfErr) {
-        console.error('Error generando PDF del reporte:', pdfErr);
-      }
-
       const attachments: any[] = [
         {
           filename: 'logo.jpeg',
@@ -154,13 +138,6 @@ export class EmailService {
           cid: 'logo',
         },
       ];
-
-      if (pdfBuffer) {
-        attachments.push({
-          filename: 'Reporte.pdf',
-          content: pdfBuffer,
-        });
-      }
 
       await this.mailService.sendMail({
         to,
