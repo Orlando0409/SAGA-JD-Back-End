@@ -101,11 +101,11 @@ export class ProveedorService {
   }
 
     findAllFisico(): Promise<ProveedorFisico[]> {
-      return this.fisicoRepo.find({ relations: ['Estado_Proveedor', 'Tipo_Entidad'] });
+      return this.fisicoRepo.find({ relations: ['Estado_Proveedor'] });
     }
 
     findAllJuridico(): Promise<ProveedorJuridico[]> {
-      return this.juridicoRepo.find({ relations: ['Estado_Proveedor', 'Tipo_Entidad'] });
+      return this.juridicoRepo.find({ relations: ['Estado_Proveedor'] });
     }
 
     async findOneFisico(id: number): Promise<ProveedorFisico> {
