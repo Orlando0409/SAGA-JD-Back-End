@@ -11,12 +11,11 @@ export interface SwaggerCustomOptions {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  // Configurar cookie parser
   app.use(cookieParser());
 
   // Configurar CORS correctamente para cookies
   app.enableCors({
-    origin: process.env.FRONTEND_URL?.split(','), // URLs del frontend
+    origin: [process.env.FRONTEND_URL_ADMIN, process.env.FRONTEND_URL_INFO], // URLs del frontend
     credentials: true, //  IMPORTANTE: Permitir cookies
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'cookie']
@@ -24,7 +23,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({
     transform: true,
-    whitelist: true, 
+    whitelist: true,
     forbidNonWhitelisted: true,
     forbidUnknownValues: true,
     transformOptions: {
