@@ -15,10 +15,10 @@ export class Auditoria {
     @Column({ nullable: false })
     Id_Registro: number
 
-    @Column({ type: 'text', nullable: true })
+    @Column({ type: 'mediumtext', nullable: true })
     Datos_Anteriores: string; // JSON string con los datos antes del cambio
 
-    @Column({ type: 'text', nullable: false })
+    @Column({ type: 'mediumtext', nullable: false })
     Datos_Nuevos: string; // JSON string con los datos después del cambio
 
     @CreateDateColumn( {type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
