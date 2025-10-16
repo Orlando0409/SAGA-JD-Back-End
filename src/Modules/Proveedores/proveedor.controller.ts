@@ -3,11 +3,16 @@ import { ProveedorService } from './proveedor.service';
 import { CreateProveedorFisicoDto, CreateProveedorJuridicoDto } from './ProveedoresDTOs/CreateProveedor.dto';
 import { UpdateProveedorFisicoDto, UpdateProveedorJuridicoDto } from './ProveedoresDTOs/UpdateProveedor.dto';
 import { UpdateEstadoProveedorDto } from './ProveedoresDTOs/UpdateEstadoProveedor.dto';
-import { ProveedorFisico, ProveedorJuridico } from './ProveedorEntities/Proveedor.Entity';
+import { Proveedor, ProveedorFisico, ProveedorJuridico } from './ProveedorEntities/Proveedor.Entity';
 
 @Controller('Proveedores')
 export class ProveedorController {
   constructor(private readonly proveedorService: ProveedorService) {}
+
+  @Get('All')
+  findAll(): Promise<Proveedor[]> {
+    return this.proveedorService.findAll();
+  }
 
   @Post('fisico/create')
   createFisico(@Body() dto: CreateProveedorFisicoDto): Promise<ProveedorFisico> {
