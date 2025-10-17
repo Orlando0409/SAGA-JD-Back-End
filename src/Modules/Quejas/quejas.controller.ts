@@ -3,9 +3,9 @@ import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { QuejasService } from './quejas.service';
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
-import { CreateQuejaDto } from './QuejaDTO\'s/CreateQueja.dto';
-import { ResponderQuejaDto } from './QuejaDTO\'s/ResponderQueja.dto';
-import { UpdateQuejaEstadoDto } from './QuejaDTO\'s/UpdateQuejaEstado.dto';
+import { CreateQuejaDto } from './Dto/CreateQueja.dto';
+import { ResponderQuejaDto } from './Dto/ResponderQueja.dto';
+import { UpdateQuejaEstadoDto } from './Dto/UpdateQuejaEstado.dto';
 
 @Controller('quejas')
 export class QuejasController {

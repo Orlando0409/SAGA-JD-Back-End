@@ -16,8 +16,8 @@ import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/
 import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
 import { EstadoReporte } from 'src/Modules/Reportes/ReporteEntities/EstadoReporte';
-import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia';
-import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja';
+import { EstadoSugerencia } from 'src/Modules/Sugerencias/Entity/EstadoSugerencia';
+import { EstadoQueja } from 'src/Modules/Quejas/Entity/EstadoQueja';
 import { EstadoMedidor } from 'src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
 
 @Injectable()

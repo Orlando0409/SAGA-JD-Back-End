@@ -3,9 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
-import { CreateSugerenciaDto } from './SugerenciaDTO\'S/CreateSugerencia.dto';
-import { Sugerencia } from './SugerenciaEntities/Sugerencia.Entity';
-import { EstadoSugerencia } from './SugerenciaEntities/EstadoSugerencia';
+import { CreateSugerenciaDto } from './Dto/CreateSugerencia.dto';
+import { Sugerencia } from './Entity/Sugerencia.Entity';
+import { EstadoSugerencia } from './Entity/EstadoSugerencia';
 
 
 @Injectable()

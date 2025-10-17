@@ -5,7 +5,7 @@ import { QuejasService } from './quejas.service';
 import { Queja } from './Entity/QuejasEntity';
 import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
 import { EmailModule } from '../Emails/email.module';
-import { EstadoQueja } from './QuejaEntities/EstadoQueja';
+import { EstadoQueja } from './Entity/EstadoQueja';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Queja, EstadoQueja]), DropboxModule, EmailModule],

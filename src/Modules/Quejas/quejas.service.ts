@@ -4,9 +4,9 @@ import { Repository } from 'typeorm';
 import { Queja } from './Entity/QuejasEntity';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
-import { CreateQuejaDto } from './QuejaDTO\'s/CreateQueja.dto';
-import { ResponderQuejaDto } from './QuejaDTO\'s/ResponderQueja.dto';
-import { EstadoQueja } from './QuejaEntities/EstadoQueja';
+import { CreateQuejaDto } from './Dto/CreateQueja.dto';
+import { ResponderQuejaDto } from './Dto/ResponderQueja.dto';
+import { EstadoQueja } from './Entity/EstadoQueja';
 
 interface QuejaFiles {
   Adjunto?: Express.Multer.File[];

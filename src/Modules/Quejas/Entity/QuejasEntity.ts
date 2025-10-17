@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { EstadoQueja } from '../QuejaEntities/EstadoQueja';
+import { EstadoQueja } from './EstadoQueja';
 
 
 @Entity('quejas')
