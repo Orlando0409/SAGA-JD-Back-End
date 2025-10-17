@@ -50,16 +50,12 @@ export class ActasService {
         const actaExistente = await this.actaRepository.findOne({ where: { Id_Acta: id } });
         if (!actaExistente) { throw new BadRequestException('El acta que intenta modificar no existe.'); }
 
-        // Normalizar datos antes de procesar
-        if (dto.Titulo) {
-            dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
-        }
-
         if (dto.Descripcion) {
             dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
         }
 
         if (dto.Titulo) {
+            dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
             const actaConMismoTitulo = await this.actaRepository.findOne({ where: { Titulo: dto.Titulo } });
             if (actaConMismoTitulo && actaConMismoTitulo.Id_Acta !== id) {
                 throw new BadRequestException(`Ya existe un acta con el título "${dto.Titulo}".`);

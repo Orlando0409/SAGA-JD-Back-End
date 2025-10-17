@@ -15,18 +15,18 @@ export class DropboxFilesService {
 
   private async initializeDropbox() {
     this.accessToken = await this.dropboxAuthService.getAccessToken();
-    
+
     if (!this.accessToken) {
       throw new Error('Token de acceso de Dropbox no disponible');
     }
-    
+
     this.dbx = new Dropbox({ accessToken: this.accessToken });
   }
 
   async getPublicUrl(path: string): Promise<string> {
     const link = await this.dbx.sharingCreateSharedLinkWithSettings({ path });
     return link.result.url.replace('?dl=0', '?raw=1');
-}
+  }
 
   // Método para obtener el tipo de archivo
   private getFileType(filename: string): string {
