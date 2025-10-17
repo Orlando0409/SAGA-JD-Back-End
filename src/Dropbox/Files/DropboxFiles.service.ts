@@ -80,7 +80,7 @@ export class DropboxFilesService {
     const dbx = new Dropbox({ accessToken });
 
     if (!accessToken) {
-      throw new Error('Dropbox access token is not available');
+      throw new Error('Token de acceso de Dropbox no disponible');
     }
 
     try {
