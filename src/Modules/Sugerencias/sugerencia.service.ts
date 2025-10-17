@@ -1,22 +1,22 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Sugerencia } from './SugerenciaEntities/Sugerencia.Entity';
-import { EstadoSugerencia } from './SugerenciaEntities/EstadoSugerencia.Entity';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
-import { CreateSugerenciaDto } from './Dto/CreateSugerencia.dto';
+import { CreateSugerenciaDto } from './SugerenciaDTO\'S/CreateSugerencia.dto';
+import { Estado_Sugerencia } from './SugerenciaEntities/EstadoSugerencia';
+import { SugerenciaEntity } from './SugerenciaEntities/Sugerencia.Entity';
 
 @Injectable()
 export class SugerenciaService {
   private readonly logger = new Logger(SugerenciaService.name);
   
   constructor(
-    @InjectRepository(Sugerencia)
-    private readonly sugerenciaRepository: Repository<Sugerencia>,
+    @InjectRepository(SugerenciaEntity)
+    private readonly sugerenciaRepository: Repository<SugerenciaEntity>,
 
-    @InjectRepository(EstadoSugerencia)
-    private readonly estadoRepository: Repository<EstadoSugerencia>,
+    @InjectRepository(Estado_Sugerencia)
+    private readonly estadoRepository: Repository<Estado_Sugerencia>,
 
     private readonly dropboxFilesService: DropboxFilesService,
     private readonly emailService: EmailService,
@@ -81,7 +81,7 @@ export class SugerenciaService {
     const repo = await this.sugerenciaRepository.findOne({ where: { Id_Sugerencia: id }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Sugerencia con id ${id} no encontrada`);
 
-    const nuevoEstado = await this.estadoRepository.findOne({ where: { Id_Estado_Sugerencia: nuevoEstadoId } });
+    const nuevoEstado = await this.estadoRepository.findOne({ where: { Id_EstadoSugerencia: nuevoEstadoId } });
     if (!nuevoEstado) throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);
 
     repo.Estado = nuevoEstado;
@@ -95,8 +95,8 @@ export class SugerenciaService {
     });
     if (!repo) throw new BadRequestException(`Sugerencia con id ${id} no encontrada`);
 
-    repo.Respuesta_Sugerencia = respuesta;
-    const estadoContestada = await this.estadoRepository.findOne({ where: { Id_Estado_Sugerencia: 2 } });
+    repo.RespuestasSugerencia = respuesta;
+    const estadoContestada = await this.estadoRepository.findOne({ where: { Id_EstadoSugerencia: 2 } });
     if (!estadoContestada) throw new BadRequestException('Estado contestada no encontrado');
 
     repo.Estado = estadoContestada;

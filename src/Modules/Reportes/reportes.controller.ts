@@ -1,16 +1,14 @@
 import { Body, Controller, Delete, Get, Param, Post, UploadedFiles, UseInterceptors, Patch, BadRequestException } from '@nestjs/common';
-import { CreateReporteDto } from './ReportesDto/CreateReporte.dto';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ReportesService } from './reportes.service';
 import { CreateReporteDto } from './ReporteDTO\'s/CreateReporte.dto';
 import { UpdateReporteEstadoDto } from './ReporteDTO\'s/UpdateReporteEstado.dto';
-import { ResponderReporteDto } from './ReporteDTO\'s/ResponderReporte.dto';
 import { Public } from '../auth/Decorator/Public.decorator';
 
 @Controller('reportes')
 export class ReportesController {
-  constructor(private readonly reportesService: ReportesService) { }
+  constructor(private readonly reportesService: ReportesService) {}
 
   @Get()
   getAll() {
@@ -21,6 +19,7 @@ export class ReportesController {
   getOne(@Param('id', NumericParamPipe) id: number) {
     return this.reportesService.getOne(id);
   }
+
   @Public()
   @Post()
   @UseInterceptors(FileFieldsInterceptor([

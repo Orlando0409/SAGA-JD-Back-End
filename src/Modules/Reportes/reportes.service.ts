@@ -1,19 +1,20 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Reporte } from './ReporteEntities/Reporte.Entity';
-import { EstadoReporte } from './ReporteEntities/EstadoReporte.Entity';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
-import { CreateReporteDto } from './ReportesDto/CreateReporte.dto';
+import { CreateReporteDto } from './ReporteDTO\'s/CreateReporte.dto';
+import { EstadoReporte } from './ReporteEntities/EstadoReporte';
+import { ReportesEntity } from './ReporteEntities/Reportes.Entity';
+
 
 @Injectable()
 export class ReportesService {
   private readonly logger = new Logger(ReportesService.name);
   
   constructor(
-    @InjectRepository(Reporte)
-    private readonly reportesRepository: Repository<Reporte>,
+    @InjectRepository(ReportesEntity)
+    private readonly reportesRepository: Repository<ReportesEntity>,
 
     @InjectRepository(EstadoReporte)
     private readonly estadoReporteRepository: Repository<EstadoReporte>,

@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ReportesController } from './reportes.controller';
 import { ReportesService } from './reportes.service';
-import { ReportesEntity } from './ReportesEntity/ReportesEntity';
-import { EstadoReporte } from './ReportesEntity/EstadoReporte';
 import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
 import { EmailModule } from '../Emails/email.module';
+import { ReportesEntity } from './ReporteEntities/Reportes.Entity';
+import { EstadoReporte } from './ReporteEntities/EstadoReporte';
 
 @Module({
   imports: [

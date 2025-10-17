@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SugerenciaController } from './sugerencia.controller';
 import { SugerenciaService } from './sugerencia.service';
-import { Sugerencia } from './SugerenciaEntities/Sugerencia.Entity';
-import { EstadoSugerencia } from './SugerenciaEntities/EstadoSugerencia.Entity';
 import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
 import { EmailModule } from '../Emails/email.module';
+import { SugerenciaEntity } from './SugerenciaEntities/Sugerencia.Entity';
+import { Estado_Sugerencia } from './SugerenciaEntities/EstadoSugerencia';
 
 @Module({
   imports: [

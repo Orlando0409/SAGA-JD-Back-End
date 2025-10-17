@@ -2,10 +2,8 @@ import { Body, Controller, Delete, Get, Param, Post, Patch, UploadedFiles, UseIn
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { SugerenciaService } from './sugerencia.service';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
-import { UpdateSugerenciaEstadoDto } from './SugerenciaDTO\'S/UpdateSugerenciaEstado.dto';
 import { CreateSugerenciaDto } from './SugerenciaDTO\'S/CreateSugerencia.dto';
-import { Public } from '../auth/Decorator/Public.decorator';
-
+import { UpdateSugerenciaEstadoDto } from './SugerenciaDTO\'S/UpdateSugerenciaEstado.dto';
 @Controller('sugerencias')
 export class SugerenciaController {
   constructor(private readonly sugerenciaService: SugerenciaService) {}
@@ -20,7 +18,6 @@ export class SugerenciaController {
     return this.sugerenciaService.getOne(id);
   }
 
-  @Public()
   @Post()
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'Adjunto', maxCount: 10 },
@@ -48,7 +45,7 @@ export class SugerenciaController {
     let respuesta = respuestaField;
     if (!respuesta) {
       if (rawBody && typeof rawBody === 'object') {
-        respuesta = (rawBody as any).respuesta ?? (rawBody as any).Respuesta ?? (rawBody as any).respuesta;
+        respuesta = (rawBody).respuesta ?? (rawBody).Respuesta ?? (rawBody).respuesta;
       } else if (typeof rawBody === 'string') {
         respuesta = rawBody;
       }

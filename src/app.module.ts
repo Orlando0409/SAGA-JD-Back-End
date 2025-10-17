@@ -22,11 +22,11 @@ import { EstadoProyecto } from './Modules/Proyectos/ProyectoEntities/EstadoProye
 import { CalidadAguaModule } from './Modules/CalidadAgua/calidadAgua.module';
 import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity';
 import { ReportesModule } from './Modules/Reportes/reportes.module';
-import { Reporte } from './Modules/Reportes/ReporteEntities/Reporte.Entity';
-import { EstadoReporte } from './Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
+import { Reporte } from './Modules/Reportes/ReporteEntities/Reportes.Entity';
+import { EstadoReporte } from './Modules/Reportes/ReporteEntities/EstadoReporte';
 import { SugerenciaModule } from './Modules/Sugerencias/sugerencia.module';
 import { Sugerencia } from './Modules/Sugerencias/SugerenciaEntities/Sugerencia.Entity';
-import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
+import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia';
 import { EstadoAfiliado } from './Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica, SolicitudFisica, SolicitudJuridica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { SolicitudAsociadoFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAsociado.module';
@@ -55,7 +55,7 @@ import { Proveedor, ProveedorFisico, ProveedorJuridico } from './Modules/Proveed
 import { MovimientoInventario } from './Modules/Inventario/InventarioEntities/Movimiento.Entity';
 import { QuejasModule } from './Modules/Quejas/quejas.module';
 import { Queja } from './Modules/Quejas/QuejaEntities/Queja.Entity';
-import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
+import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja';
 import { SeederModule } from './Config/Seeder.module';
 import { EstadoMedidor } from './Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
 import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity';
