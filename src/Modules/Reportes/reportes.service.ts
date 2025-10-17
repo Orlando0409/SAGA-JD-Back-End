@@ -138,6 +138,25 @@ export class ReportesService {
     if (!estadoContestada) throw new BadRequestException('Estado contestada (2) no encontrado');
 
     repo.Estado = estadoContestada;
-    return this.reportesRepository.save(repo);
+    const saved = await this.reportesRepository.save(repo);
+
+    // Enviar correo al usuario con la respuesta del administrador (no bloqueante)
+    (async () => {
+      try {
+        await this.emailService.enviarEmailRespuestaReporte({
+          name: saved.name,
+          Papellido: saved.Papellido,
+          Sapellido: saved.Sapellido,
+          Correo: saved.Correo,
+          ubicacion: saved.ubicacion,
+          descripcion: saved.descripcion,
+          respuesta: respuesta,
+        });
+      } catch (err) {
+        this.logger.warn(`No se pudo enviar email de respuesta para reporte ${saved.IdReporte}: ${err}`);
+      }
+    })();
+
+    return saved;
   }
 }

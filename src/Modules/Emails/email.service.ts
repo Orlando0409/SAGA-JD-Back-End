@@ -6,6 +6,7 @@ import { EstadoSolicitudEmailDTO } from './DTO/EstadoSolicitudEmail.dto';
 import { RecoverPasswordMail } from './Template/RecoverPasswordMail';
 import { SolicitudCreadaExitosamenteMail, EstadoSolicitudMail } from './Template/SolicitudMail';
 import { ReporteMail } from './Template/PlantillaReporte';
+import { ReporteRespondidoMail } from './Template/ReporteRespondidoMail';
 
 
 @Injectable()
@@ -14,6 +15,41 @@ export class EmailService {
     private readonly mailService: MailerService,
     private readonly configService: ConfigService,
   ) {}
+  // Enviar email cuando el admin responde al reporte
+  async enviarEmailRespuestaReporte(reporteData: {
+    name?: string;
+    Papellido?: string;
+    Sapellido?: string;
+    Correo?: string;
+    ubicacion?: string;
+    descripcion?: string;
+    respuesta?: string;
+  }) {
+    try {
+      const to = reporteData.Correo;
+      if (!to) {
+        throw new Error('Correo destinatario no proporcionado');
+      }
+      const attachments: any[] = [
+        {
+          filename: 'logo.jpeg',
+          path: process.cwd() + '/src/Modules/Emails/Logo/logo.jpeg',
+          cid: 'logo',
+        },
+      ];
+
+      await this.mailService.sendMail({
+        to,
+        subject: 'Respuesta a tu reporte',
+        html: ReporteRespondidoMail(reporteData),
+        attachments,
+      });
+      console.log('Email de respuesta de reporte enviado a', to);
+    } catch (error) {
+      console.error('Error al enviar email de respuesta de reporte:', error);
+      throw error;
+    }
+  }
 
   async sendRecoverPasswordMail(createEmailDTO: createEmailDTO) {
     try {
