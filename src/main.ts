@@ -62,4 +62,8 @@ bootstrap();
 
 console.log('Entorno actual:', process.env.NODE_ENV);
 console.log('Base de datos:', process.env.DB_DATABASE);
-console.log('URL de frontend:', process.env.FRONTEND_URL);
+if (process.env.NODE_ENV === 'development') {
+  console.log('URL de frontend:', process.env.FRONTEND_URL_INFO);
+} else {
+  console.log('URL de frontend:', process.env.FRONTEND_URL_INFO_PROD);
+}

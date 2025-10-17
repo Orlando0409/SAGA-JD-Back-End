@@ -5,12 +5,16 @@ import { Repository } from "typeorm";
 import { CreateActaDto } from "./ActaDTO's/CreateActa.dto";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { UpdateActaDto } from "./ActaDTO's/UpdateActa.dto";
+import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Injectable()
 export class ActasService {
     constructor(
         @InjectRepository(Acta)
         private readonly actaRepository: Repository<Acta>,
+
+        @InjectRepository(Usuario)
+        private readonly usuarioRepository: Repository<Usuario>,
 
         private readonly dropboxFilesService: DropboxFilesService,
     ) {}
@@ -19,16 +23,17 @@ export class ActasService {
         return this.actaRepository.find();
     }
 
-    async createActa(dto: CreateActaDto, files: Express.Multer.File[]) {
+    async createActa(dto: CreateActaDto, idUsuarioCreador: number, files: Express.Multer.File[]) {
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador } });
+        if (!usuario) { throw new BadRequestException('El usuario creador no existe.'); }
+
         // Normalizar título antes de procesar
         dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
         dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
 
-        const TituloToUpperCase = dto.Titulo.toUpperCase();
-
         const ArchivosSubidos = await Promise.all(
             files.map(async (file) => {
-                const uploadedFile = await this.dropboxFilesService.uploadFile(file, 'Actas', TituloToUpperCase)
+                const uploadedFile = await this.dropboxFilesService.uploadFile(file, 'Actas', dto.Titulo)
                 return { Url_Archivo: uploadedFile.url };
             })
         );
@@ -43,29 +48,26 @@ export class ActasService {
 
     async UpdateActa(id: number, dto: UpdateActaDto, files: Express.Multer.File[]) {
         const actaExistente = await this.actaRepository.findOne({ where: { Id_Acta: id } });
-        if (!actaExistente) {
-            throw new BadRequestException('El acta que intenta modificar no existe.');
-        }
+        if (!actaExistente) { throw new BadRequestException('El acta que intenta modificar no existe.'); }
 
         // Normalizar datos antes de procesar
         if (dto.Titulo) {
             dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
         }
-        
+
         if (dto.Descripcion) {
             dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
         }
-        
+
         if (dto.Titulo) {
-            const TituloToUpperCase = dto.Titulo.toUpperCase();
-            const actaConMismoTitulo = await this.actaRepository.findOne({ where: { Titulo: TituloToUpperCase } });
+            const actaConMismoTitulo = await this.actaRepository.findOne({ where: { Titulo: dto.Titulo } });
             if (actaConMismoTitulo && actaConMismoTitulo.Id_Acta !== id) {
-                throw new BadRequestException(`Ya existe un acta con el título "${TituloToUpperCase}".`);
+                throw new BadRequestException(`Ya existe un acta con el título "${dto.Titulo}".`);
             }
 
             const ArchivosSubidos = await Promise.all(
                 files.map(async (file) => {
-                    const uploadedFile = await this.dropboxFilesService.uploadFile(file, 'Actas', TituloToUpperCase)
+                    const uploadedFile = await this.dropboxFilesService.uploadFile(file, 'Actas', dto.Titulo)
                     return { Url_Archivo: uploadedFile.url };
                 })
             );
@@ -82,10 +84,9 @@ export class ActasService {
 
     async deleteActa(id: number) {
         const actaExistente = await this.actaRepository.findOne({ where: { Id_Acta: id } });
-        if (!actaExistente) {
-            throw new BadRequestException(`El acta que intenta eliminar con ID ${id} no existe.`);
-        }
+        if (!actaExistente) { throw new BadRequestException(`El acta que intenta eliminar con ID ${id} no existe.`); }
 
+        this.dropboxFilesService.deletePath(`Actas/${actaExistente.Titulo}`);
         await this.actaRepository.remove(actaExistente);
         return { message: 'Acta eliminada exitosamente' };
     }
