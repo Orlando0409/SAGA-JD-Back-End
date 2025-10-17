@@ -1,6 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UploadedFiles, UseInterceptors, Patch, Res, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, UploadedFiles, UseInterceptors, Patch, BadRequestException } from '@nestjs/common';
 import { CreateReporteDto } from './ReportesDto/CreateReporte.dto';
-import { Response } from 'express';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ReportesService } from './reportes.service';
@@ -12,50 +11,53 @@ export class ReportesController {
   constructor(private readonly reportesService: ReportesService) {}
 
   @Get()
-  async findAll() {
+  getAll() {
     return this.reportesService.getAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id', NumericParamPipe) id: number) {
+  getOne(@Param('id', NumericParamPipe) id: number) {
     return this.reportesService.getOne(id);
   }
 
   @Post()
   @UseInterceptors(FileFieldsInterceptor([
-    { name: 'Imagen', maxCount: 10 },
     { name: 'Adjunto', maxCount: 10 },
   ]))
-  async create(@Body(new ValidationPipe({ whitelist: true, transform: true })) dto: CreateReporteDto, @UploadedFiles() files: any) {
-    return this.reportesService.create(dto, files);
-  }
-
-  // PUT eliminado: la actualización de estado se realiza mediante PATCH
-  @Put(':id')
-  putNotAllowed(@Param('id', NumericParamPipe) id: number, @Res() res: Response) {
-    const message = `PUT no permitido. Use PATCH /reportes/${id}/estado para actualizar el estado.`;
-    res.setHeader('Allow', 'PATCH');
-    return res.status(405).json({ statusCode: 405, error: 'Method Not Allowed', message });
+  create(
+    @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true, forbidUnknownValues: false })) body: CreateReporteDto,
+    @UploadedFiles() files: Record<string, Express.Multer.File[]>,
+  ) {
+    return this.reportesService.create(body, files);
   }
 
   @Patch(':id/estado')
-  async updateEstado(
-    @Param('id', NumericParamPipe) id: number,
-    @Body(new ValidationPipe({ whitelist: true, transform: true })) body: UpdateReporteEstadoDto,
-  ) {
-    return this.reportesService.updateEstadoReporte(id, body.IdEstadoReporte);
+  updateEstado(@Param('id', NumericParamPipe) id: number, @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: UpdateReporteEstadoDto) {
+    const nuevo = body.IdEstadoReporte;
+    return this.reportesService.updateEstado(id, nuevo);
   }
 
   @Post(':id/responder')
-  async responder(
+  responder(
     @Param('id', NumericParamPipe) id: number,
-    @Body(new ValidationPipe({ whitelist: true, transform: true })) body: ResponderReporteDto,
+    @Body('respuesta') respuestaField: any,
+    @Body() rawBody: any,
   ) {
-    return this.reportesService.responderReporte(id, body.Respuesta);
+    let respuesta = respuestaField;
+    if (!respuesta) {
+      if (rawBody && typeof rawBody === 'object') {
+        respuesta = rawBody.respuesta ?? rawBody.Respuesta;
+      } else if (typeof rawBody === 'string') {
+        respuesta = rawBody;
+      }
+    }
+
+    if (!respuesta) throw new BadRequestException('respuesta es requerida');
+    return this.reportesService.responderReporte(id, respuesta);
   }
 
   @Delete(':id')
-  async remove(@Param('id', NumericParamPipe) id: number) {
+  remove(@Param('id', NumericParamPipe) id: number) {
     return this.reportesService.remove(id);
   }
 }

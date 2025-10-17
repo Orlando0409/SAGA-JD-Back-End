@@ -1,16 +1,19 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ReportesService } from './reportes.service';
 import { ReportesController } from './reportes.controller';
+import { ReportesService } from './reportes.service';
 import { ReportesEntity } from './ReportesEntity/ReportesEntity';
 import { EstadoReporte } from './ReportesEntity/EstadoReporte';
-import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
-import { DropboxAuthService } from 'src/Dropbox/DropboxAuth.service';
-import { EmailModule } from 'src/Modules/Emails/email.module';
+import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
+import { EmailModule } from '../Emails/email.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ReportesEntity, EstadoReporte]), EmailModule],
-  providers: [ReportesService, DropboxFilesService, DropboxAuthService],
+  imports: [
+    TypeOrmModule.forFeature([ReportesEntity, EstadoReporte]), 
+    DropboxModule,
+    EmailModule
+  ],
   controllers: [ReportesController],
+  providers: [ReportesService],
 })
 export class ReportesModule {}

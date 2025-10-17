@@ -33,8 +33,6 @@ export class SugerenciaService {
   }
 
   async create(dto: CreateSugerenciaDto, files?: any) {
-    this.logger.log(`🔍 [CREATE] DTO recibido:`, JSON.stringify(dto, null, 2));
-    
     const estado = await this.estadoRepository.findOne({ where: { Id_EstadoSugerencia: 1 } });
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
@@ -46,11 +44,7 @@ export class SugerenciaService {
       Estado: estado,
     };
     
-    this.logger.log(`📝 [CREATE] Datos de sugerencia a guardar:`, JSON.stringify(sugerenciaData, null, 2));
-
     const saved = await this.sugerenciaRepository.save(sugerenciaData as any);
-
-    this.logger.log(`💾 [CREATE] Sugerencia guardada:`, JSON.stringify(saved, null, 2));
 
     const adjuntoUrls: string[] = [];
     if (files?.Adjunto) {
@@ -100,8 +94,6 @@ export class SugerenciaService {
       relations: ['Estado'] 
     });
     if (!repo) throw new BadRequestException(`Sugerencia con id ${id} no encontrada`);
-    
-    this.logger.log(`📋 [RESPONDER] Sugerencia encontrada:`, JSON.stringify(repo, null, 2));
 
     repo.RespuestasSugerencia = respuesta;
     const estadoContestada = await this.estadoRepository.findOne({ where: { Id_EstadoSugerencia: 2 } });
@@ -112,18 +104,14 @@ export class SugerenciaService {
 
     // Enviar email de respuesta de sugerencia (sin bloquear)
     const correoDestino = repo.Correo;
-    this.logger.log(`Intentando enviar email de respuesta de sugerencia a: ${correoDestino}`);
-    
     if (correoDestino) {
       setImmediate(async () => {
         try {
-          this.logger.log(`Iniciando envío de email de respuesta de sugerencia para ID: ${id}`);
           await this.emailService.enviarEmailRespuestaSugerencia({
             Correo: correoDestino,
             Mensaje: repo.Mensaje,
             respuesta: respuesta,
           });
-          this.logger.log(`Email de respuesta de sugerencia enviado exitosamente a: ${correoDestino}`);
         } catch (error) {
           this.logger.error('Error al enviar email de respuesta de sugerencia:', error);
         }
