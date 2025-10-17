@@ -1,3 +1,7 @@
+import { IsDefined, IsInt } from 'class-validator';
+
 export class UpdateSugerenciaEstadoDto {
-  Id_Estado_Sugerencia: number;
+  @IsDefined({ message: 'Id_EstadoSugerencia es requerido' })
+  @IsInt({ message: 'Id_EstadoSugerencia debe ser un número entero' })
+  Id_EstadoSugerencia: number;
 }

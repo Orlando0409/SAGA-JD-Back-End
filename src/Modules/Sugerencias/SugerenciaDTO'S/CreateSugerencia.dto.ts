@@ -1,12 +1,16 @@
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MaxLength, IsEmail } from 'class-validator';
 
 export class CreateSugerenciaDto {
   @IsNotEmpty({ message: 'Mensaje es requerido' })
   @IsString()
-  @MaxLength(1000)
+  @MaxLength(500)
   Mensaje: string;
 
-  // Se acepta Adjunto como campo opcional de archivos; no validamos aquí el contenido binario
+  @IsNotEmpty({ message: 'Correo es requerido' })
+  @IsEmail({}, { message: 'Formato de correo inválido' })
+  @MaxLength(100)
+  Correo: string;
+
   @IsOptional()
   Adjunto?: any;
 }

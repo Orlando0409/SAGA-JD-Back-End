@@ -33,10 +33,9 @@ export class SugerenciaController {
   }
 
   @Patch(':id/estado')
-  updateEstado(@Param('id', NumericParamPipe) id: number, @Body() body: UpdateSugerenciaEstadoDto) {
+  updateEstado(@Param('id', NumericParamPipe) id: number, @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: UpdateSugerenciaEstadoDto) {
     const nuevo = (body as any)?.Id_EstadoSugerencia ?? (body as any)?.IdEstadoSugerencia ?? (body as any)?.Id_EstadoSugerencia;
-    if (typeof nuevo !== 'number') throw new BadRequestException('Id_EstadoSugerencia debe ser numero');
-    return this.sugerenciaService.updateEstado(id, nuevo);
+    return this.sugerenciaService.updateEstado(id, nuevo as number);
   }
 
   @Post(':id/responder')
