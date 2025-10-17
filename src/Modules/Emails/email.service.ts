@@ -9,6 +9,8 @@ import { ReporteMail } from './Template/PlantillaReporte';
 import { ReporteRespondidoMail } from './Template/ReporteRespondidoMail';
 import { QuejaMail } from './Template/QuejaMail';
 import { QuejaRespondidaMail } from './Template/QuejaRespondidaMail';
+import { SugerenciaMail } from './Template/SugerenciaMail';
+import { SugerenciaRespondidaMail } from './Template/SugerenciaRespondidaMail';
 
 
 @Injectable()
@@ -256,6 +258,70 @@ export class EmailService {
       console.log('Email de respuesta de queja enviado a', to);
     } catch (error) {
       console.error('Error al enviar email de respuesta de queja:', error);
+      throw error;
+    }
+  }
+
+  // Enviar email al crear una sugerencia
+  async enviarEmailSugerencia(sugerenciaData: {
+    Correo?: string;
+    Mensaje?: string;
+    adjuntos?: string[];
+  }) {
+    try {
+      const to = sugerenciaData.Correo;
+      if (!to) {
+        throw new Error('Correo destinatario no proporcionado');
+      }
+      const attachments: any[] = [
+        {
+          filename: 'logo.jpeg',
+          path: process.cwd() + '/src/Modules/Emails/Logo/logo.jpeg',
+          cid: 'logo',
+        },
+      ];
+
+      await this.mailService.sendMail({
+        to,
+        subject: 'Confirmación de recepción de tu sugerencia',
+        html: SugerenciaMail(sugerenciaData),
+        attachments,
+      });
+      console.log('Email de sugerencia enviado a', to);
+    } catch (error) {
+      console.error('Error al enviar email de sugerencia:', error);
+      throw error;
+    }
+  }
+
+  // Enviar email cuando el admin responde a la sugerencia
+  async enviarEmailRespuestaSugerencia(sugerenciaData: {
+    Correo?: string;
+    Mensaje?: string;
+    respuesta?: string;
+  }) {
+    try {
+      const to = sugerenciaData.Correo;
+      if (!to) {
+        throw new Error('Correo destinatario no proporcionado');
+      }
+      const attachments: any[] = [
+        {
+          filename: 'logo.jpeg',
+          path: process.cwd() + '/src/Modules/Emails/Logo/logo.jpeg',
+          cid: 'logo',
+        },
+      ];
+
+      await this.mailService.sendMail({
+        to,
+        subject: 'Respuesta a tu sugerencia',
+        html: SugerenciaRespondidaMail(sugerenciaData),
+        attachments,
+      });
+      console.log('Email de respuesta de sugerencia enviado a', to);
+    } catch (error) {
+      console.error('Error al enviar email de respuesta de sugerencia:', error);
       throw error;
     }
   }
