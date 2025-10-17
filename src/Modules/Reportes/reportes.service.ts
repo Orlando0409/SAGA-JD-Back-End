@@ -5,7 +5,7 @@ import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
 import { CreateReporteDto } from './ReporteDTO\'s/CreateReporte.dto';
 import { EstadoReporte } from './ReporteEntities/EstadoReporte';
-import { ReportesEntity } from './ReporteEntities/Reportes.Entity';
+import { Reporte } from './ReporteEntities/Reportes.Entity';
 
 
 @Injectable()
@@ -13,8 +13,8 @@ export class ReportesService {
   private readonly logger = new Logger(ReportesService.name);
   
   constructor(
-    @InjectRepository(ReportesEntity)
-    private readonly reportesRepository: Repository<ReportesEntity>,
+    @InjectRepository(Reporte)
+    private readonly reportesRepository: Repository<Reporte>,
 
     @InjectRepository(EstadoReporte)
     private readonly estadoReporteRepository: Repository<EstadoReporte>,

@@ -4,12 +4,13 @@ import { SugerenciaController } from './sugerencia.controller';
 import { SugerenciaService } from './sugerencia.service';
 import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
 import { EmailModule } from '../Emails/email.module';
-import { SugerenciaEntity } from './SugerenciaEntities/Sugerencia.Entity';
-import { Estado_Sugerencia } from './SugerenciaEntities/EstadoSugerencia';
+import { Sugerencia } from './SugerenciaEntities/Sugerencia.Entity';
+import { EstadoSugerencia } from './SugerenciaEntities/EstadoSugerencia';
+
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([SugerenciaEntity, Estado_Sugerencia]), 
+    TypeOrmModule.forFeature([Sugerencia, EstadoSugerencia]), 
     DropboxModule,
     EmailModule
   ],

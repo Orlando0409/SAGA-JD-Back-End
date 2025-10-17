@@ -4,12 +4,12 @@ import { ReportesController } from './reportes.controller';
 import { ReportesService } from './reportes.service';
 import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
 import { EmailModule } from '../Emails/email.module';
-import { ReportesEntity } from './ReporteEntities/Reportes.Entity';
 import { EstadoReporte } from './ReporteEntities/EstadoReporte';
+import { Reporte } from './ReporteEntities/Reportes.Entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ReportesEntity, EstadoReporte]), 
+    TypeOrmModule.forFeature([Reporte, EstadoReporte]), 
     DropboxModule,
     EmailModule
   ],

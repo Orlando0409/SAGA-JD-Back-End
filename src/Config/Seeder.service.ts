@@ -359,7 +359,7 @@ export class SeederService implements OnModuleInit {
 
         for (const estado of estados) {
             const existe = await this.estadoSugerenciaRepository.findOne({
-                where: { Id_Estado_Sugerencia: estado.Id_Estado_Sugerencia },
+                where: { Id_EstadoSugerencia: estado.Id_Estado_Sugerencia },
             });
             if (!existe) {
                 const nuevo = this.estadoSugerenciaRepository.create(estado);
@@ -376,7 +376,7 @@ export class SeederService implements OnModuleInit {
 
         for (const estado of estados) {
             const existe = await this.estadoReporteRepository.findOne({
-                where: { Id_Estado_Reporte: estado.Id_Estado_Reporte }
+                where: { IdEstadoReporte: estado.Id_Estado_Reporte }
             });
             if (!existe) {
                 const nuevoEstado = this.estadoReporteRepository.create(estado);

@@ -1,8 +1,9 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { EstadoQueja } from './EstadoQueja';
+import { EstadoQueja } from '../QuejaEntities/EstadoQueja';
+
 
 @Entity('quejas')
-export class QuejasEntity {
+export class Queja {
     @PrimaryGeneratedColumn()
     Id_Queja: number;
 

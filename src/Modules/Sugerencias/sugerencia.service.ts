@@ -4,19 +4,20 @@ import { Repository } from 'typeorm';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
 import { CreateSugerenciaDto } from './SugerenciaDTO\'S/CreateSugerencia.dto';
-import { Estado_Sugerencia } from './SugerenciaEntities/EstadoSugerencia';
-import { SugerenciaEntity } from './SugerenciaEntities/Sugerencia.Entity';
+import { Sugerencia } from './SugerenciaEntities/Sugerencia.Entity';
+import { EstadoSugerencia } from './SugerenciaEntities/EstadoSugerencia';
+
 
 @Injectable()
 export class SugerenciaService {
   private readonly logger = new Logger(SugerenciaService.name);
   
   constructor(
-    @InjectRepository(SugerenciaEntity)
-    private readonly sugerenciaRepository: Repository<SugerenciaEntity>,
+    @InjectRepository(Sugerencia)
+    private readonly sugerenciaRepository: Repository<Sugerencia>,
 
-    @InjectRepository(Estado_Sugerencia)
-    private readonly estadoRepository: Repository<Estado_Sugerencia>,
+    @InjectRepository(EstadoSugerencia)
+    private readonly estadoRepository: Repository<EstadoSugerencia>,
 
     private readonly dropboxFilesService: DropboxFilesService,
     private readonly emailService: EmailService,
