@@ -12,8 +12,8 @@ export class ReportesEntity {
     @Column()
     Papellido: string;
 
-    @Column()
-    Sapellido: string;
+    @Column({ nullable: true })
+    Sapellido?: string;
 
     @Column()
     ubicacion: string;

@@ -1,4 +1,4 @@
-import { IsDefined, IsString, Matches, MaxLength, IsOptional, IsNotEmpty, IsEmail } from 'class-validator';
+import { IsDefined, IsString, Matches, MaxLength, IsOptional, IsNotEmpty, IsEmail, ValidateIf } from 'class-validator';
 
 const NAME_REGEX = /^[A-Za-zÁÉÍÓÚáéíóúÑñ]+$/;
 const NAME_WITH_SPACES = /^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?:\s[A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$/;
@@ -18,12 +18,12 @@ export class CreateQuejaDto {
   @MaxLength(20, { message: 'El primer apellido no puede tener más de 20 caracteres' })
   Papellido: string;
 
-  @IsDefined({ message: 'El segundo apellido es requerido' })
+  @IsOptional()
+  @ValidateIf((o) => o.Sapellido && o.Sapellido.trim() !== '')
   @IsString()
-  @IsNotEmpty({ message: 'El segundo apellido no puede estar vacío' })
   @Matches(NAME_REGEX, { message: 'El segundo apellido sólo puede contener letras y sin espacios' })
   @MaxLength(20, { message: 'El segundo apellido no puede tener más de 20 caracteres' })
-  Sapellido: string;
+  Sapellido?: string;
 
   @IsDefined({ message: 'La descripción es requerida' })
   @IsString()

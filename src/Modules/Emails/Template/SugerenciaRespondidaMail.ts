@@ -7,7 +7,7 @@ export function SugerenciaRespondidaMail(data: {
   <div style="font-family: 'Helvetica', Arial, sans-serif; background-color: #f4f6f8; padding: 40px; text-align: center;">
     <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
       <div style="margin-bottom: 25px;">
-        <img  src="cid:logo" alt="Logo ASADA Juan Díaz" 
+        <img src="cid:logo" alt="Logo ASADA Juan Díaz" 
              style="
                width: 100px; 
                height: 100px; 
@@ -19,7 +19,7 @@ export function SugerenciaRespondidaMail(data: {
         <h1 style="color: #007bff; margin: 0; font-size: 24px; font-weight: bold;">ASADA Juan Díaz</h1>
       </div>
 
-      <h2 style="color: #333333; margin-bottom: 20px;">💬 Respuesta a tu sugerencia</h2>
+      <h2 style="color: #333333; margin-bottom: 20px;">Respuesta a tu sugerencia</h2>
 
       <p style="color: #555555; font-size: 16px; line-height: 1.5; text-align:left;">
         Tu sugerencia ha sido respondida por alguno de nuestros miembros de la ASADA. Aquí tienes el resumen y la respuesta:
@@ -37,7 +37,7 @@ export function SugerenciaRespondidaMail(data: {
 
       <div style="background:#fff3cd; padding:12px; border-radius:8px; border:1px solid #ffeaa7; margin-top:18px; text-align:left;">
         <p style="margin:0; color:#856404;">
-          <strong>💡 Gracias por tu colaboración:</strong><br/>
+          <strong>Gracias por tu colaboración:</strong><br/>
           Valoramos mucho tus sugerencias, ya que nos ayudan a mejorar continuamente nuestros servicios.
         </p>
       </div>
