@@ -21,56 +21,6 @@ export class AuditoriaService {
     ) {}
 
     /**
-     * Mapeo de nombres técnicos a nombres legibles para el frontend
-     */
-    private readonly camposLegibles: Record<string, string> = {
-        // Categoría
-        Nombre_Categoria: 'Nombre',
-        Id_Estado_Categoria: 'Estado',
-        Estado_Categoria: 'Estado',
-        
-        // Unidad de Medición
-        Nombre_Unidad_Medicion: 'Nombre',
-        Abreviatura: 'Abreviatura',
-        Id_Estado_Unidad_Medicion: 'Estado',
-        Estado_Unidad_Medicion: 'Estado',
-        
-        // Material
-        Nombre_Material: 'Nombre',
-        Descripcion: 'Descripción',
-        Cantidad: 'Cantidad',
-        Precio_Unitario: 'Precio Unitario',
-        Id_Estado_Material: 'Estado',
-        Estado_Material: 'Estado',
-        Id_Unidad_Medicion: 'Unidad de Medición',
-        Unidad_Medicion: 'Unidad de Medición',
-        Categorias: 'Categorías',
-        Id_Proveedor: 'Proveedor',
-        Proveedor: 'Proveedor',
-        
-        // Proveedor
-        Nombre_Proveedor: 'Nombre',
-        Telefono_Proveedor: 'Teléfono',
-        Tipo_Entidad: 'Tipo de Entidad',
-        Tipo_Identificacion: 'Tipo de Identificación',
-        Identificacion: 'Identificación',
-        Cedula_Juridica: 'Cédula Jurídica',
-        Razon_Social: 'Razón Social',
-        Id_Estado_Proveedor: 'Estado',
-        Estado_Proveedor: 'Estado',
-        
-        // Usuario
-        Nombre_Usuario: 'Nombre',
-        Correo: 'Correo',
-        Id_Rol: 'Rol',
-        Rol: 'Rol',
-        
-        // Genéricos
-        Fecha_Creacion: 'Fecha de Creación',
-        Fecha_Actualizacion: 'Fecha de Actualización',
-    };
-
-    /**
      * Obtiene el nombre del registro según el módulo y los datos
      * Para UPDATE/DELETE usa datos anteriores, para INSERT usa datos nuevos
      */
