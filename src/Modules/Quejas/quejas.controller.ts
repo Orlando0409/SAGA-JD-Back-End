@@ -4,6 +4,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { QuejasService } from './quejas.service';
 import { CreateQuejaDto } from './Dto/CreateQueja.dto';
 import { UpdateQuejaEstadoDto } from './Dto/UpdateQuejaEstado.dto';
+import { ResponderQuejaDto } from './Dto/ResponderQueja.dto';
 
 @Controller('quejas')
 export class QuejasController {
