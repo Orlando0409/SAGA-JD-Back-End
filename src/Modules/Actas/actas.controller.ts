@@ -6,7 +6,7 @@ import { CreateActaDto } from "./ActaDTO's/CreateActa.dto";
 
 @Controller('Actas')
 export class ActaController {
-    constructor(private readonly actasService: ActasService) {}
+    constructor(private readonly actasService: ActasService) { }
 
     @Get('/all')
     @ApiOperation({ summary: 'Obtener todas las actas' })
@@ -16,21 +16,22 @@ export class ActaController {
 
     @Post('/create')
     @ApiOperation({ summary: 'Crear una nueva acta' })
-    @UseInterceptors(FileFieldsInterceptor([ 
-        { name: 'Archivo', maxCount: 10 }, 
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'Archivo', maxCount: 10 },
     ]),)
     createActa(@Body() dto: CreateActaDto,
-    @UploadedFiles() files: { Archivo?: Express.Multer.File[]; }) {
-        return this.actasService.createActa(dto, files.Archivo || []);
+        @Param('idUsuarioCreador') idUsuarioCreador: number,
+        @UploadedFiles() files: { Archivo?: Express.Multer.File[]; }) {
+        return this.actasService.createActa(dto, idUsuarioCreador, files.Archivo || []);
     }
 
     @Put('/update/:id')
     @ApiOperation({ summary: 'Actualizar una acta existente' })
-    @UseInterceptors(FileFieldsInterceptor([ 
-        { name: 'Archivo', maxCount: 10 }, 
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'Archivo', maxCount: 10 },
     ]),)
     updateActa(@Param('id acta') id: number, @Body() dto: CreateActaDto,
-    @UploadedFiles() files: { Archivo?: Express.Multer.File[]; }) {
+        @UploadedFiles() files: { Archivo?: Express.Multer.File[]; }) {
         return this.actasService.UpdateActa(id, dto, files.Archivo || []);
     }
 

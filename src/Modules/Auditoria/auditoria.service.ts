@@ -60,6 +60,12 @@ export class AuditoriaService {
                     const nuevos = JSON.parse(datosNuevos);
                     
                     switch (modulo.toLowerCase()) {
+                        case 'usuario':
+                            if (nuevos.Nombre_Usuario) return nuevos.Nombre_Usuario;
+                            break;
+                        case 'rol':
+                            if (nuevos.Nombre_Rol) return nuevos.Nombre_Rol;
+                            break;
                         case 'categoria':
                             if (nuevos.Nombre_Categoria) return nuevos.Nombre_Categoria;
                             break;
@@ -72,8 +78,14 @@ export class AuditoriaService {
                         case 'proveedor':
                             if (nuevos.Nombre_Proveedor) return nuevos.Nombre_Proveedor;
                             break;
-                        case 'usuario':
-                            if (nuevos.Nombre_Usuario) return nuevos.Nombre_Usuario;
+                        case 'proyecto':
+                            if (nuevos.Titulo) return nuevos.Titulo;
+                            break;
+                        case 'acta':
+                            if (nuevos.Titulo) return nuevos.Titulo;
+                            break;
+                        case 'calidad de agua':
+                            if (nuevos.Titulo) return nuevos.Titulo;
                             break;
                     }
                 } catch (error) {

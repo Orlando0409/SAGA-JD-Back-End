@@ -93,6 +93,8 @@ export class MaterialService {
                 Descripcion: material.Descripcion,
                 Cantidad: material.Cantidad,
                 Precio_Unitario: material.Precio_Unitario,
+                Fecha_Creacion: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
                 Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
                 Estado_Material: {
                     Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
@@ -145,6 +147,8 @@ export class MaterialService {
                 Descripcion: material.Descripcion,
                 Cantidad: material.Cantidad,
                 Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
                 Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
                 Estado_Material: {
                     Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
@@ -197,6 +201,8 @@ export class MaterialService {
                 Descripcion: material.Descripcion,
                 Cantidad: material.Cantidad,
                 Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
                 Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
                 Estado_Material: {
                     Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
@@ -249,6 +255,8 @@ export class MaterialService {
                 Descripcion: material.Descripcion,
                 Cantidad: material.Cantidad,
                 Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
                 Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
                 Estado_Material: {
                     Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
@@ -301,6 +309,8 @@ export class MaterialService {
                 Descripcion: material.Descripcion,
                 Cantidad: material.Cantidad,
                 Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
                 Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
                 Estado_Material: {
                     Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
@@ -353,6 +363,8 @@ export class MaterialService {
                 Descripcion: material.Descripcion,
                 Cantidad: material.Cantidad,
                 Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
                 Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
                 Estado_Material: {
                     Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
@@ -397,6 +409,8 @@ export class MaterialService {
                 Descripcion: material.Descripcion,
                 Cantidad: material.Cantidad,
                 Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
                 Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
                 Estado_Material: {
                     Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
@@ -450,6 +464,8 @@ export class MaterialService {
                 Descripcion: material.Descripcion,
                 Cantidad: material.Cantidad,
                 Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
                 Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
                 Estado_Material: {
                     Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
@@ -503,6 +519,8 @@ export class MaterialService {
                 Descripcion: material.Descripcion,
                 Cantidad: material.Cantidad,
                 Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
                 Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
                 Estado_Material: {
                     Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
@@ -559,6 +577,8 @@ export class MaterialService {
                 Descripcion: material.Descripcion,
                 Cantidad: material.Cantidad,
                 Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
                 Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
                 Estado_Material: {
                     Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
