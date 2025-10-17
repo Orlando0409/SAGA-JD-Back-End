@@ -18,6 +18,9 @@ export class QuejasEntity {
     @Column()
     descripcion: string;
 
+    @Column({ type: 'varchar', length: 100 })
+    Correo: string;
+
     @Column({ type: 'simple-json', nullable: true })
     Adjunto?: string[];
 

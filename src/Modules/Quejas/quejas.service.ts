@@ -3,7 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { QuejasEntity } from './Entity/QuejasEntity';
 import { EstadoQueja } from './Entity/EstadoQueja';
+import { CreateQuejaDto } from './Dto/CreateQueja.dto';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
+import { EmailService } from '../Emails/email.service';
 
 @Injectable()
 export class QuejasService {
@@ -16,6 +18,7 @@ export class QuejasService {
     private readonly estadoQuejaRepository: Repository<EstadoQueja>,
 
     private readonly dropboxFilesService: DropboxFilesService,
+    private readonly emailService: EmailService,
   ) {}
 
   async getAll() {
@@ -30,7 +33,7 @@ export class QuejasService {
     return ent;
   }
 
-  async create(dto: any, files?: any) {
+  async create(dto: CreateQuejaDto, files?: any) {
   const estado = await this.estadoQuejaRepository.findOne({ where: { Id_Estado_Queja: 1 } });
   if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
@@ -59,7 +62,27 @@ export class QuejasService {
     Estado: estado,
   });
 
-  return this.quejasRepository.save(queja);
+  const savedQueja = await this.quejasRepository.save(queja);
+
+  // Enviar email de confirmación de queja (sin bloquear)
+  if (dto.Correo) {
+    setImmediate(async () => {
+      try {
+        await this.emailService.enviarEmailQueja({
+          name: dto.name,
+          Papellido: dto.Papellido,
+          Sapellido: dto.Sapellido,
+          Correo: dto.Correo,
+          descripcion: dto.descripcion,
+          adjuntos: archivosAdjuntos,
+        });
+      } catch (error) {
+        this.logger.error('Error al enviar email de queja:', error);
+      }
+    });
+  }
+
+  return savedQueja;
   }
 
   async remove(id: number) {
@@ -113,6 +136,26 @@ export class QuejasService {
   if (!estadoContestada) throw new BadRequestException('Estado contestada (2) no encontrado');
 
     repo.Estado = estadoContestada;
-    return this.quejasRepository.save(repo);
+    const updatedQueja = await this.quejasRepository.save(repo);
+
+    // Enviar email de respuesta de queja (sin bloquear)
+    if ((repo as any).Correo) {
+      setImmediate(async () => {
+        try {
+          await this.emailService.enviarEmailRespuestaQueja({
+            name: repo.name,
+            Papellido: repo.Papellido,
+            Sapellido: repo.Sapellido,
+            Correo: (repo as any).Correo,
+            descripcion: repo.descripcion,
+            respuesta: respuesta,
+          });
+        } catch (error) {
+          this.logger.error('Error al enviar email de respuesta de queja:', error);
+        }
+      });
+    }
+
+    return updatedQueja;
   }
 }

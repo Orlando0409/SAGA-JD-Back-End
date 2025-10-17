@@ -7,6 +7,8 @@ import { RecoverPasswordMail } from './Template/RecoverPasswordMail';
 import { SolicitudCreadaExitosamenteMail, EstadoSolicitudMail } from './Template/SolicitudMail';
 import { ReporteMail } from './Template/PlantillaReporte';
 import { ReporteRespondidoMail } from './Template/ReporteRespondidoMail';
+import { QuejaMail } from './Template/QuejaMail';
+import { QuejaRespondidaMail } from './Template/QuejaRespondidaMail';
 
 
 @Injectable()
@@ -184,6 +186,76 @@ export class EmailService {
       console.log('Email de reporte enviado a', to);
     } catch (error) {
       console.error('Error al enviar email de reporte:', error);
+      throw error;
+    }
+  }
+
+  // Enviar email al crear una queja
+  async enviarEmailQueja(quejaData: {
+    name?: string;
+    Papellido?: string;
+    Sapellido?: string;
+    Correo?: string;
+    descripcion?: string;
+    adjuntos?: string[];
+  }) {
+    try {
+      const to = quejaData.Correo;
+      if (!to) {
+        throw new Error('Correo destinatario no proporcionado');
+      }
+      const attachments: any[] = [
+        {
+          filename: 'logo.jpeg',
+          path: process.cwd() + '/src/Modules/Emails/Logo/logo.jpeg',
+          cid: 'logo',
+        },
+      ];
+
+      await this.mailService.sendMail({
+        to,
+        subject: 'Confirmación de recepción de tu queja',
+        html: QuejaMail(quejaData),
+        attachments,
+      });
+      console.log('Email de queja enviado a', to);
+    } catch (error) {
+      console.error('Error al enviar email de queja:', error);
+      throw error;
+    }
+  }
+
+  // Enviar email cuando el admin responde a la queja
+  async enviarEmailRespuestaQueja(quejaData: {
+    name?: string;
+    Papellido?: string;
+    Sapellido?: string;
+    Correo?: string;
+    descripcion?: string;
+    respuesta?: string;
+  }) {
+    try {
+      const to = quejaData.Correo;
+      if (!to) {
+        throw new Error('Correo destinatario no proporcionado');
+      }
+      const attachments: any[] = [
+        {
+          filename: 'logo.jpeg',
+          path: process.cwd() + '/src/Modules/Emails/Logo/logo.jpeg',
+          cid: 'logo',
+        },
+      ];
+
+      await this.mailService.sendMail({
+        to,
+        subject: 'Respuesta a tu queja',
+        html: QuejaRespondidaMail(quejaData),
+        attachments,
+      });
+      console.log('Email de respuesta de queja enviado a', to);
+    } catch (error) {
+      console.error('Error al enviar email de respuesta de queja:', error);
       throw error;
     }
   }
