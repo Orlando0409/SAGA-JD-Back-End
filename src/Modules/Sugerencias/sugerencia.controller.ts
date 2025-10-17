@@ -8,7 +8,7 @@ import { Public } from '../auth/Decorator/Public.decorator';
 
 @Controller('sugerencias')
 export class SugerenciaController {
-  constructor(private readonly sugerenciaService: SugerenciaService) {}
+  constructor(private readonly sugerenciaService: SugerenciaService) { }
 
   @Get()
   getAll() {

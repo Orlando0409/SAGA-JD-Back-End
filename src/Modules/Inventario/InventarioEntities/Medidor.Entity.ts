@@ -27,7 +27,7 @@ export class Medidor {
 
     @ManyToOne(() => Usuario, usuario => usuario.Id_Usuario, { eager: true })
     @JoinColumn({ name: 'Id_Usuario_Creador' })
-    Usuario_Creador: Usuario;
+    Usuario: Usuario;
 
     @BeforeInsert()
     setDefaultEstado() {

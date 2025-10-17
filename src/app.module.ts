@@ -41,7 +41,7 @@ import { TipoAfiliado } from './Modules/Afiliados/AfiliadoEntities/TipoAfiliado.
 import { AfiliadosModule } from './Modules/Afiliados/afiliados.module';
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from './Modules/Afiliados/AfiliadoEntities/Afiliado.Entity';
 import { SolicitudesModule } from './Modules/Solicitudes/solicitudes.module';
-import { Acta } from './Modules/Actas/ActaEntities/Actas.Entity';
+import { Acta } from './Modules/Actas/ActaEntities/Acta.Entity';
 import { ArchivoActa } from './Modules/Actas/ActaEntities/ArchivoActa.Entity';
 import { ActasModule } from './Modules/Actas/actas.module';
 import { Material } from './Modules/Inventario/InventarioEntities/Material.Entity';

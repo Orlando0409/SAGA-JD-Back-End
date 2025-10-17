@@ -23,7 +23,7 @@ export class Proyecto
     @Column({ nullable: false, default: false })
     Visible: boolean;
 
-    @Column()
+    @Column({ nullable: false })
     Imagen_Url: string;
 
     @ManyToOne(() => EstadoProyecto, Estado => Estado.Proyectos)  //Relacion Muchos A uno
@@ -32,7 +32,7 @@ export class Proyecto
 
     @ManyToOne(() => Usuario, usuario => usuario.Id_Usuario, { eager: true })
     @JoinColumn({ name: 'Id_Usuario_Creador' })
-    Usuario_Creador: Usuario;
+    Usuario: Usuario;
 
     @BeforeInsert()
     setDefaultEstado() {

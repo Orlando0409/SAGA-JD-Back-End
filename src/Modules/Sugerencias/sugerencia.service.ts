@@ -9,7 +9,7 @@ import { CreateSugerenciaDto } from './SugerenciaDTO\'S/CreateSugerencia.dto';
 
 @Injectable()
 export class SugerenciaService {
-  
+
   constructor(
     @InjectRepository(Sugerencia)
     private readonly sugerenciaRepository: Repository<Sugerencia>,
@@ -18,7 +18,7 @@ export class SugerenciaService {
     private readonly estadoRepository: Repository<EstadoSugerencia>,
 
     private readonly dropboxFilesService: DropboxFilesService,
-  ) {}
+  ) { }
 
   async getAll() {
     return this.sugerenciaRepository.find({ relations: ['Estado'] });
@@ -34,7 +34,7 @@ export class SugerenciaService {
     const estado = await this.estadoRepository.findOne({ where: { Id_Estado_Sugerencia: 1 } });
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
-    
+
     const fecha = new Date();
     const sugerencia = this.sugerenciaRepository.create({
       ...dto,
@@ -42,12 +42,10 @@ export class SugerenciaService {
       Estado: estado,
     });
 
-  
-  const insertRes = await this.sugerenciaRepository.insert(sugerencia as any);
-  const generatedId = insertRes.identifiers && insertRes.identifiers[0] ? insertRes.identifiers[0].Id_Sugerencia || insertRes.identifiers[0].id : null;
-  const saved = await this.sugerenciaRepository.findOne({ where: { Id_Sugerencia: generatedId } }) as Sugerencia;
+    const insertRes = await this.sugerenciaRepository.insert(sugerencia as any);
+    const generatedId = insertRes.identifiers && insertRes.identifiers[0] ? insertRes.identifiers[0].Id_Sugerencia || insertRes.identifiers[0].id : null;
+    const saved = await this.sugerenciaRepository.findOne({ where: { Id_Sugerencia: generatedId } }) as Sugerencia;
 
-    
     const adjuntoUrls: string[] = [];
     if (files?.Adjunto) {
       const archivos = Array.isArray(files.Adjunto) ? files.Adjunto : [files.Adjunto];
@@ -58,7 +56,7 @@ export class SugerenciaService {
       }
 
       saved.Adjunto = adjuntoUrls;
-  await this.sugerenciaRepository.save(saved);
+      await this.sugerenciaRepository.save(saved);
     }
     return saved;
   }

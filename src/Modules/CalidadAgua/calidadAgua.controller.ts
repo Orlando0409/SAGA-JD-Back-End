@@ -27,33 +27,35 @@ export class CalidadAguaController
         return this.calidadAguaService.getCalidadAgua();
     }
 
-    @Post('/create/:idUsuarioCreador')
+    @Post('/create/:idUsuario')
     @UseInterceptors(FileInterceptor("Archivo_Calidad_Agua"))
     @ApiOperation({ summary: "Crear un nuevo registro de calidad de agua" })
     CreateCalidadAgua(
         @Body() createCalidadAguaDto: CreateCalidadAguaDto,
-        @Param('idUsuarioCreador', ParseIntPipe) idUsuarioCreador: number,
+        @Param('idUsuario', ParseIntPipe) idUsuario: number,
         @UploadedFile() Archivo_Calidad_Agua: Express.Multer.File,
     ) {
-        return this.calidadAguaService.CreateCalidadAgua(createCalidadAguaDto, idUsuarioCreador, Archivo_Calidad_Agua);
+        return this.calidadAguaService.CreateCalidadAgua(createCalidadAguaDto, idUsuario, Archivo_Calidad_Agua);
     }
 
-    @Put('/update/:id')
+    @Put('/update/:id/:idUsuario')
     @UseInterceptors(FileInterceptor('Archivo_Calidad_Agua'))
     @ApiOperation({ summary: 'Actualizar un registro de calidad de agua' })
     updateCalidadAgua(
     @Param('id', ParseIntPipe) id: number,
+    @Param('idUsuario', ParseIntPipe) idUsuario: number,
     @Body() dto: UpdateCalidadAguaDto,
     @UploadedFile() Archivo_Calidad_Agua?: Express.Multer.File
     ) {
-        return this.calidadAguaService.updateCalidadAgua(id, dto, Archivo_Calidad_Agua);
+        return this.calidadAguaService.updateCalidadAgua(id, dto, idUsuario, Archivo_Calidad_Agua);
     }
 
-    @Patch('/update/visibilidad/:id')
+    @Patch('/update/visibilidad/:id/:idUsuario')
     @ApiOperation({ summary: 'Actualizar visibilidad de un registro de calidad de agua' })
     updateVisibilidadCalidadAgua(
         @Param('id', ParseIntPipe) id: number,
+        @Param('idUsuario', ParseIntPipe) idUsuario: number,
     ) {
-        return this.calidadAguaService.updateVisibilidadCalidadAgua(id);
+        return this.calidadAguaService.updateVisibilidadCalidadAgua(id, idUsuario);
     }
 }

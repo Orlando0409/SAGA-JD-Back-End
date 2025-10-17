@@ -117,7 +117,9 @@ export class AfiliadosService {
         return this.afiliadoFisicoRepository.save(afiliado);
     }
 
-    async createAfiliadoFisico(dto: CreateAfiliadoFisicoDto, files: any) {
+    async createAfiliadoFisico(dto: CreateAfiliadoFisicoDto, idUsuario: number, files: any) {
+        if (!idUsuario) { throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción'); }
+
         // Verificar que no existe ya un afiliado físico con esa identificación
         const afiliadoExistente = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: dto.Identificacion } });
         if (afiliadoExistente) { throw new BadRequestException(`Ya existe un afiliado físico con la identificación ${dto.Identificacion}`); }
@@ -178,7 +180,9 @@ export class AfiliadosService {
         return this.afiliadoJuridicoRepository.save(afiliado);
     }
 
-    async createAfiliadoJuridico(dto: CreateAfiliacionJuridicaDto, files: any) {
+    async createAfiliadoJuridico(dto: CreateAfiliacionJuridicaDto, idUsuario: number, files: any) {
+        if (!idUsuario) { throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción'); }
+
         // Verificar que no existe ya un afiliado jurídico con esa cédula jurídica
         const afiliadoExistente = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: dto.Cedula_Juridica } });
         if (afiliadoExistente) { 
@@ -218,8 +222,10 @@ export class AfiliadosService {
         return this.afiliadoJuridicoRepository.save(afiliadoJuridico);
     }
 
-    async updateAfiliadoFisico(cedula: string, dto: UpdateAfiliadoFisicoDto, files?: any) {
-        const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: cedula } });
+    async updateAfiliadoFisico(cedula: string, dto: UpdateAfiliadoFisicoDto, idUsuario: number, files?: any) {
+        if (!idUsuario) { throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción'); }
+
+        const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: cedula }, relations: ['Estado', 'Tipo_Afiliado'] });
         if (!afiliado) { throw new BadRequestException(`Afiliado físico con cédula ${cedula} no encontrado`); }
 
         if (files) {
@@ -241,8 +247,10 @@ export class AfiliadosService {
         return this.afiliadoFisicoRepository.save(afiliado);
     }
 
-    async updateAfiliadoJuridico(cedulaJuridica: string, dto: UpdateAfiliadoJuridicoDto, files?: any) {
-        const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: cedulaJuridica } });
+    async updateAfiliadoJuridico(cedulaJuridica: string, dto: UpdateAfiliadoJuridicoDto, idUsuario: number, files?: any) {
+        if (!idUsuario) { throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción'); }
+
+        const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: cedulaJuridica }, relations: ['Estado', 'Tipo_Afiliado'] });
         if (!afiliado) { throw new BadRequestException(`Afiliado jurídico con cédula jurídica ${cedulaJuridica} no encontrado`); }
 
         if (files) {
@@ -264,8 +272,10 @@ export class AfiliadosService {
         return this.afiliadoJuridicoRepository.save(afiliado);
     }
 
-    async updateEstadoAfiliadoFisico(idafiliado: number, nuevoEstadoId: number) {
-        const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Id_Afiliado: idafiliado }, relations: ['Estado'] });
+    async updateEstadoAfiliadoFisico(idafiliado: number, nuevoEstadoId: number, idUsuario: number) {
+        if (!idUsuario) { throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción'); }
+
+        const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Id_Afiliado: idafiliado }, relations: ['Estado', 'Tipo_Afiliado'] });
         if (!afiliado) { throw new BadRequestException(`Afiliado físico con ID ${idafiliado} no encontrado`); }
 
         const nuevoEstado = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: nuevoEstadoId } });
@@ -275,8 +285,10 @@ export class AfiliadosService {
         return this.afiliadoFisicoRepository.save(afiliado);
     }
 
-    async updateEstadoAfiliadoJuridico(idafiliado: number, nuevoEstadoId: number) {
-        const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Id_Afiliado: idafiliado }, relations: ['Estado'] });
+    async updateEstadoAfiliadoJuridico(idafiliado: number, nuevoEstadoId: number, idUsuario: number) {
+        if (!idUsuario) { throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción'); }
+
+        const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Id_Afiliado: idafiliado }, relations: ['Estado', 'Tipo_Afiliado'] });
         if (!afiliado) { throw new BadRequestException(`Afiliado jurídico con ID ${idafiliado} no encontrado`); }
 
         const nuevoEstado = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: nuevoEstadoId } });
@@ -286,8 +298,10 @@ export class AfiliadosService {
         return this.afiliadoJuridicoRepository.save(afiliado);
     }
 
-    async updateTipoAfiliadoFisico(idAfiliado: number, nuevoTipoId: number) {
-        const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Id_Afiliado: idAfiliado }, relations: ['Tipo_Afiliado'] });
+    async updateTipoAfiliadoFisico(idAfiliado: number, nuevoTipoId: number, idUsuario: number) {
+        if (!idUsuario) { throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción'); }
+
+        const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Id_Afiliado: idAfiliado }, relations: ['Estado', 'Tipo_Afiliado'] });
         if (!afiliado) { throw new BadRequestException(`Afiliado físico con ID ${idAfiliado} no encontrado`); }
 
         // Validar que el nuevo tipo sea diferente al actual
@@ -308,8 +322,10 @@ export class AfiliadosService {
         return this.afiliadoFisicoRepository.save(afiliado);
     }
 
-    async updateTipoAfiliadoJuridico(idAfiliado: number, nuevoTipoId: number) {
-        const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Id_Afiliado: idAfiliado }, relations: ['Tipo_Afiliado'] });
+    async updateTipoAfiliadoJuridico(idAfiliado: number, nuevoTipoId: number, idUsuario: number) {
+        if (!idUsuario) { throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción'); }
+
+        const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Id_Afiliado: idAfiliado }, relations: ['Estado', 'Tipo_Afiliado'] });
         if (!afiliado) { throw new BadRequestException(`Afiliado jurídico con ID ${idAfiliado} no encontrado`); }
 
         // Validar que el nuevo tipo sea diferente al actual
@@ -332,7 +348,7 @@ export class AfiliadosService {
 
     // Métodos para cambiar afiliado a asociado basado en solicitud de asociado aprobada
     async cambiarAbonadoAAsociadoFisico(identificacion: string) {
-        const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: identificacion }, relations: ['Tipo_Afiliado'] });
+        const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: identificacion }, relations: ['Estado', 'Tipo_Afiliado'] });
         if (!afiliado) {
             throw new BadRequestException(`No existe un afiliado físico con la identificación ${identificacion}`);
         }
@@ -350,7 +366,7 @@ export class AfiliadosService {
     }
 
     async cambiarAbonadoAAsociadoJuridico(cedulaJuridica: string) {
-        const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: cedulaJuridica }, relations: ['Tipo_Afiliado'] });
+        const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: cedulaJuridica }, relations: ['Estado', 'Tipo_Afiliado'] });
         if (!afiliado) { throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${cedulaJuridica}`); }
 
         // Verificar que es abonado (ID 1) antes de cambiar a asociado (ID 2)

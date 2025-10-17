@@ -25,5 +25,5 @@ export class Acta
 
     @ManyToOne(() => Usuario, { nullable: false })
     @JoinColumn({ name: 'Id_Usuario_Creador' })
-    Usuario_Creador: Usuario;
+    Usuario: Usuario;
 }
