@@ -2,10 +2,10 @@ import { Body, Controller, Delete, Get, Param, Post, UploadedFiles, UseIntercept
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { QuejasService } from './quejas.service';
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 import { CreateQuejaDto } from './QuejaDTO\'s/CreateQueja.dto';
+import { ResponderQuejaDto } from './QuejaDTO\'s/ResponderQueja.dto';
 import { UpdateQuejaEstadoDto } from './QuejaDTO\'s/UpdateQuejaEstado.dto';
-import { Public } from '../auth/Decorator/Public.decorator';
-
 
 @Controller('quejas')
 export class QuejasController {
@@ -42,20 +42,9 @@ export class QuejasController {
   @Post(':id/responder')
   responder(
     @Param('id', NumericParamPipe) id: number,
-    @Body('respuesta') respuestaField: any,
-    @Body() rawBody: any,
+    @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: ResponderQuejaDto,
   ) {
-    let respuesta = respuestaField;
-    if (!respuesta) {
-      if (rawBody && typeof rawBody === 'object') {
-        respuesta = rawBody.respuesta ?? rawBody.Respuesta;
-      } else if (typeof rawBody === 'string') {
-        respuesta = rawBody;
-      }
-    }
-
-    if (!respuesta) throw new BadRequestException('respuesta es requerida');
-    return this.quejasService.responderQueja(id, respuesta);
+    return this.quejasService.responderQueja(id, body);
   }
 
   @Delete(':id')
