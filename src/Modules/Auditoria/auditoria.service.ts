@@ -37,9 +37,7 @@ export class AuditoriaService {
                             if (anteriores.Nombre_Categoria) return anteriores.Nombre_Categoria;
                             break;
                         case 'unidad de medicion':
-                        case 'unidadmedicion':
                             if (anteriores.Nombre_Unidad) return anteriores.Nombre_Unidad;
-                            if (anteriores.Nombre_Unidad_Medicion) return anteriores.Nombre_Unidad_Medicion;
                             break;
                         case 'material':
                             if (anteriores.Nombre_Material) return anteriores.Nombre_Material;
@@ -66,9 +64,7 @@ export class AuditoriaService {
                             if (nuevos.Nombre_Categoria) return nuevos.Nombre_Categoria;
                             break;
                         case 'unidad de medicion':
-                        case 'unidadmedicion':
                             if (nuevos.Nombre_Unidad) return nuevos.Nombre_Unidad;
-                            if (nuevos.Nombre_Unidad_Medicion) return nuevos.Nombre_Unidad_Medicion;
                             break;
                         case 'material':
                             if (nuevos.Nombre_Material) return nuevos.Nombre_Material;
