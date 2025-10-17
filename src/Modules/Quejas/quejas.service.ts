@@ -4,8 +4,13 @@ import { Repository } from 'typeorm';
 import { QuejasEntity } from './Entity/QuejasEntity';
 import { EstadoQueja } from './Entity/EstadoQueja';
 import { CreateQuejaDto } from './Dto/CreateQueja.dto';
+import { ResponderQuejaDto } from './Dto/ResponderQueja.dto';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
+
+interface QuejaFiles {
+  Adjunto?: Express.Multer.File[];
+}
 
 @Injectable()
 export class QuejasService {
@@ -32,7 +37,7 @@ export class QuejasService {
     return repo;
   }
 
-  async create(dto: CreateQuejaDto, files?: any) {
+  async create(dto: CreateQuejaDto, files?: QuejaFiles) {
     const estado = await this.estadoQuejaRepository.findOne({ where: { Id_Estado_Queja: 1 } });
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
@@ -49,7 +54,7 @@ export class QuejasService {
       Estado: estado,
     };
     
-    const saved = await this.quejasRepository.save(quejaData as any);
+    const saved = await this.quejasRepository.save(quejaData);
 
     const adjuntoUrls: string[] = [];
     if (files?.Adjunto) {
@@ -59,8 +64,8 @@ export class QuejasService {
         if (res?.url) adjuntoUrls.push(res.url);
       }
 
-      (saved as any).Adjunto = adjuntoUrls;
-      await this.quejasRepository.save(saved as any);
+      saved.Adjunto = adjuntoUrls;
+      await this.quejasRepository.save(saved);
     }
 
     if (dto.Correo) {
@@ -112,21 +117,21 @@ export class QuejasService {
     return this.quejasRepository.save(repo);
   }
 
-  async responderQueja(id: number, respuesta: string) {
+  async responderQueja(id: number, dto: ResponderQuejaDto) {
     const repo = await this.quejasRepository.findOne({ 
       where: { Id_Queja: id }, 
       relations: ['Estado'] 
     });
     if (!repo) throw new BadRequestException(`Queja con id ${id} no encontrada`);
 
-    repo.RespuestasReporte = respuesta;
+    repo.RespuestasReporte = dto.respuesta;
     const estadoContestada = await this.estadoQuejaRepository.findOne({ where: { Id_Estado_Queja: 2 } });
     if (!estadoContestada) throw new BadRequestException('Estado contestada no encontrado');
 
     repo.Estado = estadoContestada;
     const updatedQueja = await this.quejasRepository.save(repo);
 
-    const correoDestino = (repo as any).Correo;
+    const correoDestino = repo.Correo;
     if (correoDestino) {
       setImmediate(async () => {
         try {
@@ -136,7 +141,7 @@ export class QuejasService {
             Sapellido: repo.Sapellido,
             Correo: correoDestino,
             descripcion: repo.descripcion,
-            respuesta: respuesta,
+            respuesta: dto.respuesta,
           });
         } catch (error) {
           this.logger.error('Error al enviar email de respuesta de queja:', error);

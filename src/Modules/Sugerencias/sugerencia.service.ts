@@ -59,7 +59,6 @@ export class SugerenciaService {
       await this.sugerenciaRepository.save(saved as any);
     }
 
-    // Enviar email de confirmación de sugerencia (sin bloquear)
     if (dto.Correo) {
       setImmediate(async () => {
         try {
@@ -102,7 +101,6 @@ export class SugerenciaService {
     repo.Estado = estadoContestada;
     const updatedSugerencia = await this.sugerenciaRepository.save(repo);
 
-    // Enviar email de respuesta de sugerencia (sin bloquear)
     const correoDestino = repo.Correo;
     if (correoDestino) {
       setImmediate(async () => {
