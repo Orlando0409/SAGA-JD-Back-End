@@ -1,15 +1,18 @@
-import { Body, Controller, Delete, Get, Param, Post, UploadedFiles, UseInterceptors, Patch, BadRequestException } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, UploadedFiles, UseInterceptors, Patch } from '@nestjs/common';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ReportesService } from './reportes.service';
+import { ResponderReporteDto } from './ReportesDto/ResponderReporte.dto';
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 import { CreateReporteDto } from './ReporteDTO\'s/CreateReporte.dto';
 import { UpdateReporteEstadoDto } from './ReporteDTO\'s/UpdateReporteEstado.dto';
-import { Public } from '../auth/Decorator/Public.decorator';
+
 
 @Controller('reportes')
 export class ReportesController {
   constructor(private readonly reportesService: ReportesService) {}
 
+  
   @Get()
   getAll() {
     return this.reportesService.getAll();
@@ -38,23 +41,13 @@ export class ReportesController {
     return this.reportesService.updateEstado(id, nuevo);
   }
 
+  
   @Post(':id/responder')
   responder(
     @Param('id', NumericParamPipe) id: number,
-    @Body('respuesta') respuestaField: any,
-    @Body() rawBody: any,
+    @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: ResponderReporteDto,
   ) {
-    let respuesta = respuestaField;
-    if (!respuesta) {
-      if (rawBody && typeof rawBody === 'object') {
-        respuesta = rawBody.respuesta ?? rawBody.Respuesta;
-      } else if (typeof rawBody === 'string') {
-        respuesta = rawBody;
-      }
-    }
-
-    if (!respuesta) throw new BadRequestException('respuesta es requerida');
-    return this.reportesService.responderReporte(id, respuesta);
+    return this.reportesService.responderReporte(id, body);
   }
 
   @Delete(':id')

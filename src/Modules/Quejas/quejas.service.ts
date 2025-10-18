@@ -124,7 +124,7 @@ export class QuejasService {
     });
     if (!repo) throw new BadRequestException(`Queja con id ${id} no encontrada`);
 
-    repo.RespuestasReporte = dto.respuesta;
+    repo.RespuestasReporte = dto.Respuesta;
     const estadoContestada = await this.estadoQuejaRepository.findOne({ where: { Id_Estado_Queja: 2 } });
     if (!estadoContestada) throw new BadRequestException('Estado contestada no encontrado');
 
@@ -141,7 +141,7 @@ export class QuejasService {
             Sapellido: repo.Sapellido,
             Correo: correoDestino,
             descripcion: repo.descripcion,
-            respuesta: dto.respuesta,
+            respuesta: dto.Respuesta,
           });
         } catch (error) {
           this.logger.error('Error al enviar email de respuesta de queja:', error);

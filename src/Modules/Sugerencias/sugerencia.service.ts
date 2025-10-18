@@ -4,9 +4,13 @@ import { Repository } from 'typeorm';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
 import { CreateSugerenciaDto } from './Dto/CreateSugerencia.dto';
-import { Sugerencia } from './Entity/Sugerencia.Entity';
+import { ResponderSugerenciaDto } from './Dto/ResponderSugerencia.dto';
 import { EstadoSugerencia } from './Entity/EstadoSugerencia';
+import { Sugerencia } from './Entity/Sugerencia.Entity';
 
+interface SugerenciaFiles {
+  Adjunto?: Express.Multer.File[];
+}
 
 @Injectable()
 export class SugerenciaService {
@@ -33,7 +37,7 @@ export class SugerenciaService {
     return repo;
   }
 
-  async create(dto: CreateSugerenciaDto, files?: any) {
+  async create(dto: CreateSugerenciaDto, files?: SugerenciaFiles) {
     const estado = await this.estadoRepository.findOne({ where: { Id_EstadoSugerencia: 1 } });
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
@@ -45,19 +49,19 @@ export class SugerenciaService {
       Estado: estado,
     };
     
-    const saved = await this.sugerenciaRepository.save(sugerenciaData as any);
+    const saved = await this.sugerenciaRepository.save(sugerenciaData);
 
     const adjuntoUrls: string[] = [];
     if (files?.Adjunto) {
       const archivos = Array.isArray(files.Adjunto) ? files.Adjunto : [files.Adjunto];
-      const folderName = `sugerencia_${(saved as any).Id_Sugerencia}`;
+      const folderName = `sugerencia_${saved.Id_Sugerencia}`;
       for (const file of archivos) {
         const res = await this.dropboxFilesService.uploadFile(file, 'Contacto', 'Sugerencias', undefined, folderName);
         if (res?.url) adjuntoUrls.push(res.url);
       }
 
-      (saved as any).Adjunto = adjuntoUrls;
-      await this.sugerenciaRepository.save(saved as any);
+      saved.Adjunto = adjuntoUrls;
+      await this.sugerenciaRepository.save(saved);
     }
 
     if (dto.Correo) {
@@ -88,14 +92,14 @@ export class SugerenciaService {
     return this.sugerenciaRepository.save(repo);
   }
 
-  async responderSugerencia(id: number, respuesta: string) {
+  async responderSugerencia(id: number, dto: ResponderSugerenciaDto) {
     const repo = await this.sugerenciaRepository.findOne({ 
       where: { Id_Sugerencia: id }, 
       relations: ['Estado'] 
     });
     if (!repo) throw new BadRequestException(`Sugerencia con id ${id} no encontrada`);
 
-    repo.RespuestasSugerencia = respuesta;
+    repo.RespuestasSugerencia = dto.Respuesta;
     const estadoContestada = await this.estadoRepository.findOne({ where: { Id_EstadoSugerencia: 2 } });
     if (!estadoContestada) throw new BadRequestException('Estado contestada no encontrado');
 
@@ -109,7 +113,7 @@ export class SugerenciaService {
           await this.emailService.enviarEmailRespuestaSugerencia({
             Correo: correoDestino,
             Mensaje: repo.Mensaje,
-            respuesta: respuesta,
+            respuesta: dto.Respuesta,
           });
         } catch (error) {
           this.logger.error('Error al enviar email de respuesta de sugerencia:', error);

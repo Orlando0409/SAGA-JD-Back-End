@@ -1,9 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Post, Patch, UploadedFiles, UseInterceptors, BadRequestException } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Patch, UploadedFiles, UseInterceptors} from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { SugerenciaService } from './sugerencia.service';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 import { CreateSugerenciaDto } from './Dto/CreateSugerencia.dto';
 import { UpdateSugerenciaEstadoDto } from './Dto/UpdateSugerenciaEstado.dto';
+import { ResponderSugerenciaDto } from './Dto/ResponderSugerencia.dto';
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
+
 @Controller('sugerencias')
 export class SugerenciaController {
   constructor(private readonly sugerenciaService: SugerenciaService) {}
@@ -18,6 +21,7 @@ export class SugerenciaController {
     return this.sugerenciaService.getOne(id);
   }
 
+  @Public()
   @Post()
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'Adjunto', maxCount: 10 },
@@ -31,28 +35,16 @@ export class SugerenciaController {
 
   @Patch(':id/estado')
   updateEstado(@Param('id', NumericParamPipe) id: number, @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: UpdateSugerenciaEstadoDto) {
-    const nuevo = (body as any)?.Id_EstadoSugerencia ?? (body as any)?.IdEstadoSugerencia ?? (body as any)?.Id_EstadoSugerencia;
-    return this.sugerenciaService.updateEstado(id, nuevo as number);
+    return this.sugerenciaService.updateEstado(id, body.Id_EstadoSugerencia);
   }
 
+  @Public()
   @Post(':id/responder')
   responder(
     @Param('id', NumericParamPipe) id: number,
-    @Body('respuesta') respuestaField: any,
-    @Body() rawBody: any,
+    @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: ResponderSugerenciaDto,
   ) {
-    // extraer la respuesta del body de forma segura (JSON form-data o raw text)
-    let respuesta = respuestaField;
-    if (!respuesta) {
-      if (rawBody && typeof rawBody === 'object') {
-        respuesta = (rawBody).respuesta ?? (rawBody).Respuesta ?? (rawBody).respuesta;
-      } else if (typeof rawBody === 'string') {
-        respuesta = rawBody;
-      }
-    }
-
-    if (!respuesta) throw new BadRequestException('respuesta es requerida');
-    return this.sugerenciaService.responderSugerencia(id, respuesta);
+    return this.sugerenciaService.responderSugerencia(id, body);
   }
 
   @Delete(':id')
