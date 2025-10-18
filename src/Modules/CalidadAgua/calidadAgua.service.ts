@@ -36,7 +36,7 @@ export class CalidadAguaService {
 
         return Promise.all(calidadAgua.map(async calidadAgua => ({
             ...calidadAgua,
-            Usuario: calidadAgua.Usuario ? 
+            Usuario: calidadAgua.Usuario ?
                 await this.usuariosService.FormatearUsuarioResponse(calidadAgua.Usuario) : null
         })));
     }
@@ -48,24 +48,24 @@ export class CalidadAguaService {
 
         return Promise.all(calidadAgua.map(async calidadAgua => ({
             ...calidadAgua,
-            Usuario: calidadAgua.Usuario ? 
+            Usuario: calidadAgua.Usuario ?
                 await this.usuariosService.FormatearUsuarioResponse(calidadAgua.Usuario) : null
         })));
     }
 
     async CreateCalidadAgua(dto: CreateCalidadAguaDto, idUsuario: number, file?: Express.Multer.File) {
-        if (!idUsuario) { throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción'); }
-        if (!file) { throw new BadRequestException('Debe subir un archivo para la calidad de agua'); }
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+        if (!file) throw new BadRequestException('Debe subir un archivo para la calidad de agua');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
-        if (!usuario) { throw new BadRequestException('Usuario no encontrado'); }
+        if (!usuario) throw new BadRequestException('Usuario no encontrado');
 
         // Normalizar antes de procesar
         dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
         dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
 
         const calidadAguaTitulo = await this.calidadAguaRepository.findOne({ where: { Titulo: dto.Titulo } });
-        if (calidadAguaTitulo) { throw new BadRequestException('El título ya existe'); }
+        if (calidadAguaTitulo) throw new BadRequestException('El título ya existe');
 
         // Subir archivo a Dropbox
         const fileRes = await this.dropboxFilesService.uploadFile(file, 'Calidad-de-Agua', dto.Titulo);
@@ -83,17 +83,12 @@ export class CalidadAguaService {
 
         // Registrar en auditoría después de guardar
         try {
-            await this.auditoriaService.logCreacion(
-                'Calidad de Agua',
-                idUsuario,
-                calidadAguaGuardada.Id_Calidad_Agua,
-                {
-                    Titulo: calidadAguaGuardada.Titulo,
-                    Descripcion: calidadAguaGuardada.Descripcion,
-                    Url_Archivo: calidadAguaGuardada.Url_Archivo,
-                    Visible: calidadAguaGuardada.Visible
-                }
-            );
+            await this.auditoriaService.logCreacion('Calidad de Agua', idUsuario, calidadAguaGuardada.Id_Calidad_Agua, {
+                Titulo: calidadAguaGuardada.Titulo,
+                Descripcion: calidadAguaGuardada.Descripcion,
+                Url_Archivo: calidadAguaGuardada.Url_Archivo,
+                Visible: calidadAguaGuardada.Visible
+            });
         } catch (error) {
             console.error('Error al registrar auditoría de creación de calidad de agua:', error);
         }
@@ -105,10 +100,10 @@ export class CalidadAguaService {
     }
 
     async updateCalidadAgua(Id_Calidad_Agua: number, dto: UpdateCalidadAguaDto, idUsuario: number, file?: Express.Multer.File) {
-        if (!idUsuario) { throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción'); }
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
         const CalidadAgua = await this.calidadAguaRepository.findOne({ where: { Id_Calidad_Agua } });
-        if (!CalidadAgua) { throw new NotFoundException(`Registro con ID ${Id_Calidad_Agua} no encontrado`); }
+        if (!CalidadAgua) throw new NotFoundException(`Registro con ID ${Id_Calidad_Agua} no encontrado`);
 
         // Guardar datos anteriores para auditoría
         const datosAnteriores = {
@@ -119,13 +114,11 @@ export class CalidadAguaService {
         };
 
         if (dto.Titulo) {
-            dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
-            CalidadAgua.Titulo = dto.Titulo;
+            CalidadAgua.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
         }
 
         if (dto.Descripcion) {
-            dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
-            CalidadAgua.Descripcion = dto.Descripcion;
+            CalidadAgua.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
         }
 
         // Si llega un archivo, subimos uno nuevo
@@ -160,18 +153,12 @@ export class CalidadAguaService {
 
         // Registrar en auditoría
         try {
-            await this.auditoriaService.logActualizacion(
-                'Calidad de Agua',
-                idUsuario,
-                Id_Calidad_Agua,
-                datosAnteriores,
-                {
-                    Titulo: calidadAguaActualizada.Titulo,
-                    Descripcion: calidadAguaActualizada.Descripcion,
-                    Url_Archivo: calidadAguaActualizada.Url_Archivo,
-                    Visible: calidadAguaActualizada.Visible
-                }
-            );
+            await this.auditoriaService.logActualizacion('Calidad de Agua', idUsuario, Id_Calidad_Agua, datosAnteriores, {
+                Titulo: calidadAguaActualizada.Titulo,
+                Descripcion: calidadAguaActualizada.Descripcion,
+                Url_Archivo: calidadAguaActualizada.Url_Archivo,
+                Visible: calidadAguaActualizada.Visible
+            });
         } catch (error) {
             console.error('Error al registrar auditoría de actualización de calidad de agua:', error);
         }
@@ -180,13 +167,13 @@ export class CalidadAguaService {
     }
 
     async updateVisibilidadCalidadAgua(Id_Calidad_Agua: number, idUsuario: number) {
-        if (!idUsuario) { throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción'); }
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
         const calidadAgua = await this.calidadAguaRepository.findOne({ where: { Id_Calidad_Agua } });
-        if (!calidadAgua) { throw new NotFoundException(`Registro con ID ${Id_Calidad_Agua} no encontrado`); }
+        if (!calidadAgua) throw new NotFoundException(`Registro con ID ${Id_Calidad_Agua} no encontrado`);
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
-        if (!usuario) { throw new BadRequestException('Usuario no encontrado'); }
+        if (!usuario) throw new BadRequestException('Usuario no encontrado');
 
         // Guardar datos anteriores para auditoría
         const datosAnteriores = {
@@ -199,20 +186,13 @@ export class CalidadAguaService {
         calidadAgua.Visible = !calidadAgua.Visible;
         const calidadAguaActualizada = await this.calidadAguaRepository.save(calidadAgua);
 
-        // Registrar en auditoría
         try {
-            await this.auditoriaService.logActualizacion(
-                'Calidad de Agua',
-                idUsuario,
-                Id_Calidad_Agua,
-                datosAnteriores,
-                {
-                    Titulo: calidadAguaActualizada.Titulo,
-                    Descripcion: calidadAguaActualizada.Descripcion,
-                    Url_Archivo: calidadAguaActualizada.Url_Archivo,
-                    Visible: calidadAguaActualizada.Visible
-                }
-            );
+            await this.auditoriaService.logActualizacion('Calidad de Agua', idUsuario, Id_Calidad_Agua, datosAnteriores, {
+                Titulo: calidadAguaActualizada.Titulo,
+                Descripcion: calidadAguaActualizada.Descripcion,
+                Url_Archivo: calidadAguaActualizada.Url_Archivo,
+                Visible: calidadAguaActualizada.Visible
+            });
         } catch (error) {
             console.error('Error al registrar auditoría de cambio de visibilidad de calidad de agua:', error);
         }

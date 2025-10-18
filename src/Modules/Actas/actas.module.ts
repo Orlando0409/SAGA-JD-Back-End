@@ -7,13 +7,10 @@ import { ActaController } from "./actas.controller";
 import { ActasService } from "./actas.service";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { UsuariosModule } from "../Usuarios/Modules/usuarios.module";
+import { AuditoriaModule } from "../Auditoria/auditoria.module";
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([Acta, ArchivoActa, Usuario]), 
-        DropboxModule,
-        UsuariosModule
-    ],
+    imports: [TypeOrmModule.forFeature([Acta, ArchivoActa, Usuario]), DropboxModule, UsuariosModule, AuditoriaModule],
     controllers: [ActaController],
     providers: [ActasService],
     exports: [ActasService],
