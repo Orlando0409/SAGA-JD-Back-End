@@ -24,6 +24,6 @@ export class Acta
     Archivos: ArchivoActa[];
 
     @ManyToOne(() => Usuario, { nullable: false })
-    @JoinColumn({ name: 'Id_Usuario_Creador' })
+    @JoinColumn({ name: 'Id_Usuario' })
     Usuario: Usuario;
 }

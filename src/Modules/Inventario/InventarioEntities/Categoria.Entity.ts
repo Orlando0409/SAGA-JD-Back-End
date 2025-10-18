@@ -25,7 +25,7 @@ export class Categoria {
     Estado_Categoria: EstadoCategoria;
 
     @ManyToOne(() => Usuario, usuario => usuario.Id_Usuario, { eager: true })
-    @JoinColumn({ name: 'Id_Usuario_Creador' })
+    @JoinColumn({ name: 'Id_Usuario' })
     Usuario: Usuario;
 
     @OneToMany(() => MaterialCategoria, materialCategoria => materialCategoria.Categoria)

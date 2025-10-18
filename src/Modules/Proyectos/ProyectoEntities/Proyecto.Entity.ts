@@ -31,7 +31,7 @@ export class Proyecto
     Estado: EstadoProyecto; 
 
     @ManyToOne(() => Usuario, usuario => usuario.Id_Usuario, { eager: true })
-    @JoinColumn({ name: 'Id_Usuario_Creador' })
+    @JoinColumn({ name: 'Id_Usuario' })
     Usuario: Usuario;
 
     @BeforeInsert()
