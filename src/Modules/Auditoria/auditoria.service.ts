@@ -10,6 +10,7 @@ import { Proveedor } from "../Proveedores/ProveedorEntities/Proveedor.Entity";
 import { Acta } from "../Actas/ActaEntities/Acta.Entity";
 import { CalidadAgua } from "../CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity";
 import { UsuariosService } from "../Usuarios/Services/usuarios.service";
+import { Proyecto } from "../Proyectos/ProyectoEntities/Proyecto.Entity";
 
 @Injectable()
 export class AuditoriaService {
@@ -64,6 +65,9 @@ export class AuditoriaService {
                         case 'calidad de agua':
                             if (anteriores.Titulo) return anteriores.Titulo;
                             break;
+                        case 'proyectos':
+                            if (anteriores.Titulo) return anteriores.Titulo;
+                            break;
                     }
                 } catch (error) {
                     console.error('Error al parsear datos anteriores:', error);
@@ -100,6 +104,9 @@ export class AuditoriaService {
                             if (nuevos.Titulo) return nuevos.Titulo;
                             break;
                         case 'calidad de agua':
+                            if (nuevos.Titulo) return nuevos.Titulo;
+                            break;
+                        case 'proyectos':
                             if (nuevos.Titulo) return nuevos.Titulo;
                             break;
                     }
@@ -151,6 +158,12 @@ export class AuditoriaService {
                         where: { Id_Calidad_Agua: idRegistro }
                     });
                     return calidadAgua?.Titulo || `Calidad de Agua ID: ${idRegistro}`;
+
+                case 'proyectos':
+                    const proyecto = await this.dataSource.getRepository(Proyecto).findOne({
+                        where: { Id_Proyecto: idRegistro }
+                    });
+                    return proyecto?.Titulo || `Proyecto ID: ${idRegistro}`;
 
                 default:
                     return `Registro ID: ${idRegistro}`;
