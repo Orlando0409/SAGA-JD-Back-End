@@ -7,19 +7,19 @@ export class Reporte {
     IdReporte: number;
 
     @Column()
-    name: string;
+    Nombre: string;
 
     @Column()
-    Papellido: string;
+    Primer_Apellido: string;
 
     @Column({ nullable: true })
-    Sapellido?: string;
+    Segundo_Apellido?: string;
 
     @Column()
-    ubicacion: string;
+    Ubicacion: string;
 
     @Column()
-    descripcion: string;
+    Descripcion: string;
 
     @Column()
     Fecha_Reporte: Date;

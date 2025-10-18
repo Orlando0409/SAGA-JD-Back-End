@@ -42,9 +42,9 @@ export class QuejasService {
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
     const fecha = new Date();
-    const nombre = dto.name?.toString().trim();
-    const primerApellido = dto.Papellido?.toString().trim();
-    const segundoApellido = dto.Sapellido?.toString().trim();
+    const nombre = dto.Nombre?.toString().trim();
+    const primerApellido = dto.Primer_Apellido?.toString().trim();
+    const segundoApellido = dto.Segundo_Apellido?.toString().trim();
     const rawFolder = [nombre, primerApellido, segundoApellido].filter(Boolean).join(' ');
     const folderName = rawFolder.replace(/[\\/\:\*\?"<>\|]/g, '').replace(/\s+/g, ' ').trim();
 
@@ -72,11 +72,11 @@ export class QuejasService {
       setImmediate(async () => {
         try {
           await this.emailService.enviarEmailQueja({
-            name: dto.name,
-            Papellido: dto.Papellido,
-            Sapellido: dto.Sapellido,
+            name: dto.Nombre,
+            Papellido: dto.Primer_Apellido,
+            Sapellido: dto.Segundo_Apellido,
             Correo: dto.Correo,
-            descripcion: dto.descripcion,
+            descripcion: dto.Descripcion,
             adjuntos: adjuntoUrls,
           });
         } catch (error) {
@@ -93,9 +93,9 @@ export class QuejasService {
     if (!repo) throw new BadRequestException(`Queja con id ${id} no encontrada`);
 
     try {
-      const nombre = repo.name?.toString().trim();
-      const primerApellido = repo.Papellido?.toString().trim();
-      const segundoApellido = repo.Sapellido?.toString().trim();
+      const nombre = repo.Nombre?.toString().trim();
+      const primerApellido = repo.Primer_Apellido?.toString().trim();
+      const segundoApellido = repo.Segundo_Apellido?.toString().trim();
       const rawFolder = [nombre, primerApellido, segundoApellido].filter(Boolean).join(' ');
       const folderName = rawFolder.replace(/[\\/\:\*\?"<>\|]/g, '').replace(/\s+/g, ' ').trim();
       await this.dropboxFilesService.deletePath('Contacto', 'Quejas', undefined, folderName);
@@ -136,11 +136,11 @@ export class QuejasService {
       setImmediate(async () => {
         try {
           await this.emailService.enviarEmailRespuestaQueja({
-            name: repo.name,
-            Papellido: repo.Papellido,
-            Sapellido: repo.Sapellido,
+            name: repo.Nombre,
+            Papellido: repo.Primer_Apellido,
+            Sapellido: repo.Segundo_Apellido,
             Correo: correoDestino,
-            descripcion: repo.descripcion,
+            descripcion: repo.Descripcion,
             respuesta: dto.Respuesta,
           });
         } catch (error) {

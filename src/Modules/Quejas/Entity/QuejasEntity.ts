@@ -8,16 +8,16 @@ export class Queja {
     Id_Queja: number;
 
     @Column()
-    name: string;
+    Nombre: string;
 
     @Column()
-    Papellido: string;
+    Primer_Apellido: string;
 
     @Column({ nullable: true })
-    Sapellido?: string;
+    Segundo_Apellido?: string;
 
     @Column()
-    descripcion: string;
+    Descripcion: string;
 
     @Column({ type: 'varchar', length: 100 })
     Correo: string;

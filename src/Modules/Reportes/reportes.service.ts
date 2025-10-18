@@ -6,7 +6,7 @@ import { EmailService } from '../Emails/email.service';
 import { ResponderReporteDto } from './ReportesDto/ResponderReporte.dto';
 import { EstadoReporte } from './ReporteEntities/EstadoReporte';
 import { Reporte } from './ReporteEntities/Reportes.Entity';
-import { CreateReporteDto } from './ReporteDTO\'s/CreateReporte.dto';
+import { CreateReporteDto } from './ReportesDto/CreateReporte.dto';
 
 interface ReporteFiles {
   Adjunto?: Express.Multer.File[];
@@ -42,9 +42,9 @@ export class ReportesService {
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
     const fecha = new Date();
-    const nombre = dto.name?.toString().trim();
-    const primerApellido = dto.Papellido?.toString().trim();
-    const segundoApellido = dto.Sapellido?.toString().trim();
+    const nombre = dto.Nombre?.toString().trim();
+    const primerApellido = dto.Primer_Apellido?.toString().trim();
+    const segundoApellido = dto.Segundo_Apellido?.toString().trim();
     const rawFolder = [nombre, primerApellido, segundoApellido].filter(Boolean).join(' ');
     const folderName = rawFolder.replace(/[\\/\:\*\?"<>\|]/g, '').replace(/\s+/g, ' ').trim();
 
@@ -72,12 +72,12 @@ export class ReportesService {
       setImmediate(async () => {
         try {
           await this.emailService.enviarEmailReporte({
-            name: dto.name,
-            Papellido: dto.Papellido,
-            Sapellido: dto.Sapellido,
+            name: dto.Nombre,
+            Papellido: dto.Primer_Apellido,
+            Sapellido: dto.Segundo_Apellido,
             Correo: dto.Correo,
-            ubicacion: dto.ubicacion,
-            descripcion: dto.descripcion,
+            ubicacion: dto.Ubicacion,
+            descripcion: dto.Descripcion,
             adjuntos: adjuntoUrls,
           });
         } catch (error) {
@@ -94,9 +94,9 @@ export class ReportesService {
     if (!repo) throw new BadRequestException(`Reporte con id ${id} no encontrado`);
 
     try {
-      const nombre = repo.name?.toString().trim();
-      const primerApellido = repo.Papellido?.toString().trim();
-      const segundoApellido = repo.Sapellido?.toString().trim();
+      const nombre = repo.Nombre?.toString().trim();
+      const primerApellido = repo.Primer_Apellido?.toString().trim();
+      const segundoApellido = repo.Segundo_Apellido?.toString().trim();
       const rawFolder = [nombre, primerApellido, segundoApellido].filter(Boolean).join(' ');
       const folderName = rawFolder.replace(/[\\/\:\*\?"<>\|]/g, '').replace(/\s+/g, ' ').trim();
       await this.dropboxFilesService.deletePath('Contacto', 'Reportes', undefined, folderName);
@@ -137,12 +137,12 @@ export class ReportesService {
       setImmediate(async () => {
         try {
           await this.emailService.enviarEmailRespuestaReporte({
-            name: repo.name,
-            Papellido: repo.Papellido,
-            Sapellido: repo.Sapellido,
+            name: repo.Nombre,
+            Papellido: repo.Primer_Apellido,
+            Sapellido: repo.Segundo_Apellido,
             Correo: correoDestino,
-            ubicacion: repo.ubicacion,
-            descripcion: repo.descripcion,
+            ubicacion: repo.Ubicacion,
+            descripcion: repo.Descripcion,
             respuesta: dto.Respuesta,
           });
         } catch (error) {

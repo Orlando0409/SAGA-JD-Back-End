@@ -4,8 +4,8 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ReportesService } from './reportes.service';
 import { ResponderReporteDto } from './ReportesDto/ResponderReporte.dto';
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
-import { CreateReporteDto } from './ReporteDTO\'s/CreateReporte.dto';
-import { UpdateReporteEstadoDto } from './ReporteDTO\'s/UpdateReporteEstado.dto';
+import { CreateReporteDto } from './ReportesDto/CreateReporte.dto';
+import { UpdateReporteEstadoDto } from './ReportesDto/UpdateReporteEstado.dto';
 
 
 @Controller('reportes')
