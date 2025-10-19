@@ -8,6 +8,9 @@ import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { ValidationsService } from "src/Validations/Validations.service";
 import { AfiliadosService } from "src/Modules/Afiliados/afiliados.service";
 import { EmailService } from "src/Modules/Emails/email.service";
+import { AfiliadoFisico } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
+import { EstadoAfiliado } from "src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
+import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Injectable()
 export class SolicitudesFisicasService {
@@ -32,6 +35,15 @@ export class SolicitudesFisicasService {
 
         @InjectRepository(EstadoSolicitud)
         private readonly estadoSolicitudRepository: Repository<EstadoSolicitud>,
+
+        @InjectRepository(AfiliadoFisico)
+        private readonly afiliadoFisicoRepository: Repository<AfiliadoFisico>,
+
+        @InjectRepository(EstadoAfiliado)
+        private readonly estadoAfiliadoRepository: Repository<EstadoAfiliado>,
+
+        @InjectRepository(Usuario)
+        private readonly usuarioRepository: Repository<Usuario>,
 
         private readonly dropboxFilesService: DropboxFilesService,
 
@@ -303,5 +315,190 @@ export class SolicitudesFisicasService {
 
         await this.emailService.enviarEmailSolicitudCreada(dto.Correo, 'Asociación', nombre);
         return solicitudFinal;
+    }
+
+    // MÉTODOS PARA CAMBIO DE ESTADO - Usando Id_Solicitud de tabla padre
+    async updateEstadoSolicitudAfiliacion(idSolicitud: number, idNuevoEstado: number, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de afiliación.');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
+
+        const solicitudAfiliacion = await this.solicitudAfiliacionFisicaRepository.findOne({ where: { Id_Solicitud: idSolicitud }, relations: ['Estado'] });
+        if (!solicitudAfiliacion) throw new BadRequestException(`Solicitud de afiliación con id ${idSolicitud} no encontrada`);
+
+        const nuevoEstado = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: idNuevoEstado } });
+        if (!nuevoEstado) throw new BadRequestException(`Estado con id ${idNuevoEstado} no encontrado`);
+
+        const nombre = `${solicitudAfiliacion.Nombre} ${solicitudAfiliacion.Apellido1 ?? ''} ${solicitudAfiliacion.Apellido2 ?? ''}`.trim();
+
+        // Estado 2 = En revisión
+        if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudAfiliacion.Correo, 'Afiliación', 'En revisión', nombre);
+
+        // Estado 3 = Aprobada y en espera / Pendiente de instalar medidor
+        if (idNuevoEstado === 3) await this.emailService.enviarEmailActualizacionEstado(solicitudAfiliacion.Correo, 'Afiliación', 'Aprobada y en espera', nombre);
+
+        // Estado 4 = Completada
+        if (idNuevoEstado === 4) {
+            await this.afiliadosService.createAfiliadoFisicoFromSolicitud(solicitudAfiliacion);
+
+            await this.emailService.enviarEmailActualizacionEstado(solicitudAfiliacion.Correo, 'Afiliación', 'Completada', nombre);
+            console.log(`Estado de solicitud de afiliación ${idSolicitud} cambiado a 'Completada'`);
+        }
+
+        // Estado 5 = Rechazada
+        if (idNuevoEstado === 5) console.log(`Estado de solicitud de afiliación ${idSolicitud} cambiado a 'Rechazada'`);
+
+        solicitudAfiliacion.Estado = nuevoEstado;
+        const resultado = await this.solicitudAfiliacionFisicaRepository.save(solicitudAfiliacion);
+
+        return {
+            solicitud: resultado,
+            mensaje: `Estado de solicitud de afiliación cambiado a '${nuevoEstado.Nombre_Estado}' exitosamente`
+        };
+    }
+
+    async updateEstadoSolicitudDesconexion(idSolicitud: number, idNuevoEstado: number, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de desconexión.');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
+
+        const solicitudDesconexion = await this.solicitudDesconexionFisicaRepository.findOne({ where: { Id_Solicitud: idSolicitud }, relations: ['Estado'] });
+        if (!solicitudDesconexion) throw new BadRequestException(`Solicitud de desconexión con id ${idSolicitud} no encontrada`);
+
+        const nuevoEstado = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: idNuevoEstado } });
+        if (!nuevoEstado) throw new BadRequestException(`Estado con id ${idNuevoEstado} no encontrado`);
+
+        const nombre = `${solicitudDesconexion.Nombre} ${solicitudDesconexion.Apellido1 ?? ''} ${solicitudDesconexion.Apellido2 ?? ''}`.trim();
+
+        // Estado 2 = En revisión
+        if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudDesconexion.Correo, 'Desconexión', 'En revisión', nombre);
+
+        // Estado 3 = Aprobada
+        if (idNuevoEstado === 3) console.log(`Estado de solicitud de desconexión ${idSolicitud} cambiado a 'Aprobada'`);
+
+        // Estado 4 = Completada
+        if (idNuevoEstado === 4) {
+            await this.emailService.enviarEmailActualizacionEstado(solicitudDesconexion.Correo, 'Desconexión', 'Completada', nombre);
+            console.log(`Estado de solicitud de desconexión ${idSolicitud} cambiado a 'Completada'`);
+
+            // Actualizar estado del afiliado a inactivo
+            const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitudDesconexion.Identificacion } });
+            if (afiliado) {
+                const estadoInactivo = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 2 } }); // 2 = Inactivo
+                if (estadoInactivo) {
+                    afiliado.Estado = estadoInactivo;
+                    await this.afiliadoFisicoRepository.save(afiliado);
+                }
+            }
+        }
+
+        // Estado 5 = Rechazada
+        if (idNuevoEstado === 5) {
+            console.log(`Estado de solicitud de desconexión ${idSolicitud} cambiado a 'Rechazada'`);
+            await this.emailService.enviarEmailActualizacionEstado(solicitudDesconexion.Correo, 'Desconexión', 'Rechazada', nombre);
+        }
+
+        solicitudDesconexion.Estado = nuevoEstado;
+        const resultado = await this.solicitudDesconexionFisicaRepository.save(solicitudDesconexion);
+
+        return {
+            solicitud: resultado,
+            mensaje: `Estado de solicitud de desconexión cambiado a '${nuevoEstado.Nombre_Estado}' exitosamente`
+        };
+    }
+
+    async updateEstadoSolicitudCambioMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de cambio de medidor.');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
+
+        const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({
+            where: { Id_Solicitud: idSolicitud },
+            relations: ['Estado']
+        });
+        if (!solicitudCambioMedidor) throw new BadRequestException(`Solicitud de cambio de medidor con id ${idSolicitud} no encontrada`);
+
+        const nuevoEstado = await this.estadoSolicitudRepository.findOne({
+            where: { Id_Estado_Solicitud: idNuevoEstado }
+        });
+        if (!nuevoEstado) throw new BadRequestException(`Estado con id ${idNuevoEstado} no encontrado`);
+
+            const nombre = `${solicitudCambioMedidor.Nombre} ${solicitudCambioMedidor.Apellido1 ?? ''} ${solicitudCambioMedidor.Apellido2 ?? ''}`.trim();
+
+        // Estado 2 = En revisión
+        if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'En revisión', nombre);
+
+        // Estado 3 = Aprobada
+        if (idNuevoEstado === 3) {
+            await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Aprobada', nombre);
+            console.log(`Estado de solicitud de cambio de medidor ${idSolicitud} cambiado a 'Aprobada'`);
+        }
+
+        // Estado 4 = Completada
+        if (idNuevoEstado === 4) {
+            await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Completada', nombre);
+            console.log(`Estado de solicitud de cambio de medidor ${idSolicitud} cambiado a 'Completada'`);
+        }
+
+        // Estado 5 = Rechazada
+        if (idNuevoEstado === 5) {
+            console.log(`Estado de solicitud de cambio de medidor ${idSolicitud} cambiado a 'Rechazada'`);
+            await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Rechazada', nombre);
+        }
+
+        solicitudCambioMedidor.Estado = nuevoEstado;
+        const resultado = await this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
+
+        return {
+            solicitud: resultado,
+            mensaje: `Estado de solicitud de cambio de medidor cambiado a '${nuevoEstado.Nombre_Estado}' exitosamente`
+        };
+    }
+
+    async updateEstadoSolicitudAsociado(idSolicitud: number, idNuevoEstado: number, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de asociado.');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
+
+        const solicitudAsociado = await this.solicitudAsociadoFisicaRepository.findOne({ where: { Id_Solicitud: idSolicitud }, relations: ['Estado'] });
+        if (!solicitudAsociado) throw new BadRequestException(`Solicitud de asociado con id ${idSolicitud} no encontrada`);
+
+        const nuevoEstado = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: idNuevoEstado } });
+        if (!nuevoEstado) throw new BadRequestException(`Estado con id ${idNuevoEstado} no encontrado`);
+
+        const nombre = `${solicitudAsociado.Nombre} ${solicitudAsociado.Apellido1 ?? ''} ${solicitudAsociado.Apellido2 ?? ''}`.trim();
+
+        // Estado 2 = En revisión
+        if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociado', 'En revisión', nombre);
+
+        // Estado 3 = Aprobada y en espera
+        if (idNuevoEstado === 3) console.log(`Estado de solicitud de asociado ${idSolicitud} cambiado a 'Aprobada'`);
+
+        // Estado 4 = Completada
+        if (idNuevoEstado === 4) {
+            console.log(`Estado de solicitud de asociado ${idSolicitud} cambiado a 'Completada'`);
+            await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociado', 'Completada', nombre);
+
+            // Cambiar afiliado de abonado a asociado
+            await this.afiliadosService.cambiarAbonadoAAsociadoFisico(solicitudAsociado.Identificacion);
+        }
+
+        // Estado 5 = Rechazada
+        if (idNuevoEstado === 5) {
+            console.log(`Estado de solicitud de asociado ${idSolicitud} cambiado a 'Rechazada'`);
+            await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociado', 'Rechazada', nombre);
+        }
+
+        solicitudAsociado.Estado = nuevoEstado;
+        const resultado = await this.solicitudAsociadoFisicaRepository.save(solicitudAsociado);
+
+        return {
+            solicitud: resultado,
+            mensaje: `Estado de solicitud de asociado cambiado a '${nuevoEstado.Nombre_Estado}' exitosamente`
+        };
     }
 }

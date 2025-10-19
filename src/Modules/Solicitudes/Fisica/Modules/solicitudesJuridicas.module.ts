@@ -10,9 +10,11 @@ import { EmailModule } from "src/Modules/Emails/email.module";
 import { DropboxModule } from "src/Dropbox/Files/DropboxFiles.module";
 import { SolicitudesJuridicasService } from "../Services/solicitudesJuridicas.service";
 import { SolicitudesJuridicasController } from "../Controllers/solicitudesJuridicas.controller";
+import { AfiliadoJuridico } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
+import { EstadoAfiliado } from "src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Solicitud, SolicitudJuridica, SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica, EstadoSolicitud, Usuario]), DropboxModule, EmailModule, ValidationsModule, AfiliadosModule, UsuariosModule, AuditoriaModule],
+    imports: [TypeOrmModule.forFeature([Solicitud, SolicitudJuridica, SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica, EstadoSolicitud, AfiliadoJuridico, EstadoAfiliado, Usuario]), DropboxModule, EmailModule, ValidationsModule, AfiliadosModule, UsuariosModule, AuditoriaModule],
     controllers: [SolicitudesJuridicasController],
     providers: [SolicitudesJuridicasService],
     exports: [SolicitudesJuridicasService],

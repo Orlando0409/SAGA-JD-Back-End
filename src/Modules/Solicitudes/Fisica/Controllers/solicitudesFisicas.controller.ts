@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UploadedFiles, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, UploadedFiles, UseInterceptors } from "@nestjs/common";
 import { SolicitudesFisicasService } from "../Services/solicitudesFisicas.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
@@ -83,5 +83,45 @@ export class SolicitudesFisicasController {
         @Body() solicitudAsociado: CreateSolicitudAsociadoFisicaDto,
     ) {
         return this.solicitudesFisicasService.createSolicitudAsociado(solicitudAsociado);
+    }
+
+    @Patch('/update/estado/afiliacion/:idSolicitud/:idNuevoEstado/:idUsuario')
+    @ApiOperation({ summary: 'Actualizar el estado de una solicitud de afiliación fisica' })
+    async updateEstadoSolicitudAfiliacion(
+        @Param('idSolicitud') idSolicitud: number,
+        @Param('idNuevoEstado') idNuevoEstado: number,
+        @Param('idUsuario') idUsuario: number,
+    ) {
+        return this.solicitudesFisicasService.updateEstadoSolicitudAfiliacion(idSolicitud, idNuevoEstado, idUsuario);
+    }
+
+    @Patch('/update/estado/desconexion/:idSolicitud/:idNuevoEstado/:idUsuario')
+    @ApiOperation({ summary: 'Actualizar el estado de una solicitud de desconexión fisica' })
+    async updateEstadoSolicitudDesconexion(
+        @Param('idSolicitud') idSolicitud: number,
+        @Param('idNuevoEstado') idNuevoEstado: number,
+        @Param('idUsuario') idUsuario: number,
+    ) {
+        return this.solicitudesFisicasService.updateEstadoSolicitudDesconexion(idSolicitud, idNuevoEstado, idUsuario);
+    }
+
+    @Patch('/update/estado/cambio-medidor/:idSolicitud/:idNuevoEstado/:idUsuario')
+    @ApiOperation({ summary: 'Actualizar el estado de una solicitud de cambio de medidor fisica' })
+    async updateEstadoSolicitudCambioMedidor(
+        @Param('idSolicitud') idSolicitud: number,
+        @Param('idNuevoEstado') idNuevoEstado: number,
+        @Param('idUsuario') idUsuario: number,
+    ) {
+        return this.solicitudesFisicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario);
+    }
+
+    @Patch('/update/estado/asociado/:idSolicitud/:idNuevoEstado/:idUsuario')
+    @ApiOperation({ summary: 'Actualizar el estado de una solicitud de asociado fisica' })
+    async updateEstadoSolicitudAsociado(
+        @Param('idSolicitud') idSolicitud: number,
+        @Param('idNuevoEstado') idNuevoEstado: number,
+        @Param('idUsuario') idUsuario: number,
+    ) {
+        return this.solicitudesFisicasService.updateEstadoSolicitudAsociado(idSolicitud, idNuevoEstado, idUsuario);
     }
 }
