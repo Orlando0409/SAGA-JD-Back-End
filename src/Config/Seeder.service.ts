@@ -236,7 +236,7 @@ export class SeederService implements OnModuleInit {
 
                 // Asignar el usuario creador si existe
                 if (adminUser) {
-                    nuevaCategoria.Usuario = adminUser;
+                    nuevaCategoria.Usuario_Creador = adminUser;
                 }
 
                 await this.categoriaMaterialRepository.save(nuevaCategoria);
@@ -288,7 +288,7 @@ export class SeederService implements OnModuleInit {
 
                 // Asignar el usuario creador si existe
                 if (adminUser) {
-                    nuevaUnidad.Usuario = adminUser;
+                    nuevaUnidad.Usuario_Creador = adminUser;
                 }
 
                 await this.unidadMedicionRepository.save(nuevaUnidad);

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe, BadRequestException } from "@nestjs/common";
+import { Controller, Get, Param, ParseIntPipe } from "@nestjs/common";
 import { AuditoriaService } from "./auditoria.service";
 import { ApiOperation } from "@nestjs/swagger";
 

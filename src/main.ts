@@ -37,14 +37,14 @@ async function bootstrap() {
     .setVersion('1.0')
     .build();
 
-  const options: SwaggerDocumentOptions = {
-    autoTagControllers: true,
+    const options: SwaggerDocumentOptions =  {
+        autoTagControllers: true,
 
-    operationIdFactory: (
-      controllerKey: string,
-      methodKey: string
-    ) => methodKey
-  };
+        operationIdFactory: (
+          controllerKey: string,
+          methodKey: string
+        ) => methodKey
+      };
   const documentFactory = () => SwaggerModule.createDocument(app, config, options);
 
   SwaggerModule.setup('api', app, documentFactory, {
@@ -53,7 +53,7 @@ async function bootstrap() {
         const order = { get: 1, post: 2, put: 3, patch: 4, delete: 5 };
         return order[a.get("method")] - order[b.get("method")];
       }
-    },
+    }, 
   });
 
   await app.listen(process.env.PORT ?? 3000);

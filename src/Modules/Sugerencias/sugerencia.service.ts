@@ -62,7 +62,6 @@ export class SugerenciaService {
 
       saved.Adjunto = adjuntoUrls;
       await this.sugerenciaRepository.save(saved);
-      await this.sugerenciaRepository.save(saved);
     }
 
     if (dto.Correo) {

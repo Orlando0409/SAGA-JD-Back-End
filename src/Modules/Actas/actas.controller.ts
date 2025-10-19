@@ -14,31 +14,30 @@ export class ActaController {
         return this.actasService.getAllActas();
     }
 
-    @Post('/create/:idUsuario')
+    @Post('/create')
     @ApiOperation({ summary: 'Crear una nueva acta' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Archivo', maxCount: 10 },
     ]),)
     createActa(@Body() dto: CreateActaDto,
-        @Param('idUsuario') idUsuario: number,
+        @Param('idUsuarioCreador') idUsuarioCreador: number,
         @UploadedFiles() files: { Archivo?: Express.Multer.File[]; }) {
-        return this.actasService.createActa(dto, idUsuario, files.Archivo || []);
+        return this.actasService.createActa(dto, idUsuarioCreador, files.Archivo || []);
     }
 
-    @Put('/update/:idActa/:idUsuario')
+    @Put('/update/:id')
     @ApiOperation({ summary: 'Actualizar una acta existente' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Archivo', maxCount: 10 },
     ]),)
-    updateActa(@Param('idActa') id: number, @Body() dto: CreateActaDto,
-        @Param('idUsuario') idUsuario: number,
+    updateActa(@Param('id acta') id: number, @Body() dto: CreateActaDto,
         @UploadedFiles() files: { Archivo?: Express.Multer.File[]; }) {
-        return this.actasService.UpdateActa(id, dto, idUsuario, files.Archivo || []);
+        return this.actasService.UpdateActa(id, dto, files.Archivo || []);
     }
 
-    @Delete('/delete/:idActa/:idUsuario')
+    @Delete('/delete/:id')
     @ApiOperation({ summary: 'Eliminar una acta existente' })
-    deleteActa(@Param('idActa') id: number, @Param('idUsuario') idUsuario: number) {
-        return this.actasService.deleteActa(id, idUsuario);
+    deleteActa(@Param('id acta') id: number) {
+        return this.actasService.deleteActa(id);
     }
 }

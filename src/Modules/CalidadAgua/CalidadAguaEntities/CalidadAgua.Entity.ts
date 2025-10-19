@@ -26,6 +26,6 @@ export class CalidadAgua
     Url_Archivo: string;
 
     @ManyToOne(() => Usuario, { nullable: false })
-    @JoinColumn({ name: 'Id_Usuario' })
-    Usuario: Usuario;
+    @JoinColumn({ name: 'Id_Usuario_Creador' })
+    Usuario_Creador: Usuario;
 }

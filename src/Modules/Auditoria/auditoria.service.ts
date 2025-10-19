@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
@@ -7,10 +7,6 @@ import { Categoria } from "../Inventario/InventarioEntities/Categoria.Entity";
 import { UnidadMedicion } from "../Inventario/InventarioEntities/UnidadMedicion.Entity";
 import { Material } from "../Inventario/InventarioEntities/Material.Entity";
 import { Proveedor } from "../Proveedores/ProveedorEntities/Proveedor.Entity";
-import { Acta } from "../Actas/ActaEntities/Acta.Entity";
-import { CalidadAgua } from "../CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity";
-import { UsuariosService } from "../Usuarios/Services/usuarios.service";
-import { Proyecto } from "../Proyectos/ProyectoEntities/Proyecto.Entity";
 
 @Injectable()
 export class AuditoriaService {
@@ -22,13 +18,11 @@ export class AuditoriaService {
         private readonly usuarioRepository: Repository<Usuario>,
 
         private readonly dataSource: DataSource,
-
-        private readonly usuariosService: UsuariosService,
     ) {}
 
-    /*
-        Obtiene el nombre del registro según el módulo y los datos
-        Para UPDATE/DELETE usa datos anteriores, para INSERT usa datos nuevos
+    /**
+     * Obtiene el nombre del registro según el módulo y los datos
+     * Para UPDATE/DELETE usa datos anteriores, para INSERT usa datos nuevos
      */
     private async obtenerNombreRegistro(modulo: string, idRegistro: number, datosAnteriores: string | null, datosNuevos: string, accion: string): Promise<string> {
         try {
@@ -36,37 +30,23 @@ export class AuditoriaService {
             if ((accion === 'Update' || accion === 'Delete') && datosAnteriores) {
                 try {
                     const anteriores = JSON.parse(datosAnteriores);
+                    
                     // Buscar el campo de nombre según el módulo
                     switch (modulo.toLowerCase()) {
-                        case 'usuarios':
-                            if (anteriores.Nombre_Usuario) return anteriores.Nombre_Usuario;
-                            break;
-                        case 'roles':
-                            if (anteriores.Nombre_Rol) return anteriores.Nombre_Rol;
-                            break;
-                        case 'categorias':
+                        case 'categoria':
                             if (anteriores.Nombre_Categoria) return anteriores.Nombre_Categoria;
                             break;
-                        case 'unidades de medicion':
+                        case 'unidad de medicion':
                             if (anteriores.Nombre_Unidad) return anteriores.Nombre_Unidad;
                             break;
-                        case 'materiales':
+                        case 'material':
                             if (anteriores.Nombre_Material) return anteriores.Nombre_Material;
                             break;
-                        case 'proveedores':
+                        case 'proveedor':
                             if (anteriores.Nombre_Proveedor) return anteriores.Nombre_Proveedor;
                             break;
-                        case 'proyectos':
-                            if (anteriores.Titulo) return anteriores.Titulo;
-                            break;
-                        case 'actas':
-                            if (anteriores.Titulo) return anteriores.Titulo;
-                            break;
-                        case 'calidad de agua':
-                            if (anteriores.Titulo) return anteriores.Titulo;
-                            break;
-                        case 'proyectos':
-                            if (anteriores.Titulo) return anteriores.Titulo;
+                        case 'usuario':
+                            if (anteriores.Nombre_Usuario) return anteriores.Nombre_Usuario;
                             break;
                     }
                 } catch (error) {
@@ -78,35 +58,33 @@ export class AuditoriaService {
             if (accion === 'Insert' && datosNuevos) {
                 try {
                     const nuevos = JSON.parse(datosNuevos);
+                    
                     switch (modulo.toLowerCase()) {
-                        case 'usuarios':
+                        case 'usuario':
                             if (nuevos.Nombre_Usuario) return nuevos.Nombre_Usuario;
                             break;
-                        case 'roles':
+                        case 'rol':
                             if (nuevos.Nombre_Rol) return nuevos.Nombre_Rol;
                             break;
-                        case 'categorias':
+                        case 'categoria':
                             if (nuevos.Nombre_Categoria) return nuevos.Nombre_Categoria;
                             break;
-                        case 'unidades de medicion':
+                        case 'unidad de medicion':
                             if (nuevos.Nombre_Unidad) return nuevos.Nombre_Unidad;
                             break;
-                        case 'materiales':
+                        case 'material':
                             if (nuevos.Nombre_Material) return nuevos.Nombre_Material;
                             break;
-                        case 'proveedores':
+                        case 'proveedor':
                             if (nuevos.Nombre_Proveedor) return nuevos.Nombre_Proveedor;
                             break;
-                        case 'proyectos':
+                        case 'proyecto':
                             if (nuevos.Titulo) return nuevos.Titulo;
                             break;
-                        case 'actas':
+                        case 'acta':
                             if (nuevos.Titulo) return nuevos.Titulo;
                             break;
                         case 'calidad de agua':
-                            if (nuevos.Titulo) return nuevos.Titulo;
-                            break;
-                        case 'proyectos':
                             if (nuevos.Titulo) return nuevos.Titulo;
                             break;
                     }
@@ -117,53 +95,36 @@ export class AuditoriaService {
 
             // Si no se pudo obtener de los datos JSON, hacer query a la base de datos como fallback
             switch (modulo.toLowerCase()) {
-                case 'categorias':
+                case 'categoria':
                     const categoria = await this.dataSource.getRepository(Categoria).findOne({
                         where: { Id_Categoria: idRegistro }
                     });
                     return categoria?.Nombre_Categoria || `Categoría ID: ${idRegistro}`;
 
-                case 'unidades de medicion':
+                case 'unidad de medicion':
+                case 'unidadmedicion':
                     const unidad = await this.dataSource.getRepository(UnidadMedicion).findOne({
                         where: { Id_Unidad_Medicion: idRegistro }
                     });
                     return unidad?.Nombre_Unidad || `Unidad ID: ${idRegistro}`;
 
-                case 'materiales':
+                case 'material':
                     const material = await this.dataSource.getRepository(Material).findOne({
                         where: { Id_Material: idRegistro }
                     });
                     return material?.Nombre_Material || `Material ID: ${idRegistro}`;
 
-                case 'proveedores':
+                case 'proveedor':
                     const proveedor = await this.dataSource.getRepository(Proveedor).findOne({
                         where: { Id_Proveedor: idRegistro }
                     });
                     return proveedor?.Nombre_Proveedor || `Proveedor ID: ${idRegistro}`;
 
-                case 'usuarios':
+                case 'usuario':
                     const usuario = await this.usuarioRepository.findOne({
                         where: { Id_Usuario: idRegistro }
                     });
                     return usuario?.Nombre_Usuario || `Usuario ID: ${idRegistro}`;
-
-                case 'actas':
-                    const acta = await this.dataSource.getRepository(Acta).findOne({
-                        where: { Id_Acta: idRegistro }
-                    });
-                    return acta?.Titulo || `Acta ID: ${idRegistro}`;
-
-                case 'calidad de agua':
-                    const calidadAgua = await this.dataSource.getRepository(CalidadAgua).findOne({
-                        where: { Id_Calidad_Agua: idRegistro }
-                    });
-                    return calidadAgua?.Titulo || `Calidad de Agua ID: ${idRegistro}`;
-
-                case 'proyectos':
-                    const proyecto = await this.dataSource.getRepository(Proyecto).findOne({
-                        where: { Id_Proyecto: idRegistro }
-                    });
-                    return proyecto?.Titulo || `Proyecto ID: ${idRegistro}`;
 
                 default:
                     return `Registro ID: ${idRegistro}`;
@@ -183,6 +144,7 @@ export class AuditoriaService {
 
         // Usar Promise.all para obtener nombres de registros de forma paralela
         return Promise.all(auditorias.map(async (auditoria) => {
+            // Obtener el nombre del registro (usa datos anteriores para UPDATE/DELETE, datos nuevos para INSERT)
             const nombreRegistro = await this.obtenerNombreRegistro(
                 auditoria.Modulo, 
                 auditoria.Id_Registro,
@@ -195,10 +157,14 @@ export class AuditoriaService {
                 Id_Auditoria: auditoria.Id_Auditoria,
                 Modulo: auditoria.Modulo,
                 Accion: auditoria.Accion,
-                Nombre_Registro: nombreRegistro,
+                Nombre_Registro: nombreRegistro, // Nombre legible del registro
                 Fecha_Accion: auditoria.Fecha_Accion,
-                Usuario: auditoria.Usuario ?
-                    await this.usuariosService.FormatearUsuarioResponse(auditoria.Usuario) : null,
+                Usuario: auditoria.Usuario ? {
+                    Id_Usuario: auditoria.Usuario.Id_Usuario,
+                    Nombre_Usuario: auditoria.Usuario.Nombre_Usuario,
+                    Id_Rol: auditoria.Usuario.Id_Rol,
+                    Nombre_Rol: auditoria.Usuario.Rol?.Nombre_Rol
+                } : null,
                 // Datos completos en JSON
                 Datos_Anteriores: auditoria.Datos_Anteriores,
                 Datos_Nuevos: auditoria.Datos_Nuevos
@@ -207,13 +173,8 @@ export class AuditoriaService {
     }
 
     async createAuditoria(modulo: string, accion: string, usuarioId: number, idRegistro: number, datosAnteriores?: any, datosNuevos?: any): Promise<Auditoria> {
-        if (!modulo || modulo.trim() === '') throw new BadRequestException('Debe proporcionar un nombre de módulo válido');
-        if (!accion || accion.trim() === '') throw new BadRequestException('Debe proporcionar una acción válida');
-        if (!usuarioId || usuarioId <= 0) throw new BadRequestException('Debe proporcionar un ID de usuario válido');
-        if (!idRegistro || idRegistro <= 0) throw new BadRequestException('Debe proporcionar un ID de registro válido');
-
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: usuarioId } });
-        if (!usuario) throw new NotFoundException('Usuario no encontrado');
+        if (!usuario) { throw new Error('Usuario no encontrado'); }
 
         const nuevaAuditoria = new Auditoria();
         nuevaAuditoria.Modulo = modulo;
@@ -240,52 +201,15 @@ export class AuditoriaService {
     }
 
     // Métodos de consulta
-    async getAuditoriasPorModulo(modulo: string): Promise<any[]> {
-        if (!modulo || modulo.trim() === '') throw new BadRequestException('Debe proporcionar un nombre de módulo válido');
-        
-        const auditorias = await this.auditoriaRepository.find({ 
-            where: { Modulo: modulo }, 
-            relations: ['Usuario', 'Usuario.Rol'], 
-            order: { Fecha_Accion: 'DESC' } 
-        });
-
-        return Promise.all(auditorias.map(async (auditoria) => ({
-            ...auditoria,
-            Usuario: auditoria.Usuario ?
-                await this.usuariosService.FormatearUsuarioResponse(auditoria.Usuario) : null
-        })));
+    async getAuditoriasPorModulo(modulo: string): Promise<Auditoria[]> {
+        return this.auditoriaRepository.find({ where: { Modulo: modulo }, relations: ['Usuario'], order: { Fecha_Accion: 'DESC' } });
     }
 
-    async getAuditoriasPorUsuario(usuarioId: number): Promise<any[]> {
-        if (!usuarioId || usuarioId <= 0) throw new BadRequestException('Debe proporcionar un ID de usuario válido');
-        
-        const auditorias = await this.auditoriaRepository.find({
-            where: { Usuario: { Id_Usuario: usuarioId } }, 
-            relations: ['Usuario', 'Usuario.Rol'], 
-            order: { Fecha_Accion: 'DESC' } 
-        });
-
-        return Promise.all(auditorias.map(async (auditoria) => ({
-            ...auditoria,
-            Usuario: auditoria.Usuario ?
-                await this.usuariosService.FormatearUsuarioResponse(auditoria.Usuario) : null
-        })));
+    async getAuditoriasPorUsuario(usuarioId: number): Promise<Auditoria[]> {
+        return this.auditoriaRepository.find({where: { Usuario: { Id_Usuario: usuarioId } }, relations: ['Usuario'], order: { Fecha_Accion: 'DESC' } });
     }
 
-    async getAuditoriasPorRegistro(modulo: string, idRegistro: number): Promise<any[]> {
-        if (!modulo || modulo.trim() === '') throw new BadRequestException('Debe proporcionar un nombre de módulo válido');
-        if (!idRegistro || idRegistro <= 0) throw new BadRequestException('Debe proporcionar un ID de registro válido');
-        
-        const auditorias = await this.auditoriaRepository.find({ 
-            where: { Modulo: modulo, Id_Registro: idRegistro }, 
-            relations: ['Usuario', 'Usuario.Rol'], 
-            order: { Fecha_Accion: 'DESC' } 
-        });
-
-        return Promise.all(auditorias.map(async (auditoria) => ({
-            ...auditoria,
-            Usuario: auditoria.Usuario ?
-                await this.usuariosService.FormatearUsuarioResponse(auditoria.Usuario) : null
-        })));
+    async getAuditoriasPorRegistro(modulo: string, idRegistro: number): Promise<Auditoria[]> {
+        return this.auditoriaRepository.find({ where: { Modulo: modulo, Id_Registro: idRegistro }, relations: ['Usuario'], order: { Fecha_Accion: 'DESC' } });
     }
 }

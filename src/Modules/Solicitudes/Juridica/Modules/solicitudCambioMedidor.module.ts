@@ -7,10 +7,14 @@ import { EstadoSolicitud } from '../../SolicitudEntities/EstadoSolicitud.Entity'
 import { ValidationsModule } from 'src/Validations/Validations.module';
 import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
 import { EmailModule } from 'src/Modules/Emails/email.module';
-import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SolicitudCambioMedidorJuridica, EstadoSolicitud, Usuario]), ValidationsModule, DropboxModule, EmailModule],
+  imports: [
+    TypeOrmModule.forFeature([SolicitudCambioMedidorJuridica, EstadoSolicitud]),
+    ValidationsModule,
+    DropboxModule,
+    EmailModule
+  ],
   controllers: [SolicitudCambioMedidorJuridicaController],
   providers: [SolicitudCambioMedidorJuridicaService],
   exports: [SolicitudCambioMedidorJuridicaService],

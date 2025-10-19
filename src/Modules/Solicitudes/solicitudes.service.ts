@@ -25,8 +25,8 @@ export class SolicitudesService {
 
         private readonly solicitudCambioMedidorJuridicaService: SolicitudCambioMedidorJuridicaService,
 
-        private readonly solicitudAsociadoJuridicaService: SolicitudAsociadoJuridicaService,
-    ) { }
+        private readonly solicitudAsociadoJuridicaService: SolicitudAsociadoJuridicaService,    
+    ) {}
 
     async getAllSolicitudesFisicas() {
         const Afiliacion = await this.solicitudAfiliacionFisicaService.getAllSolicitudesAfiliacion();

@@ -7,9 +7,10 @@ import { SolicitudAsociadoJuridicaService } from "../Services/solicitudAsociado.
 
 @Controller('solicitud-asociado-juridica')
 export class SolicitudAsociadoJuridicaController {
-  constructor(
+  constructor
+  (
     private readonly solicitudAsociadoJuridicaService: SolicitudAsociadoJuridicaService,
-  ) { }
+  ) {}
 
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todas las solicitudes de asociado jurídicas' })
@@ -24,15 +25,15 @@ export class SolicitudAsociadoJuridicaController {
     return this.solicitudAsociadoJuridicaService.createSolicitudAsociado(solicitudAsociado);
   }
 
-  @Put('/update/:idSolicitud/:idUsuario')
+  @Put('/update/:id')
   @ApiOperation({ summary: 'Actualizar una solicitud de asociado jurídica por ID' })
-  updateSolicitudAsociado(@Param('idSolicitud', ParseIntPipe) idSolicitud: number, @Body() dto: UpdateSolicitudAsociadoJuridicaDto, @Param('idUsuario', ParseIntPipe) idUsuario: number) {
-    return this.solicitudAsociadoJuridicaService.updateSolicitudAsociado(idSolicitud, dto, idUsuario);
+  updateSolicitudAsociado(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSolicitudAsociadoJuridicaDto) {
+    return this.solicitudAsociadoJuridicaService.updateSolicitudAsociado(id, dto);
   }
 
-  @Patch(':idSolicitud/update/estado/:idNuevoEstado/:idUsuario')
+  @Patch(':id/update/estado/:nuevoEstadoId')
   @ApiOperation({ summary: 'Actualizar el estado de una solicitud de asociado jurídica por ID' })
-  updateEstadoSolicitudAsociado(@Param('idSolicitud', ParseIntPipe) idSolicitud: number, @Param('idNuevoEstado', ParseIntPipe) idNuevoEstado: number, @Param('idUsuario', ParseIntPipe) idUsuario: number) {
-    return this.solicitudAsociadoJuridicaService.UpdateEstadoSolicitudAsociado(idSolicitud, idNuevoEstado, idUsuario);
+  updateEstadoSolicitudAsociado(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
+    return this.solicitudAsociadoJuridicaService.UpdateEstadoSolicitudAsociado(id, nuevoEstadoId);
   }
 }
