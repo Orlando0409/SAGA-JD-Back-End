@@ -43,10 +43,14 @@ export abstract class Solicitud {
     }
 
     @BeforeInsert()
-    SetDefaultEstadoSolicitud() { this.Estado = { Id_Estado_Solicitud: 1 } as EstadoSolicitud; }
+    SetDefaultEstadoSolicitud() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Solicitud: 1 } as EstadoSolicitud;
+        }
+    }
 }
 
-@Entity('Solicitudes_Fisica')
+@Entity('Solicitud_Fisica')
 export abstract class SolicitudFisica extends Solicitud {
     @Column({ type: 'enum', enum: TipoIdentificacion, nullable: false })
     Tipo_Identificacion: TipoIdentificacion;
@@ -60,8 +64,8 @@ export abstract class SolicitudFisica extends Solicitud {
     @Column({ nullable: false })
     Apellido1: string;
 
-    @Column({ nullable: true })
-    Apellido2?: string;
+    @Column({ nullable: false })
+    Apellido2: string;
 
     @BeforeInsert()
     @BeforeUpdate()
@@ -72,7 +76,7 @@ export abstract class SolicitudFisica extends Solicitud {
     }
 }
 
-@Entity('Solicitudes_Juridica')
+@Entity('Solicitud_Juridica')
 export class SolicitudJuridica extends Solicitud {
     @Column({ type: 'varchar', length: 20, nullable: false })
     Cedula_Juridica: string;
@@ -81,7 +85,7 @@ export class SolicitudJuridica extends Solicitud {
     Razon_Social: string;
 }
 
-@Entity('Solicitudes_Afiliacion_Fisica')
+@Entity('Solicitud_Afiliacion_Fisica')
 export class SolicitudAfiliacionFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Direccion_Exacta: string;
@@ -96,15 +100,24 @@ export class SolicitudAfiliacionFisica extends SolicitudFisica {
     Escritura_Terreno: string;
 
     @BeforeInsert()
-    setDefaultEstado() { 
+    @BeforeUpdate()
+    setNormalizarCampos() {
         this.normalizarTelefono();
         this.normalizarApellido2();
-        this.Id_Tipo_Solicitud = 1;
-        this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
-    } 
+    }
+
+    setDefaultEstados() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Solicitud: 1 } as EstadoSolicitud;
+        }
+
+        if (!this.Id_Tipo_Solicitud) {
+            this.Id_Tipo_Solicitud = 1;
+        }
+    }
 }
 
-@Entity('Solicitudes_Desconexion_Fisica')
+@Entity('Solicitud_Desconexion_Fisica')
 export class SolicitudDesconexionFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Direccion_Exacta: string;
@@ -119,15 +132,24 @@ export class SolicitudDesconexionFisica extends SolicitudFisica {
     Escritura_Terreno: string;
 
     @BeforeInsert()
-    setDefaultEstado() { 
+    @BeforeUpdate()
+    setNormalizarCampos() {
         this.normalizarTelefono();
         this.normalizarApellido2();
-        this.Id_Tipo_Solicitud = 2;
-        this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
-    } 
+    }
+
+    setDefaultEstados() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Solicitud: 1 } as EstadoSolicitud;
+        }
+
+        if (!this.Id_Tipo_Solicitud) {
+            this.Id_Tipo_Solicitud = 2;
+        }
+    }
 }
 
-@Entity('Solicitudes_Cambio_Medidor_Fisica')
+@Entity('Solicitud_Cambio_Medidor_Fisica')
 export class SolicitudCambioMedidorFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Direccion_Exacta: string;
@@ -139,29 +161,47 @@ export class SolicitudCambioMedidorFisica extends SolicitudFisica {
     Numero_Medidor_Anterior: number;
 
     @BeforeInsert()
-    setDefaultsAndNormalize() { 
+    @BeforeUpdate()
+    setNormalizarCampos() {
         this.normalizarTelefono();
         this.normalizarApellido2();
-        this.Id_Tipo_Solicitud = 3;
-        this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
+    }
+
+    setDefaultEstados() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Solicitud: 1 } as EstadoSolicitud;
+        }
+
+        if (!this.Id_Tipo_Solicitud) {
+            this.Id_Tipo_Solicitud = 3;
+        }
     }
 }
 
-@Entity('Solicitudes_Asociado_Fisica')
+@Entity('Solicitud_Asociado_Fisica')
 export class SolicitudAsociadoFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Motivo_Solicitud: string;
 
     @BeforeInsert()
-    setDefaultsAndNormalize() { 
+    @BeforeUpdate()
+    setNormalizarCampos() {
         this.normalizarTelefono();
         this.normalizarApellido2();
-        this.Id_Tipo_Solicitud = 4;
-        this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
+    }
+
+    setDefaultEstados() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Solicitud: 1 } as EstadoSolicitud;
+        }
+
+        if (!this.Id_Tipo_Solicitud) {
+            this.Id_Tipo_Solicitud = 4;
+        }
     }
 }
 
-@Entity('Solicitudes_Afiliacion_Juridica')
+@Entity('Solicitud_Afiliacion_Juridica')
 export class SolicitudAfiliacionJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Direccion_Exacta: string;
@@ -173,14 +213,23 @@ export class SolicitudAfiliacionJuridica extends SolicitudJuridica {
     Escritura_Terreno: string;
 
     @BeforeInsert()
-    setDefaultEstado() { 
+    @BeforeUpdate()
+    setNormalizarCampos() {
         this.normalizarTelefono();
-        this.Id_Tipo_Solicitud = 1;
-        this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
+    }
+
+    setDefaultEstados() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Solicitud: 1 } as EstadoSolicitud;
+        }
+
+        if (!this.Id_Tipo_Solicitud) {
+            this.Id_Tipo_Solicitud = 1;
+        }
     }
 }
 
-@Entity('Solicitudes_Desconexion_Juridica')
+@Entity('Solicitud_Desconexion_Juridica')
 export class SolicitudDesconexionJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Direccion_Exacta: string;
@@ -195,14 +244,23 @@ export class SolicitudDesconexionJuridica extends SolicitudJuridica {
     Escritura_Terreno: string;
 
     @BeforeInsert()
-    setDefaultEstado() { 
+    @BeforeUpdate()
+    setNormalizarCampos() {
         this.normalizarTelefono();
-        this.Id_Tipo_Solicitud = 2;
-        this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
+    }
+
+    setDefaultEstados() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Solicitud: 1 } as EstadoSolicitud;
+        }
+
+        if (!this.Id_Tipo_Solicitud) {
+            this.Id_Tipo_Solicitud = 2;
+        }
     }
 }
 
-@Entity('Solicitudes_Cambio_Medidor_Juridica')
+@Entity('Solicitud_Cambio_Medidor_Juridica')
 export class SolicitudCambioMedidorJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Direccion_Exacta: string;
@@ -214,22 +272,40 @@ export class SolicitudCambioMedidorJuridica extends SolicitudJuridica {
     Numero_Medidor_Anterior: number;
 
     @BeforeInsert()
-    setDefaultsAndNormalize() { 
+    @BeforeUpdate()
+    setNormalizarCampos() {
         this.normalizarTelefono();
-        this.Id_Tipo_Solicitud = 3;
-        this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
+    }
+
+    setDefaultEstados() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Solicitud: 1 } as EstadoSolicitud;
+        }
+
+        if (!this.Id_Tipo_Solicitud) {
+            this.Id_Tipo_Solicitud = 3;
+        }
     }
 }
 
-@Entity('Solicitudes_Asociado_Juridica')
+@Entity('Solicitud_Asociado_Juridica')
 export class SolicitudAsociadoJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Motivo_Solicitud: string;
 
     @BeforeInsert()
-    setDefaultsAndNormalize() { 
+    @BeforeUpdate()
+    setNormalizarCampos() {
         this.normalizarTelefono();
-        this.Id_Tipo_Solicitud = 4;
-        this.Estado = { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' } as EstadoSolicitud; 
+    }
+
+    setDefaultEstados() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Solicitud: 1 } as EstadoSolicitud;
+        }
+
+        if (!this.Id_Tipo_Solicitud) {
+            this.Id_Tipo_Solicitud = 4;
+        }
     }
 }

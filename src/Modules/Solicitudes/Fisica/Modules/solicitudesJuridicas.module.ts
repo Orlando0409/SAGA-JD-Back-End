@@ -1,4 +1,4 @@
-import { SolicitudAfiliacionJuridica, SolicitudAsociadoJuridica, SolicitudCambioMedidorJuridica, SolicitudDesconexionJuridica } from "../../SolicitudEntities/Solicitud.Entity";import { Module } from "@nestjs/common";
+import { Solicitud, SolicitudAfiliacionJuridica, SolicitudAsociadoJuridica, SolicitudCambioMedidorJuridica, SolicitudDesconexionJuridica, SolicitudJuridica } from "../../SolicitudEntities/Solicitud.Entity";import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { EstadoSolicitud } from "../../SolicitudEntities/EstadoSolicitud.Entity";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
@@ -12,7 +12,7 @@ import { SolicitudesJuridicasService } from "../Services/solicitudesJuridicas.se
 import { SolicitudesJuridicasController } from "../Controllers/solicitudesJuridicas.controller";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([SolicitudAfiliacionJuridica, SolicitudAsociadoJuridica, SolicitudCambioMedidorJuridica, SolicitudDesconexionJuridica, EstadoSolicitud, Usuario]), DropboxModule, EmailModule ,ValidationsModule, AfiliadosModule, UsuariosModule, AuditoriaModule],
+    imports: [TypeOrmModule.forFeature([Solicitud, SolicitudJuridica, SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica, EstadoSolicitud, Usuario]), DropboxModule, EmailModule, ValidationsModule, AfiliadosModule, UsuariosModule, AuditoriaModule],
     controllers: [SolicitudesJuridicasController],
     providers: [SolicitudesJuridicasService],
     exports: [SolicitudesJuridicasService],

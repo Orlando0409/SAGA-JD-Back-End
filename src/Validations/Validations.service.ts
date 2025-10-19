@@ -100,9 +100,7 @@ export class ValidationsService
 
     async validarExistenciaAfiliadoFisico(identificacion: string) {
         const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: identificacion } });
-        if (afiliado) {
-            return null; // No hay error
-        }
+        if (afiliado) return null; // No hay error
 
         return `Ya existe un afiliado físico con la cédula ${identificacion}. No puede realizar una nueva solicitud de afiliación.`;
     }
