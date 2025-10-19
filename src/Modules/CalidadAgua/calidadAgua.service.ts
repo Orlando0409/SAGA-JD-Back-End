@@ -55,6 +55,7 @@ export class CalidadAguaService {
 
     async CreateCalidadAgua(dto: CreateCalidadAguaDto, idUsuario: number, file?: Express.Multer.File) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
         if (!file) throw new BadRequestException('Debe subir un archivo para la calidad de agua');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
