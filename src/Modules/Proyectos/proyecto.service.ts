@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException, ConflictException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UpdateProyectoDto } from "./ProyectoDTO's/UpdateProyecto.dto";
@@ -8,12 +8,13 @@ import { EstadoProyecto } from "./ProyectoEntities/EstadoProyecto.Entity";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { Public } from "../auth/Decorator/Public.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
+import { UsuariosService } from "../Usuarios/Services/usuarios.service";
+import { AuditoriaService } from "../Auditoria/auditoria.service";
 
 @Injectable()
 export class ProyectoService 
 {
-    constructor
-    (
+    constructor(
         @InjectRepository(Proyecto)
         private readonly proyectoRepository: Repository<Proyecto>,
 
@@ -24,6 +25,10 @@ export class ProyectoService
         private readonly usuarioRepository: Repository<Usuario>,
 
         private readonly dropboxFilesService: DropboxFilesService,
+
+        private readonly usuariosService: UsuariosService,
+
+        private readonly auditoriaService: AuditoriaService,
     ) {}
 
     @Public()
@@ -31,71 +36,57 @@ export class ProyectoService
     {
         const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
             .leftJoinAndSelect('proyecto.Estado', 'estado')
-            .leftJoinAndSelect('proyecto.Usuario_Creador', 'usuario')
-            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .leftJoinAndSelect('proyecto.Usuario', 'usuario')
             .where('proyecto.Visible = :visible', { visible: true })
             .getMany();
 
-        return proyectos.map(proyecto => ({
+        return Promise.all(proyectos.map(async proyecto => ({
             ...proyecto,
-            Usuario_Creador: proyecto.Usuario_Creador ? {
-                Id_Usuario: proyecto.Usuario_Creador.Id_Usuario,
-                Nombre_Usuario: proyecto.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: proyecto.Usuario_Creador.Id_Rol,
-                Nombre_Rol: proyecto.Usuario_Creador.Rol.Nombre_Rol
-            } : null
-        }));
+            Usuario: proyecto.Usuario ? 
+                await this.usuariosService.FormatearUsuarioResponse(proyecto.Usuario) : null
+        })));
     }
 
     async getProyectosInvisibles()
     {
         const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
             .leftJoinAndSelect('proyecto.Estado', 'estado')
-            .leftJoinAndSelect('proyecto.Usuario_Creador', 'usuario')
-            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .leftJoinAndSelect('proyecto.Usuario', 'usuario')
             .where('proyecto.Visible = :visible', { visible: false })
             .getMany();
 
-        return proyectos.map(proyecto => ({
+        return Promise.all(proyectos.map(async proyecto => ({
             ...proyecto,
-            Usuario_Creador: proyecto.Usuario_Creador ? {
-                Id_Usuario: proyecto.Usuario_Creador.Id_Usuario,
-                Nombre_Usuario: proyecto.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: proyecto.Usuario_Creador.Id_Rol,
-                Nombre_Rol: proyecto.Usuario_Creador.Rol.Nombre_Rol
-            } : null
-        }));
+            Usuario: proyecto.Usuario ? 
+                await this.usuariosService.FormatearUsuarioResponse(proyecto.Usuario) : null
+        })));
     }
 
     async getAllProyectos()
     {
         const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
             .leftJoinAndSelect('proyecto.Estado', 'estado')
-            .leftJoinAndSelect('proyecto.Usuario_Creador', 'usuario')
-            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .leftJoinAndSelect('proyecto.Usuario', 'usuario')
             .getMany();
 
-        return proyectos.map(proyecto => ({
+        return Promise.all(proyectos.map(async proyecto => ({
             ...proyecto,
-            Usuario_Creador: proyecto.Usuario_Creador ? {
-                Id_Usuario: proyecto.Usuario_Creador.Id_Usuario,
-                Nombre_Usuario: proyecto.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: proyecto.Usuario_Creador.Id_Rol,
-                Nombre_Rol: proyecto.Usuario_Creador.Rol.Nombre_Rol
-            } : null
-        }));
+            Usuario: proyecto.Usuario ? 
+                await this.usuariosService.FormatearUsuarioResponse(proyecto.Usuario) : null
+        })));
     }
 
-    async CreateProyecto(dto: CreateProyectoDto, idUsuarioCreador: number, file?: Express.Multer.File)
+    async CreateProyecto(dto: CreateProyectoDto, idUsuario: number, file?: Express.Multer.File)
     {
-        if (!file) { throw new BadRequestException('Debe subir una imagen para el proyecto'); }
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+        if (!file) throw new BadRequestException('Debe subir una imagen para el proyecto');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
+        if (!usuario) throw new NotFoundException(`Usuario con ID ${idUsuario} no encontrado`);
 
         // Obtener estado por defecto "En Planeamiento"
         const estadoInicial = await this.proyectoEstadoRepository.findOne({ where: { Id_Estado_Proyecto: 1 } });
-        if (!estadoInicial) { throw new BadRequestException('Estado por defecto no encontrado'); }
-
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador }, relations: ['Rol'] });
-        if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuarioCreador} no encontrado`); }
+        if (!estadoInicial) throw new NotFoundException('Estado por defecto no encontrado');
 
         dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
         dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
@@ -108,25 +99,36 @@ export class ProyectoService
             Imagen_Url: Proyecto.url,
             Estado: estadoInicial,
             Visible: false,
-            Usuario_Creador: usuario
+            Usuario: usuario
         });
 
         // Guardar en BD
+        const proyectoGuardado = await this.proyectoRepository.save(proyecto);
+
+        // Formatear proyecto para auditoría (sin info sensible del usuario)
+        const proyectoParaAuditoria = await this.FormatearProyectoParaResponse(proyectoGuardado);
+        await this.auditoriaService.logCreacion('proyectos', idUsuario, proyectoGuardado.Id_Proyecto, { proyecto: proyectoParaAuditoria });
+
         return {
-            ...(await this.proyectoRepository.save(proyecto)),
-            Usuario_Creador: {
-                Id_Usuario: usuario.Id_Usuario,
-                Nombre_Usuario: usuario.Nombre_Usuario,
-                Id_Rol: usuario.Id_Rol,
-                Nombre_Rol: usuario.Rol.Nombre_Rol
-            }
+            ...proyectoGuardado,
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario)
         }
     }
 
-    async UpdateProyecto(Id_Proyecto: number, dto: UpdateProyectoDto) 
+    async UpdateProyecto(idProyecto: number, dto: UpdateProyectoDto, idUsuario: number) 
     {
-        const proyecto = await this.proyectoRepository.findOne({ where: { Id_Proyecto } });
-        if (!proyecto) { throw new NotFoundException(`Proyecto con id ${Id_Proyecto} no encontrado`); }
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
+        const proyecto = await this.proyectoRepository.findOne({ 
+            where: { Id_Proyecto: idProyecto },
+            relations: ['Estado', 'Usuario', 'Usuario.Rol']
+        });
+        if (!proyecto) throw new NotFoundException(`Proyecto con id ${idProyecto} no encontrado`);
+
+        const datosAnteriores = { ...proyecto };
 
         if (dto.Titulo) { 
             dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase(); 
@@ -137,28 +139,113 @@ export class ProyectoService
         }
 
         Object.assign(proyecto, dto);
-        return this.proyectoRepository.save(proyecto);
+        const proyectoActualizado = await this.proyectoRepository.save(proyecto);
+
+        // Formatear los datos para auditoría (sin info sensible del usuario)
+        const datosAnterioresFormateados = await this.FormatearProyectoParaResponse(datosAnteriores as Proyecto);
+        const proyectoParaAuditoria = await this.FormatearProyectoParaResponse(proyectoActualizado);
+        await this.auditoriaService.logActualizacion('proyectos', idUsuario, idProyecto, datosAnterioresFormateados, { proyecto: proyectoParaAuditoria });
+
+        return {
+            ...proyectoActualizado,
+            Usuario: proyectoActualizado.Usuario ? 
+                await this.usuariosService.FormatearUsuarioResponse(proyectoActualizado.Usuario) : null
+        };
     }
 
-    async updateEstadoProyecto(Id_Proyecto: number, Id_Estado_Proyecto: number)
+    async updateEstadoProyecto(idProyecto: number, idEstadoProyecto: number, idUsuario: number)
     {
-        const proyecto = await this.proyectoRepository.findOne({ where: { Id_Proyecto } });
-        if (!proyecto) { throw new Error(`Proyecto con id ${Id_Proyecto} no encontrado`); }
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
-        const nuevoEstado = await this.proyectoEstadoRepository.findOne({ where: { Id_Estado_Proyecto } });
-        if (!nuevoEstado) { throw new Error(`Estado con id ${Id_Estado_Proyecto} no encontrado`); }
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
+        const proyecto = await this.proyectoRepository.findOne({ 
+            where: { Id_Proyecto: idProyecto },
+            relations: ['Estado', 'Usuario', 'Usuario.Rol']
+        });
+        if (!proyecto) throw new NotFoundException(`Proyecto con id ${idProyecto} no encontrado`);
+
+        const nuevoEstado = await this.proyectoEstadoRepository.findOne({ where: { Id_Estado_Proyecto: idEstadoProyecto } });
+        if (!nuevoEstado) throw new NotFoundException(`Estado con id ${idEstadoProyecto} no encontrado`);
+
+        const datosAnteriores = { ...proyecto };
 
         proyecto.Estado = nuevoEstado;
-        return this.proyectoRepository.save(proyecto);
+        const proyectoActualizado = await this.proyectoRepository.save(proyecto);
+
+        // Formatear los datos para auditoría (sin info sensible del usuario)
+        const datosAnterioresFormateados = await this.FormatearProyectoParaResponse(datosAnteriores as Proyecto);
+        const proyectoParaAuditoria = await this.FormatearProyectoParaResponse(proyectoActualizado);
+        await this.auditoriaService.logActualizacion('proyectos', idUsuario, idProyecto, datosAnterioresFormateados, { proyecto: proyectoParaAuditoria });
+
+        return {
+            ...proyectoActualizado,
+            Usuario: proyectoActualizado.Usuario ? 
+                await this.usuariosService.FormatearUsuarioResponse(proyectoActualizado.Usuario) : null
+        };
     }
 
-    async updateVisibilidadProyecto(Id_Proyecto: number)
+    async updateVisibilidadProyecto(idProyecto: number, idUsuario: number)
     {
-        const proyecto = await this.proyectoRepository.findOne({ where: { Id_Proyecto } });
-        if (!proyecto) { throw new Error(`Proyecto con id ${Id_Proyecto} no encontrado`); }
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
+        const proyecto = await this.proyectoRepository.findOne({ 
+            where: { Id_Proyecto: idProyecto },
+            relations: ['Estado', 'Usuario', 'Usuario.Rol']
+        });
+        if (!proyecto) throw new NotFoundException(`Proyecto con id ${idProyecto} no encontrado`);
+
+        const datosAnteriores = { ...proyecto };
 
         // Toggle: alterna entre true y false
         proyecto.Visible = !proyecto.Visible;
-        return this.proyectoRepository.save(proyecto);
+        const proyectoActualizado = await this.proyectoRepository.save(proyecto);
+
+        // Formatear los datos para auditoría (sin info sensible del usuario)
+        const datosAnterioresFormateados = await this.FormatearProyectoParaResponse(datosAnteriores as Proyecto);
+        const proyectoParaAuditoria = await this.FormatearProyectoParaResponse(proyectoActualizado);
+        await this.auditoriaService.logActualizacion('proyectos', idUsuario, idProyecto, datosAnterioresFormateados, { proyecto: proyectoParaAuditoria });
+
+        return {
+            ...proyectoActualizado,
+            Usuario: proyectoActualizado.Usuario ? 
+                await this.usuariosService.FormatearUsuarioResponse(proyectoActualizado.Usuario) : null
+        };
+    }
+
+    /**
+     * Formatea la información de un proyecto para responses públicos
+     * Solo devuelve información básica y necesaria
+     */
+    async FormatearProyectoParaResponse(proyecto: Proyecto): Promise<{
+        Id_Proyecto: number;
+        Titulo: string;
+        Descripcion: string;
+        Imagen_Url: string;
+        Visible: boolean;
+        Fecha_Creacion: Date;
+        Fecha_Actualizacion: Date;
+        Estado: {
+            Id_Estado_Proyecto: number;
+            Nombre_Estado: string;
+        };
+    }> {
+        return {
+            Id_Proyecto: proyecto.Id_Proyecto,
+            Titulo: proyecto.Titulo,
+            Descripcion: proyecto.Descripcion,
+            Imagen_Url: proyecto.Imagen_Url,
+            Visible: proyecto.Visible,
+            Fecha_Creacion: proyecto.Fecha_Creacion,
+            Fecha_Actualizacion: proyecto.Fecha_Actualizacion,
+            Estado: {
+                Id_Estado_Proyecto: proyecto.Estado?.Id_Estado_Proyecto || 0,
+                Nombre_Estado: proyecto.Estado?.Nombre_Estado || 'Sin estado'
+            }
+        };
     }
 }

@@ -6,9 +6,10 @@ import { ValidationsModule } from "src/Validations/Validations.module";
 import { SolicitudesCambioMedidorFisicaService } from "../Services/solicitudCambioMedidor.service";
 import { SolicitudCambioMedidorFisica } from "../../SolicitudEntities/Solicitud.Entity";
 import { EmailModule } from "src/Modules/Emails/email.module";
+import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([SolicitudCambioMedidorFisica, EstadoSolicitud]), ValidationsModule, EmailModule],
+    imports: [TypeOrmModule.forFeature([SolicitudCambioMedidorFisica, EstadoSolicitud, Usuario]), ValidationsModule, EmailModule],
     controllers: [SolicitudCambioMedidorFisicaController],
     providers: [SolicitudesCambioMedidorFisicaService],
     exports: [SolicitudesCambioMedidorFisicaService],

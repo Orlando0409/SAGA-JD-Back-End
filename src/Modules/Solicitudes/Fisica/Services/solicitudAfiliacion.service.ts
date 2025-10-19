@@ -12,10 +12,8 @@ import { AfiliadosService } from "src/Modules/Afiliados/afiliados.service";
 import { EmailService } from "src/Modules/Emails/email.service";
 
 @Injectable()
-export class SolicitudAfiliacionFisicaService
-{
-    constructor
-    (
+export class SolicitudAfiliacionFisicaService {
+    constructor(
         @InjectRepository(SolicitudAfiliacionFisica)
         private readonly solicitudAfiliacionFisicaRepository: Repository<SolicitudAfiliacionFisica>,
 
@@ -29,16 +27,14 @@ export class SolicitudAfiliacionFisicaService
         private readonly afiliadosService: AfiliadosService,
 
         private readonly emailService: EmailService,
-    ) {}
+    ) { }
 
-    async getAllSolicitudesAfiliacion()
-    {
+    async getAllSolicitudesAfiliacion() {
         return this.solicitudAfiliacionFisicaRepository.find({ relations: ['Estado'] });
     }
 
     @Public()
-    async createSolicitudAfiliacion(dto: CreateSolicitudAfiliacionFisicaDto, files: any)
-    {
+    async createSolicitudAfiliacion(dto: CreateSolicitudAfiliacionFisicaDto, files: any) {
         const AfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
         if (AfiliadoExistente) {
             const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
@@ -73,8 +69,7 @@ export class SolicitudAfiliacionFisicaService
         }
     }
 
-    async updateSolicitudAfiliacion(id: number, dto: UpdateSolicitudAfiliacionFisicaDto, files?: any)
-    {
+    async updateSolicitudAfiliacion(id: number, dto: UpdateSolicitudAfiliacionFisicaDto, files?: any) {
         const solicitud = await this.solicitudAfiliacionFisicaRepository.findOne({ where: { Id_Solicitud: id } });
         if (!solicitud) { throw new BadRequestException(`Solicitud de afiliación física con id ${id} no encontrada`); }
 
@@ -113,12 +108,11 @@ export class SolicitudAfiliacionFisicaService
         return this.solicitudAfiliacionFisicaRepository.save(solicitud);
     }
 
-    async UpdateEstadoSolicitudAfiliacion(id: number, nuevoEstadoId: number)
-    {
-        const solicitudAfiliacion = await this.solicitudAfiliacionFisicaRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
+    async UpdateEstadoSolicitudAfiliacion(id: number, nuevoEstadoId: number) {
+        const solicitudAfiliacion = await this.solicitudAfiliacionFisicaRepository.findOne({ where: { Id_Solicitud: id }, relations: ['Estado'] });
         if (!solicitudAfiliacion) { throw new BadRequestException(`Solicitud con id ${id} no encontrada`); }
 
-        const nuevoEstado = await this.estadoSolicitudRepository.findOne({where: { Id_Estado_Solicitud: nuevoEstadoId }});
+        const nuevoEstado = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: nuevoEstadoId } });
         if (!nuevoEstado) { throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`); }
 
         if (nuevoEstadoId === 2) { // Estado 2 = En revisión

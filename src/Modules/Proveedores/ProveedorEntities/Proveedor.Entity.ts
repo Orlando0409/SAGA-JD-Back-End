@@ -4,6 +4,7 @@ import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { Material } from "src/Modules/Inventario/InventarioEntities/Material.Entity";
 import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
+import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Entity("Proveedor")
 export abstract class Proveedor {
@@ -28,6 +29,10 @@ export abstract class Proveedor {
     @ManyToOne(() => EstadoProveedor, (estadoProveedor) => estadoProveedor.proveedor)
     @JoinColumn({ name: 'Id_Estado_Proveedor' })
     Estado_Proveedor: EstadoProveedor;
+
+    @ManyToOne(() => Usuario, { nullable: false })
+    @JoinColumn({ name: 'Id_Usuario' })
+    Usuario: Usuario;
 
     @OneToMany(() => Material, material => material.Proveedor)
     materiales: Material[];

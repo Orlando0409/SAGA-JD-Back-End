@@ -1,5 +1,5 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Acta } from "./Actas.Entity";
+import { Acta } from "./Acta.Entity";
 
 @Entity('Archivo_Acta')
 export class ArchivoActa

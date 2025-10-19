@@ -9,6 +9,7 @@ import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from "src/Modules/Afiliado
 import { AsignarMedidorDTO } from "../InventarioDTO's/AsignarMedidor.dto";
 import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
 import { AuditoriaService } from "src/Modules/Auditoria/auditoria.service";
+import { UsuariosService } from "src/Modules/Usuarios/Services/usuarios.service";
 
 @Injectable()
 export class MedidorService {
@@ -31,14 +32,16 @@ export class MedidorService {
         @InjectRepository(AfiliadoJuridico)
         private readonly afiliadoJuridicoRepository: Repository<AfiliadoJuridico>,
 
-        private readonly auditoriaService: AuditoriaService
+        private readonly auditoriaService: AuditoriaService,
+
+        private readonly usuariosService: UsuariosService
     ) { }
 
     async getAllMedidores() {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
-            .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .getMany();
 
@@ -83,12 +86,7 @@ export class MedidorService {
                 return {
                     ...medidor,
                     Afiliado: afiliadoDetalle,
-                    Usuario_Creador: medidor.Usuario_Creador ? {
-                        Id_Usuario: medidor.Usuario_Creador.Id_Usuario,
-                        Nombre_Usuario: medidor.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: medidor.Usuario_Creador.Id_Rol,
-                        Nombre_Rol: medidor.Usuario_Creador.Rol?.Nombre_Rol
-                    } : null
+                    Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
                 };
             })
         );
@@ -100,7 +98,7 @@ export class MedidorService {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
-            .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('estado.Id_Estado_Medidor = :estado', { estado: 1 }) // 1 = No Instalado
             .getMany();
@@ -145,12 +143,7 @@ export class MedidorService {
                 return {
                     ...medidor,
                     Afiliado: afiliadoDetalle,
-                    Usuario_Creador: medidor.Usuario_Creador ? {
-                        Id_Usuario: medidor.Usuario_Creador.Id_Usuario,
-                        Nombre_Usuario: medidor.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: medidor.Usuario_Creador.Id_Rol,
-                        Nombre_Rol: medidor.Usuario_Creador.Rol?.Nombre_Rol
-                    } : null
+                    Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
                 };
             })
         );
@@ -162,7 +155,7 @@ export class MedidorService {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
-            .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('estado.Id_Estado_Medidor = :estado', { estado: 2 }) // 2 = Instalado
             .getMany();
@@ -207,12 +200,7 @@ export class MedidorService {
                 return {
                     ...medidor,
                     Afiliado: afiliadoDetalle,
-                    Usuario_Creador: medidor.Usuario_Creador ? {
-                        Id_Usuario: medidor.Usuario_Creador.Id_Usuario,
-                        Nombre_Usuario: medidor.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: medidor.Usuario_Creador.Id_Rol,
-                        Nombre_Rol: medidor.Usuario_Creador.Rol?.Nombre_Rol
-                    } : null
+                    Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
                 };
             })
         );
@@ -224,7 +212,7 @@ export class MedidorService {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
-            .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('estado.Id_Estado_Medidor = :estado', { estado: 3 }) // 3 = Averiado
             .getMany();
@@ -269,12 +257,7 @@ export class MedidorService {
                 return {
                     ...medidor,
                     Afiliado: afiliadoDetalle,
-                    Usuario_Creador: medidor.Usuario_Creador ? {
-                        Id_Usuario: medidor.Usuario_Creador.Id_Usuario,
-                        Nombre_Usuario: medidor.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: medidor.Usuario_Creador.Id_Rol,
-                        Nombre_Rol: medidor.Usuario_Creador.Rol?.Nombre_Rol
-                    } : null
+                    Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
                 };
             })
         );
@@ -286,7 +269,7 @@ export class MedidorService {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
-            .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('medidor.Afiliado.Id_Afiliado = :idAfiliado', { idAfiliado })
             .getMany();
@@ -331,12 +314,7 @@ export class MedidorService {
                 return {
                     ...medidor,
                     Afiliado: afiliadoDetalle,
-                    Usuario_Creador: medidor.Usuario_Creador ? {
-                        Id_Usuario: medidor.Usuario_Creador.Id_Usuario,
-                        Nombre_Usuario: medidor.Usuario_Creador.Nombre_Usuario,
-                        Id_Rol: medidor.Usuario_Creador.Id_Rol,
-                        Nombre_Rol: medidor.Usuario_Creador.Rol?.Nombre_Rol
-                    } : null
+                    Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
                 };
             })
         );
@@ -344,20 +322,24 @@ export class MedidorService {
         return medidoresConAfiliados;
     }
 
-    async createMedidor(dto: CreateMedidorDTO, idUsuarioCreador: number) {
+    async createMedidor(dto: CreateMedidorDTO, idUsuario: number) {
+        if (!idUsuario) {
+            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+        }
+
         const MedidorExistente = await this.medidorRepository.findOne({ where: { Numero_Medidor: dto.Numero_Medidor } });
         if (MedidorExistente) { throw new BadRequestException('Ya existe un medidor con ese número.'); }
 
         const estadoInicial = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 1 } });
         if (!estadoInicial) { throw new BadRequestException('Estado por defecto no encontrado'); }
 
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador }, relations: ['Rol'] });
-        if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuarioCreador} no encontrado`); }
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
+        if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuario} no encontrado`); }
 
         const medidor = this.medidorRepository.create({
             ...dto,
             Estado_Medidor: estadoInicial,
-            Usuario_Creador: usuario
+            Usuario: usuario
         });
 
         const medidorGuardado = await this.medidorRepository.save(medidor);
@@ -366,7 +348,7 @@ export class MedidorService {
         try {
             await this.auditoriaService.logCreacion(
                 'Medidor',
-                idUsuarioCreador,
+                idUsuario,
                 medidorGuardado.Id_Medidor,
                 {
                     Id_Medidor: medidorGuardado.Id_Medidor,
@@ -381,7 +363,7 @@ export class MedidorService {
         // Recargar el medidor con todas sus relaciones
         const medidorCompleto = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
-            .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('medidor.Id_Medidor = :id', { id: medidorGuardado.Id_Medidor })
             .getOne();
@@ -392,16 +374,15 @@ export class MedidorService {
 
         return {
             ...medidorCompleto,
-            Usuario_Creador: {
-                Id_Usuario: medidorCompleto.Usuario_Creador.Id_Usuario,
-                Nombre_Usuario: medidorCompleto.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: medidorCompleto.Usuario_Creador.Id_Rol,
-                Nombre_Rol: medidorCompleto.Usuario_Creador.Rol?.Nombre_Rol
-            }
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(medidorCompleto.Usuario)
         };
     }
 
-    async asignarMedidorAAfiliado(dto: AsignarMedidorDTO, usuarioId: number) {
+    async asignarMedidorAAfiliado(dto: AsignarMedidorDTO, idUsuario: number) {
+        if (!idUsuario) {
+            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+        }
+
         const medidor = await this.medidorRepository.findOne({ where: { Id_Medidor: dto.Id_Medidor }, relations: ['Estado_Medidor'] });
         if (!medidor) { throw new BadRequestException(`Medidor con ID ${dto.Id_Medidor} no encontrado`); }
 
@@ -423,12 +404,12 @@ export class MedidorService {
         medidor.Estado_Medidor = estadoInstalado;
         await this.medidorRepository.save(medidor);
 
-        // Registrar en auditoría si se proporciona usuarioId
-        if (usuarioId) {
+        // Registrar en auditoría si se proporciona idUsuario
+        if (idUsuario) {
             try {
                 await this.auditoriaService.logActualizacion(
                     'Medidor',
-                    usuarioId,
+                    idUsuario,
                     dto.Id_Medidor,
                     {
                         Estado_Anterior: 'Disponible',
@@ -450,7 +431,7 @@ export class MedidorService {
         // Obtener el medidor actualizado con todas sus relaciones
         const medidorActualizado = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
-            .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('medidor.Id_Medidor = :id', { id: dto.Id_Medidor })
             .getOne();
@@ -503,16 +484,15 @@ export class MedidorService {
         return {
             ...medidorActualizado,
             Afiliado: afiliadoDetalle,
-            Usuario_Creador: medidorActualizado.Usuario_Creador ? {
-                Id_Usuario: medidorActualizado.Usuario_Creador.Id_Usuario,
-                Nombre_Usuario: medidorActualizado.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: medidorActualizado.Usuario_Creador.Id_Rol,
-                Nombre_Rol: medidorActualizado.Usuario_Creador.Rol?.Nombre_Rol
-            } : null
+            Usuario: medidorActualizado.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidorActualizado.Usuario) : null
         };
     }
 
-    async updateEstadoMedidor(Id_Medidor: number, Id_Estado_Medidor: number, usuarioId: number) {
+    async updateEstadoMedidor(Id_Medidor: number, Id_Estado_Medidor: number, idUsuario: number) {
+        if (!idUsuario) {
+            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+        }
+
         const medidor = await this.medidorRepository.findOne({ where: { Id_Medidor }, relations: ['Estado_Medidor'] });
         const nuevoEstado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor } });
 
@@ -529,12 +509,12 @@ export class MedidorService {
         medidor.Estado_Medidor = nuevoEstado;
         await this.medidorRepository.save(medidor);
 
-        // Registrar en auditoría si se proporciona usuarioId
-        if (usuarioId) {
+        // Registrar en auditoría si se proporciona idUsuario
+        if (idUsuario) {
             try {
                 await this.auditoriaService.logActualizacion(
                     'Medidor',
-                    usuarioId,
+                    idUsuario,
                     Id_Medidor,
                     {
                         Estado_Anterior: {
@@ -555,7 +535,7 @@ export class MedidorService {
         }
         const medidorActualizado = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
-            .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('medidor.Id_Medidor = :id', { id: Id_Medidor })
             .getOne();
@@ -564,6 +544,9 @@ export class MedidorService {
             throw new BadRequestException(`Error al recuperar el medidor actualizado con ID ${Id_Medidor}`);
         }
 
-        return medidorActualizado;
+        return {
+            ...medidorActualizado,
+            Usuario: medidorActualizado.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidorActualizado.Usuario) : null
+        };
     }
 }
