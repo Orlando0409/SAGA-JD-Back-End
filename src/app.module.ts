@@ -61,6 +61,8 @@ import { EstadoMedidor } from './Modules/Inventario/InventarioEntities/EstadoMed
 import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity';
 import { Auditoria } from './Modules/Auditoria/AuditoriaEntities/Auditoria.Entities';
 import { AuditoriaModule } from './Modules/Auditoria/auditoria.module';
+import { SolicitudesFisicasModule } from './Modules/Solicitudes/Fisica/Modules/solicitudesFisicas.module';
+import { SolicitudesJuridicasModule } from './Modules/Solicitudes/Fisica/Modules/solicitudesJuridicas.module';
 
 @Module({
   imports: [
@@ -115,6 +117,8 @@ import { AuditoriaModule } from './Modules/Auditoria/auditoria.module';
     CalidadAguaModule,
     ProyectoModule,
     ActasModule,
+    SolicitudesFisicasModule,
+    SolicitudesJuridicasModule,
     SolicitudAfiliacionFisicaModule,
     SolicitudAfiliacionJuridicaModule,
     SolicitudDesconexionFisicaModule,

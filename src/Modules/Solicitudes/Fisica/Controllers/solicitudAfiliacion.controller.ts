@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, UploadedFiles, UseInterceptors} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, UploadedFiles, UseInterceptors } from "@nestjs/common";
 import { ApiOperation } from "@nestjs/swagger";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
@@ -8,10 +8,9 @@ import { SolicitudAfiliacionFisicaService } from "../Services/solicitudAfiliacio
 
 @Controller('solicitud-afiliacion-fisica')
 export class SolicitudAfiliacionFisicaController {
-  constructor
-  (
+  constructor(
     private readonly solicitudAfiliacionFisicaService: SolicitudAfiliacionFisicaService,
-  ) {}
+  ) { }
 
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todas las solicitudes de afiliación físicas' })
@@ -22,24 +21,24 @@ export class SolicitudAfiliacionFisicaController {
   @Public()
   @Post('/create')
   @ApiOperation({ summary: 'Crear una nueva solicitud de afiliacion fisica' })
-  @UseInterceptors(FileFieldsInterceptor([ 
-    { name: 'Planos_Terreno', maxCount: 1 }, 
-    { name: 'Escritura_Terreno', maxCount: 1 }, 
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'Planos_Terreno', maxCount: 1 },
+    { name: 'Escritura_Terreno', maxCount: 1 },
   ]),)
   async createSolicitudAfiliacion(
-  @Body() solicitudAfiliacion: CreateSolicitudAfiliacionFisicaDto,
-  @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; } ) {
+    @Body() solicitudAfiliacion: CreateSolicitudAfiliacionFisicaDto,
+    @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; }) {
     return this.solicitudAfiliacionFisicaService.createSolicitudAfiliacion(solicitudAfiliacion, files);
   }
 
   @Put('/update/:id')
   @ApiOperation({ summary: 'Actualizar una solicitud de afiliación fisica por ID' })
-  @UseInterceptors(FileFieldsInterceptor([ 
-    { name: 'Planos_Terreno', maxCount: 1 }, 
-    { name: 'Escritura_Terreno', maxCount: 1 }, 
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'Planos_Terreno', maxCount: 1 },
+    { name: 'Escritura_Terreno', maxCount: 1 },
   ]))
   updateSolicitudAfiliacion(
-    @Param('id', ParseIntPipe) id: number, 
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateSolicitudAfiliacionFisicaDto,
     @UploadedFiles() files?: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; }
   ) {
