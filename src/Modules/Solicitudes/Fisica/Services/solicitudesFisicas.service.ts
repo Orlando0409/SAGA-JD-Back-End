@@ -11,6 +11,7 @@ import { EmailService } from "src/Modules/Emails/email.service";
 import { AfiliadoFisico } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { EstadoAfiliado } from "src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
+import { AuditoriaService } from "src/Modules/Auditoria/auditoria.service";
 
 @Injectable()
 export class SolicitudesFisicasService {
@@ -52,6 +53,8 @@ export class SolicitudesFisicasService {
         private readonly afiliadosService: AfiliadosService,
 
         private readonly emailService: EmailService,
+
+        private readonly auditoriaService: AuditoriaService,
     ) { }
 
     async getAllSolicitudesFisicas() {
@@ -331,6 +334,9 @@ export class SolicitudesFisicasService {
         if (!nuevoEstado) throw new BadRequestException(`Estado con id ${idNuevoEstado} no encontrado`);
 
         const nombre = `${solicitudAfiliacion.Nombre} ${solicitudAfiliacion.Apellido1 ?? ''} ${solicitudAfiliacion.Apellido2 ?? ''}`.trim();
+        
+        // Guardar estado anterior para auditoría
+        const estadoAnterior = solicitudAfiliacion.Estado;
 
         // Estado 2 = En revisión
         if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudAfiliacion.Correo, 'Afiliación', 'En revisión', nombre);
@@ -352,6 +358,16 @@ export class SolicitudesFisicasService {
         solicitudAfiliacion.Estado = nuevoEstado;
         const resultado = await this.solicitudAfiliacionFisicaRepository.save(solicitudAfiliacion);
 
+        // Registrar auditoría del cambio de estado
+        await this.auditoriaService.createAuditoria(
+            'Solicitudes',
+            'Actualización',
+            idUsuario,
+            idSolicitud,
+            { Estado_Anterior: estadoAnterior.Nombre_Estado, Nombre_Solicitante: nombre },
+            { Estado_Nuevo: nuevoEstado.Nombre_Estado, Nombre_Solicitante: nombre }
+        );
+
         return {
             solicitud: resultado,
             mensaje: `Estado de solicitud de afiliación cambiado a '${nuevoEstado.Nombre_Estado}' exitosamente`
@@ -371,6 +387,9 @@ export class SolicitudesFisicasService {
         if (!nuevoEstado) throw new BadRequestException(`Estado con id ${idNuevoEstado} no encontrado`);
 
         const nombre = `${solicitudDesconexion.Nombre} ${solicitudDesconexion.Apellido1 ?? ''} ${solicitudDesconexion.Apellido2 ?? ''}`.trim();
+
+        // Guardar estado anterior para auditoría
+        const estadoAnterior = solicitudDesconexion.Estado;
 
         // Estado 2 = En revisión
         if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudDesconexion.Correo, 'Desconexión', 'En revisión', nombre);
@@ -403,6 +422,16 @@ export class SolicitudesFisicasService {
         solicitudDesconexion.Estado = nuevoEstado;
         const resultado = await this.solicitudDesconexionFisicaRepository.save(solicitudDesconexion);
 
+        // Registrar auditoría del cambio de estado
+        await this.auditoriaService.createAuditoria(
+            'Solicitudes',
+            'Actualización',
+            idUsuario,
+            idSolicitud,
+            { Estado_Anterior: estadoAnterior.Nombre_Estado, Nombre_Solicitante: nombre },
+            { Estado_Nuevo: nuevoEstado.Nombre_Estado, Nombre_Solicitante: nombre }
+        );
+
         return {
             solicitud: resultado,
             mensaje: `Estado de solicitud de desconexión cambiado a '${nuevoEstado.Nombre_Estado}' exitosamente`
@@ -426,7 +455,10 @@ export class SolicitudesFisicasService {
         });
         if (!nuevoEstado) throw new BadRequestException(`Estado con id ${idNuevoEstado} no encontrado`);
 
-            const nombre = `${solicitudCambioMedidor.Nombre} ${solicitudCambioMedidor.Apellido1 ?? ''} ${solicitudCambioMedidor.Apellido2 ?? ''}`.trim();
+        const nombre = `${solicitudCambioMedidor.Nombre} ${solicitudCambioMedidor.Apellido1 ?? ''} ${solicitudCambioMedidor.Apellido2 ?? ''}`.trim();
+
+        // Guardar estado anterior para auditoría
+        const estadoAnterior = solicitudCambioMedidor.Estado;
 
         // Estado 2 = En revisión
         if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'En revisión', nombre);
@@ -452,6 +484,16 @@ export class SolicitudesFisicasService {
         solicitudCambioMedidor.Estado = nuevoEstado;
         const resultado = await this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
 
+        // Registrar auditoría del cambio de estado
+        await this.auditoriaService.createAuditoria(
+            'Solicitudes',
+            'Actualización',
+            idUsuario,
+            idSolicitud,
+            { Estado_Anterior: estadoAnterior.Nombre_Estado, Nombre_Solicitante: nombre },
+            { Estado_Nuevo: nuevoEstado.Nombre_Estado, Nombre_Solicitante: nombre }
+        );
+
         return {
             solicitud: resultado,
             mensaje: `Estado de solicitud de cambio de medidor cambiado a '${nuevoEstado.Nombre_Estado}' exitosamente`
@@ -471,6 +513,9 @@ export class SolicitudesFisicasService {
         if (!nuevoEstado) throw new BadRequestException(`Estado con id ${idNuevoEstado} no encontrado`);
 
         const nombre = `${solicitudAsociado.Nombre} ${solicitudAsociado.Apellido1 ?? ''} ${solicitudAsociado.Apellido2 ?? ''}`.trim();
+
+        // Guardar estado anterior para auditoría
+        const estadoAnterior = solicitudAsociado.Estado;
 
         // Estado 2 = En revisión
         if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociado', 'En revisión', nombre);
@@ -495,6 +540,16 @@ export class SolicitudesFisicasService {
 
         solicitudAsociado.Estado = nuevoEstado;
         const resultado = await this.solicitudAsociadoFisicaRepository.save(solicitudAsociado);
+
+        // Registrar auditoría del cambio de estado
+        await this.auditoriaService.createAuditoria(
+            'Solicitudes',
+            'Actualización',
+            idUsuario,
+            idSolicitud,
+            { Estado_Anterior: estadoAnterior.Nombre_Estado, Nombre_Solicitante: nombre },
+            { Estado_Nuevo: nuevoEstado.Nombre_Estado, Nombre_Solicitante: nombre }
+        );
 
         return {
             solicitud: resultado,
