@@ -3,10 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
-import { ResponderReporteDto } from './ReportesDto/ResponderReporte.dto';
+import { CreateReporteDto } from './ReporteDTO\'s/CreateReporte.dto';
+import { ResponderReporteDto } from './ReporteDTO\'s/ResponderReporte.dto';
 import { EstadoReporte } from './ReporteEntities/EstadoReporte';
 import { Reporte } from './ReporteEntities/Reportes.Entity';
-import { CreateReporteDto } from './ReportesDto/CreateReporte.dto';
+
 
 interface ReporteFiles {
   Adjunto?: Express.Multer.File[];
@@ -87,24 +88,6 @@ export class ReportesService {
     }
 
     return saved;
-  }
-
-  async remove(id: number) {
-    const repo = await this.reportesRepository.findOne({ where: { IdReporte: id } });
-    if (!repo) throw new BadRequestException(`Reporte con id ${id} no encontrado`);
-
-    try {
-      const nombre = repo.Nombre?.toString().trim();
-      const primerApellido = repo.Primer_Apellido?.toString().trim();
-      const segundoApellido = repo.Segundo_Apellido?.toString().trim();
-      const rawFolder = [nombre, primerApellido, segundoApellido].filter(Boolean).join(' ');
-      const folderName = rawFolder.replace(/[\\/\:\*\?"<>\|]/g, '').replace(/\s+/g, ' ').trim();
-      await this.dropboxFilesService.deletePath('Contacto', 'Reportes', undefined, folderName);
-    } catch (err) {
-      console.warn(`No se pudo eliminar carpeta en Dropbox para reporte ${id}: ${err}`);
-    }
-
-    return this.reportesRepository.remove(repo);
   }
 
   async updateEstado(id: number, nuevoEstadoId: number) {

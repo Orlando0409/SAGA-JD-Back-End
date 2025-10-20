@@ -1,11 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Post, Patch, UploadedFiles, UseInterceptors} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Patch, UploadedFiles, UseInterceptors} from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { SugerenciaService } from './sugerencia.service';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
-import { CreateSugerenciaDto } from './Dto/CreateSugerencia.dto';
-import { UpdateSugerenciaEstadoDto } from './Dto/UpdateSugerenciaEstado.dto';
-import { ResponderSugerenciaDto } from './Dto/ResponderSugerencia.dto';
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
+import { CreateSugerenciaDto } from './SugerenciaDTO\'s/CreateSugerencia.dto';
+import { ResponderSugerenciaDto } from './SugerenciaDTO\'s/ResponderSugerencia.dto';
+import { UpdateSugerenciaEstadoDto } from './SugerenciaDTO\'s/UpdateSugerenciaEstado.dto';
 
 @Controller('sugerencias')
 export class SugerenciaController {
@@ -39,16 +39,11 @@ export class SugerenciaController {
   }
 
   @Public()
-  @Post(':id/responder')
+  @Patch(':id/responder')
   responder(
     @Param('id', NumericParamPipe) id: number,
     @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: ResponderSugerenciaDto,
   ) {
     return this.sugerenciaService.responderSugerencia(id, body);
-  }
-
-  @Delete(':id')
-  remove(@Param('id', NumericParamPipe) id: number) {
-    return this.sugerenciaService.remove(id);
   }
 }

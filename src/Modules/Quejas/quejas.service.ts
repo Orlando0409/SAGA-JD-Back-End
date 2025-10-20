@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Queja } from './Entity/QuejasEntity';
+import { Queja } from './QuejaEntities/QuejasEntity';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
-import { CreateQuejaDto } from './Dto/CreateQueja.dto';
-import { ResponderQuejaDto } from './Dto/ResponderQueja.dto';
-import { EstadoQueja } from './Entity/EstadoQueja';
+import { EstadoQueja } from './QuejaEntities/EstadoQueja';
+import { CreateQuejaDto } from './QuejaDTO\'s/CreateQueja.dto';
+import { ResponderQuejaDto } from './QuejaDTO\'s/ResponderQueja.dto';
 
 interface QuejaFiles {
   Adjunto?: Express.Multer.File[];
@@ -86,24 +86,6 @@ export class QuejasService {
     }
 
     return saved;
-  }
-
-  async remove(id: number) {
-    const repo = await this.quejasRepository.findOne({ where: { Id_Queja: id } });
-    if (!repo) throw new BadRequestException(`Queja con id ${id} no encontrada`);
-
-    try {
-      const nombre = repo.Nombre?.toString().trim();
-      const primerApellido = repo.Primer_Apellido?.toString().trim();
-      const segundoApellido = repo.Segundo_Apellido?.toString().trim();
-      const rawFolder = [nombre, primerApellido, segundoApellido].filter(Boolean).join(' ');
-      const folderName = rawFolder.replace(/[\\/\:\*\?"<>\|]/g, '').replace(/\s+/g, ' ').trim();
-      await this.dropboxFilesService.deletePath('Contacto', 'Quejas', undefined, folderName);
-    } catch (err) {
-      console.warn(`No se pudo eliminar carpeta en Dropbox para queja ${id}: ${err}`);
-    }
-
-    return this.quejasRepository.remove(repo);
   }
 
   async updateEstado(id: number, nuevoEstadoId: number) {

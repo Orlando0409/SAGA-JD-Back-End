@@ -1,11 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Post, UploadedFiles, UseInterceptors, Patch } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UploadedFiles, UseInterceptors, Patch } from '@nestjs/common';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ReportesService } from './reportes.service';
-import { ResponderReporteDto } from './ReportesDto/ResponderReporte.dto';
-import { Public } from "src/Modules/auth/Decorator/Public.decorator";
-import { CreateReporteDto } from './ReportesDto/CreateReporte.dto';
-import { UpdateReporteEstadoDto } from './ReportesDto/UpdateReporteEstado.dto';
+import { Public } from '../auth/Decorator/Public.decorator';
+import { CreateReporteDto } from './ReporteDTO\'s/CreateReporte.dto';
+import { ResponderReporteDto } from './ReporteDTO\'s/ResponderReporte.dto';
+import { UpdateReporteEstadoDto } from './ReporteDTO\'s/UpdateReporteEstado.dto';
+
 
 
 @Controller('reportes')
@@ -42,16 +43,11 @@ export class ReportesController {
   }
 
   
-  @Post(':id/responder')
+  @Patch(':id/responder')
   responder(
     @Param('id', NumericParamPipe) id: number,
     @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: ResponderReporteDto,
   ) {
     return this.reportesService.responderReporte(id, body);
-  }
-
-  @Delete(':id')
-  remove(@Param('id', NumericParamPipe) id: number) {
-    return this.reportesService.remove(id);
   }
 }

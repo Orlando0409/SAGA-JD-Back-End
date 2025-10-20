@@ -3,10 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
-import { CreateSugerenciaDto } from './Dto/CreateSugerencia.dto';
-import { ResponderSugerenciaDto } from './Dto/ResponderSugerencia.dto';
-import { EstadoSugerencia } from './Entity/EstadoSugerencia';
-import { Sugerencia } from './Entity/Sugerencia.Entity';
+import { EstadoSugerencia } from './SugerenciaEntities/EstadoSugerencia';
+import { Sugerencia } from './SugerenciaEntities/Sugerencia.Entity';
+import { CreateSugerenciaDto } from './SugerenciaDTO\'s/CreateSugerencia.dto';
+import { ResponderSugerenciaDto } from './SugerenciaDTO\'s/ResponderSugerencia.dto';
 
 interface SugerenciaFiles {
   Adjunto?: Express.Multer.File[];
@@ -124,19 +124,5 @@ export class SugerenciaService {
     }
 
     return updatedSugerencia;
-  }
-
-  async remove(id: number) {
-    const repo = await this.sugerenciaRepository.findOne({ where: { Id_Sugerencia: id } });
-    if (!repo) throw new BadRequestException(`Sugerencia con id ${id} no encontrada`);
-
-    try {
-      const folderName = `sugerencia_${id}`;
-      await this.dropboxFilesService.deletePath('Contacto', 'Sugerencias', undefined, folderName);
-    } catch (err) {
-      console.warn(`No se pudo eliminar carpeta en Dropbox para sugerencia ${id}: ${err}`);
-    }
-
-    return this.sugerenciaRepository.remove(repo);
   }
 }

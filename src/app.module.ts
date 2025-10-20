@@ -50,7 +50,7 @@ import { EstadoCategoria } from './Modules/Inventario/InventarioEntities/EstadoC
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
 import { MovimientoInventario } from './Modules/Inventario/InventarioEntities/Movimiento.Entity';
 import { QuejasModule } from './Modules/Quejas/quejas.module';
-import { EstadoQueja } from './Modules/Quejas/Entity/EstadoQueja';
+import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja';
 import { SeederModule } from './Config/Seeder.module';
 import { EstadoMedidor } from './Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
 import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity';
@@ -58,9 +58,9 @@ import { Auditoria } from './Modules/Auditoria/AuditoriaEntities/Auditoria.Entit
 import { AuditoriaModule } from './Modules/Auditoria/auditoria.module';
 import { ReportesModule } from './Modules/Reportes/reportes.module';
 import { Reporte } from './Modules/Reportes/ReporteEntities/Reportes.Entity';
-import { EstadoSugerencia } from './Modules/Sugerencias/Entity/EstadoSugerencia';
-import { Sugerencia } from './Modules/Sugerencias/Entity/Sugerencia.Entity';
-import { Queja } from './Modules/Quejas/Entity/QuejasEntity';
+import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia';
+import { Sugerencia } from './Modules/Sugerencias/SugerenciaEntities/Sugerencia.Entity';
+import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity';
 @Module({
   imports: [
     ConfigModule.forRoot({
