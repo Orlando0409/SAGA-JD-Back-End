@@ -32,8 +32,8 @@ export class AuditoriaService {
      */
     private async obtenerNombreRegistro(modulo: string, idRegistro: number, datosAnteriores: string | null, datosNuevos: string, accion: string): Promise<string> {
         try {
-            // Para UPDATE y DELETE, intentar obtener el nombre de los datos anteriores
-            if ((accion === 'Update' || accion === 'Delete') && datosAnteriores) {
+            // Para Actualización y Eliminación, intentar obtener el nombre de los datos anteriores
+            if ((accion === 'Actualización' || accion === 'Eliminación') && datosAnteriores) {
                 try {
                     const anteriores = JSON.parse(datosAnteriores);
                     // Buscar el campo de nombre según el módulo
@@ -74,8 +74,8 @@ export class AuditoriaService {
                 }
             }
 
-            // Para INSERT, intentar obtener el nombre de los datos nuevos
-            if (accion === 'Insert' && datosNuevos) {
+            // Para CREACIÓN, intentar obtener el nombre de los datos nuevos
+            if (accion === 'Creación' && datosNuevos) {
                 try {
                     const nuevos = JSON.parse(datosNuevos);
                     switch (modulo.toLowerCase()) {
@@ -103,6 +103,7 @@ export class AuditoriaService {
                         case 'actas':
                             if (nuevos.Titulo) return nuevos.Titulo;
                             break;
+
                         case 'calidad de agua':
                             if (nuevos.Titulo) return nuevos.Titulo;
                             break;
@@ -184,7 +185,7 @@ export class AuditoriaService {
         // Usar Promise.all para obtener nombres de registros de forma paralela
         return Promise.all(auditorias.map(async (auditoria) => {
             const nombreRegistro = await this.obtenerNombreRegistro(
-                auditoria.Modulo, 
+                auditoria.Modulo,
                 auditoria.Id_Registro,
                 auditoria.Datos_Anteriores,
                 auditoria.Datos_Nuevos,

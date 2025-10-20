@@ -83,6 +83,9 @@ export class ActasService {
     async UpdateActa(idActa: number, dto: UpdateActaDto, idUsuario: number, files: Express.Multer.File[]) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario no existe.');
+
         const actaExistente = await this.actaRepository.findOne({ where: { Id_Acta: idActa } });
         if (!actaExistente) throw new NotFoundException('El acta que intenta modificar no existe.');
 
@@ -138,6 +141,9 @@ export class ActasService {
 
     async deleteActa(idActa: number, idUsuario: number) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario no existe.');
 
         const actaExistente = await this.actaRepository.findOne({ where: { Id_Acta: idActa } });
         if (!actaExistente) throw new NotFoundException(`El acta que intenta eliminar con ID ${idActa} no existe.`);

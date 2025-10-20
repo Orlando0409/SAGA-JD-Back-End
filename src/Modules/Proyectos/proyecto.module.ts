@@ -10,7 +10,7 @@ import { UsuariosModule } from '../Usuarios/Modules/usuarios.module';
 import { AuditoriaModule } from '../Auditoria/auditoria.module';
 
 @Module({
-  imports: [ TypeOrmModule.forFeature([Proyecto, EstadoProyecto, Usuario]), DropboxModule, UsuariosModule, AuditoriaModule], // Importamos las entidades que vamos a usar en este modulo
+  imports: [ TypeOrmModule.forFeature([Proyecto, EstadoProyecto, Usuario]), DropboxModule, UsuariosModule, AuditoriaModule],
   controllers: [ProyectoController],
   providers: [ProyectoService],
   exports: [ProyectoService],
