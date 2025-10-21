@@ -103,8 +103,12 @@ export class CalidadAguaService
         }
     }
 
-    async updateCalidadAgua(Id_Calidad_Agua: number, dto: UpdateCalidadAguaDto, file?: Express.Multer.File)
-    {
+    async updateCalidadAgua(Id_Calidad_Agua: number, dto: UpdateCalidadAguaDto, idUsuario: number, file?: Express.Multer.File) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario no existe.');
+
         const CalidadAgua = await this.calidadAguaRepository.findOne({ where: { Id_Calidad_Agua } });
         if (!CalidadAgua) { throw new NotFoundException(`Registro con ID ${Id_Calidad_Agua} no encontrado`); }
 

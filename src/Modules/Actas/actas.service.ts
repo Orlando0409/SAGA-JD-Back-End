@@ -43,12 +43,42 @@ export class ActasService {
             Archivos: ArchivosSubidos
         });
 
-        return this.actaRepository.save(nuevaActa);
+        const actaGuardada = await this.actaRepository.save(nuevaActa);
+
+        // Registrar en auditoría
+        try {
+            await this.auditoriaService.logCreacion('Actas', idUsuario, actaGuardada.Id_Acta, {
+                Titulo: actaGuardada.Titulo,
+                Descripcion: actaGuardada.Descripcion,
+                Fecha_Creacion: actaGuardada.Fecha_Creacion,
+                Archivos: actaGuardada.Archivos
+            });
+        } catch (error) {
+            console.error('Error al registrar auditoría de creación de acta:', error);
+        }
+
+        return {
+            ...actaGuardada,
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario)
+        }
     }
 
-    async UpdateActa(id: number, dto: UpdateActaDto, files: Express.Multer.File[]) {
-        const actaExistente = await this.actaRepository.findOne({ where: { Id_Acta: id } });
-        if (!actaExistente) { throw new BadRequestException('El acta que intenta modificar no existe.'); }
+    async UpdateActa(idActa: number, dto: UpdateActaDto, idUsuario: number, files: Express.Multer.File[]) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario no existe.');
+
+        const actaExistente = await this.actaRepository.findOne({ where: { Id_Acta: idActa } });
+        if (!actaExistente) throw new NotFoundException('El acta que intenta modificar no existe.');
+
+        // Guardar datos anteriores para auditoría
+        const datosAnteriores = {
+            Titulo: actaExistente.Titulo,
+            Descripcion: actaExistente.Descripcion,
+            Fecha_Creacion: actaExistente.Fecha_Creacion,
+            Archivos: actaExistente.Archivos
+        };
 
         if (dto.Descripcion) {
             dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
@@ -74,13 +104,40 @@ export class ActasService {
                 Archivos: ArchivosSubidos.length ? ArchivosSubidos : actaExistente.Archivos
             });
 
-            return this.actaRepository.save(actaActualizada);
+            const actaGuardada = await this.actaRepository.save(actaActualizada);
+
+            // Registrar en auditoría
+            try {
+                await this.auditoriaService.logActualizacion('Actas', idUsuario, idActa, datosAnteriores, {
+                    Titulo: actaGuardada.Titulo,
+                    Descripcion: actaGuardada.Descripcion,
+                    Fecha_Creacion: actaGuardada.Fecha_Creacion,
+                    Archivos: actaGuardada.Archivos
+                });
+            } catch (error) {
+                console.error('Error al registrar auditoría de actualización de acta:', error);
+            }
+
+            return actaGuardada;
         }   
     }   
 
-    async deleteActa(id: number) {
-        const actaExistente = await this.actaRepository.findOne({ where: { Id_Acta: id } });
-        if (!actaExistente) { throw new BadRequestException(`El acta que intenta eliminar con ID ${id} no existe.`); }
+    async deleteActa(idActa: number, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario no existe.');
+
+        const actaExistente = await this.actaRepository.findOne({ where: { Id_Acta: idActa } });
+        if (!actaExistente) throw new NotFoundException(`El acta que intenta eliminar con ID ${idActa} no existe.`);
+
+        // Guardar datos antes de eliminar para auditoría
+        const datosEliminados = {
+            Titulo: actaExistente.Titulo,
+            Descripcion: actaExistente.Descripcion,
+            Fecha_Creacion: actaExistente.Fecha_Creacion,
+            Archivos: actaExistente.Archivos
+        };
 
         this.dropboxFilesService.deletePath(`Actas/${actaExistente.Titulo}`);
         await this.actaRepository.remove(actaExistente);
