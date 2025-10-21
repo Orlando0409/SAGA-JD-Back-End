@@ -338,7 +338,7 @@ export class SeederService implements OnModuleInit {
         const estados = [
             { Id_Estado_Queja: 1, Estado_Queja: 'Pendiente' },
             { Id_Estado_Queja: 2, Estado_Queja: 'Contestado' },
-            { Id_Estado_Queja: 3, Estado_Queja: 'Archivado' },
+            { Id_Estado_Queja: 3, Estado_Queja: 'Archivado' }
         ];
 
         for (const estado of estados) {
@@ -356,7 +356,7 @@ export class SeederService implements OnModuleInit {
         const estados = [
             { Id_Estado_Sugerencia: 1, Estado_Sugerencia: 'Pendiente' },
             { Id_Estado_Sugerencia: 2, Estado_Sugerencia: 'Contestado' },
-            { Id_Estado_Sugerencia: 3, Estado_Sugerencia: 'Archivado' },
+            { Id_Estado_Sugerencia: 3, Estado_Sugerencia: 'Archivado'},
         ];
 
         for (const estado of estados) {
@@ -374,7 +374,7 @@ export class SeederService implements OnModuleInit {
         const estados = [
             { Id_Estado_Reporte: 1, Estado_Reporte: 'Pendiente' },
             { Id_Estado_Reporte: 2, Estado_Reporte: 'Contestado' },
-            { Id_Estado_Reporte: 3, Estado_Reporte: 'Archivado' },
+            { Id_Estado_Reporte: 3, Estado_Reporte: 'Archivado' }
         ];
 
         for (const estado of estados) {
