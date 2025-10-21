@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException, ConflictException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UpdateProyectoDto } from "./ProyectoDTO's/UpdateProyecto.dto";
@@ -8,6 +8,8 @@ import { EstadoProyecto } from "./ProyectoEntities/EstadoProyecto.Entity";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { Public } from "../auth/Decorator/Public.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
+import { UsuariosService } from "../Usuarios/Services/usuarios.service";
+import { AuditoriaService } from "../Auditoria/auditoria.service";
 
 @Injectable()
 export class ProyectoService {
@@ -32,12 +34,11 @@ export class ProyectoService {
     async getProyectosVisibles() {
         const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
             .leftJoinAndSelect('proyecto.Estado', 'estado')
-            .leftJoinAndSelect('proyecto.Usuario_Creador', 'usuario')
-            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .leftJoinAndSelect('proyecto.Usuario', 'usuario')
             .where('proyecto.Visible = :visible', { visible: true })
             .getMany();
 
-        return proyectos.map(proyecto => ({
+        return Promise.all(proyectos.map(async proyecto => ({
             ...proyecto,
             Usuario: proyecto.Usuario ?
                 await this.usuariosService.FormatearUsuarioResponse(proyecto.Usuario) : null
@@ -47,12 +48,11 @@ export class ProyectoService {
     async getProyectosInvisibles() {
         const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
             .leftJoinAndSelect('proyecto.Estado', 'estado')
-            .leftJoinAndSelect('proyecto.Usuario_Creador', 'usuario')
-            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .leftJoinAndSelect('proyecto.Usuario', 'usuario')
             .where('proyecto.Visible = :visible', { visible: false })
             .getMany();
 
-        return proyectos.map(proyecto => ({
+        return Promise.all(proyectos.map(async proyecto => ({
             ...proyecto,
             Usuario: proyecto.Usuario ?
                 await this.usuariosService.FormatearUsuarioResponse(proyecto.Usuario) : null
@@ -62,11 +62,10 @@ export class ProyectoService {
     async getAllProyectos() {
         const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
             .leftJoinAndSelect('proyecto.Estado', 'estado')
-            .leftJoinAndSelect('proyecto.Usuario_Creador', 'usuario')
-            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .leftJoinAndSelect('proyecto.Usuario', 'usuario')
             .getMany();
 
-        return proyectos.map(proyecto => ({
+        return Promise.all(proyectos.map(async proyecto => ({
             ...proyecto,
             Usuario: proyecto.Usuario ?
                 await this.usuariosService.FormatearUsuarioResponse(proyecto.Usuario) : null
@@ -82,10 +81,7 @@ export class ProyectoService {
 
         // Obtener estado por defecto "En Planeamiento"
         const estadoInicial = await this.proyectoEstadoRepository.findOne({ where: { Id_Estado_Proyecto: 1 } });
-        if (!estadoInicial) { throw new BadRequestException('Estado por defecto no encontrado'); }
-
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador }, relations: ['Rol'] });
-        if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuarioCreador} no encontrado`); }
+        if (!estadoInicial) throw new NotFoundException('Estado por defecto no encontrado');
 
         dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
         dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
@@ -98,7 +94,7 @@ export class ProyectoService {
             Imagen_Url: Proyecto.url,
             Estado: estadoInicial,
             Visible: false,
-            Usuario_Creador: usuario
+            Usuario: usuario
         });
 
         // Guardar en BD

@@ -1,11 +1,13 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Acta } from "./ActaEntities/Actas.Entity";
 import { Repository } from "typeorm";
 import { CreateActaDto } from "./ActaDTO's/CreateActa.dto";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { UpdateActaDto } from "./ActaDTO's/UpdateActa.dto";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
+import { UsuariosService } from "../Usuarios/Services/usuarios.service";
+import { AuditoriaService } from "../Auditoria/auditoria.service";
+import { Acta } from "./ActaEntities/Actas.Entity";
 
 @Injectable()
 export class ActasService {
@@ -17,15 +19,29 @@ export class ActasService {
         private readonly usuarioRepository: Repository<Usuario>,
 
         private readonly dropboxFilesService: DropboxFilesService,
+
+        private readonly usuariosService: UsuariosService,
+
+        private readonly auditoriaService: AuditoriaService,
     ) {}
 
-    async getAllActas(): Promise<Acta[]> {
-        return this.actaRepository.find();
+    async getAllActas() {
+        const actas = await this.actaRepository.createQueryBuilder('acta')
+            .leftJoinAndSelect('acta.Usuario', 'usuario')
+            .getMany();
+
+        return Promise.all(actas.map(async acta => ({
+            ...acta,
+            Usuario: acta.Usuario ?
+                await this.usuariosService.FormatearUsuarioResponse(acta.Usuario) : null
+        })));
     }
 
-    async createActa(dto: CreateActaDto, idUsuarioCreador: number, files: Express.Multer.File[]) {
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador } });
-        if (!usuario) { throw new BadRequestException('El usuario creador no existe.'); }
+    async createActa(dto: CreateActaDto, idUsuario: number, files: Express.Multer.File[]) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario creador no existe.');
 
         // Normalizar título antes de procesar
         dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
@@ -40,7 +56,8 @@ export class ActasService {
 
         const nuevaActa = this.actaRepository.create({
             ...dto,
-            Archivos: ArchivosSubidos
+            Archivos: ArchivosSubidos,
+            Usuario: usuario
         });
 
         const actaGuardada = await this.actaRepository.save(nuevaActa);
@@ -87,7 +104,7 @@ export class ActasService {
         if (dto.Titulo) {
             dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
             const actaConMismoTitulo = await this.actaRepository.findOne({ where: { Titulo: dto.Titulo } });
-            if (actaConMismoTitulo && actaConMismoTitulo.Id_Acta !== id) {
+            if (actaConMismoTitulo && actaConMismoTitulo.Id_Acta !== idActa) {
                 throw new BadRequestException(`Ya existe un acta con el título "${dto.Titulo}".`);
             }
 
@@ -141,6 +158,14 @@ export class ActasService {
 
         this.dropboxFilesService.deletePath(`Actas/${actaExistente.Titulo}`);
         await this.actaRepository.remove(actaExistente);
+
+        // Registrar en auditoría
+        try {
+            await this.auditoriaService.logEliminacion('Actas', idUsuario, idActa, datosEliminados);
+        } catch (error) {
+            console.error('Error al registrar auditoría de eliminación de acta:', error);
+        }
+
         return { message: 'Acta eliminada exitosamente' };
     }
 }
