@@ -1,20 +1,11 @@
-import {
-  Controller,
-  Post,
-  Body,
-  UseGuards,
-  Request,
-  Get,
-  Param,
-  Put,
-  Delete,
-  ParseIntPipe,
-} from '@nestjs/common';
+import {Controller,Post,Body,UseGuards,Request,Get,Param,Put,Delete,ParseIntPipe,} from '@nestjs/common';
 import { FAQService } from './faq.service';
 import { CreateFAQDto } from './DTOs/CreateFAQ.dto';
 import { UpdateFAQDto } from './DTOs/UpdateFAQ.dto';
 import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
 import { Patch } from '@nestjs/common';
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
+
 
 @Controller('faq')
 export class FAQController {
@@ -33,6 +24,7 @@ export class FAQController {
     return this.faqService.create(createDto, idUsuario);
   }
 
+  @Public()
   @Get()
   async findAll() {
     return this.faqService.findAll();

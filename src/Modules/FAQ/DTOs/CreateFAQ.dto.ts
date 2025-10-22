@@ -8,5 +8,6 @@ export class CreateFAQDto {
 
   @IsNotEmpty()
   @IsString()
+  @MaxLength(2000)
   Respuesta: string;
 }

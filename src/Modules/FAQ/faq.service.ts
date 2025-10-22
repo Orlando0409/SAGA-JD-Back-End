@@ -6,13 +6,10 @@ import { CreateFAQDto } from './DTOs/CreateFAQ.dto';
 import { UpdateFAQDto } from './DTOs/UpdateFAQ.dto';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 
-// DTOs públicos para evitar exponer campos sensibles
 export interface UsuarioPublic {
 	Id_Usuario: number;
 	Nombre_Usuario: string;
 	Correo_Electronico: string;
-	Id_Rol?: number;
-	Rol?: unknown;
 }
 
 export interface FAQWithUser {
@@ -45,7 +42,6 @@ export class FAQService {
 			});
 
 		const saved = await this.faqRepo.save(faq);
-		// Devolver con la relación Usuario poblada
 		const found = await this.faqRepo.findOne({ where: { Id_FAG: saved.Id_FAG }, relations: ['Usuario'] });
 		if (!found) throw new NotFoundException('FAQ not found after save');
 		return this.mapToDTO(found);
@@ -68,10 +64,9 @@ export class FAQService {
 
 		if (updateDto.Pregunta !== undefined) faq.Pregunta = updateDto.Pregunta;
 		if (updateDto.Respuesta !== undefined) faq.Respuesta = updateDto.Respuesta;
-			if (updateDto.Visible !== undefined) faq.Visible = updateDto.Visible;
 
 		faq.Fecha_Actualizacion = new Date();
-		faq.Id_Usuario = idUsuario; // registrar quién actualizó
+		faq.Id_Usuario = idUsuario;
 
 		const saved = await this.faqRepo.save(faq);
 		const found = await this.faqRepo.findOne({ where: { Id_FAG: saved.Id_FAG }, relations: ['Usuario'] });
@@ -95,8 +90,6 @@ export class FAQService {
 				Id_Usuario: usuario.Id_Usuario,
 				Nombre_Usuario: usuario.Nombre_Usuario,
 				Correo_Electronico: usuario.Correo_Electronico,
-				Id_Rol: usuario.Id_Rol ?? undefined,
-				Rol: usuario.Rol ?? undefined,
 			};
 			result.Usuario = publicUsuario;
 		}
