@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsOptional, IsString, MaxLength, IsBoolean } from 'class-validator';
 
 export class UpdateFAQDto {
   @IsOptional()
@@ -9,4 +9,8 @@ export class UpdateFAQDto {
   @IsOptional()
   @IsString()
   Respuesta?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  Visible?: boolean;
 }

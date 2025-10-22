@@ -19,7 +19,9 @@ export class FAQEntity {
     @Column()
     Fecha_Actualizacion: Date;
 
-    // Relación muchos FAQs -> 1 Usuario
+    @Column({ default: true })
+    Visible: boolean;
+
     @Column({ nullable: true })
     Id_Usuario: number;
 

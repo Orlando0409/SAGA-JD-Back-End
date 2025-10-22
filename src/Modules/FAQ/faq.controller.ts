@@ -14,12 +14,19 @@ import { FAQService } from './faq.service';
 import { CreateFAQDto } from './DTOs/CreateFAQ.dto';
 import { UpdateFAQDto } from './DTOs/UpdateFAQ.dto';
 import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
+import { Patch } from '@nestjs/common';
 
 @Controller('faq')
 export class FAQController {
   constructor(private readonly faqService: FAQService) {}
 
   @UseGuards(JwtAuthGuard)
+  @Patch(':id/visible')
+  async toggleVisible(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+    return this.faqService.toggleVisible(id, idUsuario);
+  }
+
   @Post()
   async create(@Body() createDto: CreateFAQDto, @Request() req: any) {
     const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;

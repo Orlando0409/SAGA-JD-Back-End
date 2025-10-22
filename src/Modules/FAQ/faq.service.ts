@@ -23,6 +23,7 @@ export interface FAQWithUser {
 	Fecha_Actualizacion: Date;
 	Id_Usuario: number;
 	Usuario?: UsuarioPublic;
+	Visible?: boolean;
 }
 
 @Injectable()
@@ -34,13 +35,14 @@ export class FAQService {
 
 	async create(createDto: CreateFAQDto, idUsuario: number): Promise<FAQWithUser> {
 		const now = new Date();
-		const faq = this.faqRepo.create({
-			Pregunta: createDto.Pregunta,
-			Respuesta: createDto.Respuesta,
-			Fecha_Creacion: now,
-			Fecha_Actualizacion: now,
-			Id_Usuario: idUsuario,
-		});
+			const faq = this.faqRepo.create({
+				Pregunta: createDto.Pregunta,
+				Respuesta: createDto.Respuesta,
+				Fecha_Creacion: now,
+				Fecha_Actualizacion: now,
+				Id_Usuario: idUsuario,
+				Visible: true,
+			});
 
 		const saved = await this.faqRepo.save(faq);
 		// Devolver con la relación Usuario poblada
@@ -50,7 +52,7 @@ export class FAQService {
 	}
 
 	async findAll(): Promise<FAQWithUser[]> {
-		const list = await this.faqRepo.find({ relations: ['Usuario'] });
+			const list = await this.faqRepo.find({ where: { Visible: true }, relations: ['Usuario'] });
 		return list.map((f) => this.mapToDTO(f));
 	}
 
@@ -66,6 +68,7 @@ export class FAQService {
 
 		if (updateDto.Pregunta !== undefined) faq.Pregunta = updateDto.Pregunta;
 		if (updateDto.Respuesta !== undefined) faq.Respuesta = updateDto.Respuesta;
+			if (updateDto.Visible !== undefined) faq.Visible = updateDto.Visible;
 
 		faq.Fecha_Actualizacion = new Date();
 		faq.Id_Usuario = idUsuario; // registrar quién actualizó
@@ -98,6 +101,8 @@ export class FAQService {
 			result.Usuario = publicUsuario;
 		}
 
+			result.Visible = faq.Visible;
+
 		return result;
 	}
 
@@ -106,5 +111,19 @@ export class FAQService {
 		if (!faq) throw new NotFoundException('FAQ not found');
 		return this.faqRepo.remove(faq);
 	}
+
+			async toggleVisible(id: number, idUsuario: number): Promise<FAQWithUser> {
+				const faq = await this.faqRepo.findOne({ where: { Id_FAG: id } });
+				if (!faq) throw new NotFoundException('FAQ not found');
+
+				faq.Visible = !faq.Visible;
+				faq.Fecha_Actualizacion = new Date();
+				faq.Id_Usuario = idUsuario;
+
+				const saved = await this.faqRepo.save(faq);
+				const found = await this.faqRepo.findOne({ where: { Id_FAG: saved.Id_FAG }, relations: ['Usuario'] });
+				if (!found) throw new NotFoundException('FAQ not found after toggleVisible');
+				return this.mapToDTO(found);
+			}
 }
 
