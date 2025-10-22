@@ -50,6 +50,8 @@ import { EstadoCategoria } from './Modules/Inventario/InventarioEntities/EstadoC
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
 import { MovimientoInventario } from './Modules/Inventario/InventarioEntities/Movimiento.Entity';
 import { QuejasModule } from './Modules/Quejas/quejas.module';
+import { FAQModule } from './Modules/FAQ/faq.module';
+import { FAQEntity } from './Modules/FAQ/FAQEntities/FAQ.Entity';
 import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja';
 import { SeederModule } from './Config/Seeder.module';
 import { EstadoMedidor } from './Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
@@ -94,7 +96,8 @@ import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity';
         Reporte, EstadoReporte,
         Sugerencia, EstadoSugerencia,
         Queja, EstadoQueja,
-        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
+        FAQEntity,
+        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario,FAQEntity, Medidor, EstadoMedidor,
         Auditoria
         ],
         synchronize: false,
@@ -125,6 +128,7 @@ import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity';
     ReportesModule,
     SugerenciaModule,
     QuejasModule,
+    FAQModule
   ],
   controllers: [],
   providers: [
