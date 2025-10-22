@@ -1,0 +1,55 @@
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  Get,
+  Param,
+  Put,
+  Delete,
+  ParseIntPipe,
+} from '@nestjs/common';
+import { FAQService } from './faq.service';
+import { CreateFAQDto } from './DTOs/CreateFAQ.dto';
+import { UpdateFAQDto } from './DTOs/UpdateFAQ.dto';
+import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
+
+@Controller('faq')
+export class FAQController {
+  constructor(private readonly faqService: FAQService) {}
+
+  @UseGuards(JwtAuthGuard)
+  @Post()
+  async create(@Body() createDto: CreateFAQDto, @Request() req: any) {
+    const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+    return this.faqService.create(createDto, idUsuario);
+  }
+
+  @Get()
+  async findAll() {
+    return this.faqService.findAll();
+  }
+
+  @Get(':id')
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.faqService.findOne(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put(':id')
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateDto: UpdateFAQDto,
+    @Request() req: any,
+  ) {
+    const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+    return this.faqService.update(id, updateDto, idUsuario);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    return this.faqService.remove(id);
+  }
+}

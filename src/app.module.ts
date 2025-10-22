@@ -60,6 +60,8 @@ import { TipoProveedor } from './Modules/Proveedores/ProveedorEntities/TipoProve
 import { QuejasModule } from './Modules/Quejas/quejas.module';
 import { QuejasEntity } from './Modules/Quejas/Entity/QuejasEntity';
 import { EstadoQueja } from './Modules/Quejas/Entity/EstadoQueja';
+import { FAQModule } from './Modules/FAQ/faq.module';
+import { FAQEntity } from './Modules/FAQ/FAQEntities/FAQ.Entity';
 
 @Module({
   imports: [
@@ -88,7 +90,7 @@ import { EstadoQueja } from './Modules/Quejas/Entity/EstadoQueja';
         Proyecto, ProyectoEstado,CalidadAgua, EstadoCalidadAgua,ReportesEntity, EstadoReporte,Acta, ArchivoActa,
   SugerenciaEntity, Estado_Sugerencia,
     QuejasEntity, EstadoQueja,
-        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MaterialProveedor, MovimientoInventario
+        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MaterialProveedor, MovimientoInventario,FAQEntity
         ],
         synchronize: true,
         dropSchema: true,
@@ -117,6 +119,7 @@ import { EstadoQueja } from './Modules/Quejas/Entity/EstadoQueja';
     ReportesModule,
     SugerenciaModule,
     QuejasModule,
+    FAQModule
   ],
   controllers: [],
   providers: [
