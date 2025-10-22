@@ -5,9 +5,11 @@ import { UpdateFAQDto } from './DTOs/UpdateFAQ.dto';
 import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
 import { Patch } from '@nestjs/common';
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
+import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
 
 
 @Controller('faq')
+@ApiTags('FAQ')
 export class FAQController {
   constructor(private readonly faqService: FAQService) {}
 
@@ -18,6 +20,8 @@ export class FAQController {
     return this.faqService.toggleVisible(id, idUsuario);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBody({ type: CreateFAQDto })
   @Post()
   async create(@Body() createDto: CreateFAQDto, @Request() req: any) {
     const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
@@ -43,6 +47,8 @@ export class FAQController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Actualizar FAQ' })
+  @ApiBody({ type: UpdateFAQDto })
   @Put(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
