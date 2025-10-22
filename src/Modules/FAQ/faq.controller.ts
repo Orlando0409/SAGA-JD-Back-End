@@ -29,6 +29,13 @@ export class FAQController {
     return this.faqService.findAll();
   }
 
+  // get del admin 
+  @UseGuards(JwtAuthGuard)
+  @Get('admin')
+  async findAllAdmin() {
+    return this.faqService.findAllAdmin();
+  }
+
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     return this.faqService.findOne(id);

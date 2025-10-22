@@ -52,6 +52,12 @@ export class FAQService {
 		return list.map((f) => this.mapToDTO(f));
 	}
 
+		//get exclusivo para el admin
+		async findAllAdmin(): Promise<FAQWithUser[]> {
+			const list = await this.faqRepo.find({ relations: ['Usuario'] });
+			return list.map((f) => this.mapToDTO(f));
+		}
+
 	async findOne(id: number): Promise<FAQWithUser> {
 		const faq = await this.faqRepo.findOne({ where: { Id_FAG: id }, relations: ['Usuario'] });
 		if (!faq) throw new NotFoundException('FAQ not found');
