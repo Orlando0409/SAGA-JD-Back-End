@@ -125,7 +125,7 @@ export class ReportesService {
     });
     if (!repo) throw new BadRequestException(`Reporte con id ${id} no encontrado`);
 
-    repo.Respuestas_Reporte = dto.Respuesta;
+    repo.RespuestasReporte = dto.Respuesta;
     const estadoContestada = await this.estadoReporteRepository.findOne({ where: { Id_Estado_Reporte: 2 } });
     if (!estadoContestada) throw new BadRequestException('Estado contestada no encontrado');
 
@@ -137,7 +137,7 @@ export class ReportesService {
       setImmediate(async () => {
         try {
           await this.emailService.enviarEmailRespuestaReporte({
-            name: repo.Nombre,
+            Nombre: repo.Nombre,
             Primer_Apellido: repo.Primer_Apellido,
             Segundo_Apellido: repo.Segundo_Apellido,
             Correo: correoDestino,

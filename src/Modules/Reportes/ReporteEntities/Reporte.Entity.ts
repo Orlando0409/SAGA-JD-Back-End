@@ -9,7 +9,7 @@ export class Reporte {
     @Column({ nullable: false })
     Nombre: string;
 
-    @Column()
+    @Column({ nullable: true })
     Primer_Apellido: string;
 
     @Column({ nullable: true })
@@ -26,6 +26,9 @@ export class Reporte {
 
     @Column()
     Correo: string;
+
+    @Column({ type: 'text', nullable: true })
+    RespuestasReporte?: string;
 
     @Column({ type: 'simple-json', nullable: true })
     Adjunto?: string[];

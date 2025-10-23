@@ -104,7 +104,7 @@ import { FAQModule } from './Modules/FAQ/faq.module';
           Lectura,
           FAQEntity
         ],
-        synchronize: false,
+        synchronize: true,
         dropSchema: false,
       })
     }),

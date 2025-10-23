@@ -1,4 +1,4 @@
-import { Injectable} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
 import { createEmailDTO } from './DTO/createEmailDTO';
@@ -18,16 +18,16 @@ export class EmailService {
   constructor(
     private readonly mailService: MailerService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
   // Enviar email cuando el admin responde al reporte
   async enviarEmailRespuestaReporte(reporteData: {
-    name?: string;
-    Papellido?: string;
-    Sapellido?: string;
+    Nombre?: string;
+    Primer_Apellido?: string;
+    Segundo_Apellido?: string;
     Correo?: string;
-    ubicacion?: string;
-    descripcion?: string;
-    respuesta?: string;
+    Ubicacion?: string;
+    Descripcion?: string;
+    Respuesta?: string;
   }) {
     try {
       const to = reporteData.Correo;
@@ -105,7 +105,7 @@ export class EmailService {
     try {
       // Extraer tipo de solicitud del subject si viene incluido
       const tipoSolicitud = emailData.subject.replace(/^(Actualización:|Estado de|Solicitud de)/i, '').trim();
-      
+
       await this.mailService.sendMail({
         to: emailData.to,
         subject: emailData.subject,
