@@ -61,6 +61,8 @@ import { EstadoMedidor } from './Modules/Inventario/InventarioEntities/EstadoMed
 import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity';
 import { Auditoria } from './Modules/Auditoria/AuditoriaEntities/Auditoria.Entities';
 import { AuditoriaModule } from './Modules/Auditoria/auditoria.module';
+import { Lectura } from './Modules/Lecturas/LecturaEntities/Lectura.Entity';
+import { LecturaModule } from './Modules/Lecturas/lectura.module';
 
 @Module({
   imports: [
@@ -96,7 +98,8 @@ import { AuditoriaModule } from './Modules/Auditoria/auditoria.module';
         Sugerencia, EstadoSugerencia,
         Queja, EstadoQueja,
         Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
-        Auditoria
+        Auditoria,
+        Lectura
         ],
         synchronize: false,
         dropSchema: false,
@@ -109,6 +112,7 @@ import { AuditoriaModule } from './Modules/Auditoria/auditoria.module';
     AuditoriaModule,
     ProveedorModule,
     InventarioModule,
+    LecturaModule,
     FacturaModule,
     AfiliadosModule,
     SolicitudesModule,

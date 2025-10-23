@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, ConflictException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException, ConflictException, Inject, forwardRef } from "@nestjs/common";
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from "./AfiliadoEntities/Afiliado.Entity";
 import { EstadoAfiliado } from "./AfiliadoEntities/EstadoAfiliado.Entity";
 import { SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica } from "src/Modules/Solicitudes/SolicitudEntities/Solicitud.Entity";
@@ -16,7 +16,7 @@ import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Injectable()
 export class AfiliadosService {
-    constructor (
+    constructor(
         @InjectRepository(Afiliado)
         private readonly afiliadoRepository: Repository<Afiliado>,
 
@@ -43,10 +43,12 @@ export class AfiliadosService {
 
         private readonly dropboxFilesService: DropboxFilesService,
 
+        @Inject(forwardRef(() => AuditoriaService))
         private readonly auditoriaService: AuditoriaService,
 
+        @Inject(forwardRef(() => UsuariosService))
         private readonly usuariosService: UsuariosService,
-    ) {}
+    ) { }
 
     async getAfiliados() {
         const afiliados = await this.afiliadoRepository.createQueryBuilder('afiliado')
@@ -483,7 +485,6 @@ export class AfiliadosService {
     private async FormatearAfiliadoParaResponse(afiliado: any): Promise<any> {
         if (!afiliado) return null;
 
-        // Crear copia del afiliado sin las URLs de archivos sensibles
         const afiliadoFormateado = {
             Id_Afiliado: afiliado.Id_Afiliado,
             Tipo_Entidad: afiliado.Tipo_Entidad,
@@ -492,7 +493,6 @@ export class AfiliadosService {
             Direccion_Exacta: afiliado.Direccion_Exacta,
             Fecha_Creacion: afiliado.Fecha_Creacion,
             Fecha_Actualizacion: afiliado.Fecha_Actualizacion,
-            // No incluir Planos_Terreno ni Escritura_Terreno por seguridad
             Estado: afiliado.Estado ? {
                 Id_Estado_Afiliado: afiliado.Estado.Id_Estado_Afiliado,
                 Nombre_Estado: afiliado.Estado.Nombre_Estado
@@ -509,14 +509,52 @@ export class AfiliadosService {
             (afiliadoFormateado as any).Tipo_Identificacion = afiliado.Tipo_Identificacion;
             (afiliadoFormateado as any).Identificacion = afiliado.Identificacion;
             (afiliadoFormateado as any).Nombre = afiliado.Nombre;
-            (afiliadoFormateado as any).Apellido1 = afiliado.Apellido1;
-            (afiliadoFormateado as any).Apellido2 = afiliado.Apellido2;
+            (afiliadoFormateado as any).Primer_Apellido = afiliado.Apellido1;
+            (afiliadoFormateado as any).Segundo_Apellido = afiliado.Apellido2;
             (afiliadoFormateado as any).Edad = afiliado.Edad;
         } else if (afiliado.Cedula_Juridica) {
             // AfiliadoJuridico
             (afiliadoFormateado as any).Cedula_Juridica = afiliado.Cedula_Juridica;
             (afiliadoFormateado as any).Razon_Social = afiliado.Razon_Social;
-            // No incluir Personalidad_Juridica por seguridad
+        }
+
+        return afiliadoFormateado;
+    }
+
+    // Método específico para response de lecturas - solo datos básicos
+    async FormatearAfiliadoParaResponseSimple(afiliado: any) {
+        if (!afiliado) return null;
+
+        const afiliadoFormateado = {
+            Id_Afiliado: afiliado.Id_Afiliado,
+            Tipo_Entidad: afiliado.Tipo_Entidad,
+            Correo: afiliado.Correo,
+            Numero: afiliado.Numero_Telefono
+        };
+
+        if (afiliado.Tipo_Entidad === 1) {
+            // Afiliado Físico - buscar en tabla específica
+            const afiliadoFisico = await this.afiliadoFisicoRepository.findOne({
+                where: { Id_Afiliado: afiliado.Id_Afiliado }
+            });
+
+            if (afiliadoFisico) {
+                (afiliadoFormateado as any).Tipo_Identificacion = afiliadoFisico.Tipo_Identificacion;
+                (afiliadoFormateado as any).Identificacion = afiliadoFisico.Identificacion;
+                (afiliadoFormateado as any).Nombre = afiliadoFisico.Nombre;
+                (afiliadoFormateado as any).Primer_Apellido = afiliadoFisico.Apellido1;
+                (afiliadoFormateado as any).Segundo_Apellido = afiliadoFisico.Apellido2;
+            }
+        } else if (afiliado.Tipo_Entidad === 2) {
+            // Afiliado Jurídico - buscar en tabla específica
+            const afiliadoJuridico = await this.afiliadoJuridicoRepository.findOne({
+                where: { Id_Afiliado: afiliado.Id_Afiliado }
+            });
+
+            if (afiliadoJuridico) {
+                (afiliadoFormateado as any).Cedula_Juridica = afiliadoJuridico.Cedula_Juridica;
+                (afiliadoFormateado as any).Razon_Social = afiliadoJuridico.Razon_Social;
+            }
         }
 
         return afiliadoFormateado;

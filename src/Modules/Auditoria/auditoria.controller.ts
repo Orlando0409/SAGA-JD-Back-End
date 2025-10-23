@@ -23,13 +23,4 @@ export class AuditoriaController {
     getAuditoriasPorUsuario(@Param('usuarioId', ParseIntPipe) usuarioId: number) {
         return this.auditoriaService.getAuditoriasPorUsuario(usuarioId);
     }
-
-    @Get('/registro/:modulo/:idRegistro')
-    @ApiOperation({ summary: 'Obtener auditorías de un registro específico' })
-    getAuditoriasPorRegistro(
-        @Param('modulo') modulo: string,
-        @Param('idRegistro', ParseIntPipe) idRegistro: number
-    ) {
-        return this.auditoriaService.getAuditoriasPorRegistro(modulo, idRegistro);
-    }
 }

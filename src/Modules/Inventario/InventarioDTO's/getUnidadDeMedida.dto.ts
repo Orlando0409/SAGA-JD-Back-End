@@ -1,6 +1,6 @@
 import { Expose } from "class-transformer";
 
-export class getUnidadDeMedidaDTO {
+export class GetUnidadDeMedidaDTO {
     @Expose()
     Id_Unidad_Medicion: number;
 

@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
+import { Injectable, BadRequestException, NotFoundException, Inject, forwardRef } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
@@ -11,25 +11,28 @@ import { Acta } from "../Actas/ActaEntities/Acta.Entity";
 import { CalidadAgua } from "../CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity";
 import { UsuariosService } from "../Usuarios/Services/usuarios.service";
 import { Proyecto } from "../Proyectos/ProyectoEntities/Proyecto.Entity";
+import { Lectura } from "../Lecturas/LecturaEntities/Lectura.Entity";
+import { Medidor } from "../Inventario/InventarioEntities/Medidor.Entity";
 
 @Injectable()
 export class AuditoriaService {
-    constructor(
+    constructor (
         @InjectRepository(Auditoria)
         private readonly auditoriaRepository: Repository<Auditoria>,
 
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
 
-        private readonly dataSource: DataSource,
-
+        @Inject(forwardRef(() => UsuariosService))
         private readonly usuariosService: UsuariosService,
-    ) {}
+
+        private readonly dataSource: DataSource,
+    ) { }
 
     /*
         Obtiene el nombre del registro según el módulo y los datos
         Para UPDATE/DELETE usa datos anteriores, para INSERT usa datos nuevos
-     */
+    */
     private async obtenerNombreRegistro(modulo: string, idRegistro: number, datosAnteriores: string | null, datosNuevos: string, accion: string): Promise<string> {
         try {
             // Para Actualización y Eliminación, intentar obtener el nombre de los datos anteriores
@@ -41,32 +44,49 @@ export class AuditoriaService {
                         case 'usuarios':
                             if (anteriores.Nombre_Usuario) return anteriores.Nombre_Usuario;
                             break;
+
                         case 'roles':
                             if (anteriores.Nombre_Rol) return anteriores.Nombre_Rol;
                             break;
+
                         case 'categorias':
                             if (anteriores.Nombre_Categoria) return anteriores.Nombre_Categoria;
                             break;
+
                         case 'unidades de medicion':
                             if (anteriores.Nombre_Unidad) return anteriores.Nombre_Unidad;
                             break;
+
                         case 'materiales':
                             if (anteriores.Nombre_Material) return anteriores.Nombre_Material;
                             break;
+
                         case 'proveedores':
                             if (anteriores.Nombre_Proveedor) return anteriores.Nombre_Proveedor;
                             break;
+
                         case 'proyectos':
                             if (anteriores.Titulo) return anteriores.Titulo;
                             break;
+
                         case 'actas':
                             if (anteriores.Titulo) return anteriores.Titulo;
                             break;
+
                         case 'calidad de agua':
                             if (anteriores.Titulo) return anteriores.Titulo;
                             break;
+
                         case 'proyectos':
                             if (anteriores.Titulo) return anteriores.Titulo;
+                            break;
+
+                        case 'Medidor':
+                            if (anteriores.Numero_Medidor) return anteriores.Numero_Medidor;
+                            break;
+
+                        case 'lecturas':
+                            if (anteriores.Numero_Medidor) return anteriores.Numero_Medidor;
                             break;
                     }
                 } catch (error) {
@@ -82,24 +102,31 @@ export class AuditoriaService {
                         case 'usuarios':
                             if (nuevos.Nombre_Usuario) return nuevos.Nombre_Usuario;
                             break;
+
                         case 'roles':
                             if (nuevos.Nombre_Rol) return nuevos.Nombre_Rol;
                             break;
+
                         case 'categorias':
                             if (nuevos.Nombre_Categoria) return nuevos.Nombre_Categoria;
                             break;
+
                         case 'unidades de medicion':
                             if (nuevos.Nombre_Unidad) return nuevos.Nombre_Unidad;
                             break;
+
                         case 'materiales':
                             if (nuevos.Nombre_Material) return nuevos.Nombre_Material;
                             break;
+
                         case 'proveedores':
                             if (nuevos.Nombre_Proveedor) return nuevos.Nombre_Proveedor;
                             break;
+
                         case 'proyectos':
                             if (nuevos.Titulo) return nuevos.Titulo;
                             break;
+
                         case 'actas':
                             if (nuevos.Titulo) return nuevos.Titulo;
                             break;
@@ -107,8 +134,17 @@ export class AuditoriaService {
                         case 'calidad de agua':
                             if (nuevos.Titulo) return nuevos.Titulo;
                             break;
+
                         case 'proyectos':
                             if (nuevos.Titulo) return nuevos.Titulo;
+                            break;
+
+                        case 'Medidor':
+                            if (nuevos.Numero_Medidor) return nuevos.Numero_Medidor;
+                            break;
+
+                        case 'lecturas':
+                            if (nuevos.Numero_Medidor) return nuevos.Numero_Medidor;
                             break;
                     }
                 } catch (error) {
@@ -165,6 +201,18 @@ export class AuditoriaService {
                         where: { Id_Proyecto: idRegistro }
                     });
                     return proyecto?.Titulo || `Proyecto ID: ${idRegistro}`;
+
+                case 'Medidores':
+                    const medidor = await this.dataSource.getRepository(Medidor).findOne({
+                        where: { Id_Medidor: idRegistro }
+                    });
+                    return medidor?.Numero_Medidor.toString() || `Medidor ID: ${idRegistro}`;   // Modificación aquí
+
+                case 'lecturas':
+                    const lectura = await this.dataSource.getRepository(Lectura).findOne({
+                        where: { Id_Lectura: idRegistro }
+                    });
+                    return lectura?.Id_Lectura.toString() || `Lectura ID: ${idRegistro}`;       // Modificación aquí
 
                 default:
                     return `Registro ID: ${idRegistro}`;
@@ -229,41 +277,25 @@ export class AuditoriaService {
 
     // Métodos helper para las operaciones más comunes
     async logCreacion(modulo: string, usuarioId: number, idRegistro: number, datosNuevos: any): Promise<Auditoria> {
-        return this.createAuditoria(modulo, 'Insert', usuarioId, idRegistro, null, datosNuevos);
+        return this.createAuditoria(modulo, 'Creación', usuarioId, idRegistro, null, datosNuevos);
     }
 
     async logActualizacion(modulo: string, usuarioId: number, idRegistro: number, datosAnteriores: any, datosNuevos: any): Promise<Auditoria> {
-        return this.createAuditoria(modulo, 'Update', usuarioId, idRegistro, datosAnteriores, datosNuevos);
+        return this.createAuditoria(modulo, 'Actualización', usuarioId, idRegistro, datosAnteriores, datosNuevos);
     }
 
     async logEliminacion(modulo: string, usuarioId: number, idRegistro: number, datosAnteriores: any): Promise<Auditoria> {
-        return this.createAuditoria(modulo, 'Delete', usuarioId, idRegistro, datosAnteriores, null);
+        return this.createAuditoria(modulo, 'Eliminación', usuarioId, idRegistro, datosAnteriores, null);
     }
 
     // Métodos de consulta
-    async getAuditoriasPorModulo(modulo: string): Promise<any[]> {
+    async getAuditoriasPorModulo(modulo: string) {
         if (!modulo || modulo.trim() === '') throw new BadRequestException('Debe proporcionar un nombre de módulo válido');
-        
-        const auditorias = await this.auditoriaRepository.find({ 
-            where: { Modulo: modulo }, 
-            relations: ['Usuario', 'Usuario.Rol'], 
-            order: { Fecha_Accion: 'DESC' } 
-        });
 
-        return Promise.all(auditorias.map(async (auditoria) => ({
-            ...auditoria,
-            Usuario: auditoria.Usuario ?
-                await this.usuariosService.FormatearUsuarioResponse(auditoria.Usuario) : null
-        })));
-    }
-
-    async getAuditoriasPorUsuario(usuarioId: number): Promise<any[]> {
-        if (!usuarioId || usuarioId <= 0) throw new BadRequestException('Debe proporcionar un ID de usuario válido');
-        
         const auditorias = await this.auditoriaRepository.find({
-            where: { Usuario: { Id_Usuario: usuarioId } }, 
-            relations: ['Usuario', 'Usuario.Rol'], 
-            order: { Fecha_Accion: 'DESC' } 
+            where: { Modulo: modulo },
+            relations: ['Usuario', 'Usuario.Rol'],
+            order: { Fecha_Accion: 'DESC' }
         });
 
         return Promise.all(auditorias.map(async (auditoria) => ({
@@ -273,14 +305,13 @@ export class AuditoriaService {
         })));
     }
 
-    async getAuditoriasPorRegistro(modulo: string, idRegistro: number): Promise<any[]> {
-        if (!modulo || modulo.trim() === '') throw new BadRequestException('Debe proporcionar un nombre de módulo válido');
-        if (!idRegistro || idRegistro <= 0) throw new BadRequestException('Debe proporcionar un ID de registro válido');
-        
-        const auditorias = await this.auditoriaRepository.find({ 
-            where: { Modulo: modulo, Id_Registro: idRegistro }, 
-            relations: ['Usuario', 'Usuario.Rol'], 
-            order: { Fecha_Accion: 'DESC' } 
+    async getAuditoriasPorUsuario(usuarioId: number) {
+        if (!usuarioId || usuarioId <= 0) throw new BadRequestException('Debe proporcionar un ID de usuario válido');
+
+        const auditorias = await this.auditoriaRepository.find({
+            where: { Usuario: { Id_Usuario: usuarioId } },
+            relations: ['Usuario', 'Usuario.Rol'],
+            order: { Fecha_Accion: 'DESC' }
         });
 
         return Promise.all(auditorias.map(async (auditoria) => ({

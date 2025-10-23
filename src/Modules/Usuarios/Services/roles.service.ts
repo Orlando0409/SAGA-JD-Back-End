@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { CreateRolesDto } from '../UsuarioDTO\'s/CreateRoles.dto';
@@ -20,6 +20,7 @@ export class RolesService {
         @InjectRepository(Usuario)
         private readonly userRepository: Repository<Usuario>,
 
+        @Inject(forwardRef(() => AuditoriaService))
         private readonly auditoriaService: AuditoriaService,
     ) { }
 

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -17,6 +17,7 @@ export class UsuariosService {
         @InjectRepository(UsuarioRol)
         private readonly rolRepository: Repository<UsuarioRol>,
 
+        @Inject(forwardRef(() => AuditoriaService))
         private readonly auditoriaService: AuditoriaService,
     ) { }
 

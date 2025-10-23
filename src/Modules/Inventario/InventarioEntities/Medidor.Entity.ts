@@ -1,7 +1,9 @@
-import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Afiliado } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { EstadoMedidor } from "./EstadoMedidor.Entity";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
+import { Expose } from "class-transformer";
+import { Lectura } from "src/Modules/Lecturas/LecturaEntities/Lectura.Entity";
 
 @Entity('Medidor')
 export class Medidor {
@@ -24,6 +26,10 @@ export class Medidor {
     @ManyToOne(() => Afiliado, afiliado => afiliado.Medidores, { eager: true })
     @JoinColumn({ name: 'Id_Afiliado' })
     Afiliado: Afiliado;
+
+    @OneToMany(() => Lectura, lectura => lectura.Medidor, { cascade: true })
+    @Expose({ name: 'Lecturas' })
+    Lecturas: Lectura[];
 
     @ManyToOne(() => Usuario, usuario => usuario.Id_Usuario, { eager: true })
     @JoinColumn({ name: 'Id_Usuario' })

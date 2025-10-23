@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UnidadMedicion } from '../InventarioEntities/UnidadMedicion.Entity';
@@ -6,10 +6,10 @@ import { EstadoUnidadMedicion } from '../InventarioEntities/EstadoUnidadMedicion
 import { Material } from '../InventarioEntities/Material.Entity';
 import { CreateUnidadMedicionDto } from "../InventarioDTO's/CreateUnidadMedicion.dto";
 import { UpdateUnidadMedicionDto } from "../InventarioDTO's/UpdateUnidadMedicion.dto";
-import { getUnidadDeMedidaDTO } from "../InventarioDTO's/getUnidadDeMedida.dto";
 import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { AuditoriaService } from 'src/Modules/Auditoria/auditoria.service';
 import { UsuariosService } from 'src/Modules/Usuarios/Services/usuarios.service';
+import { GetUnidadDeMedidaDTO } from '../InventarioDTO\'s/GetUnidadDeMedida.dto';
 
 @Injectable()
 export class UnidadesDeMedicionService {
@@ -26,8 +26,10 @@ export class UnidadesDeMedicionService {
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
 
+        @Inject(forwardRef(() => AuditoriaService))
         private readonly auditoriaService: AuditoriaService,
 
+        @Inject(forwardRef(() => UsuariosService))
         private readonly usuariosService: UsuariosService
     ) {}
 
@@ -46,10 +48,10 @@ export class UnidadesDeMedicionService {
         }));
     }
 
-    async getUnidadMedicionSimple(): Promise<getUnidadDeMedidaDTO[]> {
+    async getUnidadMedicionSimple(): Promise<GetUnidadDeMedidaDTO[]> {
         const unidades = await this.unidadMedicionRepository.find({ select: ['Id_Unidad_Medicion', 'Nombre_Unidad'] });
         return unidades.map(unidad => {
-            const dto = new getUnidadDeMedidaDTO();
+            const dto = new GetUnidadDeMedidaDTO();
             dto.Id_Unidad_Medicion = unidad.Id_Unidad_Medicion;
             dto.Nombre_Unidad_Medicion = unidad.Nombre_Unidad[0].toUpperCase() + unidad.Nombre_Unidad.slice(1).toLowerCase();
             return dto;

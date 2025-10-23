@@ -32,7 +32,7 @@ export class ProveedorService {
     private auditoriaService: AuditoriaService,
 
     private usuariosService: UsuariosService,
-  ) {}
+  ) { }
 
   async createFisico(dto: CreateProveedorFisicoDto, idUsuario: number): Promise<ProveedorFisico> {
     if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
