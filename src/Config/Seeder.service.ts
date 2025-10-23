@@ -15,9 +15,9 @@ import { Categoria } from 'src/Modules/Inventario/InventarioEntities/Categoria.E
 import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
 import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
-import { EstadoReporte } from 'src/Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
-import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
-import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
+import { EstadoReporte } from 'src/Modules/Reportes/ReporteEntities/EstadoReporte';
+import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia';
+import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja';
 import { EstadoMedidor } from 'src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
 
 @Injectable()
@@ -236,7 +236,7 @@ export class SeederService implements OnModuleInit {
 
                 // Asignar el usuario creador si existe
                 if (adminUser) {
-                    nuevaCategoria.Usuario = adminUser;
+                    nuevaCategoria.Usuario_Creador = adminUser;
                 }
 
                 await this.categoriaMaterialRepository.save(nuevaCategoria);
@@ -288,7 +288,7 @@ export class SeederService implements OnModuleInit {
 
                 // Asignar el usuario creador si existe
                 if (adminUser) {
-                    nuevaUnidad.Usuario = adminUser;
+                    nuevaUnidad.Usuario_Creador = adminUser;
                 }
 
                 await this.unidadMedicionRepository.save(nuevaUnidad);
@@ -338,6 +338,7 @@ export class SeederService implements OnModuleInit {
         const estados = [
             { Id_Estado_Queja: 1, Estado_Queja: 'Pendiente' },
             { Id_Estado_Queja: 2, Estado_Queja: 'Contestado' },
+            { Id_Estado_Queja: 3, Estado_Queja: 'Archivado' }
         ];
 
         for (const estado of estados) {
@@ -355,11 +356,12 @@ export class SeederService implements OnModuleInit {
         const estados = [
             { Id_Estado_Sugerencia: 1, Estado_Sugerencia: 'Pendiente' },
             { Id_Estado_Sugerencia: 2, Estado_Sugerencia: 'Contestado' },
+            { Id_Estado_Sugerencia: 3, Estado_Sugerencia: 'Archivado'},
         ];
 
         for (const estado of estados) {
             const existe = await this.estadoSugerenciaRepository.findOne({
-                where: { Id_Estado_Sugerencia: estado.Id_Estado_Sugerencia },
+                where: { Id_EstadoSugerencia: estado.Id_Estado_Sugerencia },
             });
             if (!existe) {
                 const nuevo = this.estadoSugerenciaRepository.create(estado);
@@ -372,11 +374,12 @@ export class SeederService implements OnModuleInit {
         const estados = [
             { Id_Estado_Reporte: 1, Estado_Reporte: 'Pendiente' },
             { Id_Estado_Reporte: 2, Estado_Reporte: 'Contestado' },
+            { Id_Estado_Reporte: 3, Estado_Reporte: 'Archivado' }
         ];
 
         for (const estado of estados) {
             const existe = await this.estadoReporteRepository.findOne({
-                where: { Id_Estado_Reporte: estado.Id_Estado_Reporte }
+                where: { IdEstadoReporte: estado.Id_Estado_Reporte }
             });
             if (!existe) {
                 const nuevoEstado = this.estadoReporteRepository.create(estado);
@@ -423,15 +426,15 @@ export class SeederService implements OnModuleInit {
                 Editar: true,
             });
 
-            // Permiso de lectura para bitacora
+            // Permiso de lectura para auditoria
             await this.createPermisoIfNotExists({
-                Modulo: 'bitacora',
+                Modulo: 'auditoria',
                 Ver: true,
                 Editar: false,
             });
-            // Sin permisos para bitacora
+            // Sin permisos para auditoria
             await this.createPermisoIfNotExists({
-                Modulo: 'bitacora',
+                Modulo: 'auditoria',
                 Ver: false,
                 Editar: false,
             });
@@ -488,7 +491,7 @@ export class SeederService implements OnModuleInit {
         const todosLosPermisos = await this.permisoRepository.find({
             where: [
                 { Ver: true, Editar: true },
-                { Modulo: 'bitacora', Ver: true, Editar: false }
+                { Modulo: 'auditoria', Ver: true, Editar: false }
             ]
         });
 

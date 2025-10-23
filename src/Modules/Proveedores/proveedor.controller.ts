@@ -9,7 +9,6 @@ import { GetUser } from '../auth/Decorator/GetUser.decorator';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 
 @Controller('Proveedores')
-@UseGuards(JwtAuthGuard)
 export class ProveedorController {
   constructor(
     private readonly proveedorService: ProveedorService
@@ -40,6 +39,7 @@ export class ProveedorController {
     return this.proveedorService.findOneFisico(id);
   }
 
+  @Put('fisico/:id')
   @Put('fisico/:id')
   updateFisico(
     @Param('id', ParseIntPipe) id: number,
@@ -77,6 +77,7 @@ export class ProveedorController {
     return this.proveedorService.findOneJuridico(id);
   }
 
+  @Put('juridico/:id')
   @Put('juridico/:id')
   updateJuridico(
     @Param('id', ParseIntPipe) id: number,

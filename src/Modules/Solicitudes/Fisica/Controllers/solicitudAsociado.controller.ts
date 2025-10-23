@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put } from "@nestjs/common";
 import { ApiOperation } from "@nestjs/swagger";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 import { SolicitudAsociadoFisicaService } from "../Services/solicitudAsociado.service";
@@ -7,9 +7,10 @@ import { UpdateSolicitudAsociadoFisicaDto } from "../../SolicitudDTO's/UpdateSol
 
 @Controller('solicitud-asociado-fisica')
 export class SolicitudAsociadoFisicaController {
-    constructor(
+    constructor
+    (
         private readonly solicitudAsociadoFisicaService: SolicitudAsociadoFisicaService
-    ) { }
+    ) {}
 
     @Get('/all')
     @ApiOperation({ summary: 'Obtener todas las solicitudes de asociado' })
@@ -24,15 +25,15 @@ export class SolicitudAsociadoFisicaController {
         return this.solicitudAsociadoFisicaService.createSolicitudAsociado(dto);
     }
 
-    @Put('/update/:idSolicitud/:idUsuario')
+    @Put('/update/:id')
     @ApiOperation({ summary: 'Actualizar una solicitud de asociado por ID' })
-    updateSolicitudAsociado(@Param('idSolicitud', ParseIntPipe) idSolicitud: number, @Body() dto: UpdateSolicitudAsociadoFisicaDto, @Param('idUsuario', ParseIntPipe) idUsuario: number) {
-        return this.solicitudAsociadoFisicaService.updateSolicitudAsociado(idSolicitud, dto, idUsuario);
+    updateSolicitudAsociado(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSolicitudAsociadoFisicaDto) {
+        return this.solicitudAsociadoFisicaService.updateSolicitudAsociado(id, dto);
     }
 
-    @Patch('/update/estado/:idSolicitud/:idNuevoEstado/:idUsuario')
+    @Patch(':id/update/estado/:nuevoEstadoId')
     @ApiOperation({ summary: 'Actualizar el estado de una solicitud de asociado por ID' })
-    updateEstadoSolicitudAsociado(@Param('idSolicitud', ParseIntPipe) idSolicitud: number, @Param('idNuevoEstado', ParseIntPipe) idNuevoEstado: number, @Param('idUsuario', ParseIntPipe) idUsuario: number) {
-        return this.solicitudAsociadoFisicaService.UpdateEstadoSolicitudAsociado(idSolicitud, idNuevoEstado, idUsuario);
+    updateEstadoSolicitudAsociado(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
+        return this.solicitudAsociadoFisicaService.UpdateEstadoSolicitudAsociado(id, nuevoEstadoId);
     }
 }

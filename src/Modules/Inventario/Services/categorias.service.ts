@@ -8,7 +8,6 @@ import { EstadoCategoria } from '../InventarioEntities/EstadoCategoria.Entity';
 import { Usuario } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
 import { MaterialCategoria } from '../InventarioEntities/MaterialCategoria.Entity';
 import { AuditoriaService } from '../../Auditoria/auditoria.service';
-import { UsuariosService } from '../../Usuarios/Services/usuarios.service';
 
 @Injectable()
 export class CategoriasService {
@@ -25,73 +24,84 @@ export class CategoriasService {
         @InjectRepository(MaterialCategoria)
         private readonly materialCategoriaRepository: Repository<MaterialCategoria>,
 
-        private readonly auditoriaService: AuditoriaService,
-
-        private readonly usuariosService: UsuariosService
+        private readonly auditoriaService: AuditoriaService
     ) {}
 
     async getAllCategorias() {
         const categorias = await this.categoriaRepository.createQueryBuilder('categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
-            .leftJoinAndSelect('categoria.Usuario', 'usuario')
+            .leftJoinAndSelect('categoria.Usuario_Creador', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .getMany();
 
-        return Promise.all(categorias.map(async categoria => {
+        return categorias.map(categoria => {
             return {
                 ...categoria,
-                Usuario: categoria.Usuario ? await this.usuariosService.FormatearUsuarioResponse(categoria.Usuario) : null
+                Usuario_Creador: {
+                    Id_Usuario: categoria.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: categoria.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: categoria.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: categoria.Usuario_Creador.Rol?.Nombre_Rol
+                }
             };
-        }));
+        });
     }
 
     async getCategoriasActivas() {
         const categorias = await this.categoriaRepository.createQueryBuilder('categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
-            .leftJoinAndSelect('categoria.Usuario', 'usuario')
+            .leftJoinAndSelect('categoria.Usuario_Creador', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
-            .where('categoria.Id_Estado_Categoria = :estadoId', { estadoId: 1 })
+            .where('estado.Id_Estado_Categoria = :estado', { estado: 1 }) // 1 = Activa
             .getMany();
 
-        return Promise.all(categorias.map(async categoria => {
+        return categorias.map(categoria => {
             return {
                 ...categoria,
-                Usuario: categoria.Usuario ? await this.usuariosService.FormatearUsuarioResponse(categoria.Usuario) : null
+                Usuario_Creador: {
+                    Id_Usuario: categoria.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: categoria.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: categoria.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: categoria.Usuario_Creador.Rol?.Nombre_Rol
+                }
             };
-        }));
+        });
     }
 
     async getCategoriasInactivas() {
         const categorias = await this.categoriaRepository.createQueryBuilder('categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
-            .leftJoinAndSelect('categoria.Usuario', 'usuario')
+            .leftJoinAndSelect('categoria.Usuario_Creador', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('estado.Id_Estado_Categoria = :estado', { estado: 2 }) // 2 = Inactiva
             .getMany();
 
-        return Promise.all(categorias.map(async categoria => {
+        return categorias.map(categoria => {
             return {
                 ...categoria,
-                Usuario: categoria.Usuario ? await this.usuariosService.FormatearUsuarioResponse(categoria.Usuario) : null
+                Usuario_Creador: {
+                    Id_Usuario: categoria.Usuario_Creador.Id_Usuario,
+                    Nombre_Usuario: categoria.Usuario_Creador.Nombre_Usuario,
+                    Id_Rol: categoria.Usuario_Creador.Id_Rol,
+                    Nombre_Rol: categoria.Usuario_Creador.Rol?.Nombre_Rol
+                }
             };
-        }));
+        });
     }
 
-    async createCategoria(dto: CreateCategoriaDto, idUsuario: number) {
-        if (!idUsuario) { throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción'); }
-
+    async createCategoria(dto: CreateCategoriaDto, idUsuarioCreador: number) {
         const CategoriaNormalizada = dto.Nombre_Categoria[0].toUpperCase() + dto.Nombre_Categoria.slice(1).toLowerCase();
 
         const categoriaExistente = await this.categoriaRepository.findOne({ where: { Nombre_Categoria: CategoriaNormalizada } });
         if (categoriaExistente) { throw new BadRequestException(`La categoría "${CategoriaNormalizada}" ya se encuentra registrada`); }
 
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
-        if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuario} no encontrado`); }
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador }, relations: ['Rol'] });
+        if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuarioCreador} no encontrado`); }
 
         const categoria = this.categoriaRepository.create({
             ...dto,
             Nombre_Categoria: CategoriaNormalizada,
-            Usuario: usuario,
+            Usuario_Creador: usuario,
         });
 
         const categoriaGuardada = await this.categoriaRepository.save(categoria);
@@ -100,7 +110,7 @@ export class CategoriasService {
         try {
             await this.auditoriaService.logCreacion(
                 'Categoria',
-                idUsuario,
+                idUsuarioCreador,
                 categoriaGuardada.Id_Categoria,
                 {
                     Id_Categoria: categoriaGuardada.Id_Categoria,
@@ -115,7 +125,7 @@ export class CategoriasService {
 
         const categoriaCompleta = await this.categoriaRepository.findOne({ 
             where: { Id_Categoria: categoriaGuardada.Id_Categoria }, 
-            relations: ['Estado_Categoria', 'Usuario', 'Usuario.Rol']
+            relations: ['Estado_Categoria', 'Usuario_Creador', 'Usuario_Creador.Rol']
         });
 
         if (!categoriaCompleta) {
@@ -128,20 +138,21 @@ export class CategoriasService {
             Nombre_Categoria: categoriaCompleta.Nombre_Categoria,
             Descripcion_Categoria: categoriaCompleta.Descripcion_Categoria,
             Estado_Categoria: categoriaCompleta.Estado_Categoria,
-            Usuario: await this.usuariosService.FormatearUsuarioResponse(categoriaCompleta.Usuario)
+            Usuario_Creador: {
+                Id_Usuario: usuario.Id_Usuario,
+                Nombre_Usuario: usuario.Nombre_Usuario,
+                Id_Rol: usuario.Id_Rol,
+                Nombre_Rol: usuario.Rol?.Nombre_Rol
+            }
         };
     }
 
-    async updateCategoria(Id_Categoria: number, dto: UpdateCategoriaDto, idUsuario: number) {
-        if (!idUsuario) {
-            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
-        }
-
+    async updateCategoria(Id_Categoria: number, dto: UpdateCategoriaDto, usuarioId: number) {
         const categoriaExistente = await this.categoriaRepository.findOne({ where: { Id_Categoria: Id_Categoria } });
         if (!categoriaExistente) { throw new NotFoundException(`Categoría con ID ${Id_Categoria} no encontrada`); }
 
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
-        if (!usuario) { throw new NotFoundException(`Usuario con ID ${idUsuario} no encontrado`); }
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: usuarioId }, relations: ['Rol'] });
+        if (!usuario) { throw new NotFoundException(`Usuario con ID ${usuarioId} no encontrado`); }
 
         // Guardar datos anteriores para auditoría
         const datosAnteriores = {
@@ -166,11 +177,11 @@ export class CategoriasService {
         const categoriaActualizada = await this.categoriaRepository.save(categoriaExistente);
 
         // Registrar en auditoría si se proporciona usuarioId
-        if (idUsuario) {
+        if (usuarioId) {
             try {
                 await this.auditoriaService.logActualizacion(
                     'Categoria',
-                    idUsuario,
+                    usuarioId,
                     Id_Categoria,
                     datosAnteriores,
                     {
@@ -187,7 +198,7 @@ export class CategoriasService {
         // Recargar la categoría con las relaciones necesarias pero con formato controlado
         const categoriaCompleta = await this.categoriaRepository.createQueryBuilder('categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
-            .leftJoinAndSelect('categoria.Usuario', 'usuario')
+            .leftJoinAndSelect('categoria.Usuario_Creador', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('categoria.Id_Categoria = :id', { id: Id_Categoria })
             .getOne();
@@ -199,15 +210,16 @@ export class CategoriasService {
         // Formatear la respuesta para mostrar solo información básica del usuario
         return {
             ...categoriaCompleta,
-            Usuario: await this.usuariosService.FormatearUsuarioResponse(categoriaCompleta.Usuario)
+            Usuario_Creador: {
+                Id_Usuario: categoriaCompleta.Usuario_Creador.Id_Usuario,
+                Nombre_Usuario: categoriaCompleta.Usuario_Creador.Nombre_Usuario,
+                Id_Rol: categoriaCompleta.Usuario_Creador.Id_Rol,
+                Nombre_Rol: categoriaCompleta.Usuario_Creador.Rol?.Nombre_Rol
+            }
         };
     }
 
-    async updateEstadoCategoria(Id_Categoria: number, Id_Estado_Categoria: number, idUsuario: number) {
-        if (!idUsuario) {
-            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
-        }
-
+    async updateEstadoCategoria(Id_Categoria: number, Id_Estado_Categoria: number, usuarioId: number) {
         const categoriaExistente = await this.categoriaRepository.findOne({ where: { Id_Categoria: Id_Categoria }, relations: ['Estado_Categoria'] });
         if (!categoriaExistente) { throw new NotFoundException(`Categoría con ID ${Id_Categoria} no encontrada`); }
 
@@ -238,11 +250,11 @@ export class CategoriasService {
         await this.categoriaRepository.save(categoriaExistente);
 
         // Registrar en auditoría si se proporciona usuarioId
-        if (idUsuario) {
+        if (usuarioId) {
             try {
                 await this.auditoriaService.logActualizacion(
                     'Categoria',
-                    idUsuario,
+                    usuarioId,
                     Id_Categoria,
                     {
                         Estado_Anterior: {
@@ -265,7 +277,7 @@ export class CategoriasService {
         // Recargar la categoría con las relaciones necesarias pero con formato controlado
         const categoriaCompleta = await this.categoriaRepository.createQueryBuilder('categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
-            .leftJoinAndSelect('categoria.Usuario', 'usuario')
+            .leftJoinAndSelect('categoria.Usuario_Creador', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('categoria.Id_Categoria = :id', { id: Id_Categoria })
             .getOne();
@@ -277,7 +289,12 @@ export class CategoriasService {
         // Formatear la respuesta para mostrar solo información básica del usuario
         return {
             ...categoriaCompleta,
-            Usuario: await this.usuariosService.FormatearUsuarioResponse(categoriaCompleta.Usuario)
+            Usuario_Actualizador: {
+                Id_Usuario: categoriaCompleta.Usuario_Creador.Id_Usuario,
+                Nombre_Usuario: categoriaCompleta.Usuario_Creador.Nombre_Usuario,
+                Id_Rol: categoriaCompleta.Usuario_Creador.Id_Rol,
+                Nombre_Rol: categoriaCompleta.Usuario_Creador.Rol?.Nombre_Rol
+            }
         };
     }
 

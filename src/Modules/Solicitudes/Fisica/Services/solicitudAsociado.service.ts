@@ -9,10 +9,10 @@ import { CreateSolicitudAsociadoFisicaDto } from "../../SolicitudDTO's/CreateSol
 import { UpdateSolicitudAsociadoFisicaDto } from "../../SolicitudDTO's/UpdateSolicitudFisica.dto";
 import { AfiliadosService } from "src/Modules/Afiliados/afiliados.service";
 import { EmailService } from "src/Modules/Emails/email.service";
-import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Injectable()
-export class SolicitudAsociadoFisicaService {
+export class SolicitudAsociadoFisicaService
+{
     constructor(
         @InjectRepository(SolicitudAsociadoFisica)
         private readonly solicitudAsociadoFisicaRepository: Repository<SolicitudAsociadoFisica>,
@@ -20,83 +20,84 @@ export class SolicitudAsociadoFisicaService {
         @InjectRepository(EstadoSolicitud)
         private readonly estadoSolicitudRepository: Repository<EstadoSolicitud>,
 
-        @InjectRepository(Usuario)
-        private readonly usuarioRepository: Repository<Usuario>,
-
         private readonly validationsService: ValidationsService,
 
         private readonly afiliadosService: AfiliadosService,
 
         private readonly emailService: EmailService,
-    ) { }
+    ) {}
 
-    async getAllSolicitudesAsociado() {
+    async getAllSolicitudesAsociado()
+    {
         return this.solicitudAsociadoFisicaRepository.find({ relations: ['Estado'] });
     }
 
     @Public()
-    async createSolicitudAsociado(dto: CreateSolicitudAsociadoFisicaDto) {
+    async createSolicitudAsociado(dto: CreateSolicitudAsociadoFisicaDto)
+    {
         // Validar que existe un afiliado físico con esa identificación
         const AfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
         if (!AfiliadoExistente) {
             const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
-            if (validacionSolicitudesActivas) throw new BadRequestException(validacionSolicitudesActivas);
+            if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
             // Normalizar nombres en el servicio (Apellido2 se maneja automáticamente en la entidad)
             dto.Nombre = dto.Nombre.trim()[0].toUpperCase() + dto.Nombre.trim().slice(1).toLowerCase();
             dto.Apellido1 = dto.Apellido1.trim()[0].toUpperCase() + dto.Apellido1.trim().slice(1).toLowerCase();
-            if (dto.Apellido2) dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
+            if (dto.Apellido2) {
+                dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
+            }
 
             const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
 
-            const solicitudAsociado = this.solicitudAsociadoFisicaRepository.create({ ...dto });
+            const solicitudAsociado = this.solicitudAsociadoFisicaRepository.create({...dto});
             await this.emailService.enviarEmailSolicitudCreada(dto.Correo, 'Asociación', nombre);
             return this.solicitudAsociadoFisicaRepository.save(solicitudAsociado);
         }
 
-        else throw new BadRequestException(`Ya existe un afiliado físico con la identificación ${dto.Identificacion}. No se puede crear la solicitud de asociado.`);
+        else {
+            throw new BadRequestException(`Ya existe un afiliado físico con la identificación ${dto.Identificacion}. No se puede crear la solicitud de asociado.`);
+        }
     }
 
-    async updateSolicitudAsociado(idSolicitud: number, dto: UpdateSolicitudAsociadoFisicaDto, idUsuario: number) {
-        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+    async updateSolicitudAsociado(id: number, dto: UpdateSolicitudAsociadoFisicaDto)
+    {
+        const solicitudAsociado = await this.solicitudAsociadoFisicaRepository.findOne({ where: { Id_Solicitud: id } });
+        if (!solicitudAsociado) { throw new BadRequestException(`Solicitud de asociado físico con id ${id} no encontrada`); }
 
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
-        if (!usuario) throw new BadRequestException('Usuario no encontrado');
-
-        const solicitudAsociado = await this.solicitudAsociadoFisicaRepository.findOne({ where: { Id_Solicitud: idSolicitud } });
-        if (!solicitudAsociado) throw new BadRequestException(`Solicitud de asociado físico con id ${idSolicitud} no encontrada`);
-
-        if (dto.Apellido2) dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
+        if (dto.Apellido2) {
+            dto.Apellido2 = dto.Apellido2.trim()[0].toUpperCase() + dto.Apellido2.trim().slice(1).toLowerCase();
+        }
 
         Object.assign(solicitudAsociado, dto);
         return this.solicitudAsociadoFisicaRepository.save(solicitudAsociado);
     }
 
-    async UpdateEstadoSolicitudAsociado(idSolicitud: number, idNuevoEstado: number, idUsuario: number) {
-        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+    async UpdateEstadoSolicitudAsociado(id: number, nuevoEstadoId: number)
+    {
+        const solicitudAsociado = await this.solicitudAsociadoFisicaRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
+        if (!solicitudAsociado) {throw new BadRequestException(`Solicitud con id ${id} no encontrada`);}
 
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
-        if (!usuario) throw new BadRequestException('Usuario no encontrado');
+        const nuevoEstado = await this.estadoSolicitudRepository.findOne({where: { Id_Estado_Solicitud: nuevoEstadoId }});
+        if (!nuevoEstado) {throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);}
 
-        const solicitudAsociado = await this.solicitudAsociadoFisicaRepository.findOne({ where: { Id_Solicitud: idSolicitud }, relations: ['Estado'] });
-        if (!solicitudAsociado) throw new BadRequestException(`Solicitud con id ${idSolicitud} no encontrada`);
-
-        const nuevoEstado = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: idNuevoEstado } });
-        if (!nuevoEstado) throw new BadRequestException(`Estado con id ${idNuevoEstado} no encontrado`);
-
-        const nombre = `${solicitudAsociado.Nombre} ${solicitudAsociado.Apellido1 ?? ''} ${solicitudAsociado.Apellido2 ?? ''}`.trim();
-
-        // Estado 2 = En revisión
-        if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociación', 'En revisión', nombre);
+        if (nuevoEstadoId === 2) { // Estado 2 = En revisión
+            const nombre = `${solicitudAsociado.Nombre} ${solicitudAsociado.Apellido1 ?? ''} ${solicitudAsociado.Apellido2 ?? ''}`.trim();
+            await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociación', 'En revisión', nombre);
+        }
 
         // Si el estado cambia a 3 (Aprobada), cambiar el tipo del afiliado existente de "Abonado" a "Asociado"
-        else if (idNuevoEstado === 3) {
-            await this.afiliadosService.cambiarAbonadoAAsociadoFisico(solicitudAsociado.Identificacion, idUsuario);
+        if (nuevoEstadoId === 3) {
+            await this.afiliadosService.cambiarAbonadoAAsociadoFisico(solicitudAsociado.Identificacion);
+
+            const nombre = `${solicitudAsociado.Nombre} ${solicitudAsociado.Apellido1 ?? ''} ${solicitudAsociado.Apellido2 ?? ''}`.trim();
             await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociación', 'Aprobada', nombre);
         }
 
-        // Estado 4 = Rechazada
-        else if (idNuevoEstado === 4) await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociación', 'Rechazada', nombre);
+        if (nuevoEstadoId === 4) { // Estado 4 = Rechazada
+            const nombre = `${solicitudAsociado.Nombre} ${solicitudAsociado.Apellido1 ?? ''} ${solicitudAsociado.Apellido2 ?? ''}`.trim();
+            await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociación', 'Rechazada', nombre);
+        }
 
         solicitudAsociado.Estado = nuevoEstado;
         return this.solicitudAsociadoFisicaRepository.save(solicitudAsociado);

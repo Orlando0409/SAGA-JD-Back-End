@@ -46,8 +46,8 @@ export class Material {
     Unidad_Medicion: UnidadMedicion;
 
     @ManyToOne(() => Usuario, usuario => usuario.Id_Usuario, { eager: true })
-    @JoinColumn({ name: 'Id_Usuario' })
-    Usuario: Usuario;
+    @JoinColumn({ name: 'Id_Usuario_Creador' })
+    Usuario_Creador: Usuario;
 
     @ManyToOne(() => Proveedor, proveedor => proveedor.materiales, { eager: true })
     @JoinColumn({ name: 'Id_Proveedor' })

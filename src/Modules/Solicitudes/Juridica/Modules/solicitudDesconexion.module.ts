@@ -9,10 +9,14 @@ import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
 import { EstadoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { AfiliadoJuridico } from 'src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity';
 import { EmailModule } from 'src/Modules/Emails/email.module';
-import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SolicitudDesconexionJuridica, EstadoSolicitud, AfiliadoJuridico, EstadoAfiliado, Usuario]), ValidationsModule, DropboxModule, EmailModule],
+  imports: [
+    TypeOrmModule.forFeature([SolicitudDesconexionJuridica, EstadoSolicitud, AfiliadoJuridico, EstadoAfiliado]),
+    ValidationsModule,
+    DropboxModule,
+    EmailModule
+  ],
   controllers: [SolicitudDesconexionJuridicaController],
   providers: [SolicitudDesconexionJuridicaService],
   exports: [SolicitudDesconexionJuridicaService],

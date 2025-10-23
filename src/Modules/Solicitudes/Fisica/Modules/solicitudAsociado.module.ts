@@ -7,10 +7,9 @@ import { SolicitudAsociadoFisica } from "../../SolicitudEntities/Solicitud.Entit
 import { SolicitudAsociadoFisicaService } from "../Services/solicitudAsociado.service";
 import { AfiliadosModule } from "src/Modules/Afiliados/afiliados.module";
 import { EmailModule } from "src/Modules/Emails/email.module";
-import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([SolicitudAsociadoFisica, EstadoSolicitud, Usuario]), ValidationsModule, AfiliadosModule, EmailModule],
+    imports: [TypeOrmModule.forFeature([SolicitudAsociadoFisica, EstadoSolicitud]), ValidationsModule, AfiliadosModule, EmailModule],
     controllers: [SolicitudAsociadoFisicaController],
     providers: [SolicitudAsociadoFisicaService],
     exports: [SolicitudAsociadoFisicaService],

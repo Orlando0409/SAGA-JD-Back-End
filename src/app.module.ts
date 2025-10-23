@@ -21,12 +21,8 @@ import { Proyecto } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
 import { EstadoProyecto } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 import { CalidadAguaModule } from './Modules/CalidadAgua/calidadAgua.module';
 import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity';
-import { ReportesModule } from './Modules/Reportes/reportes.module';
-import { Reporte } from './Modules/Reportes/ReporteEntities/Reporte.Entity';
-import { EstadoReporte } from './Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
+import { EstadoReporte } from './Modules/Reportes/ReporteEntities/EstadoReporte';
 import { SugerenciaModule } from './Modules/Sugerencias/sugerencia.module';
-import { Sugerencia } from './Modules/Sugerencias/SugerenciaEntities/Sugerencia.Entity';
-import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
 import { EstadoAfiliado } from './Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica, SolicitudFisica, SolicitudJuridica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { SolicitudAsociadoFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAsociado.module';
@@ -41,7 +37,7 @@ import { TipoAfiliado } from './Modules/Afiliados/AfiliadoEntities/TipoAfiliado.
 import { AfiliadosModule } from './Modules/Afiliados/afiliados.module';
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from './Modules/Afiliados/AfiliadoEntities/Afiliado.Entity';
 import { SolicitudesModule } from './Modules/Solicitudes/solicitudes.module';
-import { Acta } from './Modules/Actas/ActaEntities/Acta.Entity';
+import { Acta } from './Modules/Actas/ActaEntities/Actas.Entity';
 import { ArchivoActa } from './Modules/Actas/ActaEntities/ArchivoActa.Entity';
 import { ActasModule } from './Modules/Actas/actas.module';
 import { Material } from './Modules/Inventario/InventarioEntities/Material.Entity';
@@ -54,14 +50,19 @@ import { EstadoCategoria } from './Modules/Inventario/InventarioEntities/EstadoC
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
 import { MovimientoInventario } from './Modules/Inventario/InventarioEntities/Movimiento.Entity';
 import { QuejasModule } from './Modules/Quejas/quejas.module';
-import { Queja } from './Modules/Quejas/QuejaEntities/Queja.Entity';
-import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
+import { FAQModule } from './Modules/FAQ/faq.module';
+import { FAQEntity } from './Modules/FAQ/FAQEntities/FAQ.Entity';
+import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja';
 import { SeederModule } from './Config/Seeder.module';
 import { EstadoMedidor } from './Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
 import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity';
 import { Auditoria } from './Modules/Auditoria/AuditoriaEntities/Auditoria.Entities';
 import { AuditoriaModule } from './Modules/Auditoria/auditoria.module';
-import { Lectura } from './Modules/Lecturas/LecturaEntities/Lectura.Entity';
+import { ReportesModule } from './Modules/Reportes/reportes.module';
+import { Reporte } from './Modules/Reportes/ReporteEntities/Reportes.Entity';
+import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia';
+import { Sugerencia } from './Modules/Sugerencias/SugerenciaEntities/Sugerencia.Entity';
+import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity';import { Lectura } from './Modules/Lecturas/LecturaEntities/Lectura.Entity';
 import { LecturaModule } from './Modules/Lecturas/lectura.module';
 
 @Module({
@@ -97,7 +98,8 @@ import { LecturaModule } from './Modules/Lecturas/lectura.module';
         Reporte, EstadoReporte,
         Sugerencia, EstadoSugerencia,
         Queja, EstadoQueja,
-        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
+        FAQEntity,
+        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario,FAQEntity, Medidor, EstadoMedidor,
         Auditoria,
         Lectura
         ],
@@ -130,6 +132,7 @@ import { LecturaModule } from './Modules/Lecturas/lectura.module';
     ReportesModule,
     SugerenciaModule,
     QuejasModule,
+    FAQModule
   ],
   controllers: [],
   providers: [

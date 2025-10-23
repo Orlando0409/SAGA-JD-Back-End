@@ -36,14 +36,14 @@ export class UnidadesDeMedicionService {
     async getAllUnidadesMedicion() {
         const unidades = await this.unidadMedicionRepository.createQueryBuilder('unidad')
             .leftJoinAndSelect('unidad.Estado_Unidad_Medicion', 'estado')
-            .leftJoinAndSelect('unidad.Usuario', 'usuario')
+            .leftJoinAndSelect('unidad.Usuario_Creador', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .getMany();
 
         return Promise.all(unidades.map(async (unidad) => {
             return {
                 ...unidad,
-                Usuario: await this.usuariosService.FormatearUsuarioResponse(unidad.Usuario)
+                Usuario_Creador: await this.usuariosService.FormatearUsuarioResponse(unidad.Usuario_Creador)
             };
         }));
     }
@@ -61,7 +61,7 @@ export class UnidadesDeMedicionService {
     async getUnidadesMedicionActivas() {
         const unidades = await this.unidadMedicionRepository.createQueryBuilder('unidad')
             .leftJoinAndSelect('unidad.Estado_Unidad_Medicion', 'estado')
-            .leftJoinAndSelect('unidad.Usuario', 'usuario')
+            .leftJoinAndSelect('unidad.Usuario_Creador', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('estado.Id_Estado_Unidad_Medicion = :estadoId', { estadoId: 1 })
             .getMany();
@@ -69,7 +69,7 @@ export class UnidadesDeMedicionService {
         return Promise.all(unidades.map(async (unidad) => {
             return {
                 ...unidad,
-                Usuario: await this.usuariosService.FormatearUsuarioResponse(unidad.Usuario)
+                Usuario_Creador: await this.usuariosService.FormatearUsuarioResponse(unidad.Usuario_Creador)
             };
         }));
     }
@@ -77,7 +77,7 @@ export class UnidadesDeMedicionService {
     async getUnidadesMedicionInactivas() {
         const unidades = await this.unidadMedicionRepository.createQueryBuilder('unidad')
             .leftJoinAndSelect('unidad.Estado_Unidad_Medicion', 'estado')
-            .leftJoinAndSelect('unidad.Usuario', 'usuario')
+            .leftJoinAndSelect('unidad.Usuario_Creador', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('estado.Id_Estado_Unidad_Medicion = :estadoId', { estadoId: 2 })
             .getMany();
@@ -85,16 +85,12 @@ export class UnidadesDeMedicionService {
         return Promise.all(unidades.map(async (unidad) => {
             return {
                 ...unidad,
-                Usuario: await this.usuariosService.FormatearUsuarioResponse(unidad.Usuario)
+                Usuario_Creador: await this.usuariosService.FormatearUsuarioResponse(unidad.Usuario_Creador)
             };
         }));
     }
 
-    async createUnidadMedicion(dto: CreateUnidadMedicionDto, idUsuario: number) {
-        if (!idUsuario) {
-            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
-        }
-
+    async createUnidadMedicion(dto: CreateUnidadMedicionDto, idUsuarioCreador: number) {
         const nombreNormalizado = dto.Nombre_Unidad_Medicion[0].toUpperCase() + dto.Nombre_Unidad_Medicion.slice(1).toLowerCase();
         const abreviaturaToLowerCase = dto.Abreviatura.toLowerCase();
 
@@ -107,14 +103,14 @@ export class UnidadesDeMedicionService {
         if (unidadExistentePorAbrev) { throw new ConflictException(`Ya existe una unidad de medición con la abreviatura "${abreviaturaToLowerCase}"`); }
 
         // Validar que el usuario existe
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
-        if (!usuario) { throw new NotFoundException(`Usuario con ID ${idUsuario} no encontrado`); }
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador } });
+        if (!usuario) { throw new NotFoundException(`Usuario con ID ${idUsuarioCreador} no encontrado`); }
 
         const unidad = this.unidadMedicionRepository.create({
             Nombre_Unidad: nombreNormalizado,
             Abreviatura: abreviaturaToLowerCase,
             Descripcion: dto.Descripcion,
-            Usuario: usuario
+            Usuario_Creador: usuario
         });
 
         const unidadGuardada = await this.unidadMedicionRepository.save(unidad);
@@ -123,7 +119,7 @@ export class UnidadesDeMedicionService {
         try {
             await this.auditoriaService.logCreacion(
                 'Unidad de Medicion',
-                idUsuario,
+                idUsuarioCreador,
                 unidadGuardada.Id_Unidad_Medicion,
                 {
                     Id_Unidad_Medicion: unidadGuardada.Id_Unidad_Medicion,
@@ -137,7 +133,7 @@ export class UnidadesDeMedicionService {
             console.error('Error al registrar auditoría de creación de unidad de medición:', error);
         }
 
-        const unidadCompleta = await this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: unidadGuardada.Id_Unidad_Medicion }, relations: ['Estado_Unidad_Medicion', 'Usuario', 'Usuario.Rol'] });
+        const unidadCompleta = await this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: unidadGuardada.Id_Unidad_Medicion }, relations: ['Estado_Unidad_Medicion', 'Usuario_Creador', 'Usuario_Creador.Rol'] });
 
         if (!unidadCompleta) {
             throw new BadRequestException('Error al recuperar la unidad de medición creada');
@@ -145,15 +141,11 @@ export class UnidadesDeMedicionService {
 
         return {
             ...unidadCompleta,
-            Usuario: await this.usuariosService.FormatearUsuarioResponse(unidadCompleta.Usuario)
+            Usuario_Creador: await this.usuariosService.FormatearUsuarioResponse(unidadCompleta.Usuario_Creador)
         }
     }
 
-    async updateUnidadMedicion(Id_Unidad_Medicion: number, dto: UpdateUnidadMedicionDto, idUsuario: number) {
-        if (!idUsuario) {
-            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
-        }
-
+    async updateUnidadMedicion(Id_Unidad_Medicion: number, dto: UpdateUnidadMedicionDto, usuarioId?: number) {
         const unidadExistente = await this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: Id_Unidad_Medicion } });
         if (!unidadExistente) { throw new NotFoundException(`Unidad de medición con ID ${Id_Unidad_Medicion} no encontrada`); }
 
@@ -194,12 +186,12 @@ export class UnidadesDeMedicionService {
 
         const unidadGuardada = await this.unidadMedicionRepository.save(unidadActualizada);
 
-        // Registrar en auditoría si se proporciona idUsuario
-        if (idUsuario) {
+        // Registrar en auditoría si se proporciona usuarioId
+        if (usuarioId) {
             try {
                 await this.auditoriaService.logActualizacion(
                     'Unidad de Medicion',
-                    idUsuario,
+                    usuarioId,
                     Id_Unidad_Medicion,
                     datosAnteriores,
                     {
@@ -216,7 +208,7 @@ export class UnidadesDeMedicionService {
         // Recargar con las relaciones necesarias y formato controlado
         const unidadCompleta = await this.unidadMedicionRepository.createQueryBuilder('unidad')
             .leftJoinAndSelect('unidad.Estado_Unidad_Medicion', 'estado')
-            .leftJoinAndSelect('unidad.Usuario', 'usuario')
+            .leftJoinAndSelect('unidad.Usuario_Creador', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('unidad.Id_Unidad_Medicion = :id', { id: Id_Unidad_Medicion })
             .getOne();
@@ -227,15 +219,11 @@ export class UnidadesDeMedicionService {
 
         return {
             ...unidadCompleta,
-            Usuario: await this.usuariosService.FormatearUsuarioResponse(unidadCompleta.Usuario)
+            Usuario_Creador: await this.usuariosService.FormatearUsuarioResponse(unidadCompleta.Usuario_Creador)
         };
     }
 
-    async updateEstadoUnidadMedicion(Id_Unidad_Medicion: number, Id_Estado_Unidad_Medicion: number, idUsuario: number) {
-        if (!idUsuario) {
-            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
-        }
-
+    async updateEstadoUnidadMedicion(Id_Unidad_Medicion: number, Id_Estado_Unidad_Medicion: number, usuarioId?: number) {
         const unidadExistente = await this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: Id_Unidad_Medicion }, relations: ['Estado_Unidad_Medicion'] });
         if (!unidadExistente) { throw new NotFoundException(`Unidad de medición con ID ${Id_Unidad_Medicion} no encontrada`); }
 
@@ -267,12 +255,12 @@ export class UnidadesDeMedicionService {
         unidadExistente.Estado_Unidad_Medicion = nuevoEstado;
         await this.unidadMedicionRepository.save(unidadExistente);
 
-        // Registrar en auditoría si se proporciona idUsuario
-        if (idUsuario) {
+        // Registrar en auditoría si se proporciona usuarioId
+        if (usuarioId) {
             try {
                 await this.auditoriaService.logActualizacion(
                     'Unidad de Medicion',
-                    idUsuario,
+                    usuarioId,
                     Id_Unidad_Medicion,
                     {
                         Estado_Anterior: {
@@ -295,7 +283,7 @@ export class UnidadesDeMedicionService {
         // Recargar con las relaciones necesarias y formato controlado
         const unidadCompleta = await this.unidadMedicionRepository.createQueryBuilder('unidad')
             .leftJoinAndSelect('unidad.Estado_Unidad_Medicion', 'estado')
-            .leftJoinAndSelect('unidad.Usuario', 'usuario')
+            .leftJoinAndSelect('unidad.Usuario_Creador', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('unidad.Id_Unidad_Medicion = :id', { id: Id_Unidad_Medicion })
             .getOne();
@@ -306,7 +294,7 @@ export class UnidadesDeMedicionService {
 
         return {
             ...unidadCompleta,
-            Usuario: await this.usuariosService.FormatearUsuarioResponse(unidadCompleta.Usuario)
+            Usuario_Creador: await this.usuariosService.FormatearUsuarioResponse(unidadCompleta.Usuario_Creador)
         };
     }
 

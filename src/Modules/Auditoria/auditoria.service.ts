@@ -39,6 +39,7 @@ export class AuditoriaService {
             if ((accion === 'Actualización' || accion === 'Eliminación') && datosAnteriores) {
                 try {
                     const anteriores = JSON.parse(datosAnteriores);
+                    
                     // Buscar el campo de nombre según el módulo
                     switch (modulo.toLowerCase()) {
                         case 'usuarios':
@@ -98,8 +99,9 @@ export class AuditoriaService {
             if (accion === 'Creación' && datosNuevos) {
                 try {
                     const nuevos = JSON.parse(datosNuevos);
+                    
                     switch (modulo.toLowerCase()) {
-                        case 'usuarios':
+                        case 'usuario':
                             if (nuevos.Nombre_Usuario) return nuevos.Nombre_Usuario;
                             break;
 
@@ -154,31 +156,32 @@ export class AuditoriaService {
 
             // Si no se pudo obtener de los datos JSON, hacer query a la base de datos como fallback
             switch (modulo.toLowerCase()) {
-                case 'categorias':
+                case 'categoria':
                     const categoria = await this.dataSource.getRepository(Categoria).findOne({
                         where: { Id_Categoria: idRegistro }
                     });
                     return categoria?.Nombre_Categoria || `Categoría ID: ${idRegistro}`;
 
-                case 'unidades de medicion':
+                case 'unidad de medicion':
+                case 'unidadmedicion':
                     const unidad = await this.dataSource.getRepository(UnidadMedicion).findOne({
                         where: { Id_Unidad_Medicion: idRegistro }
                     });
                     return unidad?.Nombre_Unidad || `Unidad ID: ${idRegistro}`;
 
-                case 'materiales':
+                case 'material':
                     const material = await this.dataSource.getRepository(Material).findOne({
                         where: { Id_Material: idRegistro }
                     });
                     return material?.Nombre_Material || `Material ID: ${idRegistro}`;
 
-                case 'proveedores':
+                case 'proveedor':
                     const proveedor = await this.dataSource.getRepository(Proveedor).findOne({
                         where: { Id_Proveedor: idRegistro }
                     });
                     return proveedor?.Nombre_Proveedor || `Proveedor ID: ${idRegistro}`;
 
-                case 'usuarios':
+                case 'usuario':
                     const usuario = await this.usuarioRepository.findOne({
                         where: { Id_Usuario: idRegistro }
                     });
@@ -232,6 +235,7 @@ export class AuditoriaService {
 
         // Usar Promise.all para obtener nombres de registros de forma paralela
         return Promise.all(auditorias.map(async (auditoria) => {
+            // Obtener el nombre del registro (usa datos anteriores para UPDATE/DELETE, datos nuevos para INSERT)
             const nombreRegistro = await this.obtenerNombreRegistro(
                 auditoria.Modulo,
                 auditoria.Id_Registro,
@@ -244,10 +248,14 @@ export class AuditoriaService {
                 Id_Auditoria: auditoria.Id_Auditoria,
                 Modulo: auditoria.Modulo,
                 Accion: auditoria.Accion,
-                Nombre_Registro: nombreRegistro,
+                Nombre_Registro: nombreRegistro, // Nombre legible del registro
                 Fecha_Accion: auditoria.Fecha_Accion,
-                Usuario: auditoria.Usuario ?
-                    await this.usuariosService.FormatearUsuarioResponse(auditoria.Usuario) : null,
+                Usuario: auditoria.Usuario ? {
+                    Id_Usuario: auditoria.Usuario.Id_Usuario,
+                    Nombre_Usuario: auditoria.Usuario.Nombre_Usuario,
+                    Id_Rol: auditoria.Usuario.Id_Rol,
+                    Nombre_Rol: auditoria.Usuario.Rol?.Nombre_Rol
+                } : null,
                 // Datos completos en JSON
                 Datos_Anteriores: auditoria.Datos_Anteriores,
                 Datos_Nuevos: auditoria.Datos_Nuevos
@@ -256,13 +264,8 @@ export class AuditoriaService {
     }
 
     async createAuditoria(modulo: string, accion: string, usuarioId: number, idRegistro: number, datosAnteriores?: any, datosNuevos?: any): Promise<Auditoria> {
-        if (!modulo || modulo.trim() === '') throw new BadRequestException('Debe proporcionar un nombre de módulo válido');
-        if (!accion || accion.trim() === '') throw new BadRequestException('Debe proporcionar una acción válida');
-        if (!usuarioId || usuarioId <= 0) throw new BadRequestException('Debe proporcionar un ID de usuario válido');
-        if (!idRegistro || idRegistro <= 0) throw new BadRequestException('Debe proporcionar un ID de registro válido');
-
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: usuarioId } });
-        if (!usuario) throw new NotFoundException('Usuario no encontrado');
+        if (!usuario) { throw new Error('Usuario no encontrado'); }
 
         const nuevaAuditoria = new Auditoria();
         nuevaAuditoria.Modulo = modulo;
