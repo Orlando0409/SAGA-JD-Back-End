@@ -9,23 +9,23 @@ export class Reporte {
     @Column({ nullable: false })
     Nombre: string;
 
-    @Column({ nullable: true })
-    Primer_Apellido?: string;
+    @Column()
+    Papellido: string;
 
     @Column({ nullable: true })
     Segundo_Apellido?: string;
 
-    @Column({ nullable: true })
-    Descripcion?: string;
+    @Column()
+    ubicacion: string;
 
-    @Column({ nullable: true })
-    Ubicacion?: string;
+    @Column()
+    descripcion: string;
 
     @Column({ nullable: false, type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Reporte: Date;
 
-    @Column({ type: 'text', nullable: true })
-    Respuesta_Reporte?: string;
+    @Column()
+    Correo: string;
 
     @Column({ type: 'simple-json', nullable: true })
     Adjunto?: string[];

@@ -1,59 +1,54 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UploadedFiles, UseInterceptors, Patch, Res, ValidationPipe } from '@nestjs/common';
-import { Response } from 'express';
+import { Body, Controller, Delete, Get, Param, Post, UploadedFiles, UseInterceptors, Patch, BadRequestException } from '@nestjs/common';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { QuejasService } from './quejas.service';
-import { CreateQuejaDto } from './QuejaDTO\'s/CreateQueja.dto';
-import { Public } from '../auth/Decorator/Public.decorator';
+import { CreateQuejaDto } from './Dto/CreateQueja.dto';
+import { UpdateQuejaEstadoDto } from './Dto/UpdateQuejaEstado.dto';
+import { ResponderQuejaDto } from './Dto/ResponderQueja.dto';
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 
 @Controller('quejas')
 export class QuejasController {
   constructor(private readonly quejasService: QuejasService) {}
 
   @Get()
-  async findAll() {
+  getAll() {
     return this.quejasService.getAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id', NumericParamPipe) id: number) {
+  getOne(@Param('id', NumericParamPipe) id: number) {
     return this.quejasService.getOne(id);
   }
 
   @Public()
   @Post()
   @UseInterceptors(FileFieldsInterceptor([
-    { name: 'Imagen', maxCount: 10 },
     { name: 'Adjunto', maxCount: 10 },
   ]))
-  async create(@Body(new ValidationPipe({ whitelist: true, transform: true })) dto: CreateQuejaDto, @UploadedFiles() files: any) {
-    return this.quejasService.create(dto, files);
-  }
-
-  @Put(':id')
-  putNotAllowed(@Param('id', NumericParamPipe) id: number, @Res() res: Response) {
-    const message = `PUT no permitido. Use PATCH /quejas/${id}/estado para actualizar el estado.`;
-    res.setHeader('Allow', 'PATCH');
-    return res.status(405).json({ statusCode: 405, error: 'Method Not Allowed', message });
+  create(
+    @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true, forbidUnknownValues: false })) body: CreateQuejaDto,
+    @UploadedFiles() files: Record<string, Express.Multer.File[]>,
+  ) {
+    return this.quejasService.create(body, files);
   }
 
   @Patch(':id/estado')
-  async updateEstado(
-    @Param('id', NumericParamPipe) id: number,
-    @Body() body: any,
-  ) {
-    const nuevo = body?.Id_Estado_Queja ?? body?.IdEstadoQueja ?? body?.Id_EstadoQueja ?? body?.IdEstado_Queja ?? body?.Id_Estado_Queja;
-    return this.quejasService.updateEstado(id, nuevo);
+  updateEstado(@Param('id', NumericParamPipe) id: number, @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: UpdateQuejaEstadoDto) {
+    const nuevo = (body as any)?.Id_Estado_Queja ?? (body as any)?.IdEstadoQueja ?? (body as any)?.Id_EstadoQueja;
+    return this.quejasService.updateEstado(id, nuevo as number);
   }
 
   @Post(':id/responder')
-  async responder(@Param('id', NumericParamPipe) id: number, @Body() body: any) {
-    const respuesta = body?.Respuesta ?? body?.respuesta;
-    return this.quejasService.responderQueja(id, respuesta);
+  responder(
+    @Param('id', NumericParamPipe) id: number,
+    @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: ResponderQuejaDto,
+  ) {
+    return this.quejasService.responderQueja(id, body);
   }
 
   @Delete(':id')
-  async remove(@Param('id', NumericParamPipe) id: number) {
+  remove(@Param('id', NumericParamPipe) id: number) {
     return this.quejasService.remove(id);
   }
 }
