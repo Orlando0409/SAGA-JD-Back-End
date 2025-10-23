@@ -2,14 +2,14 @@ import { Body, Controller, Delete, Get, Param, Post, UploadedFiles, UseIntercept
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { QuejasService } from './quejas.service';
-import { CreateQuejaDto } from './Dto/CreateQueja.dto';
-import { UpdateQuejaEstadoDto } from './Dto/UpdateQuejaEstado.dto';
-import { ResponderQuejaDto } from './Dto/ResponderQueja.dto';
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
+import { CreateQuejaDto } from './QuejaDTO\'s/CreateQueja.dto';
+import { UpdateQuejaEstadoDto } from './QuejaDTO\'s/UpdateQuejaEstado.dto';
+import { ResponderQuejaDto } from './QuejaDTO\'s/ResponderQueja.dto';
 
 @Controller('quejas')
 export class QuejasController {
-  constructor(private readonly quejasService: QuejasService) {}
+  constructor(private readonly quejasService: QuejasService) { }
 
   @Get()
   getAll() {

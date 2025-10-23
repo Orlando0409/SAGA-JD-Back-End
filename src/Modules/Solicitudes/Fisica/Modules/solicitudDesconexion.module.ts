@@ -9,9 +9,10 @@ import { SolicitudDesconexionFisica } from "../../SolicitudEntities/Solicitud.En
 import { AfiliadoFisico } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { EstadoAfiliado } from "src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
 import { EmailModule } from "src/Modules/Emails/email.module";
+import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([SolicitudDesconexionFisica, EstadoSolicitud, AfiliadoFisico, EstadoAfiliado]), DropboxModule, ValidationsModule, EmailModule],
+    imports: [TypeOrmModule.forFeature([SolicitudDesconexionFisica, EstadoSolicitud, AfiliadoFisico, EstadoAfiliado, Usuario]), DropboxModule, ValidationsModule, EmailModule],
     controllers: [SolicitudDesconexionFisicaController],
     providers: [SolicitudesDesconexionFisicaService],
     exports: [SolicitudesDesconexionFisicaService],

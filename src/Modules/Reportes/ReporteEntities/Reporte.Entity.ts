@@ -10,16 +10,16 @@ export class Reporte {
     Nombre: string;
 
     @Column()
-    Papellido: string;
+    Primer_Apellido: string;
 
     @Column({ nullable: true })
     Segundo_Apellido?: string;
 
     @Column()
-    ubicacion: string;
+    Ubicacion: string;
 
     @Column()
-    descripcion: string;
+    Descripcion: string;
 
     @Column({ nullable: false, type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Reporte: Date;

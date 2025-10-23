@@ -7,6 +7,8 @@ import { UpdateCategoriaDto } from "../InventarioDTO's/UpdateCategoria.dto";
 import { EstadoCategoria } from '../InventarioEntities/EstadoCategoria.Entity';
 import { Usuario } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
 import { MaterialCategoria } from '../InventarioEntities/MaterialCategoria.Entity';
+import { AuditoriaService } from '../../Auditoria/auditoria.service';
+import { UsuariosService } from '../../Usuarios/Services/usuarios.service';
 
 @Injectable()
 export class CategoriasService {
@@ -22,89 +24,98 @@ export class CategoriasService {
 
         @InjectRepository(MaterialCategoria)
         private readonly materialCategoriaRepository: Repository<MaterialCategoria>,
+
+        private readonly auditoriaService: AuditoriaService,
+
+        private readonly usuariosService: UsuariosService
     ) {}
 
     async getAllCategorias() {
         const categorias = await this.categoriaRepository.createQueryBuilder('categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
-            .leftJoinAndSelect('categoria.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('categoria.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .getMany();
 
-        return categorias.map(categoria => {
+        return Promise.all(categorias.map(async categoria => {
             return {
                 ...categoria,
-                Usuario_Creador: {
-                    Id_Usuario: categoria.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: categoria.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: categoria.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: categoria.Usuario_Creador.Rol?.Nombre_Rol
-                }
+                Usuario: categoria.Usuario ? await this.usuariosService.FormatearUsuarioResponse(categoria.Usuario) : null
             };
-        });
+        }));
     }
 
     async getCategoriasActivas() {
         const categorias = await this.categoriaRepository.createQueryBuilder('categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
-            .leftJoinAndSelect('categoria.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('categoria.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
-            .where('estado.Id_Estado_Categoria = :estado', { estado: 1 }) // 1 = Activa
+            .where('categoria.Id_Estado_Categoria = :estadoId', { estadoId: 1 })
             .getMany();
 
-        return categorias.map(categoria => {
+        return Promise.all(categorias.map(async categoria => {
             return {
                 ...categoria,
-                Usuario_Creador: {
-                    Id_Usuario: categoria.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: categoria.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: categoria.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: categoria.Usuario_Creador.Rol?.Nombre_Rol
-                }
+                Usuario: categoria.Usuario ? await this.usuariosService.FormatearUsuarioResponse(categoria.Usuario) : null
             };
-        });
+        }));
     }
 
     async getCategoriasInactivas() {
         const categorias = await this.categoriaRepository.createQueryBuilder('categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
-            .leftJoinAndSelect('categoria.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('categoria.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('estado.Id_Estado_Categoria = :estado', { estado: 2 }) // 2 = Inactiva
             .getMany();
 
-        return categorias.map(categoria => {
+        return Promise.all(categorias.map(async categoria => {
             return {
                 ...categoria,
-                Usuario_Creador: {
-                    Id_Usuario: categoria.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: categoria.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: categoria.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: categoria.Usuario_Creador.Rol?.Nombre_Rol
-                }
+                Usuario: categoria.Usuario ? await this.usuariosService.FormatearUsuarioResponse(categoria.Usuario) : null
             };
-        });
+        }));
     }
 
-    async createCategoria(dto: CreateCategoriaDto, idUsuarioCreador: number) {
+    async createCategoria(dto: CreateCategoriaDto, idUsuario: number) {
+        if (!idUsuario) { throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción'); }
+
         const CategoriaNormalizada = dto.Nombre_Categoria[0].toUpperCase() + dto.Nombre_Categoria.slice(1).toLowerCase();
 
         const categoriaExistente = await this.categoriaRepository.findOne({ where: { Nombre_Categoria: CategoriaNormalizada } });
         if (categoriaExistente) { throw new BadRequestException(`La categoría "${CategoriaNormalizada}" ya se encuentra registrada`); }
 
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador }, relations: ['Rol'] });
-        if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuarioCreador} no encontrado`); }
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
+        if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuario} no encontrado`); }
 
         const categoria = this.categoriaRepository.create({
             ...dto,
             Nombre_Categoria: CategoriaNormalizada,
-            Usuario_Creador: usuario,
+            Usuario: usuario,
         });
 
         const categoriaGuardada = await this.categoriaRepository.save(categoria);
+
+        // Registrar en auditoría
+        try {
+            await this.auditoriaService.logCreacion(
+                'Categoria',
+                idUsuario,
+                categoriaGuardada.Id_Categoria,
+                {
+                    Id_Categoria: categoriaGuardada.Id_Categoria,
+                    Nombre_Categoria: categoriaGuardada.Nombre_Categoria,
+                    Descripcion_Categoria: categoriaGuardada.Descripcion_Categoria,
+                    Estado_Inicial: 'Activa'
+                }
+            );
+        } catch (error) {
+            console.error('Error al registrar auditoría de creación de categoría:', error);
+        }
+
         const categoriaCompleta = await this.categoriaRepository.findOne({ 
             where: { Id_Categoria: categoriaGuardada.Id_Categoria }, 
-            relations: ['Estado_Categoria', 'Usuario_Creador', 'Usuario_Creador.Rol']
+            relations: ['Estado_Categoria', 'Usuario', 'Usuario.Rol']
         });
 
         if (!categoriaCompleta) {
@@ -117,18 +128,27 @@ export class CategoriasService {
             Nombre_Categoria: categoriaCompleta.Nombre_Categoria,
             Descripcion_Categoria: categoriaCompleta.Descripcion_Categoria,
             Estado_Categoria: categoriaCompleta.Estado_Categoria,
-            Usuario_Creador: {
-                Id_Usuario: usuario.Id_Usuario,
-                Nombre_Usuario: usuario.Nombre_Usuario,
-                Id_Rol: usuario.Id_Rol,
-                Nombre_Rol: usuario.Rol?.Nombre_Rol
-            }
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(categoriaCompleta.Usuario)
         };
     }
 
-    async updateCategoria(Id_Categoria: number, dto: UpdateCategoriaDto) {
+    async updateCategoria(Id_Categoria: number, dto: UpdateCategoriaDto, idUsuario: number) {
+        if (!idUsuario) {
+            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+        }
+
         const categoriaExistente = await this.categoriaRepository.findOne({ where: { Id_Categoria: Id_Categoria } });
         if (!categoriaExistente) { throw new NotFoundException(`Categoría con ID ${Id_Categoria} no encontrada`); }
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
+        if (!usuario) { throw new NotFoundException(`Usuario con ID ${idUsuario} no encontrado`); }
+
+        // Guardar datos anteriores para auditoría
+        const datosAnteriores = {
+            Nombre_Categoria: categoriaExistente.Nombre_Categoria,
+            Descripcion_Categoria: categoriaExistente.Descripcion_Categoria,
+            Estado_Categoria: categoriaExistente.Estado_Categoria,
+        };
 
         // Validar nombre único si se está actualizando
         if (dto.Nombre_Categoria && (dto.Nombre_Categoria[0].toUpperCase() + dto.Nombre_Categoria.slice(1).toLowerCase()) !== categoriaExistente.Nombre_Categoria) {
@@ -143,16 +163,60 @@ export class CategoriasService {
             datosActualizados.Nombre_Categoria = dto.Nombre_Categoria[0].toUpperCase() + dto.Nombre_Categoria.slice(1).toLowerCase();
         }
         Object.assign(categoriaExistente, datosActualizados);
-        return this.categoriaRepository.save(categoriaExistente);
+        const categoriaActualizada = await this.categoriaRepository.save(categoriaExistente);
+
+        // Registrar en auditoría si se proporciona usuarioId
+        if (idUsuario) {
+            try {
+                await this.auditoriaService.logActualizacion(
+                    'Categoria',
+                    idUsuario,
+                    Id_Categoria,
+                    datosAnteriores,
+                    {
+                        Nombre_Categoria: categoriaActualizada.Nombre_Categoria,
+                        Descripcion_Categoria: categoriaActualizada.Descripcion_Categoria,
+                        Estado_Categoria: categoriaActualizada.Estado_Categoria
+                    }
+                );
+            } catch (error) {
+                console.error('Error al registrar auditoría de actualización de categoría:', error);
+            }
+        }
+
+        // Recargar la categoría con las relaciones necesarias pero con formato controlado
+        const categoriaCompleta = await this.categoriaRepository.createQueryBuilder('categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
+            .leftJoinAndSelect('categoria.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('categoria.Id_Categoria = :id', { id: Id_Categoria })
+            .getOne();
+
+        if (!categoriaCompleta) {
+            throw new NotFoundException(`Error al recuperar la categoría actualizada con ID ${Id_Categoria}`);
+        }
+
+        // Formatear la respuesta para mostrar solo información básica del usuario
+        return {
+            ...categoriaCompleta,
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(categoriaCompleta.Usuario)
+        };
     }
 
-    async updateEstadoCategoria(Id_Categoria: number, Id_Estado_Categoria: number) {
+    async updateEstadoCategoria(Id_Categoria: number, Id_Estado_Categoria: number, idUsuario: number) {
+        if (!idUsuario) {
+            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+        }
+
         const categoriaExistente = await this.categoriaRepository.findOne({ where: { Id_Categoria: Id_Categoria }, relations: ['Estado_Categoria'] });
         if (!categoriaExistente) { throw new NotFoundException(`Categoría con ID ${Id_Categoria} no encontrada`); }
 
         // Verificar que el nuevo estado existe
         const nuevoEstado = await this.estadoCategoriaRepository.findOne({ where: { Id_Estado_Categoria: Id_Estado_Categoria } });
         if (!nuevoEstado) { throw new NotFoundException(`Estado con ID ${Id_Estado_Categoria} no encontrado en la base de datos`); }
+
+        // Guardar estado anterior para auditoría
+        const estadoAnterior = categoriaExistente.Estado_Categoria;
 
         // VALIDACIÓN DE NEGOCIO: No permitir desactivar si hay materiales usándola
         if (nuevoEstado.Nombre_Estado_Categoria === 'Inactiva') {
@@ -172,6 +236,70 @@ export class CategoriasService {
 
         categoriaExistente.Estado_Categoria = nuevoEstado;
         await this.categoriaRepository.save(categoriaExistente);
-        return this.categoriaRepository.findOne({ where: { Id_Categoria: Id_Categoria }, relations: ['Estado_Categoria'] });
+
+        // Registrar en auditoría si se proporciona usuarioId
+        if (idUsuario) {
+            try {
+                await this.auditoriaService.logActualizacion(
+                    'Categoria',
+                    idUsuario,
+                    Id_Categoria,
+                    {
+                        Estado_Anterior: {
+                            Id: estadoAnterior.Id_Estado_Categoria,
+                            Nombre: estadoAnterior.Nombre_Estado_Categoria
+                        }
+                    },
+                    {
+                        Estado_Nuevo: {
+                            Id: nuevoEstado.Id_Estado_Categoria,
+                            Nombre: nuevoEstado.Nombre_Estado_Categoria
+                        }
+                    }
+                );
+            } catch (error) {
+                console.error('Error al registrar auditoría de cambio de estado de categoría:', error);
+            }
+        }
+
+        // Recargar la categoría con las relaciones necesarias pero con formato controlado
+        const categoriaCompleta = await this.categoriaRepository.createQueryBuilder('categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
+            .leftJoinAndSelect('categoria.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('categoria.Id_Categoria = :id', { id: Id_Categoria })
+            .getOne();
+
+        if (!categoriaCompleta) {
+            throw new NotFoundException(`Error al recuperar la categoría actualizada con ID ${Id_Categoria}`);
+        }
+
+        // Formatear la respuesta para mostrar solo información básica del usuario
+        return {
+            ...categoriaCompleta,
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(categoriaCompleta.Usuario)
+        };
+    }
+
+    /**
+     * Formatea la información de una categoría para responses públicos
+     * Solo devuelve información básica y necesaria
+     */
+    async FormatearCategoriaParaResponse(categoria: Categoria): Promise<{
+        Id_Categoria: number;
+        Nombre_Categoria: string;
+        Estado: {
+            Id_Estado_Categoria: number;
+            Nombre_Estado_Categoria: string;
+        };
+    }> {
+        return {
+            Id_Categoria: categoria.Id_Categoria,
+            Nombre_Categoria: categoria.Nombre_Categoria,
+            Estado: {
+                Id_Estado_Categoria: categoria.Estado_Categoria?.Id_Estado_Categoria || 0,
+                Nombre_Estado_Categoria: categoria.Estado_Categoria?.Nombre_Estado_Categoria || 'Sin estado'
+            }
+        };
     }
 }

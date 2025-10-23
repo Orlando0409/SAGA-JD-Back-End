@@ -11,7 +11,6 @@ export interface SwaggerCustomOptions {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  // Configurar cookie parser
   app.use(cookieParser());
 
   // Configurar CORS correctamente para cookies
@@ -25,7 +24,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({
     transform: true,
-    whitelist: true, 
+    whitelist: true,
     forbidNonWhitelisted: true,
     forbidUnknownValues: true,
     transformOptions: {
@@ -39,14 +38,14 @@ async function bootstrap() {
     .setVersion('1.0')
     .build();
 
-    const options: SwaggerDocumentOptions =  {
-        autoTagControllers: true,
+  const options: SwaggerDocumentOptions = {
+    autoTagControllers: true,
 
-        operationIdFactory: (
-          controllerKey: string,
-          methodKey: string
-        ) => methodKey
-      };
+    operationIdFactory: (
+      controllerKey: string,
+      methodKey: string
+    ) => methodKey
+  };
   const documentFactory = () => SwaggerModule.createDocument(app, config, options);
 
   SwaggerModule.setup('api', app, documentFactory, {
@@ -55,13 +54,17 @@ async function bootstrap() {
         const order = { get: 1, post: 2, put: 3, patch: 4, delete: 5 };
         return order[a.get("method")] - order[b.get("method")];
       }
-    }, 
+    },
   });
 
   await app.listen(process.env.PORT ?? 3000);
+
+  console.log('Entorno actual:', process.env.NODE_ENV);
+  console.log('Base de datos:', process.env.DB_DATABASE);
+  if (process.env.NODE_ENV === 'development') {
+    console.log('URL de frontend:', process.env.FRONTEND_URL_INFO);
+  } else {
+    console.log('URL de frontend:', process.env.FRONTEND_URL_INFO_PROD);
+  }
 }
 bootstrap();
-
-console.log('Entorno actual:', process.env.NODE_ENV);
-console.log('Base de datos:', process.env.DB_DATABASE);
-console.log('URL de frontend:', process.env.FRONTEND_URL);

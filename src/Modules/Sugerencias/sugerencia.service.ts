@@ -5,8 +5,8 @@ import { Sugerencia } from './SugerenciaEntities/Sugerencia.Entity';
 import { EstadoSugerencia } from './SugerenciaEntities/EstadoSugerencia.Entity';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
-import { CreateSugerenciaDto } from './Dto/CreateSugerencia.dto';
-import { ResponderSugerenciaDto } from './Dto/ResponderSugerencia.dto';
+import { CreateSugerenciaDto } from './SugerenciaDTO\'S/CreateSugerencia.dto';
+import { ResponderSugerenciaDto } from './SugerenciaDTO\'S/ResponderSugerencia.dto';
 
 interface SugerenciaFiles {
   Adjunto?: Express.Multer.File[];
@@ -15,7 +15,7 @@ interface SugerenciaFiles {
 @Injectable()
 export class SugerenciaService {
   private readonly logger = new Logger(SugerenciaService.name);
-  
+
   constructor(
     @InjectRepository(Sugerencia)
     private readonly sugerenciaRepository: Repository<Sugerencia>,
@@ -23,9 +23,10 @@ export class SugerenciaService {
     @InjectRepository(EstadoSugerencia)
     private readonly estadoRepository: Repository<EstadoSugerencia>,
 
-    private readonly dropboxFilesService: DropboxFilesService,
     private readonly emailService: EmailService,
-  ) {}
+
+    private readonly dropboxFilesService: DropboxFilesService,
+  ) { }
 
   async getAll() {
     return this.sugerenciaRepository.find({ relations: ['Estado'] });
@@ -38,7 +39,7 @@ export class SugerenciaService {
   }
 
   async create(dto: CreateSugerenciaDto, files?: SugerenciaFiles) {
-    const estado = await this.estadoRepository.findOne({ where: { Id_EstadoSugerencia: 1 } });
+    const estado = await this.estadoRepository.findOne({ where: { Id_Estado_Sugerencia: 1 } });
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
     const fecha = new Date();
@@ -48,8 +49,10 @@ export class SugerenciaService {
       Fecha_Sugerencia: fecha,
       Estado: estado,
     };
-    
-    const saved = await this.sugerenciaRepository.save(sugerenciaData);
+
+    const insertRes = await this.sugerenciaRepository.insert(sugerenciaData as any);
+    const generatedId = insertRes.identifiers && insertRes.identifiers[0] ? insertRes.identifiers[0].Id_Sugerencia || insertRes.identifiers[0].id : null;
+    const saved = await this.sugerenciaRepository.findOne({ where: { Id_Sugerencia: generatedId } }) as Sugerencia;
 
     const adjuntoUrls: string[] = [];
     if (files?.Adjunto) {
@@ -93,14 +96,14 @@ export class SugerenciaService {
   }
 
   async responderSugerencia(id: number, dto: ResponderSugerenciaDto) {
-    const repo = await this.sugerenciaRepository.findOne({ 
-      where: { Id_Sugerencia: id }, 
-      relations: ['Estado'] 
+    const repo = await this.sugerenciaRepository.findOne({
+      where: { Id_Sugerencia: id },
+      relations: ['Estado']
     });
     if (!repo) throw new BadRequestException(`Sugerencia con id ${id} no encontrada`);
 
-    repo.RespuestasSugerencia = dto.Respuesta;
-    const estadoContestada = await this.estadoRepository.findOne({ where: { Id_EstadoSugerencia: 2 } });
+    repo.Respuesta_Sugerencia = dto.Respuesta;
+    const estadoContestada = await this.estadoRepository.findOne({ where: { Id_Estado_Sugerencia: 2 } });
     if (!estadoContestada) throw new BadRequestException('Estado contestada no encontrado');
 
     repo.Estado = estadoContestada;

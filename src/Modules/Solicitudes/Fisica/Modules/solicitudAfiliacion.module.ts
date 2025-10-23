@@ -8,9 +8,10 @@ import { SolicitudAfiliacionFisicaService } from "../Services/solicitudAfiliacio
 import { SolicitudAfiliacionFisicaController } from "../Controllers/solicitudAfiliacion.controller";
 import { AfiliadosModule } from "src/Modules/Afiliados/afiliados.module";
 import { EmailModule } from "src/Modules/Emails/email.module";
+import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([SolicitudAfiliacionFisica, EstadoSolicitud]), DropboxModule, ValidationsModule, AfiliadosModule, EmailModule],
+    imports: [TypeOrmModule.forFeature([SolicitudAfiliacionFisica, EstadoSolicitud, Usuario]), DropboxModule, ValidationsModule, AfiliadosModule, EmailModule],
     controllers: [SolicitudAfiliacionFisicaController],
     providers: [SolicitudAfiliacionFisicaService],
     exports: [SolicitudAfiliacionFisicaService],

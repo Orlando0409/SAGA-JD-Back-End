@@ -1,12 +1,12 @@
+import { Queja } from './QuejaEntities/Queja.Entity';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { QuejasEntity } from './Entity/QuejasEntity';
-import { EstadoQueja } from './Entity/EstadoQueja';
-import { CreateQuejaDto } from './Dto/CreateQueja.dto';
-import { ResponderQuejaDto } from './Dto/ResponderQueja.dto';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
+import { EstadoQueja } from './QuejaEntities/EstadoQueja.Entity';
+import { CreateQuejaDto } from './QuejaDTO\'s/CreateQueja.dto';
+import { ResponderQuejaDto } from './QuejaDTO\'s/ResponderQueja.dto';
 
 interface QuejaFiles {
   Adjunto?: Express.Multer.File[];
@@ -15,7 +15,7 @@ interface QuejaFiles {
 @Injectable()
 export class QuejasService {
   private readonly logger = new Logger(QuejasService.name);
-  
+
   constructor(
     @InjectRepository(Queja)
     private readonly quejasRepository: Repository<Queja>,
@@ -25,7 +25,7 @@ export class QuejasService {
 
     private readonly dropboxFilesService: DropboxFilesService,
     private readonly emailService: EmailService,
-  ) {}
+  ) { }
 
   async getAll() {
     return this.quejasRepository.find({ relations: ['Estado'] });
@@ -53,7 +53,7 @@ export class QuejasService {
       Fecha_Queja: fecha,
       Estado: estado,
     };
-    
+
     const saved = await this.quejasRepository.save(quejaData);
 
     const adjuntoUrls: string[] = [];
@@ -93,9 +93,9 @@ export class QuejasService {
     if (!repo) throw new BadRequestException(`Queja con id ${id} no encontrada`);
 
     try {
-      const nombre = repo.name?.toString().trim();
-      const primerApellido = repo.Papellido?.toString().trim();
-      const segundoApellido = repo.Sapellido?.toString().trim();
+      const nombre = repo.Nombre?.toString().trim();
+      const primerApellido = repo.Primer_Apellido?.toString().trim();
+      const segundoApellido = repo.Segundo_Apellido?.toString().trim();
       const rawFolder = [nombre, primerApellido, segundoApellido].filter(Boolean).join(' ');
       const folderName = rawFolder.replace(/[\\/\:\*\?"<>\|]/g, '').replace(/\s+/g, ' ').trim();
       await this.dropboxFilesService.deletePath('Contacto', 'Quejas', undefined, folderName);
@@ -118,13 +118,13 @@ export class QuejasService {
   }
 
   async responderQueja(id: number, dto: ResponderQuejaDto) {
-    const repo = await this.quejasRepository.findOne({ 
-      where: { Id_Queja: id }, 
-      relations: ['Estado'] 
+    const repo = await this.quejasRepository.findOne({
+      where: { Id_Queja: id },
+      relations: ['Estado']
     });
     if (!repo) throw new BadRequestException(`Queja con id ${id} no encontrada`);
 
-    repo.RespuestasReporte = dto.Respuesta;
+    repo.Respuesta_Queja = dto.Respuesta;
     const estadoContestada = await this.estadoQuejaRepository.findOne({ where: { Id_Estado_Queja: 2 } });
     if (!estadoContestada) throw new BadRequestException('Estado contestada no encontrado');
 
@@ -136,11 +136,11 @@ export class QuejasService {
       setImmediate(async () => {
         try {
           await this.emailService.enviarEmailRespuestaQueja({
-            name: repo.name,
-            Papellido: repo.Papellido,
-            Sapellido: repo.Sapellido,
+            name: repo.Nombre,
+            Papellido: repo.Primer_Apellido,
+            Sapellido: repo.Segundo_Apellido,
             Correo: correoDestino,
-            descripcion: repo.descripcion,
+            descripcion: repo.Descripcion,
             respuesta: dto.Respuesta,
           });
         } catch (error) {

@@ -18,6 +18,9 @@ export class Queja {
     @Column({ nullable: false })
     Descripcion: string;
 
+    @Column({ type: 'varchar', length: 100 })
+    Correo: string;
+
     @Column({ nullable: false, type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Queja: Date;
 

@@ -9,7 +9,12 @@ import { MaterialCategoria } from '../InventarioEntities/MaterialCategoria.Entit
 import { UpdateMaterialDto } from "../InventarioDTO's/UpdateMaterial.dto";
 import { UnidadMedicion } from '../InventarioEntities/UnidadMedicion.Entity';
 import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
-import { ProveedorFisico, ProveedorJuridico } from 'src/Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
+import { Proveedor, ProveedorFisico, ProveedorJuridico } from 'src/Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
+import { AuditoriaService } from 'src/Modules/Auditoria/auditoria.service';
+import { UsuariosService } from 'src/Modules/Usuarios/Services/usuarios.service';
+import { UnidadesDeMedicionService } from './unidadesDeMedicion.service';
+import { CategoriasService } from './categorias.service';
+import { ProveedorService } from 'src/Modules/Proveedores/proveedor.service';
 
 @Injectable()
 export class MaterialService {
@@ -37,6 +42,16 @@ export class MaterialService {
 
         @InjectRepository(ProveedorJuridico)
         private readonly proveedorJuridicoRepository: Repository<ProveedorJuridico>,
+
+        private readonly auditoriaService: AuditoriaService,
+
+        private readonly usuariosService: UsuariosService,
+
+        private readonly unidadesDeMedicionService: UnidadesDeMedicionService,
+
+        private readonly categoriasService: CategoriasService,
+
+        private readonly proveedorService: ProveedorService,
     ) {}
 
     async getAllMateriales() {
@@ -47,58 +62,54 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuarioCreador')
             .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
-            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
             .getMany();
 
-        return materiales.map(material => {
-            const { Usuario_Creador, materialCategorias, Proveedor, ...materialSinRelaciones } = material;
+        // Formatear los materiales usando los métodos de formateo
+        return Promise.all(materiales.map(async (material) => {
+            // Formatear categorías usando el método del servicio
+            const categoriasFormateadas = await Promise.all(
+                material.materialCategorias?.map(async (mc) => 
+                    await this.categoriasService.FormatearCategoriaParaResponse(mc.Categoria)
+                ) || []
+            );
 
-            // Construir objeto de proveedor
+            // Formatear unidad de medición usando el método del servicio
+            const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
+
+            // Formatear usuario usando el método del servicio
+            const usuarioFormateado = material.Usuario 
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
+                : null;
+
+            // Formatear proveedor usando el método del servicio (si existe)
             let proveedorFormateado: any = null;
             if (material.Proveedor) {
-                const proveedor = material.Proveedor as any;
-
-                // Determinar el tipo basándose en los campos que existen
-                let idTipoProveedor: number | null = null;
-                if (proveedor.Tipo_Identificacion !== undefined && proveedor.Identificacion !== undefined) {
-                    idTipoProveedor = 1; // Físico
-                } else if (proveedor.Cedula_Juridica !== undefined && proveedor.Razon_Social !== undefined) {
-                    idTipoProveedor = 2; // Jurídico
-                }
-
-                proveedorFormateado = {
-                    Id_Proveedor: proveedor.Id_Proveedor,
-                    Id_Tipo_Proveedor: idTipoProveedor,
-                    Nombre_Proveedor: proveedor.Nombre_Proveedor,
-                    Telefono_Proveedor: proveedor.Telefono_Proveedor,
-                    Estado_Proveedor: proveedor.Estado_Proveedor
-                };
-
-                if (idTipoProveedor === 1) {
-                    proveedorFormateado.Tipo_Identificacion = proveedor.Tipo_Identificacion;
-                    proveedorFormateado.Identificacion = proveedor.Identificacion;
-                } else if (idTipoProveedor === 2) {
-                    proveedorFormateado.Cedula_Juridica = proveedor.Cedula_Juridica;
-                    proveedorFormateado.Razon_Social = proveedor.Razon_Social;
-                }
+                proveedorFormateado = await this.proveedorService.FormatearProveedorParaResponse(material.Proveedor as any);
             }
 
             return {
-                ...materialSinRelaciones,
-                Categorias: materialCategorias,
-                Usuario_Creador: material.Usuario_Creador ? {
-                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: material.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
-                } : null,
-                Proveedor: proveedorFormateado
+                Id_Material: material.Id_Material,
+                Nombre_Material: material.Nombre_Material,
+                Descripcion: material.Descripcion,
+                Cantidad: material.Cantidad,
+                Precio_Unitario: material.Precio_Unitario,
+                Fecha_Creacion: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
+                Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
+                Estado_Material: {
+                    Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
+                    Nombre_Estado_Material: material.Estado_Material.Nombre_Estado_Material
+                },
+                Unidad_Medicion: unidadMedicionFormateada,
+                Categorias: categoriasFormateadas,
+                Proveedor: proveedorFormateado,
+                Usuario: usuarioFormateado
             };
-        });
+        }));
     }
 
     async getMaterialesDisponibles() {
@@ -109,25 +120,50 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuarioCreador')
             .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
-            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
-            .where('estado.Id_Estado_Material = :estado', { estado: 1 }) // 1 = Activa
+            .where('estado.Id_Estado_Material = :estado', { estado: 1 }) // 1 = Disponible
             .getMany();
 
-        return materiales.map(material => {
+        return Promise.all(materiales.map(async (material) => {
+            const categoriasFormateadas = await Promise.all(
+                material.materialCategorias?.map(async (mc) => 
+                    await this.categoriasService.FormatearCategoriaParaResponse(mc.Categoria)
+                ) || []
+            );
+
+            const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
+
+            const usuarioFormateado = material.Usuario 
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
+                : null;
+
+            let proveedorFormateado: any = null;
+            if (material.Proveedor) {
+                proveedorFormateado = await this.proveedorService.FormatearProveedorParaResponse(material.Proveedor as any);
+            }
+
             return {
-                ...material,
-                Usuario_Creador: {
-                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: material.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
+                Id_Material: material.Id_Material,
+                Nombre_Material: material.Nombre_Material,
+                Descripcion: material.Descripcion,
+                Cantidad: material.Cantidad,
+                Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
+                Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
+                Estado_Material: {
+                    Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
+                    Nombre_Estado_Material: material.Estado_Material.Nombre_Estado_Material
                 },
+                Unidad_Medicion: unidadMedicionFormateada,
+                Categorias: categoriasFormateadas,
+                Proveedor: proveedorFormateado,
+                Usuario: usuarioFormateado
             };
-        });
+        }));
     }
 
     async getMaterialesAgotados() {
@@ -138,25 +174,50 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuarioCreador')
             .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
-            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
             .where('estado.Id_Estado_Material = :estado', { estado: 2 }) // 2 = Agotado
             .getMany();
 
-        return materiales.map(material => {
+        return Promise.all(materiales.map(async (material) => {
+            const categoriasFormateadas = await Promise.all(
+                material.materialCategorias?.map(async (mc) => 
+                    await this.categoriasService.FormatearCategoriaParaResponse(mc.Categoria)
+                ) || []
+            );
+
+            const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
+
+            const usuarioFormateado = material.Usuario 
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
+                : null;
+
+            let proveedorFormateado: any = null;
+            if (material.Proveedor) {
+                proveedorFormateado = await this.proveedorService.FormatearProveedorParaResponse(material.Proveedor as any);
+            }
+
             return {
-                ...material,
-                Usuario_Creador: {
-                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: material.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
+                Id_Material: material.Id_Material,
+                Nombre_Material: material.Nombre_Material,
+                Descripcion: material.Descripcion,
+                Cantidad: material.Cantidad,
+                Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
+                Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
+                Estado_Material: {
+                    Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
+                    Nombre_Estado_Material: material.Estado_Material.Nombre_Estado_Material
                 },
+                Unidad_Medicion: unidadMedicionFormateada,
+                Categorias: categoriasFormateadas,
+                Proveedor: proveedorFormateado,
+                Usuario: usuarioFormateado
             };
-        });
+        }));
     }
 
     async getMaterialesDeBaja() {
@@ -167,25 +228,50 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
-            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
             .where('estado.Id_Estado_Material = :estado', { estado: 3 }) // 3 = De baja
             .getMany();
 
-        return materiales.map(material => {
+        return Promise.all(materiales.map(async (material) => {
+            const categoriasFormateadas = await Promise.all(
+                material.materialCategorias?.map(async (mc) => 
+                    await this.categoriasService.FormatearCategoriaParaResponse(mc.Categoria)
+                ) || []
+            );
+
+            const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
+
+            const usuarioFormateado = material.Usuario 
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
+                : null;
+
+            let proveedorFormateado: any = null;
+            if (material.Proveedor) {
+                proveedorFormateado = await this.proveedorService.FormatearProveedorParaResponse(material.Proveedor as any);
+            }
+
             return {
-                ...material,
-                Usuario_Creador: {
-                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: material.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
+                Id_Material: material.Id_Material,
+                Nombre_Material: material.Nombre_Material,
+                Descripcion: material.Descripcion,
+                Cantidad: material.Cantidad,
+                Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
+                Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
+                Estado_Material: {
+                    Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
+                    Nombre_Estado_Material: material.Estado_Material.Nombre_Estado_Material
                 },
+                Unidad_Medicion: unidadMedicionFormateada,
+                Categorias: categoriasFormateadas,
+                Proveedor: proveedorFormateado,
+                Usuario: usuarioFormateado
             };
-        });
+        }));
     }
 
     async getMaterialesAgotadosYDeBaja() {
@@ -196,25 +282,50 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
-            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
             .where('estado.Id_Estado_Material = :estado', { estado: 4 }) // 4 = Agotado y de baja
             .getMany();
 
-        return materiales.map(material => {
+        return Promise.all(materiales.map(async (material) => {
+            const categoriasFormateadas = await Promise.all(
+                material.materialCategorias?.map(async (mc) => 
+                    await this.categoriasService.FormatearCategoriaParaResponse(mc.Categoria)
+                ) || []
+            );
+
+            const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
+
+            const usuarioFormateado = material.Usuario
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
+                : null;
+
+            let proveedorFormateado: any = null;
+            if (material.Proveedor) {
+                proveedorFormateado = await this.proveedorService.FormatearProveedorParaResponse(material.Proveedor as any);
+            }
+
             return {
-                ...material,
-                Usuario_Creador: {
-                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: material.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
+                Id_Material: material.Id_Material,
+                Nombre_Material: material.Nombre_Material,
+                Descripcion: material.Descripcion,
+                Cantidad: material.Cantidad,
+                Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
+                Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
+                Estado_Material: {
+                    Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
+                    Nombre_Estado_Material: material.Estado_Material.Nombre_Estado_Material
                 },
+                Unidad_Medicion: unidadMedicionFormateada,
+                Categorias: categoriasFormateadas,
+                Proveedor: proveedorFormateado,
+                Usuario: usuarioFormateado
             };
-        });
+        }));
     }
 
     async getMaterialesConCategorias() {
@@ -225,25 +336,50 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
-            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
             .where('Categorias.Id_Material_Categoria IS NOT NULL')
             .getMany();
 
-        return materiales.map(material => {
+        return Promise.all(materiales.map(async (material) => {
+            const categoriasFormateadas = await Promise.all(
+                material.materialCategorias?.map(async (mc) => 
+                    await this.categoriasService.FormatearCategoriaParaResponse(mc.Categoria)
+                ) || []
+            );
+
+            const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
+
+            const usuarioFormateado = material.Usuario
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
+                : null;
+
+            let proveedorFormateado: any = null;
+            if (material.Proveedor) {
+                proveedorFormateado = await this.proveedorService.FormatearProveedorParaResponse(material.Proveedor as any);
+            }
+
             return {
-                ...material,
-                Usuario_Creador: material.Usuario_Creador ? {
-                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: material.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
-                } : null,
+                Id_Material: material.Id_Material,
+                Nombre_Material: material.Nombre_Material,
+                Descripcion: material.Descripcion,
+                Cantidad: material.Cantidad,
+                Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
+                Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
+                Estado_Material: {
+                    Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
+                    Nombre_Estado_Material: material.Estado_Material.Nombre_Estado_Material
+                },
+                Unidad_Medicion: unidadMedicionFormateada,
+                Categorias: categoriasFormateadas,
+                Proveedor: proveedorFormateado,
+                Usuario: usuarioFormateado
             };
-        });
+        }));
     }
 
     async getMaterialesSinCategorias() {
@@ -251,27 +387,45 @@ export class MaterialService {
             .leftJoinAndSelect('material.Estado_Material', 'estado')
             .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
             .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
-            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
             .leftJoin('material.materialCategorias', 'Categorias')
             .where('Categorias.Id_Material_Categoria IS NULL')
             .getMany();
 
-        return materiales.map(material => {
+        return Promise.all(materiales.map(async (material) => {
+            const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
+
+            const usuarioFormateado = material.Usuario
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
+                : null;
+
+            let proveedorFormateado: any = null;
+            if (material.Proveedor) {
+                proveedorFormateado = await this.proveedorService.FormatearProveedorParaResponse(material.Proveedor as any);
+            }
+
             return {
-                ...material,
+                Id_Material: material.Id_Material,
+                Nombre_Material: material.Nombre_Material,
+                Descripcion: material.Descripcion,
+                Cantidad: material.Cantidad,
+                Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
+                Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
+                Estado_Material: {
+                    Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
+                    Nombre_Estado_Material: material.Estado_Material.Nombre_Estado_Material
+                },
+                Unidad_Medicion: unidadMedicionFormateada,
                 Categorias: [],
-                Usuario_Creador: material.Usuario_Creador ? {
-                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: material.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
-                } : null,
+                Proveedor: proveedorFormateado,
+                Usuario: usuarioFormateado
             };
-        });
+        }));
     }
 
     async getMaterialesPorEncimaDeStock(threshold: number) {
@@ -282,26 +436,51 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
-            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
             .where('material.Cantidad > :threshold', { threshold })
             .orderBy('material.Cantidad', 'DESC')
             .getMany();
 
-        return materiales.map(material => {
+        return Promise.all(materiales.map(async (material) => {
+            const categoriasFormateadas = await Promise.all(
+                material.materialCategorias?.map(async (mc) => 
+                    await this.categoriasService.FormatearCategoriaParaResponse(mc.Categoria)
+                ) || []
+            );
+
+            const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
+
+            const usuarioFormateado = material.Usuario
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
+                : null;
+
+            let proveedorFormateado: any = null;
+            if (material.Proveedor) {
+                proveedorFormateado = await this.proveedorService.FormatearProveedorParaResponse(material.Proveedor as any);
+            }
+
             return {
-                ...material,
-                Usuario_Creador: material.Usuario_Creador ? {
-                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: material.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
-                } : null,
+                Id_Material: material.Id_Material,
+                Nombre_Material: material.Nombre_Material,
+                Descripcion: material.Descripcion,
+                Cantidad: material.Cantidad,
+                Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
+                Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
+                Estado_Material: {
+                    Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
+                    Nombre_Estado_Material: material.Estado_Material.Nombre_Estado_Material
+                },
+                Unidad_Medicion: unidadMedicionFormateada,
+                Categorias: categoriasFormateadas,
+                Proveedor: proveedorFormateado,
+                Usuario: usuarioFormateado
             };
-        });
+        }));
     }
 
     async getMaterialesPorDebajoDeStock(threshold: number) {
@@ -312,26 +491,51 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
-            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
             .where('material.Cantidad < :threshold', { threshold })
             .orderBy('material.Cantidad', 'ASC')
             .getMany();
 
-        return materiales.map(material => {
+        return Promise.all(materiales.map(async (material) => {
+            const categoriasFormateadas = await Promise.all(
+                material.materialCategorias?.map(async (mc) => 
+                    await this.categoriasService.FormatearCategoriaParaResponse(mc.Categoria)
+                ) || []
+            );
+
+            const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
+
+            const usuarioFormateado = material.Usuario
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
+                : null;
+
+            let proveedorFormateado: any = null;
+            if (material.Proveedor) {
+                proveedorFormateado = await this.proveedorService.FormatearProveedorParaResponse(material.Proveedor as any);
+            }
+
             return {
-                ...material,
-                Usuario_Creador: material.Usuario_Creador ? {
-                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: material.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
-                } : null,
+                Id_Material: material.Id_Material,
+                Nombre_Material: material.Nombre_Material,
+                Descripcion: material.Descripcion,
+                Cantidad: material.Cantidad,
+                Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
+                Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
+                Estado_Material: {
+                    Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
+                    Nombre_Estado_Material: material.Estado_Material.Nombre_Estado_Material
+                },
+                Unidad_Medicion: unidadMedicionFormateada,
+                Categorias: categoriasFormateadas,
+                Proveedor: proveedorFormateado,
+                Usuario: usuarioFormateado
             };
-        });
+        }));
     }
 
     async getMaterialesEntreRangoPrecio(minPrice: number, maxPrice: number) {
@@ -346,28 +550,56 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
-            .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
             .where('material.Precio_Unitario BETWEEN :minPrice AND :maxPrice', { minPrice, maxPrice })
             .getMany();
 
-        return materiales.map(material => {
+        return Promise.all(materiales.map(async (material) => {
+            const categoriasFormateadas = await Promise.all(
+                material.materialCategorias?.map(async (mc) => 
+                    await this.categoriasService.FormatearCategoriaParaResponse(mc.Categoria)
+                ) || []
+            );
+
+            const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
+
+            const usuarioFormateado = material.Usuario
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
+                : null;
+
+            let proveedorFormateado: any = null;
+            if (material.Proveedor) {
+                proveedorFormateado = await this.proveedorService.FormatearProveedorParaResponse(material.Proveedor as any);
+            }
+
             return {
-                ...material,
-                Usuario_Creador: {
-                    Id_Usuario: material.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: material.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: material.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: material.Usuario_Creador.Rol?.Nombre_Rol
+                Id_Material: material.Id_Material,
+                Nombre_Material: material.Nombre_Material,
+                Descripcion: material.Descripcion,
+                Cantidad: material.Cantidad,
+                Precio_Unitario: material.Precio_Unitario,
+                Fecha_Entrada: material.Fecha_Entrada,
+                Fecha_Actualizacion: material.Fecha_Actualizacion,
+                Ultima_Fecha_Baja: material.Ultima_Fecha_Baja,
+                Estado_Material: {
+                    Id_Estado_Material: material.Estado_Material.Id_Estado_Material,
+                    Nombre_Estado_Material: material.Estado_Material.Nombre_Estado_Material
                 },
+                Unidad_Medicion: unidadMedicionFormateada,
+                Categorias: categoriasFormateadas,
+                Proveedor: proveedorFormateado,
+                Usuario: usuarioFormateado
             };
-        });
+        }));
     }
 
-    async createMaterial(dto: CreateMaterialDto, idUsuarioCreador: number) {
+    async createMaterial(dto: CreateMaterialDto, idUsuario: number) {
+        if (!idUsuario) {
+            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+        }
         const NombreNormalizado = dto.Nombre_Material[0].toUpperCase() + dto.Nombre_Material.slice(1).toLowerCase();
 
         const materialExistente = await this.inventarioRepository.findOne({ where: { Nombre_Material: NombreNormalizado } });
@@ -377,28 +609,65 @@ export class MaterialService {
         if (!unidadMedicionExistente) { throw new BadRequestException('La unidad de medición proporcionada no existe'); }
         if (unidadMedicionExistente.Estado_Unidad_Medicion.Id_Estado_Unidad_Medicion !== 1) { throw new BadRequestException('La unidad de medición proporcionada no está activa'); }
 
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador }, relations: ['Rol'] });
-        if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuarioCreador} no encontrado`); }
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
+        if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuario} no encontrado`); }
 
-        // Validar y obtener proveedor según su tipo
+        // Validar y obtener proveedor según su tipo (opcional)
         let proveedorFisico: ProveedorFisico | null = null;
         let proveedorJuridico: ProveedorJuridico | null = null;
 
-        if (dto.Id_Tipo_Proveedor === 1) {
-            const proveedorFisicoExistente = await this.proveedorFisicoRepository.findOne({ where: { Id_Proveedor: dto.Id_Proveedor }, relations: ['Estado_Proveedor', 'Tipo_Proveedor'] });
-            if (!proveedorFisicoExistente) { throw new BadRequestException('Proveedor físico no encontrado'); }
-            if (proveedorFisicoExistente.Estado_Proveedor.Id_Estado_Proveedor !== 1) { throw new BadRequestException('El proveedor físico no está activo'); }
-            proveedorFisico = dto.Id_Proveedor ? proveedorFisicoExistente : null;
-        }
+        // Solo validar proveedor si se proporciona
+        if (dto.Id_Proveedor && dto.Id_Tipo_Proveedor) {
+            // Primero validar que el proveedor existe en la tabla base y que el tipo coincide
+            const proveedorBase = await this.inventarioRepository.manager.findOne(Proveedor, {
+                where: { Id_Proveedor: dto.Id_Proveedor },
+                relations: ['Estado_Proveedor']
+            });
+            
+            if (!proveedorBase) {
+                throw new BadRequestException(`Proveedor con ID ${dto.Id_Proveedor} no encontrado`);
+            }
 
-        else if (dto.Id_Tipo_Proveedor === 2) {
-            const proveedorJuridicoExistente = await this.proveedorJuridicoRepository.findOne({ where: { Id_Proveedor: dto.Id_Proveedor }, relations: ['Estado_Proveedor', 'Tipo_Proveedor'] });
-            if (!proveedorJuridicoExistente) { throw new BadRequestException('Proveedor jurídico no encontrado'); }
-            if (proveedorJuridicoExistente.Estado_Proveedor.Id_Estado_Proveedor !== 1) { throw new BadRequestException('El proveedor jurídico no está activo'); }
-            proveedorJuridico = dto.Id_Proveedor ? proveedorJuridicoExistente : null;
-        }
+            // Validar que el Tipo_Entidad coincide con el tipo especificado
+            if (proveedorBase.Tipo_Entidad !== dto.Id_Tipo_Proveedor) {
+                throw new BadRequestException(
+                    `El proveedor con ID ${dto.Id_Proveedor} es de tipo ${proveedorBase.Tipo_Entidad === 1 ? 'Físico' : 'Jurídico'}, ` +
+                    `pero se especificó tipo ${dto.Id_Tipo_Proveedor === 1 ? 'Físico' : 'Jurídico'}`
+                );
+            }
 
-        else { throw new BadRequestException('El tipo de proveedor debe ser 1 (físico) o 2 (jurídico)'); }
+            // Validar que el proveedor está activo
+            if (proveedorBase.Estado_Proveedor?.Id_Estado_Proveedor !== 1) {
+                throw new BadRequestException('El proveedor no está activo');
+            }
+
+            // Ahora obtener el proveedor específico según el tipo
+            if (dto.Id_Tipo_Proveedor === 1) {
+                const proveedorFisicoExistente = await this.proveedorFisicoRepository.findOne({ 
+                    where: { Id_Proveedor: dto.Id_Proveedor }, 
+                    relations: ['Estado_Proveedor'] 
+                });
+                if (!proveedorFisicoExistente) { 
+                    throw new BadRequestException('Proveedor físico no encontrado en la tabla específica'); 
+                }
+                proveedorFisico = proveedorFisicoExistente;
+            }
+
+            else if (dto.Id_Tipo_Proveedor === 2) {
+                const proveedorJuridicoExistente = await this.proveedorJuridicoRepository.findOne({ 
+                    where: { Id_Proveedor: dto.Id_Proveedor }, 
+                    relations: ['Estado_Proveedor'] 
+                });
+                if (!proveedorJuridicoExistente) { 
+                    throw new BadRequestException('Proveedor jurídico no encontrado en la tabla específica'); 
+                }
+                proveedorJuridico = proveedorJuridicoExistente;
+            }
+
+            else { 
+                throw new BadRequestException('El tipo de proveedor debe ser 1 (físico) o 2 (jurídico)'); 
+            }
+        }
 
         // Validar categorías si se proporcionan
         let categorias: Categoria[] = [];
@@ -409,36 +678,25 @@ export class MaterialService {
             }
         }
 
-        let Material: Material;
-        var savedMaterial;
+        // Crear el material con o sin proveedor
+        const materialData: any = {
+            Nombre_Material: NombreNormalizado,
+            Descripcion: dto.Descripcion,
+            Cantidad: dto.Cantidad,
+            Precio_Unitario: dto.Precio_Unitario,
+            Unidad_Medicion: unidadMedicionExistente,
+            Usuario: usuario,
+        };
 
-        if (proveedorFisico && dto.Id_Tipo_Proveedor === 1) {
-            Material = this.inventarioRepository.create({
-                Nombre_Material: NombreNormalizado,
-                Descripcion: dto.Descripcion,
-                Cantidad: dto.Cantidad,
-                Proveedor: proveedorFisico,
-                Precio_Unitario: dto.Precio_Unitario,
-                Unidad_Medicion: unidadMedicionExistente,
-                Usuario_Creador: usuario,
-            });
-
-            savedMaterial = await this.inventarioRepository.save(Material);
+        // Solo agregar proveedor si existe
+        if (proveedorFisico) {
+            materialData.Proveedor = proveedorFisico;
+        } else if (proveedorJuridico) {
+            materialData.Proveedor = proveedorJuridico;
         }
 
-        else if (proveedorJuridico && dto.Id_Tipo_Proveedor === 2) {
-            Material = this.inventarioRepository.create({
-                Nombre_Material: NombreNormalizado,
-                Descripcion: dto.Descripcion,
-                Cantidad: dto.Cantidad,
-                Proveedor: proveedorJuridico,
-                Precio_Unitario: dto.Precio_Unitario,
-                Unidad_Medicion: unidadMedicionExistente,
-                Usuario_Creador: usuario,
-            });
-
-            savedMaterial = await this.inventarioRepository.save(Material);
-        }
+        const nuevoMaterial = this.inventarioRepository.create(materialData);
+        const savedMaterial = await this.inventarioRepository.save(nuevoMaterial) as unknown as Material;
 
         // Crear las relaciones con categorías si existen
         if (categorias.length > 0) {
@@ -451,125 +709,96 @@ export class MaterialService {
             await this.materialCategoriaRepository.save(materialCategorias);
         }
 
-        if (proveedorFisico && dto.Id_Tipo_Proveedor === 1) {
-            const materialCreado = await this.inventarioRepository.createQueryBuilder('material')
-                .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
-                .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
-                .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
-                .leftJoinAndSelect('material.materialCategorias', 'Categorias')
-                .leftJoinAndSelect('Categorias.Categoria', 'categoria')
-                .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-                .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-                .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
-                .leftJoinAndSelect('material.Proveedor', 'proveedor')
-                .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
-                .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
-                .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
-                .getOne();
+        // Obtener el material creado con todas sus relaciones
+        const materialCreado = await this.inventarioRepository.createQueryBuilder('material')
+            .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
+            .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
+            .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
+            .leftJoinAndSelect('material.materialCategorias', 'Categorias')
+            .leftJoinAndSelect('Categorias.Categoria', 'categoria')
+            .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .leftJoinAndSelect('material.Proveedor', 'proveedor')
+            .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
+            .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
+            .getOne();
 
-            if (!materialCreado) {
-                throw new NotFoundException('Error al recuperar el material creado');
-            }
-
-            const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = materialCreado;
-
-            return {
-                ...materialSinUsuario,
-                Categorias: materialCategorias,
-                Usuario_Creador: {
-                    Id_Usuario: usuario.Id_Usuario,
-                    Nombre_Usuario: usuario.Nombre_Usuario,
-                    Id_Rol: usuario.Id_Rol,
-                    Nombre_Rol: usuario.Rol?.Nombre_Rol
-                },
-                Proveedor: materialCreado.Proveedor ? {
-                    Id_Proveedor: materialCreado.Proveedor.Id_Proveedor,
-                    Tipo_Proveedor: materialCreado.Proveedor.Tipo_Proveedor,
-                    Tipo_Identificacion: (materialCreado.Proveedor as ProveedorFisico).Tipo_Identificacion,
-                    Identificacion: (materialCreado.Proveedor as ProveedorFisico).Identificacion,
-                    Nombre_Proveedor: materialCreado.Proveedor.Nombre_Proveedor,
-                    Telefono_Proveedor: materialCreado.Proveedor.Telefono_Proveedor
-                } : null
-            };
+        if (!materialCreado) {
+            throw new NotFoundException('Error al recuperar el material creado');
         }
 
-        else if (proveedorJuridico && dto.Id_Tipo_Proveedor === 2) {
-            const materialCreado = await this.inventarioRepository.createQueryBuilder('material')
-                .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
-                .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
-                .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
-                .leftJoinAndSelect('material.materialCategorias', 'Categorias')
-                .leftJoinAndSelect('Categorias.Categoria', 'categoria')
-                .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-                .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-                .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
-                .leftJoinAndSelect('material.Proveedor', 'proveedor')
-                .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
-                .leftJoinAndSelect('proveedor.Tipo_Proveedor', 'tipoProveedor')
-                .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
-                .getOne();
+        // Formatear todas las relaciones usando los métodos de formateo
+        const categoriasFormateadas = await Promise.all(
+            materialCreado.materialCategorias?.map(async (mc) => 
+                await this.categoriasService.FormatearCategoriaParaResponse(mc.Categoria)
+            ) || []
+        );
 
-            if (!materialCreado) {
-                throw new NotFoundException('Error al recuperar el material creado');
-            }
+        const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(materialCreado.Unidad_Medicion);
 
-            const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = materialCreado;
+        const usuarioFormateado = await this.usuariosService.FormatearUsuarioResponse(materialCreado.Usuario);
 
-            return {
-                ...materialSinUsuario,
-                Categorias: materialCategorias,
-                Usuario_Creador: {
-                    Id_Usuario: usuario.Id_Usuario,
-                    Nombre_Usuario: usuario.Nombre_Usuario,
-                    Id_Rol: usuario.Id_Rol,
-                    Nombre_Rol: usuario.Rol?.Nombre_Rol
-                },
-                Proveedor: materialCreado.Proveedor ? {
-                    Id_Proveedor: materialCreado.Proveedor.Id_Proveedor,
-                    Tipo_Proveedor: materialCreado.Proveedor.Tipo_Proveedor,
-                    Cedula_Juridica: (materialCreado.Proveedor as ProveedorJuridico).Cedula_Juridica,
-                    Razon_Social: (materialCreado.Proveedor as ProveedorJuridico).Razon_Social,
-                    Nombre_Proveedor: materialCreado.Proveedor.Nombre_Proveedor,
-                    Telefono_Proveedor: materialCreado.Proveedor.Telefono_Proveedor
-                } : null
-            };
+        let proveedorFormateado: any = null;
+        if (materialCreado.Proveedor) {
+            proveedorFormateado = await this.proveedorService.FormatearProveedorParaResponse(materialCreado.Proveedor as any);
         }
 
-        else {
-            const materialCreado = await this.inventarioRepository.createQueryBuilder('material')
-                .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
-                .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
-                .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
-                .leftJoinAndSelect('material.materialCategorias', 'Categorias')
-                .leftJoinAndSelect('Categorias.Categoria', 'categoria')
-                .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-                .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-                .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
-                .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
-                .getOne();
-
-            if (!materialCreado) {
-                throw new NotFoundException('Error al recuperar el material creado');
-            }
-
-            const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = materialCreado;
-
-            return {
-                ...materialSinUsuario,
-                Categorias: materialCategorias,
-                Usuario_Creador: {
-                    Id_Usuario: usuario.Id_Usuario,
-                    Nombre_Usuario: usuario.Nombre_Usuario,
-                    Id_Rol: usuario.Id_Rol,
-                    Nombre_Rol: usuario.Rol?.Nombre_Rol
+        // Registrar auditoría de creación
+        try {
+            await this.auditoriaService.logCreacion(
+                'Material',
+                idUsuario,
+                savedMaterial.Id_Material,
+                {
+                    Nombre_Material: materialCreado.Nombre_Material,
+                    Descripcion: materialCreado.Descripcion,
+                    Cantidad: materialCreado.Cantidad,
+                    Precio_Unitario: materialCreado.Precio_Unitario,
+                    Id_Unidad_Medicion: materialCreado.Unidad_Medicion.Id_Unidad_Medicion,
+                    Id_Proveedor: materialCreado.Proveedor ? (materialCreado.Proveedor as any).Id_Proveedor : null,
+                    Categorias: materialCreado.materialCategorias?.map(mc => mc.Categoria.Nombre_Categoria) || []
                 }
-            };
+            );
+        } catch (error) {
+            console.error('Error al registrar auditoría de creación de material:', error);
         }
+
+        return {
+            Id_Material: materialCreado.Id_Material,
+            Nombre_Material: materialCreado.Nombre_Material,
+            Descripcion: materialCreado.Descripcion,
+            Cantidad: materialCreado.Cantidad,
+            Precio_Unitario: materialCreado.Precio_Unitario,
+            Ultima_Fecha_Baja: materialCreado.Ultima_Fecha_Baja,
+            Estado_Material: {
+                Id_Estado_Material: materialCreado.Estado_Material.Id_Estado_Material,
+                Nombre_Estado_Material: materialCreado.Estado_Material.Nombre_Estado_Material
+            },
+            Unidad_Medicion: unidadMedicionFormateada,
+            Categorias: categoriasFormateadas,
+            Proveedor: proveedorFormateado,
+            Usuario: usuarioFormateado
+        };
     }
 
-    async updateMaterial(Id_Material: number, dto: UpdateMaterialDto) {
-        const materialExistente = await this.inventarioRepository.findOne({ where: { Id_Material: Id_Material }, relations: ['materialCategorias', 'materialCategorias.Categoria'] });
+    async updateMaterial(Id_Material: number, dto: UpdateMaterialDto, idUsuario: number) {
+        if (!idUsuario) {
+            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+        }
+        const materialExistente = await this.inventarioRepository.findOne({ where: { Id_Material: Id_Material }, relations: ['materialCategorias', 'materialCategorias.Categoria', 'Unidad_Medicion', 'Proveedor', 'Estado_Material'] });
         if (!materialExistente) { throw new NotFoundException(`Material con ID ${Id_Material} no encontrado`); }
+
+        // Capturar datos anteriores para auditoría
+        const datosAnteriores = {
+            Nombre_Material: materialExistente.Nombre_Material,
+            Descripcion: materialExistente.Descripcion,
+            Cantidad: materialExistente.Cantidad,
+            Precio_Unitario: materialExistente.Precio_Unitario,
+            Id_Unidad_Medicion: materialExistente.Unidad_Medicion?.Id_Unidad_Medicion,
+            Id_Proveedor: materialExistente.Proveedor ? (materialExistente.Proveedor as any).Id_Proveedor : null,
+            Categorias: materialExistente.materialCategorias?.map(mc => mc.Categoria.Nombre_Categoria) || []
+        };
 
         const UnidadMedicionExistente = await this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: dto.Id_Unidad_Medicion } });
         if (!UnidadMedicionExistente) { throw new BadRequestException('La unidad de medición proporcionada no existe'); }
@@ -625,10 +854,10 @@ export class MaterialService {
         const { IDS_Categorias, ...datosActualizacion } = dto;
 
         // Excluir explícitamente las relaciones del merge para evitar conflictos
-        const { materialCategorias: categoriasExistentes, Estado_Material, ...materialSinRelaciones } = materialExistente;
+        const { materialCategorias: categoriasExistentes, Estado_Material, ...materialSinRelacionesTemp } = materialExistente;
 
         const materialActualizado = {
-            ...materialSinRelaciones,
+            ...materialSinRelacionesTemp,
             ...datosActualizacion,
             Unidad_Medicion: UnidadMedicionExistente,
         };
@@ -646,8 +875,10 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .leftJoinAndSelect('material.Proveedor', 'proveedor')
+            .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .where('material.Id_Material = :id', { id: Id_Material })
             .getOne();
 
@@ -655,26 +886,75 @@ export class MaterialService {
             throw new NotFoundException('Error al recuperar el material actualizado');
         }
 
-        // Excluir Usuario_Creador del spread para evitar duplicados
-        const { Usuario_Creador, materialCategorias, ...materialSinUsuario } = materialActualizadoCompleto;
+        // Registrar auditoría de actualización
+        try {
+            const datosNuevos = {
+                Nombre_Material: materialActualizadoCompleto.Nombre_Material,
+                Descripcion: materialActualizadoCompleto.Descripcion,
+                Cantidad: materialActualizadoCompleto.Cantidad,
+                Precio_Unitario: materialActualizadoCompleto.Precio_Unitario,
+                Id_Unidad_Medicion: materialActualizadoCompleto.Unidad_Medicion.Id_Unidad_Medicion,
+                Id_Proveedor: materialActualizadoCompleto.Proveedor ? (materialActualizadoCompleto.Proveedor as any).Id_Proveedor : null,
+                Categorias: materialActualizadoCompleto.materialCategorias?.map(mc => mc.Categoria.Nombre_Categoria) || []
+            };
+
+            await this.auditoriaService.logActualizacion(
+                'Material',
+                idUsuario,
+                Id_Material,
+                datosAnteriores,
+                datosNuevos
+            );
+        } catch (error) {
+            console.error('Error al registrar auditoría de actualización de material:', error);
+        }
+
+        // Formatear todas las relaciones usando los métodos de formateo
+        const categoriasFormateadas = await Promise.all(
+            materialActualizadoCompleto.materialCategorias?.map(async (mc) => 
+                await this.categoriasService.FormatearCategoriaParaResponse(mc.Categoria)
+            ) || []
+        );
+
+        const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(materialActualizadoCompleto.Unidad_Medicion);
+
+        const usuarioFormateado = await this.usuariosService.FormatearUsuarioResponse(materialActualizadoCompleto.Usuario);
+
+        let proveedorFormateado: any = null;
+        if (materialActualizadoCompleto.Proveedor) {
+            proveedorFormateado = await this.proveedorService.FormatearProveedorParaResponse(materialActualizadoCompleto.Proveedor as any);
+        }
 
         return {
-            ...materialSinUsuario,
-            Categorias: materialCategorias,
-            Usuario_Creador: {
-                Id_Usuario: materialActualizadoCompleto.Usuario_Creador.Id_Usuario,
-                Nombre_Usuario: materialActualizadoCompleto.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: materialActualizadoCompleto.Usuario_Creador.Id_Rol,
-                Nombre_Rol: materialActualizadoCompleto.Usuario_Creador.Rol?.Nombre_Rol
-            }
+            Id_Material: materialActualizadoCompleto.Id_Material,
+            Nombre_Material: materialActualizadoCompleto.Nombre_Material,
+            Descripcion: materialActualizadoCompleto.Descripcion,
+            Cantidad: materialActualizadoCompleto.Cantidad,
+            Precio_Unitario: materialActualizadoCompleto.Precio_Unitario,
+            Ultima_Fecha_Baja: materialActualizadoCompleto.Ultima_Fecha_Baja,
+            Estado_Material: {
+                Id_Estado_Material: materialActualizadoCompleto.Estado_Material.Id_Estado_Material,
+                Nombre_Estado_Material: materialActualizadoCompleto.Estado_Material.Nombre_Estado_Material
+            },
+            Unidad_Medicion: unidadMedicionFormateada,
+            Categorias: categoriasFormateadas,
+            Proveedor: proveedorFormateado,
+            Usuario: usuarioFormateado
         };
     }
 
-    async updateEstadoMaterial(Id_Material: number, nuevoEstadoId: number) {
+    async updateEstadoMaterial(Id_Material: number, nuevoEstadoId: number, idUsuario: number) {
+        if (!idUsuario) {
+            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+        }
         const material = await this.inventarioRepository.findOne({ where: { Id_Material: Id_Material }, relations: ['Estado_Material'] });
         if (!material) { throw new NotFoundException(`Material con ID ${Id_Material} no encontrado`); }
 
         const estadoActualId = material.Estado_Material.Id_Estado_Material;
+        const estadoAnterior = {
+            Id_Estado: estadoActualId,
+            Nombre_Estado: material.Estado_Material.Nombre_Estado_Material
+        };
 
         if (material.Cantidad === 0 && nuevoEstadoId === 1) {
             throw new BadRequestException('No se puede cambiar el estado a "Disponible" si la cantidad en stock es 0');
@@ -687,7 +967,24 @@ export class MaterialService {
 
             material.Estado_Material = estadoAgotadoYBaja;
             material.Ultima_Fecha_Baja = new Date();
-            return await this.inventarioRepository.save(material);
+            const materialActualizado = await this.inventarioRepository.save(material);
+
+            // Registrar auditoría
+            if (idUsuario) {
+                try {
+                    await this.auditoriaService.logActualizacion(
+                        'Material',
+                        idUsuario,
+                        Id_Material,
+                        estadoAnterior,
+                        { Id_Estado: 4, Nombre_Estado: estadoAgotadoYBaja.Nombre_Estado_Material }
+                    );
+                } catch (error) {
+                    console.error('Error al registrar auditoría de cambio de estado de material:', error);
+                }
+            }
+
+            return materialActualizado;
         }
 
         // Si ya estaba "Agotado y de baja" (4) y se cambia a "De baja" (3) → no crear nueva fecha de baja
@@ -697,7 +994,24 @@ export class MaterialService {
 
             material.Estado_Material = estadoDeBaja;
             // No actualizar Ultima_Fecha_Baja porque ya tenía una fecha de baja anterior
-            return await this.inventarioRepository.save(material);
+            const materialActualizado = await this.inventarioRepository.save(material);
+
+            // Registrar auditoría
+            if (idUsuario) {
+                try {
+                    await this.auditoriaService.logActualizacion(
+                        'Material',
+                        idUsuario,
+                        Id_Material,
+                        estadoAnterior,
+                        { Id_Estado: 3, Nombre_Estado: estadoDeBaja.Nombre_Estado_Material }
+                    );
+                } catch (error) {
+                    console.error('Error al registrar auditoría de cambio de estado de material:', error);
+                }
+            }
+
+            return materialActualizado;
         }
 
         // Si está "Agotado y de baja" (4) y se cambia a "Agotado" (2) → cambiar a "Agotado" sin fecha de baja
@@ -718,6 +1032,51 @@ export class MaterialService {
         }
 
         material.Estado_Material = nuevoEstado;
-        return await this.inventarioRepository.save(material);
+        const materialActualizado = await this.inventarioRepository.save(material);
+
+        // Registrar auditoría
+        if (idUsuario) {
+            try {
+                await this.auditoriaService.logActualizacion(
+                    'Material',
+                    idUsuario,
+                    Id_Material,
+                    estadoAnterior,
+                    { Id_Estado: nuevoEstadoId, Nombre_Estado: nuevoEstado.Nombre_Estado_Material }
+                );
+            } catch (error) {
+                console.error('Error al registrar auditoría de cambio de estado de material:', error);
+            }
+        }
+
+        return materialActualizado;
+    }
+
+    /**
+     * Formatea la información de un material para responses públicos
+     * Solo devuelve información básica y necesaria
+     */
+    async FormatearMaterialParaResponse(material: Material): Promise<{
+        Id_Material: number;
+        Nombre_Material: string;
+        Descripcion?: string;
+        Cantidad: number;
+        Precio_Unitario: number;
+        Estado: {
+            Id_Estado_Material: number;
+            Nombre_Estado_Material: string;
+        };
+    }> {
+        return {
+            Id_Material: material.Id_Material,
+            Nombre_Material: material.Nombre_Material,
+            Descripcion: material.Descripcion,
+            Cantidad: material.Cantidad,
+            Precio_Unitario: material.Precio_Unitario,
+            Estado: {
+                Id_Estado_Material: material.Estado_Material?.Id_Estado_Material || 0,
+                Nombre_Estado_Material: material.Estado_Material?.Nombre_Estado_Material || 'Sin estado'
+            }
+        };
     }
 }

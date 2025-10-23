@@ -90,31 +90,33 @@ export class InventarioController {
         return this.materialService.getMaterialesEntreRangoPrecio(min, max);
     }
 
-    @Post('/create/material/:idUsuarioCreador')
+    @Post('/create/material/:idUsuario')
     @ApiOperation({ summary: 'Crea un nuevo material en el inventario.' })
     async createMaterial(
         @Body() dto: CreateMaterialDto,
-        @Param('idUsuarioCreador', ParseIntPipe) idUsuarioCreador: number
+        @Param('idUsuario', ParseIntPipe) idUsuario: number
     ) {
-        return this.materialService.createMaterial(dto, idUsuarioCreador);
+        return this.materialService.createMaterial(dto, idUsuario);
     }
 
-    @Put('/update/material/:materialId')
+    @Put('/update/material/:materialId/:idUsuario')
     @ApiOperation({ summary: 'Actualiza un material existente en el inventario.' })
     async updateMaterial(
         @Param('materialId', ParseIntPipe) materialId: number,
+        @Param('idUsuario', ParseIntPipe) idUsuario: number,
         @Body() dto: UpdateMaterialDto
     ) {
-        return this.materialService.updateMaterial(materialId, dto);
+        return this.materialService.updateMaterial(materialId, dto, idUsuario);
     }
 
-    @Patch('/update/estado/material/:materialId/:estadoMaterialId')
+    @Patch('/update/estado/material/:materialId/:estadoMaterialId/:idUsuario')
     @ApiOperation({ summary: 'Cambia el estado de un material. Si el estado es "De baja" (3), actualiza automáticamente la fecha de baja.' })
     async cambiarEstadoMaterial(
         @Param('materialId', ParseIntPipe) materialId: number,
-        @Param('estadoMaterialId', ParseIntPipe) estadoMaterialId: number
+        @Param('estadoMaterialId', ParseIntPipe) estadoMaterialId: number,
+        @Param('idUsuario', ParseIntPipe) idUsuario: number
     ) {
-        return this.materialService.updateEstadoMaterial(materialId, estadoMaterialId);
+        return this.materialService.updateEstadoMaterial(materialId, estadoMaterialId, idUsuario);
     }
 
 
@@ -147,22 +149,24 @@ export class InventarioController {
         return this.categoriasService.createCategoria(dto, idUsuario);
     }
 
-    @Put('/update/categoria/:categoriaId')
+    @Put('/update/categoria/:categoriaId/:idUsuario')
     @ApiOperation({ summary: 'Actualiza una categoría existente.' })
     async updateCategoria(
         @Param('categoriaId', ParseIntPipe) categoriaId: number,
-        @Body() dto: UpdateCategoriaDto
+        @Body() dto: UpdateCategoriaDto,
+        @Param('idUsuario', ParseIntPipe) idUsuario: number
     ) {
-        return this.categoriasService.updateCategoria(categoriaId, dto);
+        return this.categoriasService.updateCategoria(categoriaId, dto, idUsuario);
     }
 
-    @Patch('/update/estado/categoria/:categoriaId/:estadoCategoriaId')
+    @Patch('/update/estado/categoria/:categoriaId/:estadoCategoriaId/:idUsuario')
     @ApiOperation({ summary: 'Cambia el estado de una categoría al estado especificado.' })
     async cambiarEstadoCategoria(
         @Param('categoriaId', ParseIntPipe) categoriaId: number,
-        @Param('estadoCategoriaId', ParseIntPipe) estadoCategoriaId: number
+        @Param('estadoCategoriaId', ParseIntPipe) estadoCategoriaId: number,
+        @Param('idUsuario', ParseIntPipe) idUsuario: number
     ) {
-        return this.categoriasService.updateEstadoCategoria(categoriaId, estadoCategoriaId);
+        return this.categoriasService.updateEstadoCategoria(categoriaId, estadoCategoriaId, idUsuario);
     }
 
 
@@ -192,31 +196,33 @@ export class InventarioController {
         return this.unidadesDeMedicionService.getUnidadesMedicionInactivas();
     }
 
-    @Post('/create/unidad-medicion/:idUsuarioCreador')
+    @Post('/create/unidad-medicion/:idUsuario')
     @ApiOperation({ summary: 'Crea una nueva unidad de medición.' })
     async createUnidadMedicion(
         @Body() dto: CreateUnidadMedicionDto,
-        @Param('idUsuarioCreador', ParseIntPipe) idUsuarioCreador: number
+        @Param('idUsuario', ParseIntPipe) idUsuario: number
     ) {
-        return this.unidadesDeMedicionService.createUnidadMedicion(dto, idUsuarioCreador);
+        return this.unidadesDeMedicionService.createUnidadMedicion(dto, idUsuario);
     }
 
-    @Put('/update/unidad-medicion/:unidadId')
+    @Put('/update/unidad-medicion/:unidadId/:idUsuario')
     @ApiOperation({ summary: 'Actualiza una unidad de medición existente.' })
     async updateUnidadMedicion(
         @Param('unidadId', ParseIntPipe) unidadId: number,
-        @Body() dto: UpdateUnidadMedicionDto
+        @Body() dto: UpdateUnidadMedicionDto,
+        @Param('idUsuario', ParseIntPipe) idUsuario: number
     ) {
-        return this.unidadesDeMedicionService.updateUnidadMedicion(unidadId, dto);
+        return this.unidadesDeMedicionService.updateUnidadMedicion(unidadId, dto, idUsuario);
     }
 
-    @Patch('/update/estado/unidad-medicion/:unidadId/:estadoUnidadId')
+    @Patch('/update/estado/unidad-medicion/:unidadId/:estadoUnidadId/:idUsuario')
     @ApiOperation({ summary: 'Cambia el estado de una unidad de medición al estado especificado.' })
     async cambiarEstadoUnidadMedicion(
         @Param('unidadId', ParseIntPipe) unidadId: number, 
-        @Param('estadoUnidadId', ParseIntPipe) estadoUnidadId: number
+        @Param('estadoUnidadId', ParseIntPipe) estadoUnidadId: number,
+        @Param('idUsuario', ParseIntPipe) idUsuario: number
     ) {
-        return this.unidadesDeMedicionService.updateEstadoUnidadMedicion(unidadId, estadoUnidadId);
+        return this.unidadesDeMedicionService.updateEstadoUnidadMedicion(unidadId, estadoUnidadId, idUsuario);
     }
 
 
@@ -249,10 +255,10 @@ export class InventarioController {
         return this.movimientosService.getMovimientosEntreFechas(startDate, endDate);
     }
 
-    @Get('/movimientos/:idUsuarioCreador')
+    @Get('/movimientos/:idUsuario')
     @ApiOperation({ summary: 'Obtiene un movimiento por su ID y el ID del usuario creador.' })
-    async getMovimientoPorId(@Param('idUsuarioCreador', ParseIntPipe) idUsuarioCreador: number) {
-        return this.movimientosService.getMovimientosPorUsuarioCreador(idUsuarioCreador);
+    async getMovimientoPorId(@Param('idUsuario', ParseIntPipe) idUsuario: number) {
+        return this.movimientosService.getMovimientosPorUsuario(idUsuario);
     }
 
     @Post('/ingreso/material/:idUsuario')
@@ -308,28 +314,30 @@ export class InventarioController {
         return this.medidorService.getMedidoresAfiliado(idAfiliado);
     }
 
-    @Post('/create/medidor/:idUsuarioCreador')
+    @Post('/create/medidor/:idUsuario')
     @ApiOperation({ summary: 'Crea un nuevo medidor en el sistema.' })
     async createMedidor(
         @Body() dto: CreateMedidorDTO,
-        @Param('idUsuarioCreador', ParseIntPipe) idUsuarioCreador: number
+        @Param('idUsuario', ParseIntPipe) idUsuario: number
     ) {
-        return this.medidorService.createMedidor(dto, idUsuarioCreador);
+        return this.medidorService.createMedidor(dto, idUsuario);
     }
 
-    @Post('/asignar/medidor')
+    @Post('/asignar/medidor/:idUsuario')
     @ApiOperation({ summary: 'Asigna un medidor a un afiliado específico.' })
     async asignarMedidor(
-        @Body() dto: AsignarMedidorDTO
+        @Body() dto: AsignarMedidorDTO,
+        @Param('idUsuario', ParseIntPipe) idUsuario: number
     ) {
-        return this.medidorService.asignarMedidorAAfiliado(dto);
+        return this.medidorService.asignarMedidorAAfiliado(dto, idUsuario);
     }
 
-    @Patch('/update/estado/medidor/:idMedidor/:nuevoEstadoId')
+    @Patch('/update/estado/medidor/:idMedidor/:nuevoEstadoId/:idUsuario')
     async updateEstadoMedidor(
         @Param('idMedidor', ParseIntPipe) idMedidor: number,
-        @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number
+        @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number,
+        @Param('idUsuario', ParseIntPipe) idUsuario: number
     ) {
-        return this.medidorService.updateEstadoMedidor(idMedidor, nuevoEstadoId);
+        return this.medidorService.updateEstadoMedidor(idMedidor, nuevoEstadoId, idUsuario);
     }
 }

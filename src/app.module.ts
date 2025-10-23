@@ -41,7 +41,7 @@ import { TipoAfiliado } from './Modules/Afiliados/AfiliadoEntities/TipoAfiliado.
 import { AfiliadosModule } from './Modules/Afiliados/afiliados.module';
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from './Modules/Afiliados/AfiliadoEntities/Afiliado.Entity';
 import { SolicitudesModule } from './Modules/Solicitudes/solicitudes.module';
-import { Acta } from './Modules/Actas/ActaEntities/Actas.Entity';
+import { Acta } from './Modules/Actas/ActaEntities/Acta.Entity';
 import { ArchivoActa } from './Modules/Actas/ActaEntities/ArchivoActa.Entity';
 import { ActasModule } from './Modules/Actas/actas.module';
 import { Material } from './Modules/Inventario/InventarioEntities/Material.Entity';
@@ -53,26 +53,31 @@ import { EstadoUnidadMedicion } from './Modules/Inventario/InventarioEntities/Es
 import { EstadoCategoria } from './Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
 import { MovimientoInventario } from './Modules/Inventario/InventarioEntities/Movimiento.Entity';
-import { TipoProveedor } from './Modules/Proveedores/ProveedorEntities/TipoProveedor.Entity';
 import { QuejasModule } from './Modules/Quejas/quejas.module';
-import { QuejasEntity } from './Modules/Quejas/Entity/QuejasEntity';
-import { EstadoQueja } from './Modules/Quejas/Entity/EstadoQueja';
-import { FAQModule } from './Modules/FAQ/faq.module';
+import { Queja } from './Modules/Quejas/QuejaEntities/Queja.Entity';
+import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
+import { SeederModule } from './Config/Seeder.module';
+import { EstadoMedidor } from './Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
+import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity';
 import { FAQEntity } from './Modules/FAQ/FAQEntities/FAQ.Entity';
+import { Auditoria } from './Modules/Auditoria/AuditoriaEntities/Auditoria.Entities';
+import { Lectura } from './Modules/Lecturas/LecturaEntities/Lectura.Entity';
+import { AuditoriaModule } from './Modules/Auditoria/auditoria.module';
+import { LecturaModule } from './Modules/Lecturas/lectura.module';
+import { FAQModule } from './Modules/FAQ/faq.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath:
-        process.env.NODE_ENV === 'production'
-          ? '.env.production'
-          : '.env.development',
+      envFilePath: process.env.NODE_ENV === 'development'
+        ? '.env.development'
+        : '.env.production',
     }),
 
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      inject:[ConfigService], 
+      inject: [ConfigService],
 
       useFactory: (config: ConfigService) => ({
         type: 'mysql',
@@ -82,16 +87,22 @@ import { FAQEntity } from './Modules/FAQ/FAQEntities/FAQ.Entity';
         password: process.env.DB_PASSWORD,
         database: process.env.DB_DATABASE,
         entities: [
-        Usuario, UsuarioRol, Permiso,
-        Solicitud, SolicitudFisica, SolicitudJuridica, EstadoSolicitud,
-        SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudAsociadoFisica,
-        SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
-        Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
-        Proveedor, EstadoProveedor, TipoProveedor, ProveedorFisico, ProveedorJuridico,
-        Proyecto, ProyectoEstado,CalidadAgua, EstadoCalidadAgua,ReportesEntity, EstadoReporte,Acta, ArchivoActa,
-  SugerenciaEntity, Estado_Sugerencia,
-    QuejasEntity, EstadoQueja,
-        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MaterialProveedor, MovimientoInventario,FAQEntity
+          Usuario, UsuarioRol, Permiso,
+          Solicitud, SolicitudFisica, SolicitudJuridica, EstadoSolicitud,
+          SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudAsociadoFisica,
+          SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
+          Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
+          Proveedor, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
+          Proyecto, EstadoProyecto,
+          CalidadAgua,
+          Acta, ArchivoActa,
+          Reporte, EstadoReporte,
+          Sugerencia, EstadoSugerencia,
+          Queja, EstadoQueja,
+          Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
+          Auditoria,
+          Lectura,
+          FAQEntity
         ],
         synchronize: false,
         dropSchema: false,
@@ -101,8 +112,10 @@ import { FAQEntity } from './Modules/FAQ/FAQEntities/FAQ.Entity';
     AuthModule,
     RolesModule,
     UsuariosModule,
+    AuditoriaModule,
     ProveedorModule,
     InventarioModule,
+    LecturaModule,
     FacturaModule,
     AfiliadosModule,
     SolicitudesModule,
@@ -138,4 +151,4 @@ import { FAQEntity } from './Modules/FAQ/FAQEntities/FAQ.Entity';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

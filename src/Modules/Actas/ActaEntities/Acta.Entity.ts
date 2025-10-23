@@ -1,14 +1,12 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { ArchivoActa } from "./ArchivoActa.Entity";
+import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Entity('Acta')
 export class Acta
 {
     @PrimaryGeneratedColumn()
     Id_Acta: number;
-
-    @Column({ nullable: false })
-    Id_Usuario: number;
 
     @Column({ nullable: false })
     Titulo: string;
@@ -24,4 +22,8 @@ export class Acta
 
     @OneToMany(() => ArchivoActa, archivoActa => archivoActa.Acta, { cascade: true, eager: true })
     Archivos: ArchivoActa[];
+
+    @ManyToOne(() => Usuario, { nullable: false })
+    @JoinColumn({ name: 'Id_Usuario' })
+    Usuario: Usuario;
 }

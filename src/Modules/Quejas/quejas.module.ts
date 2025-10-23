@@ -8,8 +8,8 @@ import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
 import { EmailModule } from '../Emails/email.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([QuejasEntity, EstadoQueja]), DropboxModule, EmailModule],
+  imports: [TypeOrmModule.forFeature([Queja, EstadoQueja]), DropboxModule, EmailModule],
   controllers: [QuejasController],
   providers: [QuejasService],
 })
-export class QuejasModule {}
+export class QuejasModule { }
