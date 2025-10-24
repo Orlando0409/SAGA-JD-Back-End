@@ -484,4 +484,41 @@ export class AfiliadosService {
             Razon_Social: afiliadoJuridico.Razon_Social,
         };
     }
+      async FormatearAfiliadoParaResponseSimple(afiliado: any) {
+        if (!afiliado) return null;
+
+        const afiliadoFormateado = {
+            Id_Afiliado: afiliado.Id_Afiliado,
+            Tipo_Entidad: afiliado.Tipo_Entidad,
+            Correo: afiliado.Correo,
+            Numero: afiliado.Numero_Telefono
+        };
+
+        if (afiliado.Tipo_Entidad === 1) {
+            // Afiliado Físico - buscar en tabla específica
+            const afiliadoFisico = await this.afiliadoFisicoRepository.findOne({
+                where: { Id_Afiliado: afiliado.Id_Afiliado }
+            });
+
+            if (afiliadoFisico) {
+                (afiliadoFormateado as any).Tipo_Identificacion = afiliadoFisico.Tipo_Identificacion;
+                (afiliadoFormateado as any).Identificacion = afiliadoFisico.Identificacion;
+                (afiliadoFormateado as any).Nombre = afiliadoFisico.Nombre;
+                (afiliadoFormateado as any).Primer_Apellido = afiliadoFisico.Apellido1;
+                (afiliadoFormateado as any).Segundo_Apellido = afiliadoFisico.Apellido2;
+            }
+        } else if (afiliado.Tipo_Entidad === 2) {
+            // Afiliado Jurídico - buscar en tabla específica
+            const afiliadoJuridico = await this.afiliadoJuridicoRepository.findOne({
+                where: { Id_Afiliado: afiliado.Id_Afiliado }
+            });
+
+            if (afiliadoJuridico) {
+                (afiliadoFormateado as any).Cedula_Juridica = afiliadoJuridico.Cedula_Juridica;
+                (afiliadoFormateado as any).Razon_Social = afiliadoJuridico.Razon_Social;
+            }
+        }
+
+        return afiliadoFormateado;
+      }
 }
