@@ -174,8 +174,8 @@ export class MovimientosService {
     }
 
 
-    async getMovimientosPorUsuarioCreador(Id_Usuario: number) {
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: Id_Usuario } });
+    async getMovimientosPorUsuario(idUsuario: number) {
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) { throw new NotFoundException('Usuario no encontrado'); }
 
         const movimientos = await this.movimientoRepository.createQueryBuilder('movimiento')
@@ -183,7 +183,7 @@ export class MovimientosService {
             .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
             .leftJoinAndSelect('movimiento.Usuario_Creador', 'usuarioCreador')
             .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
-            .where('movimiento.Usuario_Creador = :idUsuario', { idUsuario: Id_Usuario })
+            .where('movimiento.Usuario_Creador = :idUsuario', { idUsuario: idUsuario })
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getMany();
 
