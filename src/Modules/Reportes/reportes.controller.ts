@@ -7,11 +7,9 @@ import { CreateReporteDto } from './ReporteDTO\'s/CreateReporte.dto';
 import { ResponderReporteDto } from './ReporteDTO\'s/ResponderReporte.dto';
 import { UpdateReporteEstadoDto } from './ReporteDTO\'s/UpdateReporteEstado.dto';
 
-
-
 @Controller('reportes')
 export class ReportesController {
-  constructor(private readonly reportesService: ReportesService) {}
+  constructor(private readonly reportesService: ReportesService) { }
 
 
   @Get()
@@ -42,7 +40,7 @@ export class ReportesController {
     return this.reportesService.updateEstado(id, nuevo);
   }
 
-  
+
   @Patch(':id/responder')
   responder(
     @Param('id', NumericParamPipe) id: number,

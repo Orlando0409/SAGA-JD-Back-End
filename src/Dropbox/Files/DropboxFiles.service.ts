@@ -13,6 +13,21 @@ export class DropboxFilesService {
     this.initializeDropbox();
   }
 
+  private async initializeDropbox() {
+    this.accessToken = await this.dropboxAuthService.getAccessToken();
+
+    if (!this.accessToken) {
+      throw new Error('Token de acceso de Dropbox no disponible');
+    }
+
+    this.dbx = new Dropbox({ accessToken: this.accessToken });
+  }
+
+  async getPublicUrl(path: string): Promise<string> {
+    const link = await this.dbx.sharingCreateSharedLinkWithSettings({ path });
+    return link.result.url.replace('?dl=0', '?raw=1');
+  }
+
   // Método para obtener el tipo de archivo
   private getFileType(filename: string): string {
     const extension = filename.toLowerCase().substring(filename.lastIndexOf('.'));
@@ -48,10 +63,24 @@ export class DropboxFilesService {
       const shouldAllowPreview = soloDescargar ?? this.canPreview(file.originalname);
       const folderPath = process.env.DROPBOX_FOLDER_PATH;
 
-      // 📂 Construcción de la ruta en Dropbox
-      let dropboxPath = Identificacion
-        ? `${folderPath}/${carpetaPrincipal}/${carpetaSecundaria}/${Identificacion} - ${Nombre}/${file.originalname}`
-        : `${folderPath}/${carpetaPrincipal}/${carpetaSecundaria}/${file.originalname}`;
+      // Construcción de la ruta en Dropbox
+      let dropboxPath: string;
+      const baseFolder = carpetaSecundaria ? `${folderPath}/${carpetaPrincipal}/${carpetaSecundaria}` : `${folderPath}/${carpetaPrincipal}`;
+
+      if (Identificacion) {
+        if (Nombre && Nombre.toString().trim() !== '') {
+          dropboxPath = `${baseFolder}/${Identificacion} - ${Nombre}/${file.originalname}`;
+        } else {
+          // Usar Identificacion como nombre de carpeta sin guion
+          dropboxPath = `${baseFolder}/${Identificacion}/${file.originalname}`;
+        }
+      }
+
+      else {
+        // Si no hay Identificacion, pero sí un Nombre, crear carpeta con ese Nombre
+        if (Nombre && Nombre.toString().trim() !== '') { dropboxPath = `${baseFolder}/${Nombre}/${file.originalname}`; }
+        else { dropboxPath = `${baseFolder}/${file.originalname}`; }
+      }
 
       // 🚀 Subir archivo a Dropbox
       const uploadRes = await this.dbx.filesUpload({

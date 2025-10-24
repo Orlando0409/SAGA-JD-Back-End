@@ -46,7 +46,6 @@ import { Categoria } from './Modules/Inventario/InventarioEntities/Categoria.Ent
 import { MaterialCategoria } from './Modules/Inventario/InventarioEntities/MaterialCategoria.Entity';
 import { UnidadMedicion } from './Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoUnidadMedicion } from './Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
-import { EstadoCalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
 import { EstadoCategoria } from './Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
 import { MovimientoInventario } from './Modules/Inventario/InventarioEntities/Movimiento.Entity';
@@ -57,14 +56,13 @@ import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja';
 import { SeederModule } from './Config/Seeder.module';
 import { EstadoMedidor } from './Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
 import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity';
-import { FAQEntity } from './Modules/FAQ/FAQEntities/FAQ.Entity';
 import { Auditoria } from './Modules/Auditoria/AuditoriaEntities/Auditoria.Entities';
 import { AuditoriaModule } from './Modules/Auditoria/auditoria.module';
 import { ReportesModule } from './Modules/Reportes/reportes.module';
 import { Reporte } from './Modules/Reportes/ReporteEntities/Reportes.Entity';
 import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia';
 import { Sugerencia } from './Modules/Sugerencias/SugerenciaEntities/Sugerencia.Entity';
-import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity';import { Lectura } from './Modules/Lecturas/LecturaEntities/Lectura.Entity';
+import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity'; import { Lectura } from './Modules/Lecturas/LecturaEntities/Lectura.Entity';
 import { LecturaModule } from './Modules/Lecturas/lectura.module';
 
 @Module({
@@ -88,24 +86,24 @@ import { LecturaModule } from './Modules/Lecturas/lectura.module';
         password: process.env.DB_PASSWORD,
         database: process.env.DB_DATABASE,
         entities: [
-        Usuario, UsuarioRol, Permiso,
-        Solicitud, SolicitudFisica, SolicitudJuridica, EstadoSolicitud,
-        SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudAsociadoFisica,
-        SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
-        Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
-        Proveedor, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
-        Proyecto, EstadoProyecto,
-        CalidadAgua,
-        Acta, ArchivoActa,
-        Reporte, EstadoReporte,
-        Sugerencia, EstadoSugerencia,
-        Queja, EstadoQueja,
-        FAQEntity,
-        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario,FAQEntity, Medidor, EstadoMedidor,
-        Auditoria,
-        Lectura
+          Usuario, UsuarioRol, Permiso,
+          Solicitud, SolicitudFisica, SolicitudJuridica, EstadoSolicitud,
+          SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudAsociadoFisica,
+          SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
+          Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
+          Proveedor, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
+          Proyecto, EstadoProyecto,
+          CalidadAgua,
+          Acta, ArchivoActa,
+          Reporte, EstadoReporte,
+          Sugerencia, EstadoSugerencia,
+          Queja, EstadoQueja,
+          FAQEntity,
+          Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, FAQEntity, Medidor, EstadoMedidor,
+          Auditoria,
+          Lectura
         ],
-        synchronize: true,
+        synchronize: false,
         dropSchema: false,
       })
     }),
@@ -121,45 +119,12 @@ import { LecturaModule } from './Modules/Lecturas/lectura.module';
     AfiliadosModule,
     SolicitudesModule,
     CalidadAguaModule,
-        Usuario, UsuarioRol, Permiso,
-        Solicitud, SolicitudFisica, SolicitudJuridica, EstadoSolicitud,
-        SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudAsociadoFisica,
-        SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
-        Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
-        Proveedor, EstadoProveedor, TipoProveedor, ProveedorFisico, ProveedorJuridico,
-        Proyecto, ProyectoEstado,
-        CalidadAgua, EstadoCalidadAgua,
-        Acta, ArchivoActa,
-        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario
-        ],
-        synchronize: false,
-        dropSchema: false,
-      }),
-    }),
-    ProyectoModule,
-    FacturaModule,
-    InventarioModule,
-    ProveedorModule,
-    UsuariosModule,
-    SolicitudAfiliacionFisicaModule,
-    SolicitudAfiliacionJuridicaModule,
-    SolicitudDesconexionFisicaModule,
-    SolicitudDesconexionJuridicaModule,
-    SolicitudCambioMedidorFisicaModule,
-    SolicitudCambioMedidorJuridicaModule,
-    SolicitudAsociadoFisicaModule,
-    SolicitudAsociadoJuridicaModule,
+    ActasModule,
     ReportesModule,
+    ProyectoModule,
     SugerenciaModule,
+    FAQModule,
     QuejasModule,
-    FAQModule
-    RolesModule,
-    AuthModule,
-    SeederModule,
-    CalidadAguaModule,
-    AfiliadosModule,
-    SolicitudesModule,
-    ActasModule
   ],
   controllers: [],
   providers: [

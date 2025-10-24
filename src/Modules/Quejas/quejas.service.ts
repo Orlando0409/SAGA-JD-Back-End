@@ -1,13 +1,13 @@
-import { Queja } from './QuejaEntities/Queja.Entity';
+
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Queja } from './QuejaEntities/QuejasEntity';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
 import { EstadoQueja } from './QuejaEntities/EstadoQueja';
 import { CreateQuejaDto } from './QuejaDTO\'s/CreateQueja.dto';
 import { ResponderQuejaDto } from './QuejaDTO\'s/ResponderQueja.dto';
+import { Queja } from './QuejaEntities/QuejasEntity';
 
 interface QuejaFiles {
   Adjunto?: Express.Multer.File[];
@@ -26,7 +26,7 @@ export class QuejasService {
 
     private readonly dropboxFilesService: DropboxFilesService,
     private readonly emailService: EmailService,
-  ) {}
+  ) { }
 
   async getAll() {
     return this.quejasRepository.find({ relations: ['Estado'] });

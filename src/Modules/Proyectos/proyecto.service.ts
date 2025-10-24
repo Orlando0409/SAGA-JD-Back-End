@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UpdateProyectoDto } from "./ProyectoDTO's/UpdateProyecto.dto";
@@ -7,6 +7,9 @@ import { Proyecto } from "./ProyectoEntities/Proyecto.Entity";
 import { EstadoProyecto } from "./ProyectoEntities/EstadoProyecto.Entity";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { Public } from "../auth/Decorator/Public.decorator";
+import { UsuariosService } from "../Usuarios/Services/usuarios.service";
+import { AuditoriaService } from "../Auditoria/auditoria.service";
+import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Injectable()
 export class ProyectoService {
@@ -17,6 +20,9 @@ export class ProyectoService {
         @InjectRepository(EstadoProyecto)
         private readonly proyectoEstadoRepository: Repository<EstadoProyecto>,
 
+        @InjectRepository(Usuario)
+        private readonly usuarioRepository: Repository<Usuario>,
+
         private readonly dropboxFilesService: DropboxFilesService,
 
         private readonly usuariosService: UsuariosService,
@@ -25,16 +31,15 @@ export class ProyectoService {
     ) { }
 
     @Public()
-    async getProyectos()
-    {
-        return this.proyectoRepository.find({ 
+    async getProyectos() {
+        return this.proyectoRepository.find({
             relations: ['Estado'],
             order: { Fecha_Creacion: 'DESC' }
         });
     }
 
     async findProyectobyId(Id_Proyecto: number) {
-        const proyecto = await this.proyectoRepository.findOne({ 
+        const proyecto = await this.proyectoRepository.findOne({
             where: { Id_Proyecto },
             relations: ['Estado']
         });
@@ -42,8 +47,7 @@ export class ProyectoService {
         return proyecto;
     }
 
-    async CreateProyecto(dto: CreateProyectoDto, file?: Express.Multer.File)
-    {
+    async CreateProyecto(dto: CreateProyectoDto, idUsuario: number, file?: Express.Multer.File) {
         if (!file) { throw new Error('Debe subir una imagen para el proyecto'); }
 
         // Obtener estado por defecto "En Planeamiento"
@@ -84,14 +88,14 @@ export class ProyectoService {
             Titulo: proyecto.Titulo,
             Descripcion: proyecto.Descripcion,
             Estado: proyecto.Estado?.Nombre_Estado,
-            Visible: proyecto.Visible
+            Visible: false
         };
 
         if (dto.Titulo) {
             dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
         }
-        if (dto.Descripcion) { 
-            dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase(); 
+        if (dto.Descripcion) {
+            dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
         }
 
         Object.assign(proyecto, dto);
@@ -159,6 +163,43 @@ export class ProyectoService {
             ...proyectoActualizado,
             Usuario: proyectoActualizado.Usuario ?
                 await this.usuariosService.FormatearUsuarioResponse(proyectoActualizado.Usuario) : null
+        };
+    }
+
+    async updateVisibilidadProyecto(Id_Proyecto: number, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario no existe.');
+
+        const proyecto = await this.proyectoRepository.findOne({
+            where: { Id_Proyecto },
+            relations: ['Estado', 'Usuario', 'Usuario.Rol']
+        });
+        if (!proyecto) { throw new Error(`Proyecto con id ${Id_Proyecto} no encontrado`); }
+
+        // Guardar visibilidad anterior para auditoría
+        const visibilidadAnterior = proyecto.Visible;
+
+        // Toggle: alterna entre true y false
+        proyecto.Visible = !proyecto.Visible;
+        const proyectoActualizado = await this.proyectoRepository.save(proyecto);
+
+        // Registrar en auditoría
+        try {
+            await this.auditoriaService.logActualizacion('Proyecto', idUsuario, Id_Proyecto, {
+                Titulo: proyecto.Titulo,
+                Visibilidad_Anterior: visibilidadAnterior ? 'Público' : 'Privado'
+            }, {
+                Visibilidad_Nueva: proyectoActualizado.Visible ? 'Público' : 'Privado'
+            });
+        } catch (error) {
+            console.error('Error al registrar auditoría de cambio de visibilidad de proyecto:', error);
+        }
+
+        return {
+            ...proyectoActualizado,
+            Usuario: proyectoActualizado.Usuario ? await this.usuariosService.FormatearUsuarioResponse(proyectoActualizado.Usuario) : null
         };
     }
 }
