@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException, Inject, forwardRef } from "@nestjs/common";
+import { Injectable, BadRequestException, Inject, forwardRef } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
@@ -7,12 +7,12 @@ import { Categoria } from "../Inventario/InventarioEntities/Categoria.Entity";
 import { UnidadMedicion } from "../Inventario/InventarioEntities/UnidadMedicion.Entity";
 import { Material } from "../Inventario/InventarioEntities/Material.Entity";
 import { Proveedor } from "../Proveedores/ProveedorEntities/Proveedor.Entity";
-import { Acta } from "../Actas/ActaEntities/Acta.Entity";
 import { CalidadAgua } from "../CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity";
 import { UsuariosService } from "../Usuarios/Services/usuarios.service";
 import { Proyecto } from "../Proyectos/ProyectoEntities/Proyecto.Entity";
 import { Lectura } from "../Lecturas/LecturaEntities/Lectura.Entity";
 import { Medidor } from "../Inventario/InventarioEntities/Medidor.Entity";
+import { Acta } from "../Actas/ActaEntities/Actas.Entity";
 
 @Injectable()
 export class AuditoriaService {

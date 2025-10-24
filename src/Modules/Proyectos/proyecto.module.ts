@@ -16,4 +16,4 @@ import { AuditoriaModule } from '../Auditoria/auditoria.module';
   exports: [ProyectoService],
 })
 
-export class ProyectoModule {}
+export class ProyectoModule { }

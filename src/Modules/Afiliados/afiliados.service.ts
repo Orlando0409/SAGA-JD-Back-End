@@ -10,6 +10,9 @@ import { CreateAfiliadoFisicoDto } from "./AfiliadoDTO's/CreateAfiliado.dto";
 import { CreateAfiliacionJuridicaDto } from "src/Modules/Solicitudes/SolicitudDTO's/CreateSolicitudJuridica.dto";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
+import { AuditoriaService } from "../Auditoria/auditoria.service";
+import { UsuariosService } from "../Usuarios/Services/usuarios.service";
+import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Injectable()
 export class AfiliadosService {
@@ -35,13 +38,16 @@ export class AfiliadosService {
         @InjectRepository(SolicitudAfiliacionJuridica)
         private readonly solicitudAfiliacionJuridicaRepository: Repository<SolicitudAfiliacionJuridica>,
 
-        private readonly dropboxFilesService: DropboxFilesService,
+        @InjectRepository(Usuario)
+        private readonly usuarioRepository: Repository<Usuario>,
 
         @Inject(forwardRef(() => AuditoriaService))
         private readonly auditoriaService: AuditoriaService,
 
         @Inject(forwardRef(() => UsuariosService))
         private readonly usuariosService: UsuariosService,
+
+        private readonly dropboxFilesService: DropboxFilesService,
     ) { }
 
     async getAfiliados() {
@@ -123,7 +129,12 @@ export class AfiliadosService {
         return this.afiliadoFisicoRepository.save(afiliado);
     }
 
-    async createAfiliadoFisico(dto: CreateAfiliadoFisicoDto, files: any) {
+    async createAfiliadoFisico(dto: CreateAfiliadoFisicoDto, idUsuario: number, files: any) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario creador no existe.');
+
         // Verificar que no existe ya un afiliado físico con esa identificación
         const afiliadoExistente = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: dto.Identificacion } });
         if (afiliadoExistente) { throw new BadRequestException(`Ya existe un afiliado físico con la identificación ${dto.Identificacion}`); }
@@ -184,7 +195,12 @@ export class AfiliadosService {
         return this.afiliadoJuridicoRepository.save(afiliado);
     }
 
-    async createAfiliadoJuridico(dto: CreateAfiliacionJuridicaDto, files: any) {
+    async createAfiliadoJuridico(dto: CreateAfiliacionJuridicaDto, idUsuario: number, files: any) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario creador no existe.');
+
         // Verificar que no existe ya un afiliado jurídico con esa cédula jurídica
         const afiliadoExistente = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: dto.Cedula_Juridica } });
         if (afiliadoExistente) { 
@@ -224,7 +240,11 @@ export class AfiliadosService {
         return this.afiliadoJuridicoRepository.save(afiliadoJuridico);
     }
 
-    async updateAfiliadoFisico(cedula: string, dto: UpdateAfiliadoFisicoDto, files?: any) {
+    async updateAfiliadoFisico(cedula: string, dto: UpdateAfiliadoFisicoDto, idUsuario: number, files?: any) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario creador no existe.');
         const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: cedula } });
         if (!afiliado) { throw new BadRequestException(`Afiliado físico con cédula ${cedula} no encontrado`); }
 
@@ -247,7 +267,12 @@ export class AfiliadosService {
         return this.afiliadoFisicoRepository.save(afiliado);
     }
 
-    async updateAfiliadoJuridico(cedulaJuridica: string, dto: UpdateAfiliadoJuridicoDto, files?: any) {
+    async updateAfiliadoJuridico(cedulaJuridica: string, dto: UpdateAfiliadoJuridicoDto, idUsuario: number, files?: any) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario creador no existe.');
+
         const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: cedulaJuridica } });
         if (!afiliado) { throw new BadRequestException(`Afiliado jurídico con cédula jurídica ${cedulaJuridica} no encontrado`); }
 
@@ -270,7 +295,12 @@ export class AfiliadosService {
         return this.afiliadoJuridicoRepository.save(afiliado);
     }
 
-    async updateEstadoAfiliadoFisico(idafiliado: number, nuevoEstadoId: number) {
+    async updateEstadoAfiliadoFisico(idafiliado: number, nuevoEstadoId: number, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario creador no existe.');
+
         const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Id_Afiliado: idafiliado }, relations: ['Estado'] });
         if (!afiliado) { throw new BadRequestException(`Afiliado físico con ID ${idafiliado} no encontrado`); }
 
@@ -281,7 +311,12 @@ export class AfiliadosService {
         return this.afiliadoFisicoRepository.save(afiliado);
     }
 
-    async updateEstadoAfiliadoJuridico(idafiliado: number, nuevoEstadoId: number) {
+    async updateEstadoAfiliadoJuridico(idafiliado: number, nuevoEstadoId: number, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario creador no existe.');
+
         const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Id_Afiliado: idafiliado }, relations: ['Estado'] });
         if (!afiliado) { throw new BadRequestException(`Afiliado jurídico con ID ${idafiliado} no encontrado`); }
 
@@ -292,7 +327,12 @@ export class AfiliadosService {
         return this.afiliadoJuridicoRepository.save(afiliado);
     }
 
-    async updateTipoAfiliadoFisico(idAfiliado: number, nuevoTipoId: number) {
+    async updateTipoAfiliadoFisico(idAfiliado: number, nuevoTipoId: number, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario creador no existe.');
+
         const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Id_Afiliado: idAfiliado }, relations: ['Tipo_Afiliado'] });
         if (!afiliado) { throw new BadRequestException(`Afiliado físico con ID ${idAfiliado} no encontrado`); }
 
@@ -314,7 +354,12 @@ export class AfiliadosService {
         return this.afiliadoFisicoRepository.save(afiliado);
     }
 
-    async updateTipoAfiliadoJuridico(idAfiliado: number, nuevoTipoId: number) {
+    async updateTipoAfiliadoJuridico(idAfiliado: number, nuevoTipoId: number, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario creador no existe.');
+
         const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Id_Afiliado: idAfiliado }, relations: ['Tipo_Afiliado'] });
         if (!afiliado) { throw new BadRequestException(`Afiliado jurídico con ID ${idAfiliado} no encontrado`); }
 
@@ -337,7 +382,12 @@ export class AfiliadosService {
     }
 
     // Métodos para cambiar afiliado a asociado basado en solicitud de asociado aprobada
-    async cambiarAbonadoAAsociadoFisico(identificacion: string) {
+    async cambiarAbonadoAAsociadoFisico(identificacion: string, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario creador no existe.');
+
         const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: identificacion }, relations: ['Tipo_Afiliado'] });
         if (!afiliado) {
             throw new BadRequestException(`No existe un afiliado físico con la identificación ${identificacion}`);
@@ -355,7 +405,12 @@ export class AfiliadosService {
         return this.afiliadoFisicoRepository.save(afiliado);
     }
 
-    async cambiarAbonadoAAsociadoJuridico(cedulaJuridica: string) {
+    async cambiarAbonadoAAsociadoJuridico(cedulaJuridica: string, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario creador no existe.');
+
         const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: cedulaJuridica }, relations: ['Tipo_Afiliado'] });
         if (!afiliado) { throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${cedulaJuridica}`); }
 

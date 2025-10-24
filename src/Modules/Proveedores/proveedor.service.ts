@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from './ProveedorEntities/Proveedor.Entity';
@@ -7,6 +7,9 @@ import { UpdateProveedorFisicoDto, UpdateProveedorJuridicoDto } from './Proveedo
 import { EstadoProveedor } from './ProveedorEntities/EstadoProveedor.Entity';
 import { UpdateEstadoProveedorDto } from './ProveedoresDTOs/UpdateEstadoProveedor.dto';
 import { TipoEntidad } from 'src/Common/Enums/TipoEntidad.enum';
+import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
+import { AuditoriaService } from '../Auditoria/auditoria.service';
+import { UsuariosService } from '../Usuarios/Services/usuarios.service';
 
 @Injectable()
 export class ProveedorService {
@@ -74,7 +77,12 @@ export class ProveedorService {
     return this.fisicoRepo.save(proveedorFisico);
   }
 
-  async createJuridico(dto: CreateProveedorJuridicoDto): Promise<ProveedorJuridico> {
+  async createJuridico(dto: CreateProveedorJuridicoDto, idUsuario: number): Promise<ProveedorJuridico> {
+    if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+    const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
+    if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
     const nombreExistente = await this.juridicoRepo.findOne({
       where: { Nombre_Proveedor: dto.Nombre_Proveedor },
     });
@@ -136,7 +144,12 @@ export class ProveedorService {
       return proveedor;
     }
 
-    async updateFisico(id: number, dto: UpdateProveedorFisicoDto): Promise<ProveedorFisico> {
+    async updateFisico(id: number, dto: UpdateProveedorFisicoDto, idUsuario: number): Promise<ProveedorFisico> {
+      if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+      const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
       const proveedor = await this.findOneFisico(id);
       
       // Excluir explícitamente tipo_identificacion de la actualización
@@ -146,14 +159,24 @@ export class ProveedorService {
       return this.fisicoRepo.save(proveedor);
     }
 
-    async updateJuridico(id: number, dto: UpdateProveedorJuridicoDto): Promise<ProveedorJuridico> {
+    async updateJuridico(id: number, dto: UpdateProveedorJuridicoDto, idUsuario: number): Promise<ProveedorJuridico> {
+      if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+      const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
       const proveedor = await this.findOneJuridico(id);
         Object.assign(proveedor, dto);
       return this.juridicoRepo.save(proveedor);
     }
 
     //----Actualizar Estado---- 
-      async updateEstadoFisico(id: number, dto: UpdateEstadoProveedorDto): Promise<ProveedorFisico> {
+      async updateEstadoFisico(id: number, dto: UpdateEstadoProveedorDto, idUsuario: number): Promise<ProveedorFisico> {
+      if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+      const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
       const proveedor = await this.findOneFisico(id);
 
       const estado = await this.estadoRepo.findOne({ where: { Id_Estado_Proveedor: dto.Id_Estado_Proveedor } });
@@ -163,7 +186,12 @@ export class ProveedorService {
       return this.fisicoRepo.save(proveedor);
     }
 
-    async updateEstadoJuridico(id: number, dto: UpdateEstadoProveedorDto): Promise<ProveedorJuridico> {
+    async updateEstadoJuridico(id: number, dto: UpdateEstadoProveedorDto, idUsuario: number): Promise<ProveedorJuridico> {
+      if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+      const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
       const proveedor = await this.findOneJuridico(id);
 
       const estado = await this.estadoRepo.findOne({ where: { Id_Estado_Proveedor: dto.Id_Estado_Proveedor } });
@@ -173,12 +201,22 @@ export class ProveedorService {
       return this.juridicoRepo.save(proveedor);
     }
 
-    async removeFisico(id: number): Promise<void> {
+    async removeFisico(id: number, idUsuario: number): Promise<void> {
+      if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+      const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
       const proveedor = await this.findOneFisico(id);
       await this.fisicoRepo.remove(proveedor);
     }
 
-    async removeJuridico(id: number): Promise<void> {
+    async removeJuridico(id: number, idUsuario: number): Promise<void> {
+      if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+      const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
       const proveedor = await this.findOneJuridico(id);
       await this.juridicoRepo.remove(proveedor);
     }
