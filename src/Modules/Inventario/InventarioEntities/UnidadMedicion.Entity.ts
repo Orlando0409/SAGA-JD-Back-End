@@ -31,8 +31,8 @@ export class UnidadMedicion {
     Materiales: Material[];
 
     @ManyToOne(() => Usuario, usuario => usuario.Id_Usuario, { eager: true })
-    @JoinColumn({ name: 'Id_Usuario' })
-    Usuario: Usuario;
+    @JoinColumn({ name: 'Id_Usuario_Creador' })
+    Usuario_Creador: Usuario;
 
 
     @BeforeInsert()

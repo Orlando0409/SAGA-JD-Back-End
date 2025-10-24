@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UploadedFiles, UseInterceptors, Patch, Res, ValidationPipe } from '@nestjs/common';
-import { Response } from 'express';
+import { Body, Controller, Get, Param, Post, UploadedFiles, UseInterceptors, Patch } from '@nestjs/common';
+import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { QuejasService } from './quejas.service';
-import { CreateQuejaDto } from './Dto/CreateQueja.dto';
-import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
+import { CreateQuejaDto } from './QuejaDTO\'s/CreateQueja.dto';
+import { ResponderQuejaDto } from './QuejaDTO\'s/ResponderQueja.dto';
+import { UpdateQuejaEstadoDto } from './QuejaDTO\'s/UpdateQuejaEstado.dto';
 
 @Controller('quejas')
 export class QuejasController {
@@ -37,7 +39,7 @@ export class QuejasController {
     return this.quejasService.updateEstado(id, nuevo as number);
   }
 
-  @Post(':id/responder')
+  @Patch(':id/responder')
   responder(
     @Param('id', NumericParamPipe) id: number,
     @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: ResponderQuejaDto,
@@ -45,8 +47,4 @@ export class QuejasController {
     return this.quejasService.responderQueja(id, body);
   }
 
-  @Delete(':id')
-  remove(@Param('id', NumericParamPipe) id: number) {
-    return this.quejasService.remove(id);
-  }
 }

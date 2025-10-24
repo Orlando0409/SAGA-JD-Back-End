@@ -2,9 +2,16 @@ import { Queja } from './QuejaEntities/Queja.Entity';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { QuejasEntity } from './Entity/QuejasEntity';
+import { Queja } from './QuejaEntities/QuejasEntity';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
-import { EstadoQueja } from './Entity/EstadoQueja';
+import { EmailService } from '../Emails/email.service';
+import { EstadoQueja } from './QuejaEntities/EstadoQueja';
+import { CreateQuejaDto } from './QuejaDTO\'s/CreateQueja.dto';
+import { ResponderQuejaDto } from './QuejaDTO\'s/ResponderQueja.dto';
+
+interface QuejaFiles {
+  Adjunto?: Express.Multer.File[];
+}
 
 @Injectable()
 export class QuejasService {
@@ -19,7 +26,7 @@ export class QuejasService {
 
     private readonly dropboxFilesService: DropboxFilesService,
     private readonly emailService: EmailService,
-  ) { }
+  ) {}
 
   async getAll() {
     return this.quejasRepository.find({ relations: ['Estado'] });
@@ -36,9 +43,9 @@ export class QuejasService {
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
     const fecha = new Date();
-    const nombre = dto.name?.toString().trim();
-    const primerApellido = dto.Papellido?.toString().trim();
-    const segundoApellido = dto.Sapellido?.toString().trim();
+    const nombre = dto.Nombre?.toString().trim();
+    const primerApellido = dto.Primer_Apellido?.toString().trim();
+    const segundoApellido = dto.Segundo_Apellido?.toString().trim();
     const rawFolder = [nombre, primerApellido, segundoApellido].filter(Boolean).join(' ');
     const folderName = rawFolder.replace(/[\\/\:\*\?"<>\|]/g, '').replace(/\s+/g, ' ').trim();
 
@@ -66,11 +73,11 @@ export class QuejasService {
       setImmediate(async () => {
         try {
           await this.emailService.enviarEmailQueja({
-            name: dto.name,
-            Papellido: dto.Papellido,
-            Sapellido: dto.Sapellido,
+            name: dto.Nombre,
+            Papellido: dto.Primer_Apellido,
+            Sapellido: dto.Segundo_Apellido,
             Correo: dto.Correo,
-            descripcion: dto.descripcion,
+            descripcion: dto.Descripcion,
             adjuntos: adjuntoUrls,
           });
         } catch (error) {
@@ -80,13 +87,6 @@ export class QuejasService {
     }
 
     return saved;
-  }
-
-  async remove(id: number) {
-    const repo = await this.quejasRepository.findOne({ where: { Id_Queja: id } });
-    if (!repo) throw new BadRequestException(`Queja con id ${id} no encontrada`);
-
-    return this.quejasRepository.remove(repo);
   }
 
   async updateEstado(id: number, nuevoEstadoId: number) {
@@ -107,7 +107,7 @@ export class QuejasService {
     });
     if (!repo) throw new BadRequestException(`Queja con id ${id} no encontrada`);
 
-    repo.Respuesta_Queja = dto.Respuesta;
+    repo.RespuestasReporte = dto.Respuesta;
     const estadoContestada = await this.estadoQuejaRepository.findOne({ where: { Id_Estado_Queja: 2 } });
     if (!estadoContestada) throw new BadRequestException('Estado contestada no encontrado');
 

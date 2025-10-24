@@ -1,12 +1,13 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Reporte } from './ReporteEntities/Reporte.Entity';
-import { EstadoReporte } from './ReporteEntities/EstadoReporte.Entity';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
-import { ResponderReporteDto } from './ReportesDto/ResponderReporte.dto';
 import { CreateReporteDto } from './ReporteDTO\'s/CreateReporte.dto';
+import { ResponderReporteDto } from './ReporteDTO\'s/ResponderReporte.dto';
+import { EstadoReporte } from './ReporteEntities/EstadoReporte';
+import { Reporte } from './ReporteEntities/Reportes.Entity';
+
 
 interface ReporteFiles {
   Adjunto?: Express.Multer.File[];
@@ -32,13 +33,13 @@ export class ReportesService {
   }
 
   async getOne(id: number) {
-    const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: id }, relations: ['Estado'] });
+    const repo = await this.reportesRepository.findOne({ where: { IdReporte: id }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Reporte con id ${id} no encontrado`);
     return repo;
   }
 
   async create(dto: CreateReporteDto, files?: ReporteFiles) {
-    const estado = await this.estadoReporteRepository.findOne({ where: { Id_Estado_Reporte: 1 } });
+    const estado = await this.estadoReporteRepository.findOne({ where: { IdEstadoReporte: 1 } });
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
     const fecha = new Date();
@@ -89,13 +90,6 @@ export class ReportesService {
     return saved;
   }
 
-  async remove(id: number) {
-    const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: id } });
-    if (!repo) throw new BadRequestException(`Reporte con id ${id} no encontrado`);
-
-    return this.reportesRepository.remove(repo);
-  }
-
   async updateEstado(id: number, nuevoEstadoId: number) {
     const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: id }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Reporte con id ${id} no encontrado`);
@@ -115,7 +109,7 @@ export class ReportesService {
     if (!repo) throw new BadRequestException(`Reporte con id ${id} no encontrado`);
 
     repo.RespuestasReporte = dto.Respuesta;
-    const estadoContestada = await this.estadoReporteRepository.findOne({ where: { Id_Estado_Reporte: 2 } });
+    const estadoContestada = await this.estadoReporteRepository.findOne({ where: { IdEstadoReporte: 2 } });
     if (!estadoContestada) throw new BadRequestException('Estado contestada no encontrado');
 
     repo.Estado = estadoContestada;
@@ -126,13 +120,13 @@ export class ReportesService {
       setImmediate(async () => {
         try {
           await this.emailService.enviarEmailRespuestaReporte({
-            Nombre: repo.Nombre,
-            Primer_Apellido: repo.Primer_Apellido,
-            Segundo_Apellido: repo.Segundo_Apellido,
+            name: repo.Nombre,
+            Papellido: repo.Primer_Apellido,
+            Sapellido: repo.Segundo_Apellido,
             Correo: correoDestino,
-            Ubicacion: repo.Ubicacion,
-            Descripcion: repo.Descripcion,
-            Respuesta: dto.Respuesta,
+            ubicacion: repo.Ubicacion,
+            descripcion: repo.Descripcion,
+            respuesta: dto.Respuesta,
           });
         } catch (error) {
           this.logger.error('Error al enviar email de respuesta de reporte:', error);

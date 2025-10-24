@@ -176,7 +176,7 @@ export class LecturaService {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
-        if (!usuario) throw new BadRequestException('El usuario creador no existe.');
+        if (!usuario) throw new BadRequestException('El usuario no existe.');
 
         const medidor = await this.medidorRepository.findOne({ 
             where: { Numero_Medidor: dto.Numero_Medidor }, 
@@ -211,7 +211,6 @@ export class LecturaService {
             Valor_Lectura_Actual: dto.Valor_Lectura,
             Consumo_Calculado: consumoCalculado,
             Medidor: medidor,
-            Usuario: usuario
         });
 
         const lecturaGuardada = await this.lecturaRepository.save(nuevaLectura);

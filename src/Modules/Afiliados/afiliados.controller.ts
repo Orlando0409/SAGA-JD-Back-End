@@ -1,11 +1,15 @@
-import { Body, Controller, Get, Param, Patch, Post, Put, UploadedFiles, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Put, UploadedFiles, UseInterceptors, UseGuards } from "@nestjs/common";
 import { AfiliadosService } from "./afiliados.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { CreateAfiliadoFisicoDto, CreateAfiliadoJuridicoDto } from "./AfiliadoDTO's/CreateAfiliado.dto";
 import { UpdateAfiliadoFisicoDto, UpdateAfiliadoJuridicoDto } from "./AfiliadoDTO's/UpdateAfiliado.dto";
 import { FileFieldsInterceptor } from "@nestjs/platform-express/multer";
+import { JwtAuthGuard } from "../auth/Guard/JwtGuard";
+import { GetUser } from "../auth/Decorator/GetUser.decorator";
+import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Controller('afiliados')
+@UseGuards(JwtAuthGuard)
 export class AfiliadosController {
     constructor(private readonly afiliadosService: AfiliadosService) {}
 
@@ -27,75 +31,83 @@ export class AfiliadosController {
         return this.afiliadosService.getAfiliadosJuridicos();
     }
 
-    @Post('/fisico/create/:idUsuario')
+    @Post('/fisico/create')
+    @Post('/fisico/create')
     @ApiOperation({ summary: 'Crear un nuevo afiliado físico' })
     @UseInterceptors(FileFieldsInterceptor([ 
         { name: 'Planos_Terreno', maxCount: 1 }, 
         { name: 'Escritura_Terreno', maxCount: 1 }, 
     ]),)
     createAfiliadoFisico(@Body() dto: CreateAfiliadoFisicoDto,
-    @Param('idUsuario') idUsuario: number,
+    @GetUser() usuario: Usuario,
     @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; }) {
-        return this.afiliadosService.createAfiliadoFisico(dto, idUsuario, files);
+        return this.afiliadosService.createAfiliadoFisico(dto, usuario.Id_Usuario, files);
     }
 
-    @Post('/juridico/create/:idUsuario')
+    @Post('/juridico/create')
+    @Post('/juridico/create')
     @ApiOperation({ summary: 'Crear un nuevo afiliado jurídico' })
     @UseInterceptors(FileFieldsInterceptor([ 
         { name: 'Planos_Terreno', maxCount: 1 }, 
         { name: 'Escritura_Terreno', maxCount: 1 }, 
     ]),)
     createAfiliadoJuridico(@Body() dto: CreateAfiliadoJuridicoDto,
-    @Param('idUsuario') idUsuario: number,
+    @GetUser() usuario: Usuario,
     @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; } ) {
-        return this.afiliadosService.createAfiliadoJuridico(dto, idUsuario, files);
+        return this.afiliadosService.createAfiliadoJuridico(dto, usuario.Id_Usuario, files);
     }
 
-    @Put('/update/fisico/:cedula/:idUsuario')
+    @Put('/update/fisico/:cedula')
+    @Put('/update/fisico/:cedula')
     @ApiOperation({ summary: 'Actualizar un afiliado físico' })
     @UseInterceptors(FileFieldsInterceptor([ 
         { name: 'Planos_Terreno', maxCount: 1 }, 
         { name: 'Escritura_Terreno', maxCount: 1 }, 
     ]),)
     updateAfiliadoFisico(@Param('cedula') cedula: string, @Body() dto: UpdateAfiliadoFisicoDto,
-    @Param('idUsuario') idUsuario: number,
+    @GetUser() usuario: Usuario,
     @UploadedFiles() files?: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; }) {
-        return this.afiliadosService.updateAfiliadoFisico(cedula, dto, idUsuario, files);
+        return this.afiliadosService.updateAfiliadoFisico(cedula, dto, usuario.Id_Usuario, files);
     }
 
-    @Put('/update/juridico/:cedulaJuridica/:idUsuario')
+    @Put('/update/juridico/:cedulaJuridica')
+    @Put('/update/juridico/:cedulaJuridica')
     @ApiOperation({ summary: 'Actualizar un afiliado jurídico' })
     @UseInterceptors(FileFieldsInterceptor([ 
         { name: 'Planos_Terreno', maxCount: 1 }, 
         { name: 'Escritura_Terreno', maxCount: 1 }, 
     ]),)
     updateAfiliadoJuridico(@Param('cedulaJuridica') cedulaJuridica: string, @Body() dto: UpdateAfiliadoJuridicoDto,
-    @Param('idUsuario') idUsuario: number,
+    @GetUser() usuario: Usuario,
     @UploadedFiles() files?: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; }) {
-        return this.afiliadosService.updateAfiliadoJuridico(cedulaJuridica, dto, idUsuario, files);
+        return this.afiliadosService.updateAfiliadoJuridico(cedulaJuridica, dto, usuario.Id_Usuario, files);
     }
 
-    @Patch('/fisico/:id/update/estado/:nuevoEstadoId/:idUsuario')
+    @Patch('/fisico/:id/update/estado/:nuevoEstadoId')
+    @Patch('/fisico/:id/update/estado/:nuevoEstadoId')
     @ApiOperation({ summary: 'Actualizar estado de un afiliado físico' })
-    updateEstadoAfiliado(@Param('id') id: number, @Param('nuevoEstadoId') nuevoEstadoId: number, @Param('idUsuario') idUsuario: number) {
-        return this.afiliadosService.updateEstadoAfiliadoFisico(id, nuevoEstadoId, idUsuario);
+    updateEstadoAfiliado(@Param('id') id: number, @Param('nuevoEstadoId') nuevoEstadoId: number, @GetUser() usuario: Usuario) {
+        return this.afiliadosService.updateEstadoAfiliadoFisico(id, nuevoEstadoId, usuario.Id_Usuario);
     }
 
-    @Patch('/juridico/:id/update/estado/:nuevoEstadoId/:idUsuario')
+    @Patch('/juridico/:id/update/estado/:nuevoEstadoId')
+    @Patch('/juridico/:id/update/estado/:nuevoEstadoId')
     @ApiOperation({ summary: 'Actualizar estado de un afiliado jurídico' })
-    updateEstadoAfiliadoJuridico(@Param('id') id: number, @Param('nuevoEstadoId') nuevoEstadoId: number, @Param('idUsuario') idUsuario: number) {
-        return this.afiliadosService.updateEstadoAfiliadoJuridico(id, nuevoEstadoId, idUsuario);
+    updateEstadoAfiliadoJuridico(@Param('id') id: number, @Param('nuevoEstadoId') nuevoEstadoId: number, @GetUser() usuario: Usuario) {
+        return this.afiliadosService.updateEstadoAfiliadoJuridico(id, nuevoEstadoId, usuario.Id_Usuario);
     }
 
-    @Patch('/update/tipo/fisico/:id/tipo/:nuevoTipoId/:idUsuario')
+    @Patch('/update/tipo/fisico/:id/tipo/:nuevoTipoId')
+    @Patch('/update/tipo/fisico/:id/tipo/:nuevoTipoId')
     @ApiOperation({ summary: 'Actualizar tipo de un afiliado físico' })
-    updateTipoAfiliadoFisico(@Param('id') id: number, @Param('nuevoTipoId') nuevoTipoId: number, @Param('idUsuario') idUsuario: number) {
-        return this.afiliadosService.updateTipoAfiliadoFisico(id, nuevoTipoId, idUsuario);
+    updateTipoAfiliadoFisico(@Param('id') id: number, @Param('nuevoTipoId') nuevoTipoId: number, @GetUser() usuario: Usuario) {
+        return this.afiliadosService.updateTipoAfiliadoFisico(id, nuevoTipoId, usuario.Id_Usuario);
     }
 
-    @Patch('/update/tipo/juridico/:id/tipo/:nuevoTipoId/:idUsuario')
+    @Patch('/update/tipo/juridico/:id/tipo/:nuevoTipoId')
+    @Patch('/update/tipo/juridico/:id/tipo/:nuevoTipoId')
     @ApiOperation({ summary: 'Actualizar tipo de un afiliado jurídico' })
-    updateTipoAfiliadoJuridico(@Param('id') id: number, @Param('nuevoTipoId') nuevoTipoId: number, @Param('idUsuario') idUsuario: number) {
-        return this.afiliadosService.updateTipoAfiliadoJuridico(id, nuevoTipoId, idUsuario);
+    updateTipoAfiliadoJuridico(@Param('id') id: number, @Param('nuevoTipoId') nuevoTipoId: number, @GetUser() usuario: Usuario) {
+        return this.afiliadosService.updateTipoAfiliadoJuridico(id, nuevoTipoId, usuario.Id_Usuario);
     }
 }

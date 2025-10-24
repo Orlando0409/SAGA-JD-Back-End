@@ -38,14 +38,14 @@ async function bootstrap() {
     .setVersion('1.0')
     .build();
 
-  const options: SwaggerDocumentOptions = {
-    autoTagControllers: true,
+    const options: SwaggerDocumentOptions =  {
+        autoTagControllers: true,
 
-    operationIdFactory: (
-      controllerKey: string,
-      methodKey: string
-    ) => methodKey
-  };
+        operationIdFactory: (
+          controllerKey: string,
+          methodKey: string
+        ) => methodKey
+      };
   const documentFactory = () => SwaggerModule.createDocument(app, config, options);
 
   SwaggerModule.setup('api', app, documentFactory, {
@@ -54,7 +54,7 @@ async function bootstrap() {
         const order = { get: 1, post: 2, put: 3, patch: 4, delete: 5 };
         return order[a.get("method")] - order[b.get("method")];
       }
-    },
+    }, 
   });
 
   await app.listen(process.env.PORT ?? 3000);
@@ -63,8 +63,10 @@ async function bootstrap() {
   console.log('Base de datos:', process.env.DB_DATABASE);
   if (process.env.NODE_ENV === 'development') {
     console.log('URL de frontend:', process.env.FRONTEND_URL_INFO);
+    console.log('URL de frontend (admin):', process.env.FRONTEND_URL_ADMIN);
   } else {
     console.log('URL de frontend:', process.env.FRONTEND_URL_INFO_PROD);
+    console.log('URL de frontend (admin):', process.env.FRONTEND_URL_ADMIN_PROD);
   }
 }
 bootstrap();

@@ -16,6 +16,11 @@ import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/
 import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoCalidadAgua } from 'src/Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
+import { EstadoReporte } from 'src/Modules/Reportes/ReporteEntities/EstadoReporte';
+import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia';
+import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja';
+import { SeederService } from './Seeder.service';
+import { EstadoMedidor } from 'src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
 
 @Module({
     imports: [

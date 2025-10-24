@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, UseInterceptors, ClassSerializerInterceptor, Put, Patch } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, UseInterceptors, ClassSerializerInterceptor, Put, Patch, UseGuards } from '@nestjs/common';
 import { MaterialService } from './Services/material.service';
 import { CategoriasService } from './Services/categorias.service';
 import { UnidadesDeMedicionService } from './Services/unidadesDeMedicion.service';
@@ -14,8 +14,12 @@ import { MovimientosService } from './Services/movimientos.service';
 import { MedidorService } from './Services/medidor.service';
 import { CreateMedidorDTO } from './InventarioDTO\'s/CreateMedidor.dto';
 import { AsignarMedidorDTO } from './InventarioDTO\'s/AsignarMedidor.dto';
+import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
+import { GetUser } from '../auth/Decorator/GetUser.decorator';
+import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 
 @Controller('Inventario')
+@UseGuards(JwtAuthGuard)
 @UseInterceptors(ClassSerializerInterceptor) // Agregar el interceptor para serialización
 export class InventarioController {
     constructor(
@@ -90,33 +94,33 @@ export class InventarioController {
         return this.materialService.getMaterialesEntreRangoPrecio(min, max);
     }
 
-    @Post('/create/material/:idUsuario')
+    @Post('/create/material')
     @ApiOperation({ summary: 'Crea un nuevo material en el inventario.' })
     async createMaterial(
         @Body() dto: CreateMaterialDto,
-        @Param('idUsuario', ParseIntPipe) idUsuario: number
+        @GetUser() usuario: Usuario
     ) {
-        return this.materialService.createMaterial(dto, idUsuario);
+        return this.materialService.createMaterial(dto, usuario.Id_Usuario);
     }
 
-    @Put('/update/material/:materialId/:idUsuario')
+    @Put('/update/material/:materialId')
     @ApiOperation({ summary: 'Actualiza un material existente en el inventario.' })
     async updateMaterial(
         @Param('materialId', ParseIntPipe) materialId: number,
-        @Param('idUsuario', ParseIntPipe) idUsuario: number,
-        @Body() dto: UpdateMaterialDto
+        @Body() dto: UpdateMaterialDto,
+        @GetUser() usuario: Usuario
     ) {
-        return this.materialService.updateMaterial(materialId, dto, idUsuario);
+        return this.materialService.updateMaterial(materialId, dto, usuario.Id_Usuario);
     }
 
-    @Patch('/update/estado/material/:materialId/:estadoMaterialId/:idUsuario')
+    @Patch('/update/estado/material/:materialId/:estadoMaterialId')
     @ApiOperation({ summary: 'Cambia el estado de un material. Si el estado es "De baja" (3), actualiza automáticamente la fecha de baja.' })
     async cambiarEstadoMaterial(
         @Param('materialId', ParseIntPipe) materialId: number,
         @Param('estadoMaterialId', ParseIntPipe) estadoMaterialId: number,
-        @Param('idUsuario', ParseIntPipe) idUsuario: number
+        @GetUser() usuario: Usuario
     ) {
-        return this.materialService.updateEstadoMaterial(materialId, estadoMaterialId, idUsuario);
+        return this.materialService.updateEstadoMaterial(materialId, estadoMaterialId, usuario.Id_Usuario);
     }
 
 
@@ -140,33 +144,33 @@ export class InventarioController {
         return this.categoriasService.getCategoriasInactivas();
     }
 
-    @Post('/create/categoria/:idUsuario')
+    @Post('/create/categoria')
     @ApiOperation({ summary: 'Crea una nueva categoría de material.' })
     async createCategoria(
         @Body() dto: CreateCategoriaDto,
-        @Param('idUsuario', ParseIntPipe) idUsuario: number
+        @GetUser() usuario: Usuario
     ) {
-        return this.categoriasService.createCategoria(dto, idUsuario);
+        return this.categoriasService.createCategoria(dto, usuario.Id_Usuario);
     }
 
-    @Put('/update/categoria/:categoriaId/:idUsuario')
+    @Put('/update/categoria/:categoriaId')
     @ApiOperation({ summary: 'Actualiza una categoría existente.' })
     async updateCategoria(
         @Param('categoriaId', ParseIntPipe) categoriaId: number,
         @Body() dto: UpdateCategoriaDto,
-        @Param('idUsuario', ParseIntPipe) idUsuario: number
+        @GetUser() usuario: Usuario
     ) {
-        return this.categoriasService.updateCategoria(categoriaId, dto, idUsuario);
+        return this.categoriasService.updateCategoria(categoriaId, dto, usuario.Id_Usuario);
     }
 
-    @Patch('/update/estado/categoria/:categoriaId/:estadoCategoriaId/:idUsuario')
+    @Patch('/update/estado/categoria/:categoriaId/:estadoCategoriaId')
     @ApiOperation({ summary: 'Cambia el estado de una categoría al estado especificado.' })
     async cambiarEstadoCategoria(
         @Param('categoriaId', ParseIntPipe) categoriaId: number,
         @Param('estadoCategoriaId', ParseIntPipe) estadoCategoriaId: number,
-        @Param('idUsuario', ParseIntPipe) idUsuario: number
+        @GetUser() usuario: Usuario
     ) {
-        return this.categoriasService.updateEstadoCategoria(categoriaId, estadoCategoriaId, idUsuario);
+        return this.categoriasService.updateEstadoCategoria(categoriaId, estadoCategoriaId, usuario.Id_Usuario);
     }
 
 
@@ -196,33 +200,33 @@ export class InventarioController {
         return this.unidadesDeMedicionService.getUnidadesMedicionInactivas();
     }
 
-    @Post('/create/unidad-medicion/:idUsuario')
+    @Post('/create/unidad-medicion')
     @ApiOperation({ summary: 'Crea una nueva unidad de medición.' })
     async createUnidadMedicion(
         @Body() dto: CreateUnidadMedicionDto,
-        @Param('idUsuario', ParseIntPipe) idUsuario: number
+        @GetUser() usuario: Usuario
     ) {
-        return this.unidadesDeMedicionService.createUnidadMedicion(dto, idUsuario);
+        return this.unidadesDeMedicionService.createUnidadMedicion(dto, usuario.Id_Usuario);
     }
 
-    @Put('/update/unidad-medicion/:unidadId/:idUsuario')
+    @Put('/update/unidad-medicion/:unidadId')
     @ApiOperation({ summary: 'Actualiza una unidad de medición existente.' })
     async updateUnidadMedicion(
         @Param('unidadId', ParseIntPipe) unidadId: number,
         @Body() dto: UpdateUnidadMedicionDto,
-        @Param('idUsuario', ParseIntPipe) idUsuario: number
+        @GetUser() usuario: Usuario
     ) {
-        return this.unidadesDeMedicionService.updateUnidadMedicion(unidadId, dto, idUsuario);
+        return this.unidadesDeMedicionService.updateUnidadMedicion(unidadId, dto, usuario.Id_Usuario);
     }
 
-    @Patch('/update/estado/unidad-medicion/:unidadId/:estadoUnidadId/:idUsuario')
+    @Patch('/update/estado/unidad-medicion/:unidadId/:estadoUnidadId')
     @ApiOperation({ summary: 'Cambia el estado de una unidad de medición al estado especificado.' })
     async cambiarEstadoUnidadMedicion(
         @Param('unidadId', ParseIntPipe) unidadId: number, 
         @Param('estadoUnidadId', ParseIntPipe) estadoUnidadId: number,
-        @Param('idUsuario', ParseIntPipe) idUsuario: number
+        @GetUser() usuario: Usuario
     ) {
-        return this.unidadesDeMedicionService.updateEstadoUnidadMedicion(unidadId, estadoUnidadId, idUsuario);
+        return this.unidadesDeMedicionService.updateEstadoUnidadMedicion(unidadId, estadoUnidadId, usuario.Id_Usuario);
     }
 
 
@@ -255,28 +259,28 @@ export class InventarioController {
         return this.movimientosService.getMovimientosEntreFechas(startDate, endDate);
     }
 
-    @Get('/movimientos/:idUsuario')
-    @ApiOperation({ summary: 'Obtiene un movimiento por su ID y el ID del usuario creador.' })
-    async getMovimientoPorId(@Param('idUsuario', ParseIntPipe) idUsuario: number) {
-        return this.movimientosService.getMovimientosPorUsuario(idUsuario);
+    @Get('/mis-movimientos')
+    @ApiOperation({ summary: 'Obtiene los movimientos del usuario autenticado.' })
+    async getMisMovimientos(@GetUser() usuario: Usuario) {
+        return this.movimientosService.getMovimientosPorUsuario(usuario.Id_Usuario);
     }
 
-    @Post('/ingreso/material/:idUsuario')
+    @Post('/ingreso/material')
     @ApiOperation({ summary: 'Registra el ingreso de una cantidad específica de un material al inventario.' })
     async ingresoMaterial(
-        @Param('idUsuario', ParseIntPipe) idUsuario: number,
-        @Body() dto: MovimientoMaterialDto
+        @Body() dto: MovimientoMaterialDto,
+        @GetUser() usuario: Usuario
     ) {
-        return this.movimientosService.IngresoMaterial(dto, idUsuario);
+        return this.movimientosService.IngresoMaterial(dto, usuario.Id_Usuario);
     }
 
-    @Post('/egreso/material/:idUsuario')
+    @Post('/egreso/material')
     @ApiOperation({ summary: 'Registra el egreso de una cantidad específica de un material del inventario.' })
     async egresoMaterial(
-        @Param('idUsuario', ParseIntPipe) idUsuario: number,
-        @Body() dto: MovimientoMaterialDto
+        @Body() dto: MovimientoMaterialDto,
+        @GetUser() usuario: Usuario
     ) {
-        return this.movimientosService.EgresoMaterial(idUsuario, dto);
+        return this.movimientosService.EgresoMaterial(usuario.Id_Usuario, dto);
     }
 
 
@@ -314,30 +318,31 @@ export class InventarioController {
         return this.medidorService.getMedidoresAfiliado(idAfiliado);
     }
 
-    @Post('/create/medidor/:idUsuario')
+    @Post('/create/medidor')
     @ApiOperation({ summary: 'Crea un nuevo medidor en el sistema.' })
     async createMedidor(
         @Body() dto: CreateMedidorDTO,
-        @Param('idUsuario', ParseIntPipe) idUsuario: number
+        @GetUser() usuario: Usuario
     ) {
-        return this.medidorService.createMedidor(dto, idUsuario);
+        return this.medidorService.createMedidor(dto, usuario.Id_Usuario);
     }
 
-    @Post('/asignar/medidor/:idUsuario')
+    @Post('/asignar/medidor')
     @ApiOperation({ summary: 'Asigna un medidor a un afiliado específico.' })
     async asignarMedidor(
         @Body() dto: AsignarMedidorDTO,
-        @Param('idUsuario', ParseIntPipe) idUsuario: number
+        @GetUser() usuario: Usuario
     ) {
-        return this.medidorService.asignarMedidorAAfiliado(dto, idUsuario);
+        return this.medidorService.asignarMedidorAAfiliado(dto, usuario.Id_Usuario);
     }
 
-    @Patch('/update/estado/medidor/:idMedidor/:nuevoEstadoId/:idUsuario')
+    @Patch('/update/estado/medidor/:idMedidor/:nuevoEstadoId')
+    @ApiOperation({ summary: 'Actualiza el estado de un medidor específico.' })
     async updateEstadoMedidor(
         @Param('idMedidor', ParseIntPipe) idMedidor: number,
         @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number,
-        @Param('idUsuario', ParseIntPipe) idUsuario: number
+        @GetUser() usuario: Usuario
     ) {
-        return this.medidorService.updateEstadoMedidor(idMedidor, nuevoEstadoId, idUsuario);
+        return this.medidorService.updateEstadoMedidor(idMedidor, nuevoEstadoId, usuario.Id_Usuario);
     }
 }

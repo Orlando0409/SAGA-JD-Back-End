@@ -17,6 +17,10 @@ import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/
 import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoCalidadAgua } from 'src/Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
+import { EstadoReporte } from 'src/Modules/Reportes/ReporteEntities/EstadoReporte';
+import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia';
+import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja';
+import { EstadoMedidor } from 'src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -340,6 +344,60 @@ export class SeederService implements OnModuleInit {
         }
     }
 
+    private async createDefaultEstadosQueja() {
+        const estados = [
+            { Id_Estado_Queja: 1, Estado_Queja: 'Pendiente' },
+            { Id_Estado_Queja: 2, Estado_Queja: 'Contestado' },
+            { Id_Estado_Queja: 3, Estado_Queja: 'Archivado' }
+        ];
+
+        for (const estado of estados) {
+            const existe = await this.estadoQuejaRepository.findOne({
+                where: { Id_Estado_Queja: estado.Id_Estado_Queja },
+            });
+            if (!existe) {
+                const nuevo = this.estadoQuejaRepository.create(estado as any);
+                await this.estadoQuejaRepository.save(nuevo);
+            }
+        }
+    }
+
+    private async createDefaultEstadosSugerencia() {
+        const estados = [
+            { Id_Estado_Sugerencia: 1, Estado_Sugerencia: 'Pendiente' },
+            { Id_Estado_Sugerencia: 2, Estado_Sugerencia: 'Contestado' },
+            { Id_Estado_Sugerencia: 3, Estado_Sugerencia: 'Archivado'},
+        ];
+
+        for (const estado of estados) {
+            const existe = await this.estadoSugerenciaRepository.findOne({
+                where: { Id_EstadoSugerencia: estado.Id_Estado_Sugerencia },
+            });
+            if (!existe) {
+                const nuevo = this.estadoSugerenciaRepository.create(estado);
+                await this.estadoSugerenciaRepository.save(nuevo);
+            }
+        }
+    }
+
+    private async createDefaultEstadosReporte() {
+        const estados = [
+            { Id_Estado_Reporte: 1, Estado_Reporte: 'Pendiente' },
+            { Id_Estado_Reporte: 2, Estado_Reporte: 'Contestado' },
+            { Id_Estado_Reporte: 3, Estado_Reporte: 'Archivado' }
+        ];
+
+        for (const estado of estados) {
+            const existe = await this.estadoReporteRepository.findOne({
+                where: { IdEstadoReporte: estado.Id_Estado_Reporte }
+            });
+            if (!existe) {
+                const nuevoEstado = this.estadoReporteRepository.create(estado);
+                await this.estadoReporteRepository.save(nuevoEstado);
+            }
+        }
+    }
+
     private async createPermisos() {
         
         const modulos = [
@@ -379,15 +437,15 @@ export class SeederService implements OnModuleInit {
                 Editar: true,
             });
 
-            // Permiso de lectura para bitacora
+            // Permiso de lectura para auditoria
             await this.createPermisoIfNotExists({
-                Modulo: 'bitacora',
-                Ver: true,        
+                Modulo: 'auditoria',
+                Ver: true,
                 Editar: false,
             });
-            // Sin permisos para bitacora
+            // Sin permisos para auditoria
             await this.createPermisoIfNotExists({
-                Modulo: 'bitacora',
+                Modulo: 'auditoria',
                 Ver: false,
                 Editar: false,
             });
@@ -444,7 +502,7 @@ export class SeederService implements OnModuleInit {
         const todosLosPermisos = await this.permisoRepository.find({
             where: [
                 { Ver: true, Editar: true },
-                { Modulo: 'bitacora', Ver: true, Editar: false }
+                { Modulo: 'auditoria', Ver: true, Editar: false }
             ]
         });
 

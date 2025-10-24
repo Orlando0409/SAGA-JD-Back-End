@@ -6,14 +6,14 @@ const NAME_WITH_SPACES = /^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?:\s[A-Za-zÁÉÍÓ
 
 export class CreateReporteDto {
     @IsDefined({ message: 'El nombre es requerido' })
-    @IsString({ message: 'El nombre debe ser un string' })
+    @IsString()
     @IsNotEmpty({ message: 'El nombre no puede estar vacío' })
     @Matches(NAME_WITH_SPACES, { message: 'El nombre sólo puede contener letras y espacios simples (sin caracteres especiales)' })
     @MaxLength(20, { message: 'El nombre no puede tener más de 20 caracteres' })
     Nombre: string;
 
     @IsDefined({ message: 'El primer apellido es requerido' })
-    @IsString({ message: 'El primer apellido debe ser un string' })
+    @IsString()
     @IsNotEmpty({ message: 'El primer apellido no puede estar vacío' })
     @Matches(NAME_REGEX, { message: 'El primer apellido sólo puede contener letras y sin espacios' })
     @MaxLength(20, { message: 'El primer apellido no puede tener más de 20 caracteres' })
@@ -37,17 +37,11 @@ export class CreateReporteDto {
     @IsString()
     @IsNotEmpty({ message: 'La ubicación no puede estar vacía' })
     @MaxLength(50, { message: 'La ubicación no puede tener más de 50 caracteres' })
-    ubicacion: string;
+    Ubicacion: string;
 
     @IsDefined({ message: 'La descripción es requerida' })
-    @IsString({ message: 'La descripción debe ser un string' })
+    @IsString()
     @IsNotEmpty({ message: 'La descripción no puede estar vacía' })
-    @MaxLength(200, { message: 'La descripción no puede tener más de 200 caracteres' })
+    @MaxLength(50, { message: 'La descripción no puede tener más de 50 caracteres' })
     Descripcion: string;
-
-    @IsDefined({ message: 'La ubicación es requerida' })
-    @IsString({ message: 'La ubicación debe ser un string' })
-    @IsNotEmpty({ message: 'La ubicación no puede estar vacía' })
-    @MaxLength(200, { message: 'La ubicación no puede tener más de 200 caracteres' })
-    Ubicacion: string;
 }

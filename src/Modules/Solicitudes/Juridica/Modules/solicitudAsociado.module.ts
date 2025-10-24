@@ -8,10 +8,15 @@ import { ValidationsModule } from 'src/Validations/Validations.module';
 import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
 import { AfiliadosModule } from 'src/Modules/Afiliados/afiliados.module';
 import { EmailModule } from 'src/Modules/Emails/email.module';
-import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SolicitudAsociadoJuridica, EstadoSolicitud, Usuario]), ValidationsModule, DropboxModule, AfiliadosModule, EmailModule],
+  imports: [
+    TypeOrmModule.forFeature([SolicitudAsociadoJuridica, EstadoSolicitud]),
+    ValidationsModule,
+    DropboxModule,
+    AfiliadosModule,
+    EmailModule
+  ],
   controllers: [SolicitudAsociadoJuridicaController],
   providers: [SolicitudAsociadoJuridicaService],
   exports: [SolicitudAsociadoJuridicaService],

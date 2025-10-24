@@ -1,15 +1,15 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { EstadoReporte } from './EstadoReporte.Entity';
+import { EstadoReporte } from './EstadoReporte';
 
-@Entity('Reportes')
+@Entity('reportes')
 export class Reporte {
     @PrimaryGeneratedColumn()
-    Id_Reporte: number;
+    IdReporte: number;
 
-    @Column({ nullable: false })
+    @Column()
     Nombre: string;
 
-    @Column({ nullable: true })
+    @Column()
     Primer_Apellido: string;
 
     @Column({ nullable: true })
@@ -21,19 +21,19 @@ export class Reporte {
     @Column()
     Descripcion: string;
 
-    @Column({ nullable: false, type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
+    @Column()
     Fecha_Reporte: Date;
 
     @Column()
     Correo: string;
 
-    @Column({ type: 'text', nullable: true })
-    RespuestasReporte?: string;
-
     @Column({ type: 'simple-json', nullable: true })
     Adjunto?: string[];
 
+    @Column({ type: 'text', nullable: true })
+    RespuestasReporte?: string;
+
     @ManyToOne(() => EstadoReporte)
-    @JoinColumn({ name: 'Id_Estado_Reporte' })
+    @JoinColumn({ name: 'IdEstadoReporte' })
     Estado: EstadoReporte;
 }

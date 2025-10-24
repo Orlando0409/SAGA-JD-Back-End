@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Acta } from "./ActaEntities/Acta.Entity";
 import { Repository } from "typeorm";
 import { CreateActaDto } from "./ActaDTO's/CreateActa.dto";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
@@ -8,6 +7,7 @@ import { UpdateActaDto } from "./ActaDTO's/UpdateActa.dto";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { UsuariosService } from "../Usuarios/Services/usuarios.service";
 import { AuditoriaService } from "../Auditoria/auditoria.service";
+import { Acta } from "./ActaEntities/Actas.Entity";
 
 @Injectable()
 export class ActasService {
