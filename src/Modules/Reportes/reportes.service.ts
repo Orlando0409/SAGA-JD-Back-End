@@ -93,17 +93,6 @@ export class ReportesService {
     const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: id } });
     if (!repo) throw new BadRequestException(`Reporte con id ${id} no encontrado`);
 
-    try {
-      const nombre = repo.Nombre?.toString().trim();
-      const primerApellido = repo.Primer_Apellido?.toString().trim();
-      const segundoApellido = repo.Segundo_Apellido?.toString().trim();
-      const rawFolder = [nombre, primerApellido, segundoApellido].filter(Boolean).join(' ');
-      const folderName = rawFolder.replace(/[\\/\:\*\?"<>\|]/g, '').replace(/\s+/g, ' ').trim();
-      await this.dropboxFilesService.deletePath('Contacto', 'Reportes', undefined, folderName);
-    } catch (err) {
-      console.warn(`No se pudo eliminar carpeta en Dropbox para reporte ${id}: ${err}`);
-    }
-
     return this.reportesRepository.remove(repo);
   }
 

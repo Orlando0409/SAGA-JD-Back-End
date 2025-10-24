@@ -1,13 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Post, UploadedFiles, UseInterceptors, Patch, BadRequestException } from '@nestjs/common';
-
-import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
+import { Body, Controller, Delete, Get, Param, Post, Put, UploadedFiles, UseInterceptors, Patch, Res, ValidationPipe } from '@nestjs/common';
+import { CreateReporteDto } from './ReportesDto/CreateReporte.dto';
+import { Response } from 'express';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ReportesService } from './reportes.service';
 import { ResponderReporteDto } from './ReportesDto/ResponderReporte.dto';
-import { Public } from "src/Modules/auth/Decorator/Public.decorator";
-import { CreateReporteDto } from './ReporteDTO\'s/CreateReporte.dto';
-import { UpdateReporteEstadoDto } from './ReporteDTO\'s/UpdateReporteEstado.dto';
-
+import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
+import { UpdateReporteEstadoDto } from './ReportesDto/UpdateReporteEstado.dto';
 
 @Controller('reportes')
 export class ReportesController {

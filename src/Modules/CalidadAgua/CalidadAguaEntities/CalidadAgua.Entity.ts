@@ -1,5 +1,5 @@
-import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { EstadoCalidadAgua } from "./EstadoCalidadAgua.Entity";
 
 @Entity('Calidad_Agua')
 export class CalidadAgua
@@ -19,13 +19,16 @@ export class CalidadAgua
     @UpdateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Actualizacion: Date;
 
-    @Column({ nullable: false, default: false })
-    Visible: boolean;
-
     @Column({ nullable: false })
     Url_Archivo: string;
 
-    @ManyToOne(() => Usuario, { nullable: false })
-    @JoinColumn({ name: 'Id_Usuario' })
-    Usuario: Usuario;
+    @ManyToOne(() => EstadoCalidadAgua, estado => estado.CalidadAgua)
+    Estado: EstadoCalidadAgua;
+
+    @BeforeInsert()
+    setDefaultEstado() { 
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Calidad_Agua: 2 } as EstadoCalidadAgua;
+        }
+    }
 }

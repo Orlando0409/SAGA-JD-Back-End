@@ -1,43 +1,38 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, UpdateDateColumn, BeforeInsert } from 'typeorm';
-import { EstadoProyecto } from './EstadoProyecto.Entity';
-import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn,ManyToOne, JoinColumn, UpdateDateColumn, BeforeInsert, BeforeUpdate  } from 'typeorm';
+import { ProyectoEstado } from './EstadoProyecto.Entity';
 
-@Entity('Proyecto')
+@Entity('Proyecto')   //Se utiliza en la base de datos para crear la tabla
 export class Proyecto
 {
-    @PrimaryGeneratedColumn()
-    Id_Proyecto: number;
+  @PrimaryGeneratedColumn()
+  Id_Proyecto: number;
 
-    @Column({ nullable: false })
-    Titulo: string;
+  @Column({ nullable: false })
+  Titulo: string;
 
-    @Column({ type: 'text' })
-    Descripcion: string;
+  @Column({ type: 'text' })
+  Descripcion: string;
 
-    @CreateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
-    Fecha_Creacion: Date;
+  @CreateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
+  Fecha_Creacion: Date;
 
-    @UpdateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
-    Fecha_Actualizacion: Date;
+  @UpdateDateColumn({type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
+  Fecha_Actualizacion: Date;
 
-    @Column({ nullable: false, default: false })
-    Visible: boolean;
+  @Column({ nullable: false })
+  Id_Usuario: number;   // CAMBIAR A USUARIO RELACION
 
-    @Column({ nullable: false })
-    Imagen_Url: string;
+  @ManyToOne(() => ProyectoEstado, Estado => Estado.Proyectos)  //Relacion Muchos A uno
+  @JoinColumn({ name: 'Id_Estado_Proyecto' })  //LLave Foranea para acceder al estado del proyecto 
+  Estado: ProyectoEstado; //Este campo puede ser un ID o un enum dependiendo de la implementación
 
-    @ManyToOne(() => EstadoProyecto, Estado => Estado.Proyectos)  //Relacion Muchos A uno
-    @JoinColumn({ name: 'Id_Estado_Proyecto' })  //LLave Foranea para acceder al estado del proyecto 
-    Estado: EstadoProyecto; 
+  @Column()
+  Imagen_Url: string;
 
-    @ManyToOne(() => Usuario, usuario => usuario.Id_Usuario, { eager: true })
-    @JoinColumn({ name: 'Id_Usuario' })
-    Usuario: Usuario;
-
-    @BeforeInsert()
-    setDefaultEstado() {
-      if (!this.Estado) {
-        this.Estado = { Id_Estado_Proyecto: 1 } as EstadoProyecto; 
-      }
+  @BeforeInsert()
+  setDefaultEstado() {
+    if (!this.Estado) {
+      this.Estado = { Id_Estado_Proyecto: 1 } as ProyectoEstado; 
     }
+  }
 }

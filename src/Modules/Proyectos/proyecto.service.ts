@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, ConflictException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UpdateProyectoDto } from "./ProyectoDTO's/UpdateProyecto.dto";
@@ -7,9 +7,6 @@ import { Proyecto } from "./ProyectoEntities/Proyecto.Entity";
 import { EstadoProyecto } from "./ProyectoEntities/EstadoProyecto.Entity";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { Public } from "../auth/Decorator/Public.decorator";
-import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
-import { UsuariosService } from "../Usuarios/Services/usuarios.service";
-import { AuditoriaService } from "../Auditoria/auditoria.service";
 
 @Injectable()
 export class ProyectoService {
@@ -20,9 +17,6 @@ export class ProyectoService {
         @InjectRepository(EstadoProyecto)
         private readonly proyectoEstadoRepository: Repository<EstadoProyecto>,
 
-        @InjectRepository(Usuario)
-        private readonly usuarioRepository: Repository<Usuario>,
-
         private readonly dropboxFilesService: DropboxFilesService,
 
         private readonly usuariosService: UsuariosService,
@@ -31,58 +25,32 @@ export class ProyectoService {
     ) { }
 
     @Public()
-    async getProyectosVisibles() {
-        const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
-            .leftJoinAndSelect('proyecto.Estado', 'estado')
-            .leftJoinAndSelect('proyecto.Usuario', 'usuario')
-            .where('proyecto.Visible = :visible', { visible: true })
-            .getMany();
-
-        return Promise.all(proyectos.map(async proyecto => ({
-            ...proyecto,
-            Usuario: proyecto.Usuario ?
-                await this.usuariosService.FormatearUsuarioResponse(proyecto.Usuario) : null
-        })));
+    async getProyectos()
+    {
+        return this.proyectoRepository.find({ 
+            relations: ['Estado'],
+            order: { Fecha_Creacion: 'DESC' }
+        });
     }
 
-    async getProyectosInvisibles() {
-        const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
-            .leftJoinAndSelect('proyecto.Estado', 'estado')
-            .leftJoinAndSelect('proyecto.Usuario', 'usuario')
-            .where('proyecto.Visible = :visible', { visible: false })
-            .getMany();
-
-        return Promise.all(proyectos.map(async proyecto => ({
-            ...proyecto,
-            Usuario: proyecto.Usuario ?
-                await this.usuariosService.FormatearUsuarioResponse(proyecto.Usuario) : null
-        })));
+    async findProyectobyId(Id_Proyecto: number) {
+        const proyecto = await this.proyectoRepository.findOne({ 
+            where: { Id_Proyecto },
+            relations: ['Estado']
+        });
+        if (!proyecto) { throw new NotFoundException(`Proyecto con id ${Id_Proyecto} no encontrado`); }
+        return proyecto;
     }
 
-    async getAllProyectos() {
-        const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
-            .leftJoinAndSelect('proyecto.Estado', 'estado')
-            .leftJoinAndSelect('proyecto.Usuario', 'usuario')
-            .getMany();
-
-        return Promise.all(proyectos.map(async proyecto => ({
-            ...proyecto,
-            Usuario: proyecto.Usuario ?
-                await this.usuariosService.FormatearUsuarioResponse(proyecto.Usuario) : null
-        })));
-    }
-
-    async CreateProyecto(dto: CreateProyectoDto, idUsuario: number, file?: Express.Multer.File) {
-        if (!idUsuario) { throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción'); }
-        if (!file) throw new BadRequestException('Debe subir una imagen para el proyecto');
-
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
-        if (!usuario) throw new BadRequestException('El usuario no existe.');
+    async CreateProyecto(dto: CreateProyectoDto, file?: Express.Multer.File)
+    {
+        if (!file) { throw new Error('Debe subir una imagen para el proyecto'); }
 
         // Obtener estado por defecto "En Planeamiento"
-        const estadoInicial = await this.proyectoEstadoRepository.findOne({ where: { Id_Estado_Proyecto: 1 } });
-        if (!estadoInicial) throw new NotFoundException('Estado por defecto no encontrado');
+        const estadoDefault = await this.proyectoEstadoRepository.findOne({ where: { Id_Estado_Proyecto: 1 } });
+        if (!estadoDefault) { throw new Error('Estado por defecto no encontrado'); }
 
+        // Normalizar datos antes de procesar
         dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
         dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
 
@@ -92,32 +60,11 @@ export class ProyectoService {
         const proyecto = this.proyectoRepository.create({
             ...dto,
             Imagen_Url: Proyecto.url,
-            Estado: estadoInicial,
-            Visible: false,
-            Usuario: usuario
+            Estado: estadoDefault
         });
 
         // Guardar en BD
-        const proyectoGuardado = await this.proyectoRepository.save(proyecto);
-
-        // Registrar en auditoría
-        try {
-            await this.auditoriaService.logCreacion('Proyecto', idUsuario, proyectoGuardado.Id_Proyecto, {
-                Id_Proyecto: proyectoGuardado.Id_Proyecto,
-                Titulo: proyectoGuardado.Titulo,
-                Descripcion: proyectoGuardado.Descripcion,
-                Estado_Inicial: estadoInicial.Nombre_Estado,
-                Visible: proyectoGuardado.Visible,
-                Tiene_Imagen: !!proyectoGuardado.Imagen_Url
-            });
-        } catch (error) {
-            console.error('Error al registrar auditoría de creación de proyecto:', error);
-        }
-
-        return {
-            ...proyectoGuardado,
-            Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario)
-        }
+        return await this.proyectoRepository.save(proyecto);
     }
 
     async UpdateProyecto(Id_Proyecto: number, dto: UpdateProyectoDto, idUsuario: number) {
@@ -143,9 +90,8 @@ export class ProyectoService {
         if (dto.Titulo) {
             dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
         }
-
-        if (dto.Descripcion) {
-            dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
+        if (dto.Descripcion) { 
+            dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase(); 
         }
 
         Object.assign(proyecto, dto);
@@ -213,43 +159,6 @@ export class ProyectoService {
             ...proyectoActualizado,
             Usuario: proyectoActualizado.Usuario ?
                 await this.usuariosService.FormatearUsuarioResponse(proyectoActualizado.Usuario) : null
-        };
-    }
-
-    async updateVisibilidadProyecto(Id_Proyecto: number, idUsuario: number) {
-        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
-
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
-        if (!usuario) throw new BadRequestException('El usuario no existe.');
-
-        const proyecto = await this.proyectoRepository.findOne({
-            where: { Id_Proyecto },
-            relations: ['Estado', 'Usuario', 'Usuario.Rol']
-        });
-        if (!proyecto) { throw new Error(`Proyecto con id ${Id_Proyecto} no encontrado`); }
-
-        // Guardar visibilidad anterior para auditoría
-        const visibilidadAnterior = proyecto.Visible;
-
-        // Toggle: alterna entre true y false
-        proyecto.Visible = !proyecto.Visible;
-        const proyectoActualizado = await this.proyectoRepository.save(proyecto);
-
-        // Registrar en auditoría
-        try {
-            await this.auditoriaService.logActualizacion('Proyecto', idUsuario, Id_Proyecto, {
-                Titulo: proyecto.Titulo,
-                Visibilidad_Anterior: visibilidadAnterior ? 'Público' : 'Privado'
-            }, {
-                Visibilidad_Nueva: proyectoActualizado.Visible ? 'Público' : 'Privado'
-            });
-        } catch (error) {
-            console.error('Error al registrar auditoría de cambio de visibilidad de proyecto:', error);
-        }
-
-        return {
-            ...proyectoActualizado,
-            Usuario: proyectoActualizado.Usuario ? await this.usuariosService.FormatearUsuarioResponse(proyectoActualizado.Usuario) : null
         };
     }
 }

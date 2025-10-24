@@ -13,33 +13,26 @@ export class ProyectoController {
   constructor(private readonly proyectoService: ProyectoService) { }
 
   @Public()
-  @Get('/visibles')
-  @ApiOperation({ summary: 'Obtener proyectos visibles (estado activo)' })
-  getProyectosVisibles() {
-    return this.proyectoService.getProyectosVisibles();
-  }
-
-  @Get('/invisibles')
-  @ApiOperation({ summary: 'Obtener proyectos invisibles (estado inactivo)' })
-  getProyectosInvisibles() {
-    return this.proyectoService.getProyectosInvisibles();
-  }
-
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todos los proyectos' })
   getProyectos() {
-    return this.proyectoService.getAllProyectos();
+    return this.proyectoService.getProyectos();
   }
 
-  @Post('/create/:idUsuario')
+  @Get(':id')
+  @ApiOperation({ summary: 'Obtener proyecto por ID' })
+  findProyectobyId(@Param('id', ParseIntPipe) id: number) {
+    return this.proyectoService.findProyectobyId(id);
+  }
+
+  @Post('/create')
   @UseInterceptors(FileInterceptor("Imagen_Proyecto"))
   @ApiOperation({ summary: "Crear un nuevo proyecto" })
   CreateProyecto(
-    @Body() createProyectoDto: CreateProyectoDto,
-    @Param('idUsuario', ParseIntPipe) idUsuario: number,
-    @UploadedFile() Imagen_Proyecto: Express.Multer.File,
+      @Body() createProyectoDto: CreateProyectoDto,
+      @UploadedFile() Imagen_Proyecto: Express.Multer.File,
   ) {
-    return this.proyectoService.CreateProyecto(createProyectoDto, idUsuario, Imagen_Proyecto);
+      return this.proyectoService.CreateProyecto(createProyectoDto, Imagen_Proyecto);
   }
 
   @Put('/update/:idProyecto/:idUsuario')
@@ -52,11 +45,5 @@ export class ProyectoController {
   @ApiOperation({ summary: 'Actualizar el estado de proyecto por ID' })
   updateEstadoProyecto(@Param('idProyecto', ParseIntPipe) idProyecto: number, @Param('idEstadoProyecto', ParseIntPipe) idEstadoProyecto: number, @Param('idUsuario', ParseIntPipe) idUsuario: number) {
     return this.proyectoService.updateEstadoProyecto(idProyecto, idEstadoProyecto, idUsuario);
-  }
-
-  @Patch('/update/visibilidad/:idProyecto/:idUsuario')
-  @ApiOperation({ summary: 'Actualizar la visibilidad del proyecto por ID' })
-  updateVisibilidadProyecto(@Param('idProyecto', ParseIntPipe) idProyecto: number, @Param('idUsuario', ParseIntPipe) idUsuario: number) {
-    return this.proyectoService.updateVisibilidadProyecto(idProyecto, idUsuario);
   }
 }

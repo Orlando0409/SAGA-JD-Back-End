@@ -40,7 +40,7 @@ export class SolicitudAsociadoFisicaService {
         const AfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
         if (AfiliadoExistente) {
             const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
-            if (validacionSolicitudesActivas) throw new BadRequestException(validacionSolicitudesActivas);
+            if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
             // Normalizar nombres en el servicio (Apellido2 se maneja automáticamente en la entidad)
             dto.Nombre = dto.Nombre.trim()[0].toUpperCase() + dto.Nombre.trim().slice(1).toLowerCase();

@@ -50,6 +50,7 @@ import { Categoria } from './Modules/Inventario/InventarioEntities/Categoria.Ent
 import { MaterialCategoria } from './Modules/Inventario/InventarioEntities/MaterialCategoria.Entity';
 import { UnidadMedicion } from './Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoUnidadMedicion } from './Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
+import { EstadoCalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/EstadoCalidadAgua.Entity';
 import { EstadoCategoria } from './Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
 import { MovimientoInventario } from './Modules/Inventario/InventarioEntities/Movimiento.Entity';
@@ -65,6 +66,9 @@ import { Lectura } from './Modules/Lecturas/LecturaEntities/Lectura.Entity';
 import { AuditoriaModule } from './Modules/Auditoria/auditoria.module';
 import { LecturaModule } from './Modules/Lecturas/lectura.module';
 import { FAQModule } from './Modules/FAQ/faq.module';
+import { TipoProveedor } from './Modules/Proveedores/ProveedorEntities/TipoProveedor.Entity';
+import { SeederModule } from './Config/Seeder.module';
+
 
 @Module({
   imports: [
@@ -120,8 +124,26 @@ import { FAQModule } from './Modules/FAQ/faq.module';
     AfiliadosModule,
     SolicitudesModule,
     CalidadAguaModule,
+        Usuario, UsuarioRol, Permiso,
+        Solicitud, SolicitudFisica, SolicitudJuridica, EstadoSolicitud,
+        SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudAsociadoFisica,
+        SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
+        Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
+        Proveedor, EstadoProveedor, TipoProveedor, ProveedorFisico, ProveedorJuridico,
+        Proyecto, ProyectoEstado,
+        CalidadAgua, EstadoCalidadAgua,
+        Acta, ArchivoActa,
+        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario
+        ],
+        synchronize: false,
+        dropSchema: false,
+      }),
+    }),
     ProyectoModule,
-    ActasModule,
+    FacturaModule,
+    InventarioModule,
+    ProveedorModule,
+    UsuariosModule,
     SolicitudAfiliacionFisicaModule,
     SolicitudAfiliacionJuridicaModule,
     SolicitudDesconexionFisicaModule,
@@ -134,6 +156,13 @@ import { FAQModule } from './Modules/FAQ/faq.module';
     SugerenciaModule,
     QuejasModule,
     FAQModule
+    RolesModule,
+    AuthModule,
+    SeederModule,
+    CalidadAguaModule,
+    AfiliadosModule,
+    SolicitudesModule,
+    ActasModule
   ],
   controllers: [],
   providers: [

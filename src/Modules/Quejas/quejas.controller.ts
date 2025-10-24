@@ -1,11 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, UploadedFiles, UseInterceptors, Patch, BadRequestException } from '@nestjs/common';
-import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
+import { Body, Controller, Delete, Get, Param, Post, Put, UploadedFiles, UseInterceptors, Patch, Res, ValidationPipe } from '@nestjs/common';
+import { Response } from 'express';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { QuejasService } from './quejas.service';
-import { Public } from "src/Modules/auth/Decorator/Public.decorator";
-import { CreateQuejaDto } from './QuejaDTO\'s/CreateQueja.dto';
-import { UpdateQuejaEstadoDto } from './QuejaDTO\'s/UpdateQuejaEstado.dto';
-import { ResponderQuejaDto } from './QuejaDTO\'s/ResponderQueja.dto';
+import { CreateQuejaDto } from './Dto/CreateQueja.dto';
+import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 
 @Controller('quejas')
 export class QuejasController {
