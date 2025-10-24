@@ -33,13 +33,13 @@ export class ReportesService {
   }
 
   async getOne(id: number) {
-    const repo = await this.reportesRepository.findOne({ where: { IdReporte: id }, relations: ['Estado'] });
+    const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: id }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Reporte con id ${id} no encontrado`);
     return repo;
   }
 
   async create(dto: CreateReporteDto, files?: ReporteFiles) {
-    const estado = await this.estadoReporteRepository.findOne({ where: { IdEstadoReporte: 1 } });
+    const estado = await this.estadoReporteRepository.findOne({ where: { Id_Estado_Reporte: 1 } });
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
     const fecha = new Date();
@@ -91,10 +91,10 @@ export class ReportesService {
   }
 
   async updateEstado(id: number, nuevoEstadoId: number) {
-    const repo = await this.reportesRepository.findOne({ where: { IdReporte: id }, relations: ['Estado'] });
+    const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: id }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Reporte con id ${id} no encontrado`);
 
-    const nuevoEstado = await this.estadoReporteRepository.findOne({ where: { IdEstadoReporte: nuevoEstadoId } });
+    const nuevoEstado = await this.estadoReporteRepository.findOne({ where: { Id_Estado_Reporte: nuevoEstadoId } });
     if (!nuevoEstado) throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);
 
     repo.Estado = nuevoEstado;
@@ -102,14 +102,14 @@ export class ReportesService {
   }
 
   async responderReporte(id: number, dto: ResponderReporteDto) {
-    const repo = await this.reportesRepository.findOne({ 
-      where: { IdReporte: id }, 
-      relations: ['Estado'] 
+    const repo = await this.reportesRepository.findOne({
+      where: { Id_Reporte: id },
+      relations: ['Estado']
     });
     if (!repo) throw new BadRequestException(`Reporte con id ${id} no encontrado`);
 
     repo.RespuestasReporte = dto.Respuesta;
-    const estadoContestada = await this.estadoReporteRepository.findOne({ where: { IdEstadoReporte: 2 } });
+    const estadoContestada = await this.estadoReporteRepository.findOne({ where: { Id_Estado_Reporte: 2 } });
     if (!estadoContestada) throw new BadRequestException('Estado contestada no encontrado');
 
     repo.Estado = estadoContestada;

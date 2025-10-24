@@ -30,18 +30,18 @@ export class CategoriasService {
     async getAllCategorias() {
         const categorias = await this.categoriaRepository.createQueryBuilder('categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
-            .leftJoinAndSelect('categoria.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('categoria.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .getMany();
 
         return categorias.map(categoria => {
             return {
                 ...categoria,
-                Usuario_Creador: {
-                    Id_Usuario: categoria.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: categoria.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: categoria.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: categoria.Usuario_Creador.Rol?.Nombre_Rol
+                Usuario: {
+                    Id_Usuario: categoria.Usuario.Id_Usuario,
+                    Nombre_Usuario: categoria.Usuario.Nombre_Usuario,
+                    Id_Rol: categoria.Usuario.Id_Rol,
+                    Nombre_Rol: categoria.Usuario.Rol?.Nombre_Rol
                 }
             };
         });
@@ -50,7 +50,7 @@ export class CategoriasService {
     async getCategoriasActivas() {
         const categorias = await this.categoriaRepository.createQueryBuilder('categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
-            .leftJoinAndSelect('categoria.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('categoria.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('estado.Id_Estado_Categoria = :estado', { estado: 1 }) // 1 = Activa
             .getMany();
@@ -58,11 +58,11 @@ export class CategoriasService {
         return categorias.map(categoria => {
             return {
                 ...categoria,
-                Usuario_Creador: {
-                    Id_Usuario: categoria.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: categoria.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: categoria.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: categoria.Usuario_Creador.Rol?.Nombre_Rol
+                Usuario: {
+                    Id_Usuario: categoria.Usuario.Id_Usuario,
+                    Nombre_Usuario: categoria.Usuario.Nombre_Usuario,
+                    Id_Rol: categoria.Usuario.Id_Rol,
+                    Nombre_Rol: categoria.Usuario.Rol?.Nombre_Rol
                 }
             };
         });
@@ -71,7 +71,7 @@ export class CategoriasService {
     async getCategoriasInactivas() {
         const categorias = await this.categoriaRepository.createQueryBuilder('categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
-            .leftJoinAndSelect('categoria.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('categoria.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('estado.Id_Estado_Categoria = :estado', { estado: 2 }) // 2 = Inactiva
             .getMany();
@@ -79,29 +79,29 @@ export class CategoriasService {
         return categorias.map(categoria => {
             return {
                 ...categoria,
-                Usuario_Creador: {
-                    Id_Usuario: categoria.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: categoria.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: categoria.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: categoria.Usuario_Creador.Rol?.Nombre_Rol
+                Usuario: {
+                    Id_Usuario: categoria.Usuario.Id_Usuario,
+                    Nombre_Usuario: categoria.Usuario.Nombre_Usuario,
+                    Id_Rol: categoria.Usuario.Id_Rol,
+                    Nombre_Rol: categoria.Usuario.Rol?.Nombre_Rol
                 }
             };
         });
     }
 
-    async createCategoria(dto: CreateCategoriaDto, idUsuarioCreador: number) {
+    async createCategoria(dto: CreateCategoriaDto, idUsuario: number) {
         const CategoriaNormalizada = dto.Nombre_Categoria[0].toUpperCase() + dto.Nombre_Categoria.slice(1).toLowerCase();
 
         const categoriaExistente = await this.categoriaRepository.findOne({ where: { Nombre_Categoria: CategoriaNormalizada } });
         if (categoriaExistente) { throw new BadRequestException(`La categoría "${CategoriaNormalizada}" ya se encuentra registrada`); }
 
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador }, relations: ['Rol'] });
-        if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuarioCreador} no encontrado`); }
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
+        if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuario} no encontrado`); }
 
         const categoria = this.categoriaRepository.create({
             ...dto,
             Nombre_Categoria: CategoriaNormalizada,
-            Usuario_Creador: usuario,
+            Usuario: usuario,
         });
 
         const categoriaGuardada = await this.categoriaRepository.save(categoria);
@@ -110,7 +110,7 @@ export class CategoriasService {
         try {
             await this.auditoriaService.logCreacion(
                 'Categoria',
-                idUsuarioCreador,
+                idUsuario,
                 categoriaGuardada.Id_Categoria,
                 {
                     Id_Categoria: categoriaGuardada.Id_Categoria,
@@ -123,9 +123,9 @@ export class CategoriasService {
             console.error('Error al registrar auditoría de creación de categoría:', error);
         }
 
-        const categoriaCompleta = await this.categoriaRepository.findOne({ 
-            where: { Id_Categoria: categoriaGuardada.Id_Categoria }, 
-            relations: ['Estado_Categoria', 'Usuario_Creador', 'Usuario_Creador.Rol']
+        const categoriaCompleta = await this.categoriaRepository.findOne({
+            where: { Id_Categoria: categoriaGuardada.Id_Categoria },
+            relations: ['Estado_Categoria', 'Usuario', 'Usuario.Rol']
         });
 
         if (!categoriaCompleta) {
@@ -138,7 +138,7 @@ export class CategoriasService {
             Nombre_Categoria: categoriaCompleta.Nombre_Categoria,
             Descripcion_Categoria: categoriaCompleta.Descripcion_Categoria,
             Estado_Categoria: categoriaCompleta.Estado_Categoria,
-            Usuario_Creador: {
+            Usuario: {
                 Id_Usuario: usuario.Id_Usuario,
                 Nombre_Usuario: usuario.Nombre_Usuario,
                 Id_Rol: usuario.Id_Rol,
@@ -198,7 +198,7 @@ export class CategoriasService {
         // Recargar la categoría con las relaciones necesarias pero con formato controlado
         const categoriaCompleta = await this.categoriaRepository.createQueryBuilder('categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
-            .leftJoinAndSelect('categoria.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('categoria.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('categoria.Id_Categoria = :id', { id: Id_Categoria })
             .getOne();
@@ -210,11 +210,11 @@ export class CategoriasService {
         // Formatear la respuesta para mostrar solo información básica del usuario
         return {
             ...categoriaCompleta,
-            Usuario_Creador: {
-                Id_Usuario: categoriaCompleta.Usuario_Creador.Id_Usuario,
-                Nombre_Usuario: categoriaCompleta.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: categoriaCompleta.Usuario_Creador.Id_Rol,
-                Nombre_Rol: categoriaCompleta.Usuario_Creador.Rol?.Nombre_Rol
+            Usuario: {
+                Id_Usuario: categoriaCompleta.Usuario.Id_Usuario,
+                Nombre_Usuario: categoriaCompleta.Usuario.Nombre_Usuario,
+                Id_Rol: categoriaCompleta.Usuario.Id_Rol,
+                Nombre_Rol: categoriaCompleta.Usuario.Rol?.Nombre_Rol
             }
         };
     }
@@ -277,7 +277,7 @@ export class CategoriasService {
         // Recargar la categoría con las relaciones necesarias pero con formato controlado
         const categoriaCompleta = await this.categoriaRepository.createQueryBuilder('categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estado')
-            .leftJoinAndSelect('categoria.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('categoria.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('categoria.Id_Categoria = :id', { id: Id_Categoria })
             .getOne();
@@ -289,11 +289,11 @@ export class CategoriasService {
         // Formatear la respuesta para mostrar solo información básica del usuario
         return {
             ...categoriaCompleta,
-            Usuario_Actualizador: {
-                Id_Usuario: categoriaCompleta.Usuario_Creador.Id_Usuario,
-                Nombre_Usuario: categoriaCompleta.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: categoriaCompleta.Usuario_Creador.Id_Rol,
-                Nombre_Rol: categoriaCompleta.Usuario_Creador.Rol?.Nombre_Rol
+            Usuario: {
+                Id_Usuario: categoriaCompleta.Usuario.Id_Usuario,
+                Nombre_Usuario: categoriaCompleta.Usuario.Nombre_Usuario,
+                Id_Rol: categoriaCompleta.Usuario.Id_Rol,
+                Nombre_Rol: categoriaCompleta.Usuario.Rol?.Nombre_Rol
             }
         };
     }

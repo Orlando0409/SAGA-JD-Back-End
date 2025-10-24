@@ -58,8 +58,8 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .getMany();
@@ -77,8 +77,8 @@ export class MaterialService {
             const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
 
             // Formatear usuario usando el método del servicio
-            const usuarioFormateado = material.Usuario_Creador 
-                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario_Creador)
+            const usuarioFormateado = material.Usuario
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
                 : null;
 
             // Formatear proveedor usando el método del servicio (si existe)
@@ -103,7 +103,7 @@ export class MaterialService {
                 Unidad_Medicion: unidadMedicionFormateada,
                 Categorias: categoriasFormateadas,
                 Proveedor: proveedorFormateado,
-                Usuario_Creador: usuarioFormateado
+                Usuario: usuarioFormateado
             };
         }));
     }
@@ -116,8 +116,8 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .where('estado.Id_Estado_Material = :estado', { estado: 1 }) // 1 = Disponible
@@ -132,8 +132,8 @@ export class MaterialService {
 
             const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
 
-            const usuarioFormateado = material.Usuario_Creador 
-                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario_Creador)
+            const usuarioFormateado = material.Usuario
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
                 : null;
 
             let proveedorFormateado: any = null;
@@ -157,7 +157,7 @@ export class MaterialService {
                 Unidad_Medicion: unidadMedicionFormateada,
                 Categorias: categoriasFormateadas,
                 Proveedor: proveedorFormateado,
-                Usuario_Creador: usuarioFormateado
+                Usuario: usuarioFormateado
             };
         }));
     }
@@ -170,8 +170,8 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .where('estado.Id_Estado_Material = :estado', { estado: 2 }) // 2 = Agotado
@@ -186,8 +186,8 @@ export class MaterialService {
 
             const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
 
-            const usuarioFormateado = material.Usuario_Creador 
-                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario_Creador)
+            const usuarioFormateado = material.Usuario
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
                 : null;
 
             let proveedorFormateado: any = null;
@@ -211,7 +211,7 @@ export class MaterialService {
                 Unidad_Medicion: unidadMedicionFormateada,
                 Categorias: categoriasFormateadas,
                 Proveedor: proveedorFormateado,
-                Usuario_Creador: usuarioFormateado
+                Usuario: usuarioFormateado
             };
         }));
     }
@@ -224,8 +224,8 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .where('estado.Id_Estado_Material = :estado', { estado: 3 }) // 3 = De baja
@@ -240,8 +240,8 @@ export class MaterialService {
 
             const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
 
-            const usuarioFormateado = material.Usuario_Creador 
-                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario_Creador)
+            const usuarioFormateado = material.Usuario
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
                 : null;
 
             let proveedorFormateado: any = null;
@@ -265,7 +265,7 @@ export class MaterialService {
                 Unidad_Medicion: unidadMedicionFormateada,
                 Categorias: categoriasFormateadas,
                 Proveedor: proveedorFormateado,
-                Usuario_Creador: usuarioFormateado
+                Usuario: usuarioFormateado
             };
         }));
     }
@@ -278,8 +278,8 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .where('estado.Id_Estado_Material = :estado', { estado: 4 }) // 4 = Agotado y de baja
@@ -294,8 +294,8 @@ export class MaterialService {
 
             const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
 
-            const usuarioFormateado = material.Usuario_Creador 
-                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario_Creador)
+            const usuarioFormateado = material.Usuario
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
                 : null;
 
             let proveedorFormateado: any = null;
@@ -319,7 +319,7 @@ export class MaterialService {
                 Unidad_Medicion: unidadMedicionFormateada,
                 Categorias: categoriasFormateadas,
                 Proveedor: proveedorFormateado,
-                Usuario_Creador: usuarioFormateado
+                Usuario: usuarioFormateado
             };
         }));
     }
@@ -332,8 +332,8 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .where('Categorias.Id_Material_Categoria IS NOT NULL')
@@ -348,8 +348,8 @@ export class MaterialService {
 
             const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
 
-            const usuarioFormateado = material.Usuario_Creador 
-                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario_Creador)
+            const usuarioFormateado = material.Usuario
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
                 : null;
 
             let proveedorFormateado: any = null;
@@ -373,7 +373,7 @@ export class MaterialService {
                 Unidad_Medicion: unidadMedicionFormateada,
                 Categorias: categoriasFormateadas,
                 Proveedor: proveedorFormateado,
-                Usuario_Creador: usuarioFormateado
+                Usuario: usuarioFormateado
             };
         }));
     }
@@ -383,8 +383,8 @@ export class MaterialService {
             .leftJoinAndSelect('material.Estado_Material', 'estado')
             .leftJoinAndSelect('material.Unidad_Medicion', 'unidadMedicion')
             .leftJoinAndSelect('unidadMedicion.Estado_Unidad_Medicion', 'estadoUnidadMedicion')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .leftJoin('material.materialCategorias', 'Categorias')
@@ -394,8 +394,8 @@ export class MaterialService {
         return Promise.all(materiales.map(async (material) => {
             const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
 
-            const usuarioFormateado = material.Usuario_Creador 
-                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario_Creador)
+            const usuarioFormateado = material.Usuario
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
                 : null;
 
             let proveedorFormateado: any = null;
@@ -419,7 +419,7 @@ export class MaterialService {
                 Unidad_Medicion: unidadMedicionFormateada,
                 Categorias: [],
                 Proveedor: proveedorFormateado,
-                Usuario_Creador: usuarioFormateado
+                Usuario: usuarioFormateado
             };
         }));
     }
@@ -432,8 +432,8 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .where('material.Cantidad > :threshold', { threshold })
@@ -449,8 +449,8 @@ export class MaterialService {
 
             const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
 
-            const usuarioFormateado = material.Usuario_Creador 
-                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario_Creador)
+            const usuarioFormateado = material.Usuario
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
                 : null;
 
             let proveedorFormateado: any = null;
@@ -474,7 +474,7 @@ export class MaterialService {
                 Unidad_Medicion: unidadMedicionFormateada,
                 Categorias: categoriasFormateadas,
                 Proveedor: proveedorFormateado,
-                Usuario_Creador: usuarioFormateado
+                Usuario: usuarioFormateado
             };
         }));
     }
@@ -487,8 +487,8 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .where('material.Cantidad < :threshold', { threshold })
@@ -504,8 +504,8 @@ export class MaterialService {
 
             const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
 
-            const usuarioFormateado = material.Usuario_Creador 
-                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario_Creador)
+            const usuarioFormateado = material.Usuario
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
                 : null;
 
             let proveedorFormateado: any = null;
@@ -529,7 +529,7 @@ export class MaterialService {
                 Unidad_Medicion: unidadMedicionFormateada,
                 Categorias: categoriasFormateadas,
                 Proveedor: proveedorFormateado,
-                Usuario_Creador: usuarioFormateado
+                Usuario: usuarioFormateado
             };
         }));
     }
@@ -546,8 +546,8 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .where('material.Precio_Unitario BETWEEN :minPrice AND :maxPrice', { minPrice, maxPrice })
@@ -562,8 +562,8 @@ export class MaterialService {
 
             const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(material.Unidad_Medicion);
 
-            const usuarioFormateado = material.Usuario_Creador 
-                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario_Creador)
+            const usuarioFormateado = material.Usuario
+                ? await this.usuariosService.FormatearUsuarioResponse(material.Usuario)
                 : null;
 
             let proveedorFormateado: any = null;
@@ -587,12 +587,12 @@ export class MaterialService {
                 Unidad_Medicion: unidadMedicionFormateada,
                 Categorias: categoriasFormateadas,
                 Proveedor: proveedorFormateado,
-                Usuario_Creador: usuarioFormateado
+                Usuario: usuarioFormateado
             };
         }));
     }
 
-    async createMaterial(dto: CreateMaterialDto, idUsuarioCreador: number) {
+    async createMaterial(dto: CreateMaterialDto, idUsuario: number) {
         const NombreNormalizado = dto.Nombre_Material[0].toUpperCase() + dto.Nombre_Material.slice(1).toLowerCase();
 
         const materialExistente = await this.inventarioRepository.findOne({ where: { Nombre_Material: NombreNormalizado } });
@@ -602,8 +602,8 @@ export class MaterialService {
         if (!unidadMedicionExistente) { throw new BadRequestException('La unidad de medición proporcionada no existe'); }
         if (unidadMedicionExistente.Estado_Unidad_Medicion.Id_Estado_Unidad_Medicion !== 1) { throw new BadRequestException('La unidad de medición proporcionada no está activa'); }
 
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador }, relations: ['Rol'] });
-        if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuarioCreador} no encontrado`); }
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
+        if (!usuario) { throw new BadRequestException(`Usuario con ID ${idUsuario} no encontrado`); }
 
         // Validar y obtener proveedor según su tipo (opcional)
         let proveedorFisico: ProveedorFisico | null = null;
@@ -678,7 +678,7 @@ export class MaterialService {
             Cantidad: dto.Cantidad,
             Precio_Unitario: dto.Precio_Unitario,
             Unidad_Medicion: unidadMedicionExistente,
-            Usuario_Creador: usuario,
+            Usuario: usuario,
         };
 
         // Solo agregar proveedor si existe
@@ -710,8 +710,8 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .where('material.Id_Material = :id', { id: savedMaterial.Id_Material })
@@ -730,7 +730,7 @@ export class MaterialService {
 
         const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(materialCreado.Unidad_Medicion);
 
-        const usuarioFormateado = await this.usuariosService.FormatearUsuarioResponse(materialCreado.Usuario_Creador);
+        const usuarioFormateado = await this.usuariosService.FormatearUsuarioResponse(materialCreado.Usuario);
 
         let proveedorFormateado: any = null;
         if (materialCreado.Proveedor) {
@@ -741,7 +741,7 @@ export class MaterialService {
         try {
             await this.auditoriaService.logCreacion(
                 'Material',
-                idUsuarioCreador,
+                idUsuario,
                 savedMaterial.Id_Material,
                 {
                     Nombre_Material: materialCreado.Nombre_Material,
@@ -771,7 +771,7 @@ export class MaterialService {
             Unidad_Medicion: unidadMedicionFormateada,
             Categorias: categoriasFormateadas,
             Proveedor: proveedorFormateado,
-            Usuario_Creador: usuarioFormateado
+            Usuario: usuarioFormateado
         };
     }
 
@@ -865,8 +865,8 @@ export class MaterialService {
             .leftJoinAndSelect('material.materialCategorias', 'Categorias')
             .leftJoinAndSelect('Categorias.Categoria', 'categoria')
             .leftJoinAndSelect('categoria.Estado_Categoria', 'estadoCategoria')
-            .leftJoinAndSelect('material.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('material.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .leftJoinAndSelect('material.Proveedor', 'proveedor')
             .leftJoinAndSelect('proveedor.Estado_Proveedor', 'estadoProveedor')
             .where('material.Id_Material = :id', { id: Id_Material })
@@ -908,7 +908,7 @@ export class MaterialService {
 
         const unidadMedicionFormateada = await this.unidadesDeMedicionService.FormatearUnidadMedicionParaResponse(materialActualizadoCompleto.Unidad_Medicion);
 
-        const usuarioFormateado = await this.usuariosService.FormatearUsuarioResponse(materialActualizadoCompleto.Usuario_Creador);
+        const usuarioFormateado = await this.usuariosService.FormatearUsuarioResponse(materialActualizadoCompleto.Usuario);
 
         let proveedorFormateado: any = null;
         if (materialActualizadoCompleto.Proveedor) {
@@ -929,7 +929,7 @@ export class MaterialService {
             Unidad_Medicion: unidadMedicionFormateada,
             Categorias: categoriasFormateadas,
             Proveedor: proveedorFormateado,
-            Usuario_Creador: usuarioFormateado
+            Usuario: usuarioFormateado
         };
     }
 

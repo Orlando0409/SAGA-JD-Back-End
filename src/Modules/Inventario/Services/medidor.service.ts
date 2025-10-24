@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, forwardRef, Inject, Injectable } from "@nestjs/common";
 import { Medidor } from "../InventarioEntities/Medidor.Entity";
 import { IsNull, Not, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -20,11 +20,14 @@ export class MedidorService {
         @InjectRepository(EstadoMedidor)
         private readonly estadoMedidorRepository: Repository<EstadoMedidor>,
 
+        @InjectRepository(Afiliado)
+        private readonly afiliadoRepository: Repository<Afiliado>,
+
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
 
-        @InjectRepository(Afiliado)
-        private readonly afiliadoRepository: Repository<Afiliado>,
+        @Inject(forwardRef(() => UsuariosService))
+        private readonly usuariosService: UsuariosService,
 
         private readonly afiliadoService: AfiliadosService,
 
@@ -35,7 +38,7 @@ export class MedidorService {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
-            .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .getMany();
 
@@ -55,7 +58,7 @@ export class MedidorService {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
-            .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('estado.Id_Estado_Medidor = :estado', { estado: 1 }) // 1 = No Instalado
             .getMany();
@@ -75,7 +78,7 @@ export class MedidorService {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
-            .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('estado.Id_Estado_Medidor = :estado', { estado: 2 }) // 2 = Instalado
             .getMany();
@@ -95,7 +98,7 @@ export class MedidorService {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
-            .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('estado.Id_Estado_Medidor = :estado', { estado: 3 }) // 3 = Averiado
             .getMany();
@@ -115,7 +118,7 @@ export class MedidorService {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
-            .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('medidor.Afiliado.Id_Afiliado = :idAfiliado', { idAfiliado })
             .getMany();
@@ -146,7 +149,7 @@ export class MedidorService {
         const medidor = this.medidorRepository.create({
             ...dto,
             Estado_Medidor: estadoInicial,
-            Usuario_Creador: usuario
+            Usuario: usuario
         });
 
         const medidorGuardado = await this.medidorRepository.save(medidor);
@@ -166,7 +169,7 @@ export class MedidorService {
         // Recargar el medidor con todas sus relaciones
         const medidorCompleto = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
-            .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('medidor.Id_Medidor = :id', { id: medidorGuardado.Id_Medidor })
             .getOne();
@@ -175,11 +178,11 @@ export class MedidorService {
 
         return {
             ...medidorCompleto,
-            Usuario_Creador: {
-                Id_Usuario: medidorCompleto.Usuario_Creador.Id_Usuario,
-                Nombre_Usuario: medidorCompleto.Usuario_Creador.Nombre_Usuario,
-                Id_Rol: medidorCompleto.Usuario_Creador.Id_Rol,
-                Nombre_Rol: medidorCompleto.Usuario_Creador.Rol?.Nombre_Rol
+            Usuario: {
+                Id_Usuario: medidorCompleto.Usuario.Id_Usuario,
+                Nombre_Usuario: medidorCompleto.Usuario.Nombre_Usuario,
+                Id_Rol: medidorCompleto.Usuario.Id_Rol,
+                Nombre_Rol: medidorCompleto.Usuario.Rol?.Nombre_Rol
             }
         };
     }
@@ -208,8 +211,8 @@ export class MedidorService {
         medidor.Estado_Medidor = estadoInstalado;
         await this.medidorRepository.save(medidor);
 
-        // Registrar en auditoría si se proporciona usuarioId
-        if (usuarioId) {
+        // Registrar en auditoría si se proporciona idUsuario
+        if (idUsuario) {
             try {
                 await this.auditoriaService.logActualizacion('Medidor', idUsuario, dto.Id_Medidor, {
                     Estado_Anterior: 'Disponible',
@@ -230,7 +233,7 @@ export class MedidorService {
         // Obtener el medidor actualizado con todas sus relaciones
         const medidorActualizado = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
-            .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('medidor.Id_Medidor = :id', { id: dto.Id_Medidor })
             .getOne();
@@ -259,8 +262,8 @@ export class MedidorService {
         medidor.Estado_Medidor = nuevoEstado;
         await this.medidorRepository.save(medidor);
 
-        // Registrar en auditoría si se proporciona usuarioId
-        if (usuarioId) {
+        // Registrar en auditoría si se proporciona idUsuario
+        if (idUsuario) {
             try {
                 await this.auditoriaService.logActualizacion('Medidor', idUsuario, Id_Medidor, {
                     Estado_Anterior: {
@@ -278,9 +281,10 @@ export class MedidorService {
                 console.error('Error al registrar auditoría de actualización de medidor:', error);
             }
         }
+
         const medidorActualizado = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
-            .leftJoinAndSelect('medidor.Usuario_Creador', 'usuario')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('medidor.Id_Medidor = :id', { id: Id_Medidor })
             .getOne();
