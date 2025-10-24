@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from './ProveedorEntities/Proveedor.Entity';
@@ -7,6 +7,8 @@ import { UpdateProveedorFisicoDto, UpdateProveedorJuridicoDto } from './Proveedo
 import { EstadoProveedor } from './ProveedorEntities/EstadoProveedor.Entity';
 import { UpdateEstadoProveedorDto } from './ProveedoresDTOs/UpdateEstadoProveedor.dto';
 import { TipoEntidad } from 'src/Common/Enums/TipoEntidad.enum';
+import { AuditoriaService } from '../Auditoria/auditoria.service';
+import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 
 @Injectable()
 export class ProveedorService {
@@ -28,7 +30,6 @@ export class ProveedorService {
 
     private auditoriaService: AuditoriaService,
 
-    private usuariosService: UsuariosService,
   ) { }
 
   async createFisico(dto: CreateProveedorFisicoDto, idUsuario: number): Promise<ProveedorFisico> {

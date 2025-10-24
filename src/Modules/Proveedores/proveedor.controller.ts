@@ -46,7 +46,7 @@ export class ProveedorController {
     @Body() dto: UpdateProveedorFisicoDto,
     @GetUser() usuario: Usuario
   ): Promise<ProveedorFisico> {
-    return this.proveedorService.updateFisico(id, dto, usuario.Id_Usuario);
+    return this.proveedorService.updateFisico(id, dto);
   }
 
   @Delete('fisico/:id')
@@ -54,7 +54,7 @@ export class ProveedorController {
     @Param('id', ParseIntPipe) id: number,
     @GetUser() usuario: Usuario
   ): Promise<void> {
-    return this.proveedorService.removeFisico(id, usuario.Id_Usuario);
+    return this.proveedorService.removeFisico(id);
   }
 
   @Post('juridico/create')
@@ -62,7 +62,7 @@ export class ProveedorController {
     @Body() dto: CreateProveedorJuridicoDto,
     @GetUser() usuario: Usuario
   ): Promise<ProveedorJuridico> {
-    return this.proveedorService.createJuridico(dto, usuario.Id_Usuario);
+    return this.proveedorService.createJuridico(dto);
   }
 
   @Get('juridico')
@@ -84,7 +84,7 @@ export class ProveedorController {
     @Body() dto: UpdateProveedorJuridicoDto,
     @GetUser() usuario: Usuario
   ): Promise<ProveedorJuridico> {
-    return this.proveedorService.updateJuridico(id, dto, usuario.Id_Usuario);
+    return this.proveedorService.updateJuridico(id, dto);
   }
 
   @Delete('juridico/:id')
@@ -92,7 +92,7 @@ export class ProveedorController {
     @Param('id', ParseIntPipe) id: number,
     @GetUser() usuario: Usuario
   ) {
-    return this.proveedorService.removeJuridico(id, usuario.Id_Usuario);
+    return this.proveedorService.removeJuridico(id);
   }
 
   @Patch('Fisico/:id/estado')
@@ -101,7 +101,7 @@ export class ProveedorController {
     @Body() dto: UpdateEstadoProveedorDto,
     @GetUser() usuario: Usuario
   ) {
-    return this.proveedorService.updateEstadoFisico(id, dto, usuario.Id_Usuario);
+    return this.proveedorService.updateEstadoFisico(id, dto);
   }
 
   @Patch('Juridico/:id/estado')
@@ -110,6 +110,6 @@ export class ProveedorController {
     @Body() dto: UpdateEstadoProveedorDto,
     @GetUser() usuario: Usuario
   ) {
-    return this.proveedorService.updateEstadoJuridico(id, dto, usuario.Id_Usuario);
+    return this.proveedorService.updateEstadoJuridico(id, dto);
   }
 }
