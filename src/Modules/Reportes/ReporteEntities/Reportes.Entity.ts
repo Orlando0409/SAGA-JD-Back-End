@@ -4,7 +4,7 @@ import { EstadoReporte } from './EstadoReporte';
 @Entity('reportes')
 export class Reporte {
     @PrimaryGeneratedColumn()
-    IdReporte: number;
+    Id_Reporte: number;
 
     @Column()
     Nombre: string;
@@ -34,6 +34,6 @@ export class Reporte {
     RespuestasReporte?: string;
 
     @ManyToOne(() => EstadoReporte)
-    @JoinColumn({ name: 'IdEstadoReporte' })
+    @JoinColumn({ name: 'Id_Estado_Reporte' })
     Estado: EstadoReporte;
 }

@@ -27,8 +27,8 @@ export class MovimientosService {
         const movimientos = await this.movimientoRepository.createQueryBuilder('movimiento')
             .leftJoinAndSelect('movimiento.Material', 'material')
             .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
-            .leftJoinAndSelect('movimiento.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('movimiento.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getMany();
 
@@ -47,11 +47,11 @@ export class MovimientosService {
                     Cantidad: movimiento.Material.Cantidad,
                     Estado_Material: movimiento.Material.Estado_Material
                 },
-                Usuario_Creador: movimiento.Usuario_Creador ? {
-                    Id_Usuario: movimiento.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: movimiento.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: movimiento.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: movimiento.Usuario_Creador.Rol?.Nombre_Rol
+                Usuario: movimiento.Usuario ? {
+                    Id_Usuario: movimiento.Usuario.Id_Usuario,
+                    Nombre_Usuario: movimiento.Usuario.Nombre_Usuario,
+                    Id_Rol: movimiento.Usuario.Id_Rol,
+                    Nombre_Rol: movimiento.Usuario.Rol?.Nombre_Rol
                 } : null
             };
         });
@@ -60,8 +60,8 @@ export class MovimientosService {
     async getMovimientosEntradas() {
         const movimientos = await this.movimientoRepository.createQueryBuilder('movimiento')
             .leftJoinAndSelect('movimiento.Material', 'material')
-            .leftJoinAndSelect('movimiento.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('movimiento.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .where('movimiento.Tipo_Movimiento = :tipo', { tipo: 'Entrada' })
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getMany();
@@ -81,11 +81,11 @@ export class MovimientosService {
                     Cantidad: movimiento.Material.Cantidad,
                     Estado_Material: movimiento.Material.Estado_Material
                 },
-                Usuario_Creador: movimiento.Usuario_Creador ? {
-                    Id_Usuario: movimiento.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: movimiento.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: movimiento.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: movimiento.Usuario_Creador.Rol?.Nombre_Rol
+                Usuario: movimiento.Usuario ? {
+                    Id_Usuario: movimiento.Usuario.Id_Usuario,
+                    Nombre_Usuario: movimiento.Usuario.Nombre_Usuario,
+                    Id_Rol: movimiento.Usuario.Id_Rol,
+                    Nombre_Rol: movimiento.Usuario.Rol?.Nombre_Rol
                 } : null
             };
         });
@@ -94,8 +94,8 @@ export class MovimientosService {
     async getMovimientosSalidas() {
         const movimientos = await this.movimientoRepository.createQueryBuilder('movimiento')
             .leftJoinAndSelect('movimiento.Material', 'material')
-            .leftJoinAndSelect('movimiento.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('movimiento.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .where('movimiento.Tipo_Movimiento = :tipo', { tipo: 'Salida' })
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getMany();
@@ -115,11 +115,11 @@ export class MovimientosService {
                     Cantidad: movimiento.Material.Cantidad,
                     Estado_Material: movimiento.Material.Estado_Material
                 },
-                Usuario_Creador: movimiento.Usuario_Creador ? {
-                    Id_Usuario: movimiento.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: movimiento.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: movimiento.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: movimiento.Usuario_Creador.Rol?.Nombre_Rol
+                Usuario: movimiento.Usuario ? {
+                    Id_Usuario: movimiento.Usuario.Id_Usuario,
+                    Nombre_Usuario: movimiento.Usuario.Nombre_Usuario,
+                    Id_Rol: movimiento.Usuario.Id_Rol,
+                    Nombre_Rol: movimiento.Usuario.Rol?.Nombre_Rol
                 } : null
             };
         });
@@ -142,8 +142,8 @@ export class MovimientosService {
 
         const movimientos = await this.movimientoRepository.createQueryBuilder('movimiento')
             .leftJoinAndSelect('movimiento.Material', 'material')
-            .leftJoinAndSelect('movimiento.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
+            .leftJoinAndSelect('movimiento.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .where('movimiento.Fecha_Movimiento BETWEEN :fechaInicio AND :fechaFin', { fechaInicio: fechaInicioDate, fechaFin: fechaFinDate })
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getMany();
@@ -163,27 +163,26 @@ export class MovimientosService {
                     Cantidad: movimiento.Material.Cantidad,
                     Estado_Material: movimiento.Material.Estado_Material
                 },
-                Usuario_Creador: movimiento.Usuario_Creador ? {
-                    Id_Usuario: movimiento.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: movimiento.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: movimiento.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: movimiento.Usuario_Creador.Rol?.Nombre_Rol
+                Usuario: movimiento.Usuario ? {
+                    Id_Usuario: movimiento.Usuario.Id_Usuario,
+                    Nombre_Usuario: movimiento.Usuario.Nombre_Usuario,
+                    Id_Rol: movimiento.Usuario.Id_Rol,
+                    Nombre_Rol: movimiento.Usuario.Rol?.Nombre_Rol
                 } : null
             };
         });
     }
 
-
-    async getMovimientosPorUsuarioCreador(Id_Usuario: number) {
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: Id_Usuario } });
+    async getMovimientosPorUsuario(idUsuario: number) {
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) { throw new NotFoundException('Usuario no encontrado'); }
 
         const movimientos = await this.movimientoRepository.createQueryBuilder('movimiento')
             .leftJoinAndSelect('movimiento.Material', 'material')
             .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
-            .leftJoinAndSelect('movimiento.Usuario_Creador', 'usuarioCreador')
-            .leftJoinAndSelect('usuarioCreador.Rol', 'rolUsuarioCreador')
-            .where('movimiento.Usuario_Creador = :idUsuario', { idUsuario: Id_Usuario })
+            .leftJoinAndSelect('movimiento.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
+            .where('movimiento.Usuario = :idUsuario', { idUsuario: idUsuario })
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getMany();
 
@@ -202,23 +201,23 @@ export class MovimientosService {
                     Cantidad: movimiento.Material.Cantidad,
                     Estado_Material: movimiento.Material.Estado_Material
                 },
-                Usuario_Creador: movimiento.Usuario_Creador ? {
-                    Id_Usuario: movimiento.Usuario_Creador.Id_Usuario,
-                    Nombre_Usuario: movimiento.Usuario_Creador.Nombre_Usuario,
-                    Id_Rol: movimiento.Usuario_Creador.Id_Rol,
-                    Nombre_Rol: movimiento.Usuario_Creador.Rol?.Nombre_Rol
+                Usuario: movimiento.Usuario ? {
+                    Id_Usuario: movimiento.Usuario.Id_Usuario,
+                    Nombre_Usuario: movimiento.Usuario.Nombre_Usuario,
+                    Id_Rol: movimiento.Usuario.Id_Rol,
+                    Nombre_Rol: movimiento.Usuario.Rol?.Nombre_Rol
                 } : null
             };
         });
     }
 
-    async IngresoMaterial(dto: MovimientoMaterialDto, idUsuarioCreador: number) {
+    async IngresoMaterial(dto: MovimientoMaterialDto, idUsuario: number) {
         if (dto.Cantidad <= 0) { throw new BadRequestException('La cantidad a ingresar debe ser mayor que cero'); }
 
         const materialExistente = await this.materialRepository.findOne({ where: { Id_Material: dto.Id_Material } });
         if (!materialExistente) { throw new NotFoundException('Material no encontrado'); }
 
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuarioCreador }, relations: ['Rol'] });
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
         if (!usuario) { throw new NotFoundException('Usuario no encontrado'); }
 
         // Guardar cantidad anterior para el registro
@@ -249,7 +248,7 @@ export class MovimientosService {
             Observaciones: dto.Observaciones,
             Cantidad_Anterior: cantidadAnterior,
             Cantidad_Nueva: materialExistente.Cantidad,
-            Usuario_Creador: usuario
+            Usuario: usuario
         });
         
         await this.movimientoRepository.save(movimiento);
@@ -261,7 +260,7 @@ export class MovimientosService {
 
         // Obtener el último movimiento creado
         const ultimoMovimiento = await this.movimientoRepository.createQueryBuilder('movimiento')
-            .leftJoinAndSelect('movimiento.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('movimiento.Usuario', 'usuario')
             .where('movimiento.Material.Id_Material = :id', { id: dto.Id_Material })
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getOne();
@@ -280,7 +279,7 @@ export class MovimientosService {
                 Cantidad_Nueva: ultimoMovimiento.Cantidad_Nueva,
                 Observaciones: ultimoMovimiento.Observaciones,
                 Fecha_Movimiento: ultimoMovimiento.Fecha_Movimiento,
-                Usuario_Creador: {
+                Usuario: {
                     Id_Usuario: usuario.Id_Usuario,
                     Nombre_Usuario: usuario.Nombre_Usuario,
                     Id_Rol: usuario.Id_Rol,
@@ -290,13 +289,13 @@ export class MovimientosService {
         };
     }
 
-    async EgresoMaterial(Id_Usuario: number, dto: MovimientoMaterialDto) {
+    async EgresoMaterial(idUsuario: number, dto: MovimientoMaterialDto) {
         if (dto.Cantidad <= 0) { throw new BadRequestException('La cantidad a egresar debe ser mayor que cero'); }
 
         const materialExistente = await this.materialRepository.findOne({ where: { Id_Material: dto.Id_Material } });
         if (!materialExistente) { throw new NotFoundException('Material no encontrado'); }
 
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: Id_Usuario }, relations: ['Rol'] });
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
         if (!usuario) { throw new NotFoundException('Usuario no encontrado'); }
 
         if (materialExistente.Cantidad < dto.Cantidad) { throw new BadRequestException('No hay suficiente cantidad en inventario para realizar el egreso'); }
@@ -324,7 +323,7 @@ export class MovimientosService {
         // Registrar el movimiento en la tabla Movimientos
         const movimiento = this.movimientoRepository.create({
             Material: materialExistente,
-            Usuario_Creador: usuario,
+            Usuario: usuario,
             Tipo_Movimiento: 'Salida',
             Cantidad: dto.Cantidad,
             Cantidad_Anterior: cantidadAnterior,
@@ -341,7 +340,7 @@ export class MovimientosService {
 
         // Obtener el último movimiento creado
         const ultimoMovimiento = await this.movimientoRepository.createQueryBuilder('movimiento')
-            .leftJoinAndSelect('movimiento.Usuario_Creador', 'usuarioCreador')
+            .leftJoinAndSelect('movimiento.Usuario', 'usuario')
             .where('movimiento.Material.Id_Material = :id', { id: dto.Id_Material })
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getOne();
@@ -356,11 +355,11 @@ export class MovimientosService {
                 Cantidad_Nueva: ultimoMovimiento.Cantidad_Nueva,
                 Observaciones: ultimoMovimiento.Observaciones,
                 Fecha_Movimiento: ultimoMovimiento.Fecha_Movimiento,
-                Usuario_Creador: ultimoMovimiento.Usuario_Creador ? {
-                    Id_Usuario: usuario.Id_Usuario,
-                    Nombre_Usuario: usuario.Nombre_Usuario,
-                    Id_Rol: usuario.Id_Rol,
-                    Nombre_Rol: usuario.Rol?.Nombre_Rol
+                Usuario: ultimoMovimiento.Usuario ? {
+                    Id_Usuario: ultimoMovimiento.Usuario.Id_Usuario,
+                    Nombre_Usuario: ultimoMovimiento.Usuario.Nombre_Usuario,
+                    Id_Rol: ultimoMovimiento.Usuario.Id_Rol,
+                    Nombre_Rol: ultimoMovimiento.Usuario.Rol?.Nombre_Rol
                 } : null
             } : null
         };

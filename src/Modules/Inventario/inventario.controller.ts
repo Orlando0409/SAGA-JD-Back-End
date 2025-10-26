@@ -261,8 +261,9 @@ export class InventarioController {
 
     @Get('/mis-movimientos')
     @ApiOperation({ summary: 'Obtiene los movimientos del usuario autenticado.' })
-    async getMisMovimientos(@GetUser() usuario: Usuario) {
-        return this.movimientosService.getMovimientosPorUsuarioCreador(usuario.Id_Usuario);
+    async getMisMovimientos(
+        @GetUser() usuario: Usuario) {
+        return this.movimientosService.getMovimientosPorUsuario(usuario.Id_Usuario);
     }
 
     @Post('/ingreso/material')

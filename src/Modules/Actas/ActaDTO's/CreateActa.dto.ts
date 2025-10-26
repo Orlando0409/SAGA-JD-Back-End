@@ -20,10 +20,4 @@ export class CreateActaDto {
     @MinLength(10, { message: 'La descripción debe tener al menos 10 caracteres' })
     @MaxLength(200, { message: 'La descripción no puede tener más de 200 caracteres' })
     Descripcion: string;
-
-    @ApiProperty({ example: 1 })
-    @Transform(({ value }) => Number(value))
-    @IsDefined({ message: 'El Id del usuario no puede estar vacío' })
-    @IsNotEmpty({ message: 'El Id del usuario no puede estar vacío' })
-    Id_Usuario: number;
 }

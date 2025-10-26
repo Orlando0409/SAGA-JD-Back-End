@@ -62,7 +62,7 @@ export class SolicitudAsociadoJuridicaService
         return this.solicitudAsociadoJuridicaRepository.save(solicitudAsociado);
     }
     
-    async UpdateEstadoSolicitudAsociado(id: number, nuevoEstadoId: number)
+    async UpdateEstadoSolicitudAsociado(id: number, nuevoEstadoId: number, idUsuario: number)
     {
         const solicitudAsociado = await this.solicitudAsociadoJuridicaRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
         if (!solicitudAsociado) {throw new BadRequestException(`Solicitud con id ${id} no encontrada`);}
@@ -76,7 +76,7 @@ export class SolicitudAsociadoJuridicaService
 
         // Si el estado cambia a 3 (Aprobada), cambiar el tipo del afiliado existente de "Abonado" a "Asociado"
         if (nuevoEstadoId === 3) {
-            await this.afiliadosService.cambiarAbonadoAAsociadoJuridico(solicitudAsociado.Cedula_Juridica);
+            await this.afiliadosService.cambiarAbonadoAAsociadoJuridico(solicitudAsociado.Cedula_Juridica, idUsuario);
             await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociación', 'Aprobada', solicitudAsociado.Razon_Social);
         }
 

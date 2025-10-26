@@ -38,7 +38,7 @@ export class SugerenciaService {
   }
 
   async create(dto: CreateSugerenciaDto, files?: SugerenciaFiles) {
-    const estado = await this.estadoRepository.findOne({ where: { Id_EstadoSugerencia: 1 } });
+    const estado = await this.estadoRepository.findOne({ where: { Id_Estado_Sugerencia: 1 } });
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
     const fecha = new Date();
@@ -85,7 +85,7 @@ export class SugerenciaService {
     const repo = await this.sugerenciaRepository.findOne({ where: { Id_Sugerencia: id }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Sugerencia con id ${id} no encontrada`);
 
-    const nuevoEstado = await this.estadoRepository.findOne({ where: { Id_EstadoSugerencia: nuevoEstadoId } });
+    const nuevoEstado = await this.estadoRepository.findOne({ where: { Id_Estado_Sugerencia: nuevoEstadoId } });
     if (!nuevoEstado) throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);
 
     repo.Estado = nuevoEstado;
@@ -100,7 +100,7 @@ export class SugerenciaService {
     if (!repo) throw new BadRequestException(`Sugerencia con id ${id} no encontrada`);
 
     repo.RespuestasSugerencia = dto.Respuesta;
-    const estadoContestada = await this.estadoRepository.findOne({ where: { Id_EstadoSugerencia: 2 } });
+    const estadoContestada = await this.estadoRepository.findOne({ where: { Id_Estado_Sugerencia: 2 } });
     if (!estadoContestada) throw new BadRequestException('Estado contestada no encontrado');
 
     repo.Estado = estadoContestada;

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, forwardRef, Inject, Injectable } from "@nestjs/common";
 import { Medidor } from "../InventarioEntities/Medidor.Entity";
 import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -21,17 +21,15 @@ export class MedidorService {
         @InjectRepository(EstadoMedidor)
         private readonly estadoMedidorRepository: Repository<EstadoMedidor>,
 
-        @InjectRepository(Usuario)
-        private readonly usuarioRepository: Repository<Usuario>,
-
         @InjectRepository(Afiliado)
         private readonly afiliadoRepository: Repository<Afiliado>,
 
-        @InjectRepository(AfiliadoFisico)
-        private readonly afiliadoFisicoRepository: Repository<AfiliadoFisico>,
+        @InjectRepository(Usuario)
+        private readonly usuarioRepository: Repository<Usuario>,
 
-        @InjectRepository(AfiliadoJuridico)
-        private readonly afiliadoJuridicoRepository: Repository<AfiliadoJuridico>,
+        @Inject(forwardRef(() => UsuariosService))
+        private readonly usuariosService: UsuariosService,
+
         private readonly afiliadoService: AfiliadosService,
 
         private readonly auditoriaService: AuditoriaService,
@@ -182,8 +180,12 @@ export class MedidorService {
 
         return {
             ...medidorCompleto,
-            Afiliado: null,
-            Usuario: medidorCompleto.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidorCompleto.Usuario) : null
+            Usuario: {
+                Id_Usuario: medidorCompleto.Usuario.Id_Usuario,
+                Nombre_Usuario: medidorCompleto.Usuario.Nombre_Usuario,
+                Id_Rol: medidorCompleto.Usuario.Id_Rol,
+                Nombre_Rol: medidorCompleto.Usuario.Rol?.Nombre_Rol
+            }
         };
     }
 
@@ -283,6 +285,7 @@ export class MedidorService {
                 console.error('Error al registrar auditoría de actualización de medidor:', error);
             }
         }
+
         const medidorActualizado = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Usuario', 'usuario')

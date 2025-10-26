@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from './ProveedorEntities/Proveedor.Entity';
@@ -7,9 +7,9 @@ import { UpdateProveedorFisicoDto, UpdateProveedorJuridicoDto } from './Proveedo
 import { EstadoProveedor } from './ProveedorEntities/EstadoProveedor.Entity';
 import { UpdateEstadoProveedorDto } from './ProveedoresDTOs/UpdateEstadoProveedor.dto';
 import { TipoEntidad } from 'src/Common/Enums/TipoEntidad.enum';
+import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 import { AuditoriaService } from '../Auditoria/auditoria.service';
 import { UsuariosService } from '../Usuarios/Services/usuarios.service';
-import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 
 @Injectable()
 export class ProveedorService {
@@ -157,135 +157,88 @@ export class ProveedorService {
     return { ...proveedor, Usuario: usuarioFormateado };
   }
 
-  async findOneJuridico(id: number): Promise<any> {
-    const proveedor = await this.juridicoRepo.findOne({ where: { Id_Proveedor: id }, relations: ['Estado_Proveedor', 'Usuario'] });
-    if (!proveedor) throw new NotFoundException(`Proveedor Jurídico ${id} no encontrado`);
+    async findOneJuridico(id: number): Promise<ProveedorJuridico> {
+      const proveedor = await this.juridicoRepo.findOne({ where: { Id_Proveedor: id }, relations: ['Estado_Proveedor'] });
+        if (!proveedor) throw new NotFoundException(`Proveedor Jurídico ${id} no encontrado`);
+      return proveedor;
+    }
 
-    const usuarioFormateado = proveedor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(proveedor.Usuario) : null;
-    return { ...proveedor, Usuario: usuarioFormateado };
-  }
+    async updateFisico(id: number, dto: UpdateProveedorFisicoDto, idUsuario: number): Promise<ProveedorFisico> {
+      if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
-  async updateFisico(id: number, dto: UpdateProveedorFisicoDto, idUsuario: number): Promise<ProveedorFisico> {
-    if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+      const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
-    const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
-    if (!usuario) throw new NotFoundException('Usuario no encontrado');
+      const proveedor = await this.findOneFisico(id);
+      
+      // Excluir explícitamente tipo_identificacion de la actualización
+      const { Tipo_Identificacion, ...updateData } = dto as any;
+      
+      Object.assign(proveedor, updateData);
+      return this.fisicoRepo.save(proveedor);
+    }
 
-    const proveedor = await this.findOneFisico(id);
-    const datosAnteriores = { ...proveedor };
+    async updateJuridico(id: number, dto: UpdateProveedorJuridicoDto, idUsuario: number): Promise<ProveedorJuridico> {
+      if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
-    // Excluir explícitamente tipo_identificacion de la actualización
-    const { Tipo_Identificacion, ...updateData } = dto as any;
+      const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
-    Object.assign(proveedor, updateData);
-    const proveedorActualizado = await this.fisicoRepo.save(proveedor);
+      const proveedor = await this.findOneJuridico(id);
+        Object.assign(proveedor, dto);
+      return this.juridicoRepo.save(proveedor);
+    }
 
-    // Formatear los datos para auditoría (sin info sensible del usuario)
-    const datosAnterioresFormateados = await this.FormatearProveedorParaResponse(datosAnteriores);
-    const proveedorParaAuditoria = await this.FormatearProveedorParaResponse(proveedorActualizado);
-    await this.auditoriaService.logActualizacion('proveedores', idUsuario, id, datosAnterioresFormateados, { proveedor: proveedorParaAuditoria });
+    //----Actualizar Estado---- 
+      async updateEstadoFisico(id: number, dto: UpdateEstadoProveedorDto, idUsuario: number): Promise<ProveedorFisico> {
+      if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
-    return this.findOneFisico(id);
-  }
+      const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
-  async updateJuridico(id: number, dto: UpdateProveedorJuridicoDto, idUsuario: number): Promise<ProveedorJuridico> {
-    if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
-
-    const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
-    if (!usuario) throw new NotFoundException('Usuario no encontrado');
-
-    const proveedor = await this.findOneJuridico(id);
-    const datosAnteriores = { ...proveedor };
-
-    Object.assign(proveedor, dto);
-    const proveedorActualizado = await this.juridicoRepo.save(proveedor);
-
-    // Formatear los datos para auditoría (sin info sensible del usuario)
-    const datosAnterioresFormateados = await this.FormatearProveedorParaResponse(datosAnteriores);
-    const proveedorParaAuditoria = await this.FormatearProveedorParaResponse(proveedorActualizado);
-    await this.auditoriaService.logActualizacion('proveedores', idUsuario, id, datosAnterioresFormateados, { proveedor: proveedorParaAuditoria });
-
-    return this.findOneJuridico(id);
-  }
-
-  //----Actualizar Estado---- 
-  async updateEstadoFisico(id: number, dto: UpdateEstadoProveedorDto, idUsuario: number): Promise<ProveedorFisico> {
-    if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
-
-    const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
-    if (!usuario) throw new NotFoundException('Usuario no encontrado');
-
-    const proveedor = await this.findOneFisico(id);
-    const datosAnteriores = { ...proveedor };
+      const proveedor = await this.findOneFisico(id);
 
     const estado = await this.estadoRepo.findOne({ where: { Id_Estado_Proveedor: dto.Id_Estado_Proveedor } });
     if (!estado) throw new NotFoundException(`Estado proveedor ${dto.Id_Estado_Proveedor} no encontrado`);
 
-    proveedor.Estado_Proveedor = estado;
-    const proveedorActualizado = await this.fisicoRepo.save(proveedor);
+      proveedor.Estado_Proveedor = estado;
+      return this.fisicoRepo.save(proveedor);
+    }
 
-    // Formatear los datos para auditoría (sin info sensible del usuario)
-    const datosAnterioresFormateados = await this.FormatearProveedorParaResponse(datosAnteriores);
-    const proveedorParaAuditoria = await this.FormatearProveedorParaResponse(proveedorActualizado);
-    await this.auditoriaService.logActualizacion('proveedores', idUsuario, id, datosAnterioresFormateados, { proveedor: proveedorParaAuditoria });
+    async updateEstadoJuridico(id: number, dto: UpdateEstadoProveedorDto, idUsuario: number): Promise<ProveedorJuridico> {
+      if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
-    return this.findOneFisico(id);
-  }
+      const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
-  async updateEstadoJuridico(id: number, dto: UpdateEstadoProveedorDto, idUsuario: number): Promise<ProveedorJuridico> {
-    if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
-
-    const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
-    if (!usuario) throw new NotFoundException('Usuario no encontrado');
-
-    const proveedor = await this.findOneJuridico(id);
-    const datosAnteriores = { ...proveedor };
+      const proveedor = await this.findOneJuridico(id);
 
     const estado = await this.estadoRepo.findOne({ where: { Id_Estado_Proveedor: dto.Id_Estado_Proveedor } });
     if (!estado) throw new NotFoundException(`Estado proveedor ${dto.Id_Estado_Proveedor} no encontrado`);
 
-    proveedor.Estado_Proveedor = estado;
-    const proveedorActualizado = await this.juridicoRepo.save(proveedor);
+      proveedor.Estado_Proveedor = estado;
+      return this.juridicoRepo.save(proveedor);
+    }
 
-    // Formatear los datos para auditoría (sin info sensible del usuario)
-    const datosAnterioresFormateados = await this.FormatearProveedorParaResponse(datosAnteriores);
-    const proveedorParaAuditoria = await this.FormatearProveedorParaResponse(proveedorActualizado);
-    await this.auditoriaService.logActualizacion('proveedores', idUsuario, id, datosAnterioresFormateados, { proveedor: proveedorParaAuditoria });
+    async removeFisico(id: number, idUsuario: number): Promise<void> {
+      if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
-    return this.findOneJuridico(id);
-  }
+      const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
-  async removeFisico(id: number, idUsuario: number): Promise<void> {
-    if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+      const proveedor = await this.findOneFisico(id);
+      await this.fisicoRepo.remove(proveedor);
+    }
 
-    const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
-    if (!usuario) throw new NotFoundException('Usuario no encontrado');
+    async removeJuridico(id: number, idUsuario: number): Promise<void> {
+      if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
-    const proveedor = await this.findOneFisico(id);
-    const datosAnteriores = { ...proveedor };
+      const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
-    await this.fisicoRepo.remove(proveedor);
-
-    // Formatear los datos para auditoría (sin info sensible del usuario)
-    const datosAnterioresFormateados = await this.FormatearProveedorParaResponse(datosAnteriores);
-    await this.auditoriaService.logEliminacion('proveedores', idUsuario, id, datosAnterioresFormateados);
-  }
-
-  async removeJuridico(id: number, idUsuario: number): Promise<void> {
-    if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
-
-    const usuario = await this.usuarioRepo.findOne({ where: { Id_Usuario: idUsuario } });
-    if (!usuario) throw new NotFoundException('Usuario no encontrado');
-
-    const proveedor = await this.findOneJuridico(id);
-    const datosAnteriores = { ...proveedor };
-
-    await this.juridicoRepo.remove(proveedor);
-
-    // Formatear los datos para auditoría (sin info sensible del usuario)
-    const datosAnterioresFormateados = await this.FormatearProveedorParaResponse(datosAnteriores);
-    await this.auditoriaService.logEliminacion('proveedores', idUsuario, id, datosAnterioresFormateados);
-  }
+      const proveedor = await this.findOneJuridico(id);
+      await this.juridicoRepo.remove(proveedor);
+    }
 
   /**
    * Formatea la información de un proveedor físico para responses públicos
