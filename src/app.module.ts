@@ -103,7 +103,7 @@ import { LecturaModule } from './Modules/Lecturas/lectura.module';
         Auditoria,
         Lectura
         ],
-        synchronize: false,
+        synchronize: true,
         dropSchema: false,
       })
     }),
