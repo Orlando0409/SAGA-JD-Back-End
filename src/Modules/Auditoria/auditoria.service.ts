@@ -16,7 +16,7 @@ import { Acta } from "../Actas/ActaEntities/Actas.Entity";
 
 @Injectable()
 export class AuditoriaService {
-    constructor (
+    constructor(
         @InjectRepository(Auditoria)
         private readonly auditoriaRepository: Repository<Auditoria>,
 
@@ -39,7 +39,7 @@ export class AuditoriaService {
             if ((accion === 'Actualización' || accion === 'Eliminación') && datosAnteriores) {
                 try {
                     const anteriores = JSON.parse(datosAnteriores);
-                    
+
                     // Buscar el campo de nombre según el módulo
                     switch (modulo.toLowerCase()) {
                         case 'usuarios':
@@ -99,7 +99,7 @@ export class AuditoriaService {
             if (accion === 'Creación' && datosNuevos) {
                 try {
                     const nuevos = JSON.parse(datosNuevos);
-                    
+
                     switch (modulo.toLowerCase()) {
                         case 'usuario':
                             if (nuevos.Nombre_Usuario) return nuevos.Nombre_Usuario;

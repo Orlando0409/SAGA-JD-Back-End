@@ -13,9 +13,14 @@ export class LecturaController {
         private readonly lecturaService: LecturaService
     ) { }
 
-    @Get('/all')
+    @Get('/all/lecturas')
     getAllLecturas() {
         return this.lecturaService.getAllLecturas();
+    }
+
+    @Get('/all/tarifas-lecturas')
+    getAllTarifas() {
+        return this.lecturaService.getTarifasLecturas();
     }
 
     @Get('/usuario/:idUsuario')

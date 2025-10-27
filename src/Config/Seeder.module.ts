@@ -18,11 +18,13 @@ import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/Est
 import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja';
 import { SeederService } from './Seeder.service';
 import { EstadoMedidor } from 'src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
+import { TipoTarifaLectura } from 'src/Modules/Lecturas/LecturaEntities/TipoTarifaLectura.Entity';
+import { TipoTarifaServiciosFijos } from 'src/Modules/Lecturas/LecturaEntities/TipoTarifaServiciosFijos.Entity';
+import { TipoTarifaVentaAgua } from 'src/Modules/Lecturas/LecturaEntities/TipoTarifaVentaAgua.Entity';
+import { Bloque } from 'src/Modules/Lecturas/LecturaEntities/Bloque.Entity';
 
 @Module({
-    imports: [
-    TypeOrmModule.forFeature([Usuario, UsuarioRol, Permiso, EstadoProveedor, EstadoProyecto, EstadoSolicitud, EstadoAfiliado, TipoAfiliado, EstadoMaterial, Categoria, EstadoCategoria, EstadoUnidadMedicion, UnidadMedicion, EstadoReporte, EstadoSugerencia, EstadoQueja, EstadoMedidor])
-    ],
+    imports: [TypeOrmModule.forFeature([Usuario, UsuarioRol, Permiso, EstadoProveedor, EstadoProyecto, EstadoSolicitud, EstadoAfiliado, TipoAfiliado, EstadoMaterial, Categoria, EstadoCategoria, EstadoUnidadMedicion, UnidadMedicion, EstadoReporte, EstadoSugerencia, EstadoQueja, EstadoMedidor, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Bloque])],
     providers: [SeederService],
     exports: [SeederService]
 })

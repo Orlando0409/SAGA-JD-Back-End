@@ -64,6 +64,9 @@ import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/Estad
 import { Sugerencia } from './Modules/Sugerencias/SugerenciaEntities/Sugerencia.Entity';
 import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity';import { Lectura } from './Modules/Lecturas/LecturaEntities/Lectura.Entity';
 import { LecturaModule } from './Modules/Lecturas/lectura.module';
+import { TipoTarifaLectura } from './Modules/Lecturas/LecturaEntities/TipoTarifaLectura.Entity';
+import { TipoTarifaServiciosFijos } from './Modules/Lecturas/LecturaEntities/TipoTarifaServiciosFijos.Entity';
+import { TipoTarifaVentaAgua } from './Modules/Lecturas/LecturaEntities/TipoTarifaVentaAgua.Entity';
 
 @Module({
   imports: [
@@ -101,7 +104,7 @@ import { LecturaModule } from './Modules/Lecturas/lectura.module';
         FAQEntity,
         Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario,FAQEntity, Medidor, EstadoMedidor,
         Auditoria,
-        Lectura
+        Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua
         ],
         synchronize: false,
         dropSchema: false,

@@ -102,7 +102,7 @@ export class ProyectoService {
 
         // Registrar en auditoría
         try {
-            await this.auditoriaService.logCreacion('Proyecto', idUsuario, proyectoGuardado.Id_Proyecto, {
+            await this.auditoriaService.logCreacion('Proyectos', idUsuario, proyectoGuardado.Id_Proyecto, {
                 Id_Proyecto: proyectoGuardado.Id_Proyecto,
                 Titulo: proyectoGuardado.Titulo,
                 Descripcion: proyectoGuardado.Descripcion,
