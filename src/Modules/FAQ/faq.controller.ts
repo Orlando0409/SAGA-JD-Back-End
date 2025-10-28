@@ -2,7 +2,7 @@ import { Controller, Post, Body, UseGuards, Request, Get, Param, Put, Delete, Pa
 import { FAQService } from './faq.service';
 import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
-import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { CreateFAQDto } from './FAQDTO\'s/CreateFAQ.dto';
 import { UpdateFAQDto } from './FAQDTO\'s/UpdateFAQ.dto';
 
