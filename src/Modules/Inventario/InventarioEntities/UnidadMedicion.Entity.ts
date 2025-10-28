@@ -31,9 +31,8 @@ export class UnidadMedicion {
     Materiales: Material[];
 
     @ManyToOne(() => Usuario, usuario => usuario.Id_Usuario, { eager: true })
-    @JoinColumn({ name: 'Id_Usuario_Creador' })
-    Usuario_Creador: Usuario;
-
+    @JoinColumn({ name: 'Id_Usuario' })
+    Usuario: Usuario;
 
     @BeforeInsert()
     setDefaultEstadoUnidadMedicion() { this.Estado_Unidad_Medicion = { Id_Estado_Unidad_Medicion: 1 } as EstadoUnidadMedicion; }

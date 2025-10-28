@@ -34,6 +34,6 @@ export class Reporte {
     RespuestasReporte?: string;
 
     @ManyToOne(() => EstadoReporte)
-    @JoinColumn({ name: 'IdEstadoReporte' })
+    @JoinColumn({ name: 'Id_Estado_Reporte' })
     Estado: EstadoReporte;
 }

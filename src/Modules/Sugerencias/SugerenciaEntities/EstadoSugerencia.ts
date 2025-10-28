@@ -4,7 +4,7 @@ import { Column,Entity, PrimaryGeneratedColumn } from "typeorm";
 
 export class EstadoSugerencia{
     @PrimaryGeneratedColumn()
-    Id_EstadoSugerencia: number;    
+    Id_Estado_Sugerencia: number;    
 
     @Column()
     Estado_Sugerencia: string;

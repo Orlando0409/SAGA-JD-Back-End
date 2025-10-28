@@ -226,7 +226,7 @@ export class SeederService implements OnModuleInit {
 
                 // Asignar el usuario creador si existe
                 if (adminUser) {
-                    nuevaCategoria.Usuario_Creador = adminUser;
+                    nuevaCategoria.Usuario = adminUser;
                 }
 
                 await this.categoriaMaterialRepository.save(nuevaCategoria);
@@ -278,7 +278,7 @@ export class SeederService implements OnModuleInit {
 
                 // Asignar el usuario creador si existe
                 if (adminUser) {
-                    nuevaUnidad.Usuario_Creador = adminUser;
+                    nuevaUnidad.Usuario = adminUser;
                 }
 
                 await this.unidadMedicionRepository.save(nuevaUnidad);
@@ -332,7 +332,7 @@ export class SeederService implements OnModuleInit {
 
         for (const estado of estados) {
             const existe = await this.estadoSugerenciaRepository.findOne({
-                where: { Id_EstadoSugerencia: estado.Id_Estado_Sugerencia },
+                where: { Id_Estado_Sugerencia: estado.Id_Estado_Sugerencia },
             });
             if (!existe) {
                 const nuevo = this.estadoSugerenciaRepository.create(estado);
