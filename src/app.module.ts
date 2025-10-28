@@ -68,6 +68,9 @@ import { TipoTarifaLectura } from './Modules/Lecturas/LecturaEntities/TipoTarifa
 import { TipoTarifaServiciosFijos } from './Modules/Lecturas/LecturaEntities/TipoTarifaServiciosFijos.Entity';
 import { TipoTarifaVentaAgua } from './Modules/Lecturas/LecturaEntities/TipoTarifaVentaAgua.Entity';
 import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
+import { ImagenEntity } from './Modules/Imagenes/ImagenesEntity/ImagenEntity';
+import { ImagenesModule } from './Modules/Imagenes/Imagenes.module';
+
 
 @Module({
   imports: [
@@ -105,10 +108,10 @@ import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
         FAQEntity,
         Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
         Auditoria,
-        Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Bloque
+        Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Bloque , ImagenEntity
         ],
-        synchronize: false,
-        dropSchema: false,
+        synchronize: true,
+        dropSchema: true,
       })
     }),
     SeederModule,
@@ -129,6 +132,7 @@ import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
     SugerenciaModule,
     FAQModule,
     QuejasModule,
+    ImagenesModule
   ],
   controllers: [],
   providers: [
