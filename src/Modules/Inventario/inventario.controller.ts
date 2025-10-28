@@ -4,7 +4,6 @@ import { MaterialService } from './Services/material.service';
 import { CategoriasService } from './Services/categorias.service';
 import { UnidadesDeMedicionService } from './Services/unidadesDeMedicion.service';
 import { CreateMaterialDto } from "./InventarioDTO's/CreateMaterial.dto";
-import { ApiOperation } from '@nestjs/swagger';
 import { CreateCategoriaDto } from "./InventarioDTO's/CreateCategoria.dto";
 import { UpdateMaterialDto } from "./InventarioDTO's/UpdateMaterial.dto";
 import { CreateUnidadMedicionDto } from "./InventarioDTO's/CreateUnidadMedicion.dto";

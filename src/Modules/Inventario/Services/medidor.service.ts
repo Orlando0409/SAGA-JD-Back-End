@@ -35,6 +35,8 @@ export class MedidorService {
         private readonly afiliadoService: AfiliadosService,
 
         private readonly auditoriaService: AuditoriaService,
+
+        private readonly usuariosService: UsuariosService
     ) { }
 
     async getAllMedidores() {
