@@ -62,9 +62,11 @@ async function bootstrap() {
   console.log('Entorno actual:', process.env.NODE_ENV);
   console.log('Base de datos:', process.env.DB_DATABASE);
   if (process.env.NODE_ENV === 'development') {
-    console.log('URL de frontend:', process.env.FRONTEND_URL_INFO);
+    console.log('URL de backend:', process.env.BACKEND_URL);
+    console.log('URL de frontend (info):', process.env.FRONTEND_URL_INFO);
     console.log('URL de frontend (admin):', process.env.FRONTEND_URL_ADMIN);
   } else {
+    console.log('URL de backend:', process.env.BACKEND_URL_PROD);
     console.log('URL de frontend (info):', process.env.FRONTEND_URL_INFO_PROD);
     console.log('URL de frontend (admin):', process.env.FRONTEND_URL_ADMIN_PROD);
   }
