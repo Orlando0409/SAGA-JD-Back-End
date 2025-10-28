@@ -70,6 +70,8 @@ import { TipoTarifaVentaAgua } from './Modules/Lecturas/LecturaEntities/TipoTari
 import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
 import { ImagenEntity } from './Modules/Imagenes/ImagenesEntity/ImagenEntity';
 import { ImagenesModule } from './Modules/Imagenes/Imagenes.module';
+import { ManualEntity } from './Modules/ManualdeUsuario/ManualEntity/manual.entity';
+import { ManualModule } from './Modules/ManualdeUsuario/manual.module';
 
 
 @Module({
@@ -108,7 +110,7 @@ import { ImagenesModule } from './Modules/Imagenes/Imagenes.module';
         FAQEntity,
         Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
         Auditoria,
-        Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Bloque , 
+        Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Bloque , ManualEntity
         ],
         synchronize: true,
         dropSchema: true,
@@ -132,7 +134,8 @@ import { ImagenesModule } from './Modules/Imagenes/Imagenes.module';
     SugerenciaModule,
     FAQModule,
     QuejasModule,
-    ImagenesModule
+    ImagenesModule,
+    ManualModule
   ],
   controllers: [],
   providers: [
