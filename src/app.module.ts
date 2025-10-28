@@ -103,7 +103,7 @@ import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
         Sugerencia, EstadoSugerencia,
         Queja, EstadoQueja,
         FAQEntity,
-        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario,FAQEntity, Medidor, EstadoMedidor,
+        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
         Auditoria,
         Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Bloque
         ],

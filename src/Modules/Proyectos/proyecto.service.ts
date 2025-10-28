@@ -48,11 +48,16 @@ export class ProyectoService {
     }
 
     async CreateProyecto(dto: CreateProyectoDto, idUsuario: number, file?: Express.Multer.File) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException('El usuario no existe.');
+
         if (!file) { throw new Error('Debe subir una imagen para el proyecto'); }
 
         // Obtener estado por defecto "En Planeamiento"
-        const estadoDefault = await this.proyectoEstadoRepository.findOne({ where: { Id_Estado_Proyecto: 1 } });
-        if (!estadoDefault) { throw new Error('Estado por defecto no encontrado'); }
+        const estadoInicial = await this.proyectoEstadoRepository.findOne({ where: { Id_Estado_Proyecto: 1 } });
+        if (!estadoInicial) { throw new Error('Estado por defecto no encontrado'); }
 
         // Normalizar datos antes de procesar
         dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
@@ -64,7 +69,8 @@ export class ProyectoService {
         const proyecto = this.proyectoRepository.create({
             ...dto,
             Imagen_Url: Proyecto.url,
-            Estado: estadoDefault
+            Estado: estadoInicial,
+            Usuario: usuario
         });
 
         // Guardar en BD
@@ -76,7 +82,7 @@ export class ProyectoService {
                 Id_Proyecto: proyectoGuardado.Id_Proyecto,
                 Titulo: proyectoGuardado.Titulo,
                 Descripcion: proyectoGuardado.Descripcion,
-                Estado_Inicial: estadoInicial.Nombre_Estado,
+                Estado: estadoInicial.Nombre_Estado,
                 Visible: proyectoGuardado.Visible,
                 Tiene_Imagen: !!proyectoGuardado.Imagen_Url
             });
@@ -113,6 +119,7 @@ export class ProyectoService {
         if (dto.Titulo) {
             dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
         }
+
         if (dto.Descripcion) {
             dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
         }

@@ -118,7 +118,7 @@ export class ActasService {
             const actaActualizada = this.actaRepository.create({
                 ...actaExistente,
                 ...dto,
-                Archivos: ArchivosSubidos.length ? ArchivosSubidos : actaExistente.Archivos
+                Archivos: ArchivosSubidos.length ? ArchivosSubidos : actaExistente.Archivos,
             });
 
             const actaGuardada = await this.actaRepository.save(actaActualizada);

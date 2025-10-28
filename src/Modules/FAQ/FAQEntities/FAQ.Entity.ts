@@ -1,9 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Usuario } from "../../Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Entity("FAQ")
 export class FAQEntity {
-
     @PrimaryGeneratedColumn()
     Id_FAQ: number;
 
@@ -13,17 +12,14 @@ export class FAQEntity {
     @Column({ type: "text" })
     Respuesta: string;
 
-    @Column()
+    @CreateDateColumn({ type: "datetime", default: () => "CURRENT_TIMESTAMP", precision: 0 })
     Fecha_Creacion: Date;
 
-    @Column()
+    @UpdateDateColumn({ type: "datetime", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP", precision: 0 })
     Fecha_Actualizacion: Date;
 
     @Column({ default: true })
     Visible: boolean;
-
-    @Column({ nullable: true })
-    Id_Usuario: number;
 
     @ManyToOne(() => Usuario, usuario => usuario.Id_Usuario, { nullable: true })
     @JoinColumn({ name: 'Id_Usuario' })

@@ -42,6 +42,8 @@ select * from solicitudes_asociado_fisica;
 
 select * from solicitudes_asociado_juridica;
 
+select * from proyecto;
+
 select * from afiliado;
 
 select * from afiliado_fisico;
@@ -79,5 +81,7 @@ select * from movimiento;
 select * from medidor;
 
 select * from lectura;
+
+select * from faq;
 
 select * from auditoria;

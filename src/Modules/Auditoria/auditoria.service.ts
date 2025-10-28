@@ -89,6 +89,11 @@ export class AuditoriaService {
                         case 'lecturas':
                             if (anteriores.Numero_Medidor) return anteriores.Numero_Medidor;
                             break;
+
+                        case 'faq':
+                            if (anteriores.Pregunta) return anteriores.Pregunta;
+                            break;
+
                     }
                 } catch (error) {
                     console.error('Error al parsear datos anteriores:', error);
@@ -147,6 +152,10 @@ export class AuditoriaService {
 
                         case 'lecturas':
                             if (nuevos.Numero_Medidor) return nuevos.Numero_Medidor;
+                            break;
+
+                        case 'faq':
+                            if (nuevos.Pregunta) return nuevos.Pregunta;
                             break;
                     }
                 } catch (error) {
@@ -216,6 +225,12 @@ export class AuditoriaService {
                         where: { Id_Lectura: idRegistro }
                     });
                     return lectura?.Id_Lectura.toString() || `Lectura ID: ${idRegistro}`;       // Modificación aquí
+
+                case 'faq':
+                    const faq = await this.dataSource.getRepository('FAQEntity').findOne({
+                        where: { Id_FAQ: idRegistro }
+                    });
+                    return faq?.Pregunta || `FAQ ID: ${idRegistro}`;
 
                 default:
                     return `Registro ID: ${idRegistro}`;

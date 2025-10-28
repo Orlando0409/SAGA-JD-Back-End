@@ -27,9 +27,6 @@ export class MedidorService {
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
 
-        @Inject(forwardRef(() => UsuariosService))
-        private readonly usuariosService: UsuariosService,
-
         @InjectRepository(AfiliadoFisico)
         private readonly afiliadoFisicoRepository: Repository<AfiliadoFisico>,
 

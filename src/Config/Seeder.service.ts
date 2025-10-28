@@ -332,9 +332,27 @@ export class SeederService implements OnModuleInit {
         }
     }
 
+    private async createDefaultEstadosMedidor() {
+        const estados = [
+            { Id_Estado_Medidor: 1, Nombre_Estado_Medidor: 'No instalado' },
+            { Id_Estado_Medidor: 2, Nombre_Estado_Medidor: 'Instalado' },
+            { Id_Estado_Medidor: 3, Nombre_Estado_Medidor: 'Averiado' },
+        ];
+
+        for (const estado of estados) {
+            const existe = await this.estadoMedidorRepository.findOne({
+                where: { Id_Estado_Medidor: estado.Id_Estado_Medidor }
+            });
+
+            if (!existe) {
+                const nuevoEstado = this.estadoMedidorRepository.create(estado);
+                await this.estadoMedidorRepository.save(nuevoEstado);
+            }
+        }
+    }
+
     private async createDefaultEstadosProveedor() {
         const estados = [
-
             { Id_Estado_Proveedor: 1, Estado_Proveedor: 'Activo' },
             { Id_Estado_Proveedor: 2, Estado_Proveedor: 'Inactivo' },
         ];

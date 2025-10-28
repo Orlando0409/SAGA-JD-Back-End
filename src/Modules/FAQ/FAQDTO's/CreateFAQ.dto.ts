@@ -2,9 +2,7 @@ import { IsNotEmpty, IsString, MaxLength, MinLength, Matches } from 'class-valid
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateFAQDto {
-  @ApiProperty({
-    example: '¿Haz la pregunta?',
-  })
+  @ApiProperty({ example: '¿Haz la pregunta?' })  
   @IsNotEmpty({ message: 'La pregunta es obligatoria.' })
   @IsString({ message: 'La pregunta debe ser una cadena de texto.' })
   @MinLength(10, { message: 'La pregunta debe tener al menos 10 caracteres.' })
@@ -12,9 +10,7 @@ export class CreateFAQDto {
   @Matches(/^(?!\s*$).+/, { message: 'La pregunta no puede estar vacía o solo contener espacios.' })
   Pregunta: string;
 
-  @ApiProperty({
-    example: 'Haz la respuesta',
-  })
+  @ApiProperty({ example: 'Haz la respuesta' })
   @IsNotEmpty({ message: 'La respuesta es obligatoria.' })
   @IsString({ message: 'La respuesta debe ser una cadena de texto.' })
   @MinLength(10, { message: 'La respuesta debe tener al menos 10 caracteres.' })
