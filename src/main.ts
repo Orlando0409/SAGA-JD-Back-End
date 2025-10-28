@@ -65,7 +65,7 @@ async function bootstrap() {
     console.log('URL de frontend:', process.env.FRONTEND_URL_INFO);
     console.log('URL de frontend (admin):', process.env.FRONTEND_URL_ADMIN);
   } else {
-    console.log('URL de frontend:', process.env.FRONTEND_URL_INFO_PROD);
+    console.log('URL de frontend (info):', process.env.FRONTEND_URL_INFO_PROD);
     console.log('URL de frontend (admin):', process.env.FRONTEND_URL_ADMIN_PROD);
   }
 }
