@@ -11,7 +11,6 @@ import { UpdateReporteEstadoDto } from './ReporteDTO\'s/UpdateReporteEstado.dto'
 export class ReportesController {
   constructor(private readonly reportesService: ReportesService) { }
 
-
   @Get()
   getAll() {
     return this.reportesService.getAll();
