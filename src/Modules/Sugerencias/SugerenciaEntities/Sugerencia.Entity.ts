@@ -1,8 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { EstadoSugerencia } from './EstadoSugerencia';
 
-
-@Entity('sugerencias')
+@Entity('Sugerencias')
 export class Sugerencia {
     @PrimaryGeneratedColumn()
     Id_Sugerencia: number;

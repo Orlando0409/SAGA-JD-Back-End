@@ -1,8 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { EstadoQueja } from './EstadoQueja';
 
-
-@Entity('quejas')
+@Entity('Quejas')
 export class Queja {
     @PrimaryGeneratedColumn()
     Id_Queja: number;
@@ -28,16 +27,10 @@ export class Queja {
     @Column({ type: 'text', nullable: true })
     RespuestasReporte?: string;
 
+    @Column()
+    Fecha_Queja: Date;
+
     @ManyToOne(() => EstadoQueja)
     @JoinColumn({ name: 'Id_Estado_Queja' })
     Estado: EstadoQueja;
-
-    @Column()
-    Fecha_Queja: Date;
 }
-
-
-  
-
-
-
