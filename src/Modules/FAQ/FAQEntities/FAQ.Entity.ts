@@ -5,7 +5,7 @@ import { Usuario } from "../../Usuarios/UsuarioEntities/Usuario.Entity";
 export class FAQEntity {
 
     @PrimaryGeneratedColumn()
-    Id_FAG: number;
+    Id_FAQ: number;
 
     @Column({ type: "varchar", length: 255 })
     Pregunta: string;

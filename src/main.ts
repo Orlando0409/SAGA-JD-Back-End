@@ -20,6 +20,7 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'cookie']
   });
+
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({
     transform: true,

@@ -1,142 +1,191 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, UseInterceptors, ClassSerializerInterceptor, Put, Patch, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  UseInterceptors,
+  ClassSerializerInterceptor,
+  Put,
+  Patch,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiOperation } from '@nestjs/swagger';
 import { MaterialService } from './Services/material.service';
 import { CategoriasService } from './Services/categorias.service';
 import { UnidadesDeMedicionService } from './Services/unidadesDeMedicion.service';
-import { CreateMaterialDto } from "./InventarioDTO's/CreateMaterial.dto";
-import { ApiOperation } from '@nestjs/swagger';
-import { CreateCategoriaDto } from "./InventarioDTO's/CreateCategoria.dto";
-import { UpdateMaterialDto } from "./InventarioDTO's/UpdateMaterial.dto";
-import { CreateUnidadMedicionDto } from "./InventarioDTO's/CreateUnidadMedicion.dto";
-import { MovimientoMaterialDto } from "./InventarioDTO's/MovimientoMaterial.dto";
-import { UpdateUnidadMedicionDto } from "./InventarioDTO's/UpdateUnidadMedicion.dto";
-import { UpdateCategoriaDto } from './InventarioDTO\'s/UpdateCategoria.dto';
 import { MovimientosService } from './Services/movimientos.service';
 import { MedidorService } from './Services/medidor.service';
-import { CreateMedidorDTO } from './InventarioDTO\'s/CreateMedidor.dto';
-import { AsignarMedidorDTO } from './InventarioDTO\'s/AsignarMedidor.dto';
+import { CreateMaterialDto } from "./InventarioDTO's/CreateMaterial.dto";
+import { UpdateMaterialDto } from "./InventarioDTO's/UpdateMaterial.dto";
+import { CreateCategoriaDto } from "./InventarioDTO's/CreateCategoria.dto";
+import { UpdateCategoriaDto } from "./InventarioDTO's/UpdateCategoria.dto";
+import { CreateUnidadMedicionDto } from "./InventarioDTO's/CreateUnidadMedicion.dto";
+import { UpdateUnidadMedicionDto } from "./InventarioDTO's/UpdateUnidadMedicion.dto";
+import { MovimientoMaterialDto } from "./InventarioDTO's/MovimientoMaterial.dto";
+import { CreateMedidorDTO } from "./InventarioDTO's/CreateMedidor.dto";
+import { AsignarMedidorDTO } from "./InventarioDTO's/AsignarMedidor.dto";
 import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
 import { GetUser } from '../auth/Decorator/GetUser.decorator';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 
 @Controller('Inventario')
 @UseGuards(JwtAuthGuard)
-@UseInterceptors(ClassSerializerInterceptor) // Agregar el interceptor para serialización
+@UseInterceptors(ClassSerializerInterceptor)
 export class InventarioController {
-    constructor(
-        private readonly materialService: MaterialService,
-        private readonly categoriasService: CategoriasService,
-        private readonly unidadesDeMedicionService: UnidadesDeMedicionService,
-        private readonly movimientosService: MovimientosService,
-        private readonly medidorService: MedidorService,
-    ) {}
+  constructor(
+    private readonly materialService: MaterialService,
+    private readonly categoriasService: CategoriasService,
+    private readonly unidadesDeMedicionService: UnidadesDeMedicionService,
+    private readonly movimientosService: MovimientosService,
+    private readonly medidorService: MedidorService,
+  ) {}
 
-    // ENDPOINTS PARA MATERIALES
-    @Get('/all/materiales')
-    @ApiOperation({ summary: 'Obtiene todos los materiales del inventario con su estado.' })
-    async getAllMaterials() {
-        return this.materialService.getAllMateriales();
-    }
+  // ---------- MATERIALES ----------
+  @Get('/all/materiales')
+  @ApiOperation({ summary: 'Obtiene todos los materiales del inventario con su estado.' })
+  async getAllMaterials() {
+    return this.materialService.getAllMateriales();
+  }
 
-    @Get('/materiales/disponibles')
-    @ApiOperation({ summary: 'Obtiene materiales que están disponibles.' })
-    async getMaterialesDisponibles() {
-        return this.materialService.getMaterialesDisponibles();
-    }
+  @Get('/materiales/disponibles')
+  @ApiOperation({ summary: 'Obtiene materiales que están disponibles.' })
+  async getMaterialesDisponibles() {
+    return this.materialService.getMaterialesDisponibles();
+  }
 
-    @Get('/materiales/agotados')
-    @ApiOperation({ summary: 'Obtiene materiales que están agotados.' })
-    async getMaterialesAgotados() {
-        return this.materialService.getMaterialesAgotados();
-    }
+  @Post('/create/material')
+  @ApiOperation({ summary: 'Crea un nuevo material en el inventario.' })
+  async createMaterial(
+    @Body() dto: CreateMaterialDto,
+    @GetUser() usuario: Usuario,
+  ) {
+    return this.materialService.createMaterial(dto, usuario.Id_Usuario);
+  }
 
-    @Get('/materiales/de-baja')
-    @ApiOperation({ summary: 'Obtiene materiales que están de baja.' })
-    async getMaterialesDeBaja() {
-        return this.materialService.getMaterialesDeBaja();
-    }
+  @Put('/update/material/:materialId')
+  @ApiOperation({ summary: 'Actualiza un material existente en el inventario.' })
+  async updateMaterial(
+    @Param('materialId', ParseIntPipe) materialId: number,
+    @Body() dto: UpdateMaterialDto,
+    @GetUser() usuario: Usuario,
+  ) {
+    return this.materialService.updateMaterial(materialId, dto, usuario.Id_Usuario);
+  }
 
-    @Get('/materiales/agotados-de-baja')
-    @ApiOperation({ summary: 'Obtiene materiales que están agotados y de baja.' })
-    async getMaterialesAgotadosDeBaja() {
-        return this.materialService.getMaterialesAgotadosYDeBaja();
-    }
+  @Patch('/update/estado/material/:materialId/:estadoMaterialId')
+  @ApiOperation({ summary: 'Cambia el estado de un material (si es baja, actualiza fecha de baja).' })
+  async cambiarEstadoMaterial(
+    @Param('materialId', ParseIntPipe) materialId: number,
+    @Param('estadoMaterialId', ParseIntPipe) estadoMaterialId: number,
+    @GetUser() usuario: Usuario,
+  ) {
+    return this.materialService.updateEstadoMaterial(materialId, estadoMaterialId, usuario.Id_Usuario);
+  }
 
-    @Get('/materiales/with/categorias')
-    @ApiOperation({ summary: 'Obtiene materiales que tienen categorías asignadas' })
-    async getMaterialesConCategorias() {
-        return this.materialService.getMaterialesConCategorias();
-    }
+  // ---------- CATEGORÍAS ----------
+  @Get('/all/categorias')
+  @ApiOperation({ summary: 'Obtiene todas las categorías activas.' })
+  async getAllCategorias() {
+    return this.categoriasService.getAllCategorias();
+  }
 
-    @Get('/materiales/without/categorias')
-    @ApiOperation({ summary: 'Obtiene materiales que no tienen categorías' })
-    async getMaterialesSinCategorias() {
-        return this.materialService.getMaterialesSinCategorias();
-    }
+  @Post('/create/categoria')
+  @ApiOperation({ summary: 'Crea una nueva categoría de material.' })
+  async createCategoria(
+    @Body() dto: CreateCategoriaDto,
+    @GetUser() usuario: Usuario,
+  ) {
+    return this.categoriasService.createCategoria(dto, usuario.Id_Usuario);
+  }
 
-    @Get('/materiales/above/stock/:threshold')
-    @ApiOperation({ summary: 'Obtiene materiales con cantidad por encima de un umbral dado, ordenados de mayor a menor.' })
-    async getMaterialesPorEncimaDeStock(@Param('threshold', ParseIntPipe) threshold: number) {
-        return this.materialService.getMaterialesPorEncimaDeStock(threshold);
-    }
+  @Put('/update/categoria/:categoriaId')
+  @ApiOperation({ summary: 'Actualiza una categoría existente.' })
+  async updateCategoria(
+    @Param('categoriaId', ParseIntPipe) categoriaId: number,
+    @Body() dto: UpdateCategoriaDto,
+    @GetUser() usuario: Usuario,
+  ) {
+    return this.categoriasService.updateCategoria(categoriaId, dto, usuario.Id_Usuario);
+  }
 
-    @Get('/materiales/below/stock/:threshold')
-    @ApiOperation({ summary: 'Obtiene materiales con cantidad por debajo de un umbral dado, ordenados de menor a mayor.' })
-    async getMaterialesPorDebajoDeStock(@Param('threshold', ParseIntPipe) threshold: number) {
-        return this.materialService.getMaterialesPorDebajoDeStock(threshold);
-    }
+  @Patch('/update/estado/categoria/:categoriaId/:estadoCategoriaId')
+  @ApiOperation({ summary: 'Cambia el estado de una categoría al estado especificado.' })
+  async cambiarEstadoCategoria(
+    @Param('categoriaId', ParseIntPipe) categoriaId: number,
+    @Param('estadoCategoriaId', ParseIntPipe) estadoCategoriaId: number,
+    @GetUser() usuario: Usuario,
+  ) {
+    return this.categoriasService.updateEstadoCategoria(categoriaId, estadoCategoriaId, usuario.Id_Usuario);
+  }
 
-    @Get('/materiales/between/priceRange/:min/:max')
-    @ApiOperation({ summary: 'Obtiene materiales cuyo precio está entre un rango dado.' })
-    async getMaterialesEntreRangoDePrecio(
-        @Param('min', ParseIntPipe) min: number,
-        @Param('max', ParseIntPipe) max: number
-    ) {
-        return this.materialService.getMaterialesEntreRangoPrecio(min, max);
-    }
+  // ---------- UNIDADES DE MEDICIÓN ----------
+  @Get('/all/unidades-medicion')
+  @ApiOperation({ summary: 'Obtiene todas las unidades de medición activas.' })
+  async getAllUnidadesMedicion() {
+    return this.unidadesDeMedicionService.getAllUnidadesMedicion();
+  }
 
-    @Post('/create/material')
-    @ApiOperation({ summary: 'Crea un nuevo material en el inventario.' })
-    async createMaterial(
-        @Body() dto: CreateMaterialDto,
-        @GetUser() usuario: Usuario
-    ) {
-        return this.materialService.createMaterial(dto, usuario.Id_Usuario);
-    }
+  @Post('/create/unidad-medicion')
+  @ApiOperation({ summary: 'Crea una nueva unidad de medición.' })
+  async createUnidadMedicion(
+    @Body() dto: CreateUnidadMedicionDto,
+    @GetUser() usuario: Usuario,
+  ) {
+    return this.unidadesDeMedicionService.createUnidadMedicion(dto, usuario.Id_Usuario);
+  }
 
-    @Put('/update/material/:materialId')
-    @ApiOperation({ summary: 'Actualiza un material existente en el inventario.' })
-    async updateMaterial(
-        @Param('materialId', ParseIntPipe) materialId: number,
-        @Body() dto: UpdateMaterialDto,
-        @GetUser() usuario: Usuario
-    ) {
-        return this.materialService.updateMaterial(materialId, dto, usuario.Id_Usuario);
-    }
+  @Put('/update/unidad-medicion/:unidadId')
+  @ApiOperation({ summary: 'Actualiza una unidad de medición existente.' })
+  async updateUnidadMedicion(
+    @Param('unidadId', ParseIntPipe) unidadId: number,
+    @Body() dto: UpdateUnidadMedicionDto,
+    @GetUser() usuario: Usuario,
+  ) {
+    return this.unidadesDeMedicionService.updateUnidadMedicion(unidadId, dto, usuario.Id_Usuario);
+  }
 
-    @Patch('/update/estado/material/:materialId/:estadoMaterialId')
-    @ApiOperation({ summary: 'Cambia el estado de un material. Si el estado es "De baja" (3), actualiza automáticamente la fecha de baja.' })
-    async cambiarEstadoMaterial(
-        @Param('materialId', ParseIntPipe) materialId: number,
-        @Param('estadoMaterialId', ParseIntPipe) estadoMaterialId: number,
-        @GetUser() usuario: Usuario
-    ) {
-        return this.materialService.updateEstadoMaterial(materialId, estadoMaterialId, usuario.Id_Usuario);
-    }
+  @Patch('/update/estado/unidad-medicion/:unidadId/:estadoUnidadId')
+  @ApiOperation({ summary: 'Cambia el estado de una unidad de medición al estado especificado.' })
+  async cambiarEstadoUnidadMedicion(
+    @Param('unidadId', ParseIntPipe) unidadId: number,
+    @Param('estadoUnidadId', ParseIntPipe) estadoUnidadId: number,
+    @GetUser() usuario: Usuario,
+  ) {
+    return this.unidadesDeMedicionService.updateEstadoUnidadMedicion(unidadId, estadoUnidadId, usuario.Id_Usuario);
+  }
 
+  // ---------- MOVIMIENTOS ----------
+  @Get('/all/movimientos')
+  @ApiOperation({ summary: 'Obtiene todos los movimientos de inventario.' })
+  async getAllMovimientos() {
+    return this.movimientosService.getAllMovimientos();
+  }
 
+  @Get('/mis-movimientos')
+  @ApiOperation({ summary: 'Obtiene los movimientos del usuario autenticado.' })
+  async getMisMovimientos(@GetUser() usuario: Usuario) {
+    return this.movimientosService.getMovimientosPorUsuarioCreador(usuario.Id_Usuario);
+  }
 
-    //ENDPOINTS PARA CATEGORIAS
-    @Get('/all/categorias')
-    @ApiOperation({ summary: 'Obtiene todas las categorías de materiales.' })
-    async getAllCategorias() {
-        return this.categoriasService.getAllCategorias();
-    }
+  @Post('/ingreso/material')
+  @ApiOperation({ summary: 'Registra el ingreso de material al inventario.' })
+  async ingresoMaterial(
+    @Body() dto: MovimientoMaterialDto,
+    @GetUser() usuario: Usuario,
+  ) {
+    return this.movimientosService.IngresoMaterial(dto, usuario.Id_Usuario);
+  }
 
-    @Get('/categorias/activas')
-    @ApiOperation({ summary: 'Obtiene todas las categorías activas.' })
-    async getCategoriasActivas() {
-        return this.categoriasService.getCategoriasActivas();
-    }
+  @Post('/egreso/material')
+  @ApiOperation({ summary: 'Registra el egreso de material del inventario.' })
+  async egresoMaterial(
+    @Body() dto: MovimientoMaterialDto,
+    @GetUser() usuario: Usuario,
+  ) {
+    return this.movimientosService.EgresoMaterial(usuario.Id_Usuario, dto);
+  }
 
     @Get('/categorias/inactivas')
     @ApiOperation({ summary: 'Obtiene todas las categorías inactivas.' })
@@ -305,11 +354,6 @@ export class InventarioController {
         return this.medidorService.getMedidoresInstalados();
     }
 
-    @Get('/medidores/averiados')
-    @ApiOperation({ summary: 'Obtiene todos los medidores que están en estado "Averiado".' })
-    async getMedidoresAveriados() {
-        return this.medidorService.getMedidoresAveriados();
-    }
 
     @Get('/medidores/afiliado/:idAfiliado')
     @ApiOperation({ summary: 'Obtiene todos los medidores asociados a un afiliado específico.' })
@@ -318,6 +362,7 @@ export class InventarioController {
     ) {
         return this.medidorService.getMedidoresAfiliado(idAfiliado);
     }
+
 
     @Post('/create/medidor')
     @ApiOperation({ summary: 'Crea un nuevo medidor en el sistema.' })

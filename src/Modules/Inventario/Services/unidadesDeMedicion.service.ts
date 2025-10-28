@@ -9,7 +9,7 @@ import { UpdateUnidadMedicionDto } from "../InventarioDTO's/UpdateUnidadMedicion
 import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { AuditoriaService } from 'src/Modules/Auditoria/auditoria.service';
 import { UsuariosService } from 'src/Modules/Usuarios/Services/usuarios.service';
-import { GetUnidadDeMedidaDTO } from '../InventarioDTO\'s/GetUnidadDeMedida.dto';
+import { GetUnidadDeMedidaDTO } from '../InventarioDTO\'s/getUnidadDeMedida.dto';
 
 @Injectable()
 export class UnidadesDeMedicionService {
@@ -31,7 +31,7 @@ export class UnidadesDeMedicionService {
 
         @Inject(forwardRef(() => UsuariosService))
         private readonly usuariosService: UsuariosService
-    ) {}
+    ) { }
 
     async getAllUnidadesMedicion() {
         const unidades = await this.unidadMedicionRepository.createQueryBuilder('unidad')
@@ -237,7 +237,7 @@ export class UnidadesDeMedicionService {
         // VALIDACIÓN DE NEGOCIO: No permitir desactivar si hay materiales usándola
         if (nuevoEstado.Nombre_Estado_Unidad_Medicion === 'Inactivo') {
             const materialesUsandoUnidad = await this.materialRepository.count({
-                where: { 
+                where: {
                     Unidad_Medicion: { Id_Unidad_Medicion: Id_Unidad_Medicion }
                     // Los materiales con Fecha_Baja null son activos (soft delete)
                 }

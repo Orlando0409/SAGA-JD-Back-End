@@ -1,12 +1,13 @@
 import { BadRequestException, forwardRef, Inject, Injectable } from "@nestjs/common";
 import { Medidor } from "../InventarioEntities/Medidor.Entity";
-import { IsNull, Not, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { EstadoMedidor } from "../InventarioEntities/EstadoMedidor.Entity";
 import { CreateMedidorDTO } from "../InventarioDTO's/CreateMedidor.dto";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
-import { Afiliado } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
+import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { AsignarMedidorDTO } from "../InventarioDTO's/AsignarMedidor.dto";
+import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
 import { AuditoriaService } from "src/Modules/Auditoria/auditoria.service";
 import { UsuariosService } from "src/Modules/Usuarios/Services/usuarios.service";
 import { AfiliadosService } from "src/Modules/Afiliados/afiliados.service";
@@ -29,9 +30,16 @@ export class MedidorService {
         @Inject(forwardRef(() => UsuariosService))
         private readonly usuariosService: UsuariosService,
 
+        @InjectRepository(AfiliadoFisico)
+        private readonly afiliadoFisicoRepository: Repository<AfiliadoFisico>,
+
+        @InjectRepository(AfiliadoJuridico)
+        private readonly afiliadoJuridicoRepository: Repository<AfiliadoJuridico>,
         private readonly afiliadoService: AfiliadosService,
 
-        private readonly auditoriaService: AuditoriaService
+        private readonly auditoriaService: AuditoriaService,
+
+        private readonly usuariosService: UsuariosService
     ) { }
 
     async getAllMedidores() {
@@ -166,7 +174,6 @@ export class MedidorService {
             console.error('Error al registrar auditoría de creación de medidor:', error);
         }
 
-        // Recargar el medidor con todas sus relaciones
         const medidorCompleto = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Usuario', 'usuario')
@@ -196,11 +203,12 @@ export class MedidorService {
         if (medidor.Estado_Medidor.Id_Estado_Medidor === 2) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} no está disponible, ya está asignado a un afiliado.`);
         if (medidor.Estado_Medidor.Id_Estado_Medidor === 3) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} está dañado y no puede ser asignado.`);
 
-        const TipoAfiliadoValido = [1, 2]; // 1 = Físico, 2 = Jurídico
+        const TipoAfiliadoValido = [TipoEntidad.Física, TipoEntidad.Jurídica]; // Los IDs en TipoEntidad son 1 y 2
         if (!TipoAfiliadoValido.includes(dto.Id_Tipo_Entidad)) throw new BadRequestException(`Tipo de afiliado inválido. Los valores permitidos son: ${TipoAfiliadoValido.join(' y ')}`);
 
         // Buscar directamente en la tabla padre y validar el tipo
-        const afiliado = await this.afiliadoRepository.findOne({ where: { Id_Afiliado: dto.Id_Afiliado, Tipo_Entidad: dto.Id_Tipo_Entidad }, relations: ['Medidores'] });
+        const tipoEntidadEnum = dto.Id_Tipo_Entidad === 1 ? TipoEntidad.Física : TipoEntidad.Jurídica;
+        const afiliado = await this.afiliadoRepository.findOne({ where: { Id_Afiliado: dto.Id_Afiliado, Tipo_Entidad: tipoEntidadEnum }, relations: ['Medidores'] });
         if (!afiliado) throw new BadRequestException(`Afiliado ${dto.Id_Tipo_Entidad === 1 ? 'Físico' : 'Jurídico'} con ID ${dto.Id_Afiliado} no encontrado`);
 
         const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
@@ -235,6 +243,7 @@ export class MedidorService {
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado') // Asegurar que Afiliado se carga
             .where('medidor.Id_Medidor = :id', { id: dto.Id_Medidor })
             .getOne();
 

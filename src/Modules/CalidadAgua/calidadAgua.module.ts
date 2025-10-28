@@ -9,10 +9,10 @@ import { AuditoriaModule } from '../Auditoria/auditoria.module';
 import { UsuariosModule } from '../Usuarios/Modules/usuarios.module';
 
 @Module({
-    imports: [ TypeOrmModule.forFeature([CalidadAgua, Usuario]), DropboxModule, AuditoriaModule, UsuariosModule ],
+    imports: [TypeOrmModule.forFeature([CalidadAgua, Usuario]), DropboxModule, AuditoriaModule, UsuariosModule],
     controllers: [CalidadAguaController],
     providers: [CalidadAguaService],
     exports: [CalidadAguaService]
 })
 
-export class CalidadAguaModule {}
+export class CalidadAguaModule { }

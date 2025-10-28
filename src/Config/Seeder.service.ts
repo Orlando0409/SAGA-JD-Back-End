@@ -332,25 +332,6 @@ export class SeederService implements OnModuleInit {
         }
     }
 
-    private async createDefaultEstadosMedidor() {
-        const estados = [
-            { Id_Estado_Medidor: 1, Nombre_Estado_Medidor: 'No instalado' },
-            { Id_Estado_Medidor: 2, Nombre_Estado_Medidor: 'Instalado' },
-            { Id_Estado_Medidor: 3, Nombre_Estado_Medidor: 'Averiado' },
-        ];
-
-        for (const estado of estados) {
-            const existe = await this.estadoMedidorRepository.findOne({
-                where: { Id_Estado_Medidor: estado.Id_Estado_Medidor }
-            });
-
-            if (!existe) {
-                const nuevoEstado = this.estadoMedidorRepository.create(estado);
-                await this.estadoMedidorRepository.save(nuevoEstado);
-            }
-        }
-    }
-
     private async createDefaultEstadosProveedor() {
         const estados = [
 
@@ -392,6 +373,7 @@ export class SeederService implements OnModuleInit {
         const estados = [
             { Id_Estado_Sugerencia: 1, Estado_Sugerencia: 'Pendiente' },
             { Id_Estado_Sugerencia: 2, Estado_Sugerencia: 'Contestado' },
+            { Id_Estado_Sugerencia: 3, Estado_Sugerencia: 'Archivado' },
             { Id_Estado_Sugerencia: 3, Estado_Sugerencia: 'Archivado' },
         ];
 
@@ -677,6 +659,7 @@ export class SeederService implements OnModuleInit {
     }
 
     private async createPermisos() {
+
         const modulos = [
             'usuarios',
             'actas',

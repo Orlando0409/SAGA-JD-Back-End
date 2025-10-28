@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, ConflictException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UpdateProyectoDto } from "./ProyectoDTO's/UpdateProyecto.dto";
@@ -7,9 +7,9 @@ import { Proyecto } from "./ProyectoEntities/Proyecto.Entity";
 import { EstadoProyecto } from "./ProyectoEntities/EstadoProyecto.Entity";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { Public } from "../auth/Decorator/Public.decorator";
-import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { UsuariosService } from "../Usuarios/Services/usuarios.service";
 import { AuditoriaService } from "../Auditoria/auditoria.service";
+import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Injectable()
 export class ProyectoService {
@@ -31,58 +31,30 @@ export class ProyectoService {
     ) { }
 
     @Public()
-    async getProyectosVisibles() {
-        const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
-            .leftJoinAndSelect('proyecto.Estado', 'estado')
-            .leftJoinAndSelect('proyecto.Usuario', 'usuario')
-            .where('proyecto.Visible = :visible', { visible: true })
-            .getMany();
-
-        return Promise.all(proyectos.map(async proyecto => ({
-            ...proyecto,
-            Usuario: proyecto.Usuario ?
-                await this.usuariosService.FormatearUsuarioResponse(proyecto.Usuario) : null
-        })));
+    async getProyectos() {
+        return this.proyectoRepository.find({
+            relations: ['Estado'],
+            order: { Fecha_Creacion: 'DESC' }
+        });
     }
 
-    async getProyectosInvisibles() {
-        const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
-            .leftJoinAndSelect('proyecto.Estado', 'estado')
-            .leftJoinAndSelect('proyecto.Usuario', 'usuario')
-            .where('proyecto.Visible = :visible', { visible: false })
-            .getMany();
-
-        return Promise.all(proyectos.map(async proyecto => ({
-            ...proyecto,
-            Usuario: proyecto.Usuario ?
-                await this.usuariosService.FormatearUsuarioResponse(proyecto.Usuario) : null
-        })));
-    }
-
-    async getAllProyectos() {
-        const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
-            .leftJoinAndSelect('proyecto.Estado', 'estado')
-            .leftJoinAndSelect('proyecto.Usuario', 'usuario')
-            .getMany();
-
-        return Promise.all(proyectos.map(async proyecto => ({
-            ...proyecto,
-            Usuario: proyecto.Usuario ?
-                await this.usuariosService.FormatearUsuarioResponse(proyecto.Usuario) : null
-        })));
+    async findProyectobyId(Id_Proyecto: number) {
+        const proyecto = await this.proyectoRepository.findOne({
+            where: { Id_Proyecto },
+            relations: ['Estado']
+        });
+        if (!proyecto) { throw new NotFoundException(`Proyecto con id ${Id_Proyecto} no encontrado`); }
+        return proyecto;
     }
 
     async CreateProyecto(dto: CreateProyectoDto, idUsuario: number, file?: Express.Multer.File) {
-        if (!idUsuario) { throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción'); }
-        if (!file) throw new BadRequestException('Debe subir una imagen para el proyecto');
-
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
-        if (!usuario) throw new BadRequestException('El usuario no existe.');
+        if (!file) { throw new Error('Debe subir una imagen para el proyecto'); }
 
         // Obtener estado por defecto "En Planeamiento"
-        const estadoInicial = await this.proyectoEstadoRepository.findOne({ where: { Id_Estado_Proyecto: 1 } });
-        if (!estadoInicial) throw new NotFoundException('Estado por defecto no encontrado');
+        const estadoDefault = await this.proyectoEstadoRepository.findOne({ where: { Id_Estado_Proyecto: 1 } });
+        if (!estadoDefault) { throw new Error('Estado por defecto no encontrado'); }
 
+        // Normalizar datos antes de procesar
         dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
         dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
 
@@ -92,9 +64,7 @@ export class ProyectoService {
         const proyecto = this.proyectoRepository.create({
             ...dto,
             Imagen_Url: Proyecto.url,
-            Estado: estadoInicial,
-            Visible: false,
-            Usuario: usuario
+            Estado: estadoDefault
         });
 
         // Guardar en BD
@@ -137,13 +107,12 @@ export class ProyectoService {
             Titulo: proyecto.Titulo,
             Descripcion: proyecto.Descripcion,
             Estado: proyecto.Estado?.Nombre_Estado,
-            Visible: proyecto.Visible
+            Visible: false
         };
 
         if (dto.Titulo) {
             dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
         }
-
         if (dto.Descripcion) {
             dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
         }

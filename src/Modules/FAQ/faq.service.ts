@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FAQEntity } from './FAQEntities/FAQ.Entity';
@@ -13,7 +13,7 @@ export interface UsuarioPublic {
 }
 
 export interface FAQWithUser {
-	Id_FAG: number;
+	Id_FAQ: number;
 	Pregunta: string;
 	Respuesta: string;
 	Fecha_Creacion: Date;
@@ -21,6 +21,11 @@ export interface FAQWithUser {
 	Id_Usuario: number;
 	Usuario?: UsuarioPublic;
 	Visible?: boolean;
+}
+
+export interface InformativeFAQ {
+	Pregunta: string;
+	Respuesta: string;
 }
 
 @Injectable()
@@ -32,6 +37,19 @@ export class FAQService {
 
 	async create(createDto: CreateFAQDto, idUsuario: number): Promise<FAQWithUser> {
 		const now = new Date();
+
+		// Validar duplicados (pregunta o respuesta) - case insensitive
+		const existing = await this.faqRepo
+			.createQueryBuilder('faq')
+			.where('LOWER(faq.Pregunta) = LOWER(:pregunta) OR LOWER(faq.Respuesta) = LOWER(:respuesta)', {
+				pregunta: createDto.Pregunta,
+				respuesta: createDto.Respuesta,
+			})
+			.getOne();
+
+		if (existing) {
+			throw new BadRequestException('Ya existe una pregunta o respuesta igual.');
+		}
 			const faq = this.faqRepo.create({
 				Pregunta: createDto.Pregunta,
 				Respuesta: createDto.Respuesta,
@@ -42,15 +60,15 @@ export class FAQService {
 			});
 
 		const saved = await this.faqRepo.save(faq);
-		const found = await this.faqRepo.findOne({ where: { Id_FAG: saved.Id_FAG }, relations: ['Usuario'] });
+		const found = await this.faqRepo.findOne({ where: { Id_FAQ: saved.Id_FAQ }, relations: ['Usuario'] });
 		if (!found) throw new NotFoundException('FAQ not found after save');
 		return this.mapToDTO(found);
 	}
 
-	async findAll(): Promise<FAQWithUser[]> {
-			const list = await this.faqRepo.find({ where: { Visible: true }, relations: ['Usuario'] });
-		return list.map((f) => this.mapToDTO(f));
-	}
+		async findAll(): Promise<InformativeFAQ[]> {
+			const list = await this.faqRepo.find({ where: { Visible: true } });
+			return list.map((f) => ({ Pregunta: f.Pregunta, Respuesta: f.Respuesta }));
+		}
 
 		//get exclusivo para el admin
 		async findAllAdmin(): Promise<FAQWithUser[]> {
@@ -59,14 +77,33 @@ export class FAQService {
 		}
 
 	async findOne(id: number): Promise<FAQWithUser> {
-		const faq = await this.faqRepo.findOne({ where: { Id_FAG: id }, relations: ['Usuario'] });
+			const faq = await this.faqRepo.findOne({ where: { Id_FAQ: id }, relations: ['Usuario'] });
 		if (!faq) throw new NotFoundException('FAQ not found');
 		return this.mapToDTO(faq);
 	}
 
 	async update(id: number, updateDto: UpdateFAQDto, idUsuario: number): Promise<FAQWithUser> {
-		const faq = await this.faqRepo.findOne({ where: { Id_FAG: id } });
+		const faq = await this.faqRepo.findOne({ where: { Id_FAQ: id } });
 		if (!faq) throw new NotFoundException('FAQ not found');
+
+		// Validar duplicados si se actualiza pregunta o respuesta
+		if (updateDto.Pregunta !== undefined || updateDto.Respuesta !== undefined) {
+			const preguntaToCheck = updateDto.Pregunta ?? faq.Pregunta;
+			const respuestaToCheck = updateDto.Respuesta ?? faq.Respuesta;
+
+			const existing = await this.faqRepo
+				.createQueryBuilder('faq')
+				.where('(LOWER(faq.Pregunta) = LOWER(:pregunta) OR LOWER(faq.Respuesta) = LOWER(:respuesta)) AND faq.Id_FAQ != :id', {
+					pregunta: preguntaToCheck,
+					respuesta: respuestaToCheck,
+					id,
+				})
+				.getOne();
+
+			if (existing) {
+				throw new BadRequestException('Ya existe una pregunta o respuesta igual.');
+			}
+		}
 
 		if (updateDto.Pregunta !== undefined) faq.Pregunta = updateDto.Pregunta;
 		if (updateDto.Respuesta !== undefined) faq.Respuesta = updateDto.Respuesta;
@@ -75,14 +112,14 @@ export class FAQService {
 		faq.Id_Usuario = idUsuario;
 
 		const saved = await this.faqRepo.save(faq);
-		const found = await this.faqRepo.findOne({ where: { Id_FAG: saved.Id_FAG }, relations: ['Usuario'] });
+		const found = await this.faqRepo.findOne({ where: { Id_FAQ: saved.Id_FAQ }, relations: ['Usuario'] });
 		if (!found) throw new NotFoundException('FAQ not found after update');
 		return this.mapToDTO(found);
 	}
 
 	private mapToDTO(faq: FAQEntity): FAQWithUser {
-		const result: FAQWithUser = {
-			Id_FAG: faq.Id_FAG,
+			const result: FAQWithUser = {
+				Id_FAQ: faq.Id_FAQ,
 			Pregunta: faq.Pregunta,
 			Respuesta: faq.Respuesta,
 			Fecha_Creacion: faq.Fecha_Creacion,
@@ -106,13 +143,13 @@ export class FAQService {
 	}
 
 	async remove(id: number) {
-		const faq = await this.faqRepo.findOne({ where: { Id_FAG: id } });
+		const faq = await this.faqRepo.findOne({ where: { Id_FAQ: id } });
 		if (!faq) throw new NotFoundException('FAQ not found');
 		return this.faqRepo.remove(faq);
 	}
 
 			async toggleVisible(id: number, idUsuario: number): Promise<FAQWithUser> {
-				const faq = await this.faqRepo.findOne({ where: { Id_FAG: id } });
+				const faq = await this.faqRepo.findOne({ where: { Id_FAQ: id } });
 				if (!faq) throw new NotFoundException('FAQ not found');
 
 				faq.Visible = !faq.Visible;
@@ -120,7 +157,7 @@ export class FAQService {
 				faq.Id_Usuario = idUsuario;
 
 				const saved = await this.faqRepo.save(faq);
-				const found = await this.faqRepo.findOne({ where: { Id_FAG: saved.Id_FAG }, relations: ['Usuario'] });
+				const found = await this.faqRepo.findOne({ where: { Id_FAQ: saved.Id_FAQ }, relations: ['Usuario'] });
 				if (!found) throw new NotFoundException('FAQ not found after toggleVisible');
 				return this.mapToDTO(found);
 			}

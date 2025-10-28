@@ -62,7 +62,7 @@ import { ReportesModule } from './Modules/Reportes/reportes.module';
 import { Reporte } from './Modules/Reportes/ReporteEntities/Reportes.Entity';
 import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia';
 import { Sugerencia } from './Modules/Sugerencias/SugerenciaEntities/Sugerencia.Entity';
-import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity';import { Lectura } from './Modules/Lecturas/LecturaEntities/Lectura.Entity';
+import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity'; import { Lectura } from './Modules/Lecturas/LecturaEntities/Lectura.Entity';
 import { LecturaModule } from './Modules/Lecturas/lectura.module';
 import { TipoTarifaLectura } from './Modules/Lecturas/LecturaEntities/TipoTarifaLectura.Entity';
 import { TipoTarifaServiciosFijos } from './Modules/Lecturas/LecturaEntities/TipoTarifaServiciosFijos.Entity';
@@ -80,7 +80,7 @@ import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
 
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      inject:[ConfigService], 
+      inject: [ConfigService],
 
       useFactory: (config: ConfigService) => ({
         type: 'mysql',
@@ -123,20 +123,12 @@ import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
     AfiliadosModule,
     SolicitudesModule,
     CalidadAguaModule,
-    ProyectoModule,
     ActasModule,
-    SolicitudAfiliacionFisicaModule,
-    SolicitudAfiliacionJuridicaModule,
-    SolicitudDesconexionFisicaModule,
-    SolicitudDesconexionJuridicaModule,
-    SolicitudCambioMedidorFisicaModule,
-    SolicitudCambioMedidorJuridicaModule,
-    SolicitudAsociadoFisicaModule,
-    SolicitudAsociadoJuridicaModule,
     ReportesModule,
+    ProyectoModule,
     SugerenciaModule,
+    FAQModule,
     QuejasModule,
-    FAQModule
   ],
   controllers: [],
   providers: [
@@ -154,4 +146,4 @@ import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

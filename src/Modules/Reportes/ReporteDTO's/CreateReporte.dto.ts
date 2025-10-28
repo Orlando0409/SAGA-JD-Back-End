@@ -20,7 +20,7 @@ export class CreateReporteDto {
     Primer_Apellido: string;
 
     @IsOptional()
-    @ValidateIf((o) => o.Sapellido && o.Sapellido.trim() !== '')
+    @ValidateIf((o) => o.Segundo_Apellido && o.Segundo_Apellido.trim() !== '')
     @IsString()
     @Matches(NAME_REGEX, { message: 'El segundo apellido sólo puede contener letras y sin espacios' })
     @MaxLength(20, { message: 'El segundo apellido no puede tener más de 20 caracteres' })
@@ -32,7 +32,6 @@ export class CreateReporteDto {
     @MaxLength(50, { message: 'El correo no puede tener más de 50 caracteres' })
     @IsEmail({}, { message: 'El correo electrónico debe ser válido' })
     Correo: string;
-
 
     @IsDefined({ message: 'La ubicación es requerida' })
     @IsString()
