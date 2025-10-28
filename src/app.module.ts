@@ -62,8 +62,12 @@ import { ReportesModule } from './Modules/Reportes/reportes.module';
 import { Reporte } from './Modules/Reportes/ReporteEntities/Reportes.Entity';
 import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia';
 import { Sugerencia } from './Modules/Sugerencias/SugerenciaEntities/Sugerencia.Entity';
-import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity';import { Lectura } from './Modules/Lecturas/LecturaEntities/Lectura.Entity';
+import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity'; import { Lectura } from './Modules/Lecturas/LecturaEntities/Lectura.Entity';
 import { LecturaModule } from './Modules/Lecturas/lectura.module';
+import { TipoTarifaLectura } from './Modules/Lecturas/LecturaEntities/TipoTarifaLectura.Entity';
+import { TipoTarifaServiciosFijos } from './Modules/Lecturas/LecturaEntities/TipoTarifaServiciosFijos.Entity';
+import { TipoTarifaVentaAgua } from './Modules/Lecturas/LecturaEntities/TipoTarifaVentaAgua.Entity';
+import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
 
 @Module({
   imports: [
@@ -76,7 +80,7 @@ import { LecturaModule } from './Modules/Lecturas/lectura.module';
 
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      inject:[ConfigService], 
+      inject: [ConfigService],
 
       useFactory: (config: ConfigService) => ({
         type: 'mysql',
@@ -99,9 +103,9 @@ import { LecturaModule } from './Modules/Lecturas/lectura.module';
         Sugerencia, EstadoSugerencia,
         Queja, EstadoQueja,
         FAQEntity,
-        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario,FAQEntity, Medidor, EstadoMedidor,
+        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
         Auditoria,
-        Lectura
+        Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Bloque
         ],
         synchronize: false,
         dropSchema: false,
@@ -119,20 +123,12 @@ import { LecturaModule } from './Modules/Lecturas/lectura.module';
     AfiliadosModule,
     SolicitudesModule,
     CalidadAguaModule,
-    ProyectoModule,
     ActasModule,
-    SolicitudAfiliacionFisicaModule,
-    SolicitudAfiliacionJuridicaModule,
-    SolicitudDesconexionFisicaModule,
-    SolicitudDesconexionJuridicaModule,
-    SolicitudCambioMedidorFisicaModule,
-    SolicitudCambioMedidorJuridicaModule,
-    SolicitudAsociadoFisicaModule,
-    SolicitudAsociadoJuridicaModule,
     ReportesModule,
+    ProyectoModule,
     SugerenciaModule,
+    FAQModule,
     QuejasModule,
-    FAQModule
   ],
   controllers: [],
   providers: [
@@ -150,4 +146,4 @@ import { LecturaModule } from './Modules/Lecturas/lectura.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

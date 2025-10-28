@@ -8,7 +8,6 @@ import { ResponderReporteDto } from './ReporteDTO\'s/ResponderReporte.dto';
 import { EstadoReporte } from './ReporteEntities/EstadoReporte';
 import { Reporte } from './ReporteEntities/Reportes.Entity';
 
-
 interface ReporteFiles {
   Adjunto?: Express.Multer.File[];
 }
@@ -16,7 +15,7 @@ interface ReporteFiles {
 @Injectable()
 export class ReportesService {
   private readonly logger = new Logger(ReportesService.name);
-  
+
   constructor(
     @InjectRepository(Reporte)
     private readonly reportesRepository: Repository<Reporte>,
@@ -26,7 +25,7 @@ export class ReportesService {
 
     private readonly dropboxFilesService: DropboxFilesService,
     private readonly emailService: EmailService,
-  ) {}
+  ) { }
 
   async getAll() {
     return this.reportesRepository.find({ relations: ['Estado'] });
@@ -54,7 +53,7 @@ export class ReportesService {
       Fecha_Reporte: fecha,
       Estado: estado,
     };
-    
+
     const saved = await this.reportesRepository.save(reporteData);
 
     const adjuntoUrls: string[] = [];
@@ -120,13 +119,13 @@ export class ReportesService {
       setImmediate(async () => {
         try {
           await this.emailService.enviarEmailRespuestaReporte({
-            name: repo.Nombre,
-            Papellido: repo.Primer_Apellido,
-            Sapellido: repo.Segundo_Apellido,
+            Nombre: repo.Nombre,
+            Primer_Apellido: repo.Primer_Apellido,
+            Segundo_Apellido: repo.Segundo_Apellido,
             Correo: correoDestino,
-            ubicacion: repo.Ubicacion,
-            descripcion: repo.Descripcion,
-            respuesta: dto.Respuesta,
+            Ubicacion: repo.Ubicacion,
+            Descripcion: repo.Descripcion,
+            Respuesta: dto.Respuesta,
           });
         } catch (error) {
           this.logger.error('Error al enviar email de respuesta de reporte:', error);

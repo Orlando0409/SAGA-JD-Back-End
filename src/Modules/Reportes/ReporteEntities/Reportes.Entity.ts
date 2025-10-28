@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { EstadoReporte } from './EstadoReporte';
 
-@Entity('reportes')
+@Entity('Reportes')
 export class Reporte {
     @PrimaryGeneratedColumn()
     Id_Reporte: number;

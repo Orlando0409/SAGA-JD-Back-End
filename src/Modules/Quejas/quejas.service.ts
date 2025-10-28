@@ -1,12 +1,13 @@
+
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Queja } from './QuejaEntities/QuejasEntity';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
 import { EstadoQueja } from './QuejaEntities/EstadoQueja';
 import { CreateQuejaDto } from './QuejaDTO\'s/CreateQueja.dto';
 import { ResponderQuejaDto } from './QuejaDTO\'s/ResponderQueja.dto';
+import { Queja } from './QuejaEntities/QuejasEntity';
 
 interface QuejaFiles {
   Adjunto?: Express.Multer.File[];
@@ -15,7 +16,7 @@ interface QuejaFiles {
 @Injectable()
 export class QuejasService {
   private readonly logger = new Logger(QuejasService.name);
-  
+
   constructor(
     @InjectRepository(Queja)
     private readonly quejasRepository: Repository<Queja>,
@@ -25,7 +26,7 @@ export class QuejasService {
 
     private readonly dropboxFilesService: DropboxFilesService,
     private readonly emailService: EmailService,
-  ) {}
+  ) { }
 
   async getAll() {
     return this.quejasRepository.find({ relations: ['Estado'] });
@@ -53,7 +54,7 @@ export class QuejasService {
       Fecha_Queja: fecha,
       Estado: estado,
     };
-    
+
     const saved = await this.quejasRepository.save(quejaData);
 
     const adjuntoUrls: string[] = [];
@@ -100,9 +101,9 @@ export class QuejasService {
   }
 
   async responderQueja(id: number, dto: ResponderQuejaDto) {
-    const repo = await this.quejasRepository.findOne({ 
-      where: { Id_Queja: id }, 
-      relations: ['Estado'] 
+    const repo = await this.quejasRepository.findOne({
+      where: { Id_Queja: id },
+      relations: ['Estado']
     });
     if (!repo) throw new BadRequestException(`Queja con id ${id} no encontrada`);
 

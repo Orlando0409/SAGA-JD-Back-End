@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, TableInheritance, BeforeInsert, BeforeUpdate, UpdateDateColumn, CreateDateColumn, JoinColumn, OneToMany, ChildEntity } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, BeforeInsert, BeforeUpdate, UpdateDateColumn, CreateDateColumn, JoinColumn, OneToMany, ChildEntity } from "typeorm";
 import { EstadoProveedor } from "./EstadoProveedor.Entity";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { parsePhoneNumberFromString } from "libphonenumber-js";

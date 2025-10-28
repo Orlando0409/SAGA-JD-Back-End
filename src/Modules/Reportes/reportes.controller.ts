@@ -7,13 +7,10 @@ import { CreateReporteDto } from './ReporteDTO\'s/CreateReporte.dto';
 import { ResponderReporteDto } from './ReporteDTO\'s/ResponderReporte.dto';
 import { UpdateReporteEstadoDto } from './ReporteDTO\'s/UpdateReporteEstado.dto';
 
-
-
 @Controller('reportes')
 export class ReportesController {
-  constructor(private readonly reportesService: ReportesService) {}
+  constructor(private readonly reportesService: ReportesService) { }
 
-  
   @Get()
   getAll() {
     return this.reportesService.getAll();
@@ -38,11 +35,11 @@ export class ReportesController {
 
   @Patch(':id/estado')
   updateEstado(@Param('id', NumericParamPipe) id: number, @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: UpdateReporteEstadoDto) {
-    const nuevo = body.IdEstadoReporte;
+    const nuevo = body.Id_Estado_Reporte;
     return this.reportesService.updateEstado(id, nuevo);
   }
 
-  
+
   @Patch(':id/responder')
   responder(
     @Param('id', NumericParamPipe) id: number,

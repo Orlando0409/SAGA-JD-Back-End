@@ -12,6 +12,9 @@ import { AuditoriaService } from "../Auditoria/auditoria.service";
 import { UpdateLecturaDTO } from "./LecturaDTO'S/UpdateLectura.dto";
 import { MedidorService } from "../Inventario/Services/medidor.service";
 import { AfiliadosService } from "../Afiliados/afiliados.service";
+import { TipoTarifaLectura } from "./LecturaEntities/TipoTarifaLectura.Entity";
+import { TipoTarifaServiciosFijos } from "./LecturaEntities/TipoTarifaServiciosFijos.Entity";
+import { TipoTarifaVentaAgua } from "./LecturaEntities/TipoTarifaVentaAgua.Entity";
 
 @Injectable()
 export class LecturaService {
@@ -27,6 +30,15 @@ export class LecturaService {
 
         @InjectRepository(EstadoMedidor)
         private readonly estadoMedidorRepository: Repository<EstadoMedidor>,
+
+        @InjectRepository(TipoTarifaLectura)
+        private readonly tipoTarifaLecturaRepository: Repository<TipoTarifaLectura>,
+
+        @InjectRepository(TipoTarifaServiciosFijos)
+        private readonly tipoTarifaServiciosFijosRepository: Repository<TipoTarifaServiciosFijos>,
+
+        @InjectRepository(TipoTarifaVentaAgua)
+        private readonly tipoTarifaVentaAguaRepository: Repository<TipoTarifaVentaAgua>,
 
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
@@ -58,12 +70,16 @@ export class LecturaService {
             Id_Lectura: lectura.Id_Lectura,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
-            Consumo_Calculado: lectura.Consumo_Calculado,
+            Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
             Fecha_Lectura: lectura.Fecha_Lectura,
             Medidor: this.medidorService.formatearMedidorResponse(lectura.Medidor),
             Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(lectura.Medidor?.Afiliado),
             Usuario: await this.usuariosService.FormatearUsuarioResponse(lectura.Usuario)
         })));
+    }
+
+    async getTarifasLecturas() {
+        return await this.tipoTarifaLecturaRepository.find();
     }
 
     async getLecturasByAfiliado(idAfiliado: number) {
@@ -81,7 +97,7 @@ export class LecturaService {
             Id_Lectura: lectura.Id_Lectura,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
-            Consumo_Calculado: lectura.Consumo_Calculado,
+            Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
             Fecha_Lectura: lectura.Fecha_Lectura,
             Medidor: this.medidorService.formatearMedidorResponse(lectura.Medidor),
             Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(lectura.Medidor?.Afiliado),
@@ -104,7 +120,7 @@ export class LecturaService {
             Id_Lectura: lectura.Id_Lectura,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
-            Consumo_Calculado: lectura.Consumo_Calculado,
+            Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
             Fecha_Lectura: lectura.Fecha_Lectura,
             Medidor: this.medidorService.formatearMedidorResponse(lectura.Medidor),
             Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(lectura.Medidor?.Afiliado),
@@ -112,7 +128,7 @@ export class LecturaService {
         })));
     }
 
-    async getLecturasByMedidor(idMedidor: number) {
+    async getLecturasByMedidor(numeroMedidor: number) {
         const lecturas = await this.lecturaRepository.createQueryBuilder('lectura')
             .leftJoinAndSelect('lectura.Medidor', 'medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estadoMedidor')
@@ -120,14 +136,14 @@ export class LecturaService {
             .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
             .leftJoinAndSelect('afiliado.Estado', 'estadoAfiliado')
             .leftJoinAndSelect('lectura.Usuario', 'usuario')
-            .where('medidor.Id_Medidor = :idMedidor', { idMedidor })
+            .where('medidor.Numero_Medidor = :numeroMedidor', { numeroMedidor })
             .getMany();
 
         return Promise.all(lecturas.map(async lectura => ({
             Id_Lectura: lectura.Id_Lectura,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
-            Consumo_Calculado: lectura.Consumo_Calculado,
+            Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
             Fecha_Lectura: lectura.Fecha_Lectura,
             Medidor: this.medidorService.formatearMedidorResponse(lectura.Medidor),
             Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(lectura.Medidor?.Afiliado),
@@ -164,7 +180,7 @@ export class LecturaService {
             Id_Lectura: lectura.Id_Lectura,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
-            Consumo_Calculado: lectura.Consumo_Calculado,
+            Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
             Fecha_Lectura: lectura.Fecha_Lectura,
             Medidor: this.medidorService.formatearMedidorResponse(lectura.Medidor),
             Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(lectura.Medidor?.Afiliado),
@@ -209,7 +225,7 @@ export class LecturaService {
         const nuevaLectura = this.lecturaRepository.create({
             Valor_Lectura_Anterior: valorLecturaAnterior,
             Valor_Lectura_Actual: dto.Valor_Lectura,
-            Consumo_Calculado: consumoCalculado,
+            Consumo_Calculado_M3: consumoCalculado,
             Medidor: medidor,
         });
 
@@ -220,7 +236,7 @@ export class LecturaService {
             await this.auditoriaService.logCreacion('Lecturas', idUsuario, lecturaGuardada.Id_Lectura, {
                 Lectura_Anterior: lecturaGuardada.Valor_Lectura_Anterior,
                 Lectura_Actual: lecturaGuardada.Valor_Lectura_Actual,
-                Consumo_Calculado: lecturaGuardada.Consumo_Calculado,
+                Consumo_Calculado_M3: lecturaGuardada.Consumo_Calculado_M3,
                 Fecha_Lectura: lecturaGuardada.Fecha_Lectura,
                 Numero_Medidor: medidor.Numero_Medidor
             });
@@ -232,7 +248,7 @@ export class LecturaService {
             Id_Lectura: lecturaGuardada.Id_Lectura,
             Valor_Lectura_Anterior: lecturaGuardada.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lecturaGuardada.Valor_Lectura_Actual,
-            Consumo_Calculado: lecturaGuardada.Consumo_Calculado,
+            Consumo_Calculado_M3: lecturaGuardada.Consumo_Calculado_M3,
             Fecha_Lectura: lecturaGuardada.Fecha_Lectura,
             Medidor: this.medidorService.formatearMedidorResponse(medidor),
             Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado),
@@ -252,7 +268,7 @@ export class LecturaService {
         const datosAnteriores = {
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
-            Consumo_Calculado: lectura.Consumo_Calculado,
+            Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
             Fecha_Lectura: lectura.Fecha_Lectura
         }
 
@@ -264,7 +280,7 @@ export class LecturaService {
             if (dto.Valor_Lectura < valorAnterior) throw new BadRequestException(`La lectura actual (${dto.Valor_Lectura}) no puede ser menor que la lectura anterior (${valorAnterior})`);
 
             lectura.Valor_Lectura_Actual = dto.Valor_Lectura;
-            lectura.Consumo_Calculado = dto.Valor_Lectura - valorAnterior;
+            lectura.Consumo_Calculado_M3 = dto.Valor_Lectura - valorAnterior;
         }
 
         const lecturaActualizada = await this.lecturaRepository.save(lectura);
@@ -280,7 +296,7 @@ export class LecturaService {
         // Registrar en auditoría
         try {
             await this.auditoriaService.logActualizacion('Lecturas', idUsuario, lecturaActualizada.Id_Lectura, datosAnteriores, {
-                Consumo_Calculado: lecturaActualizada.Consumo_Calculado,
+                Consumo_Calculado_M3: lecturaActualizada.Consumo_Calculado_M3,
                 Valor_Lectura_Actual: lecturaActualizada.Valor_Lectura_Actual,
                 Valor_Lectura_Anterior: lecturaActualizada.Valor_Lectura_Anterior,
                 Fecha_Creacion: lecturaActualizada.Fecha_Lectura
@@ -293,7 +309,7 @@ export class LecturaService {
             Id_Lectura: lecturaCompleta.Id_Lectura,
             Valor_Lectura_Anterior: lecturaCompleta.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lecturaCompleta.Valor_Lectura_Actual,
-            Consumo_Calculado: lecturaCompleta.Consumo_Calculado,
+            Consumo_Calculado_M3: lecturaCompleta.Consumo_Calculado_M3,
             Fecha_Lectura: lecturaCompleta.Fecha_Lectura,
             Medidor: this.medidorService.formatearMedidorResponse(lecturaCompleta.Medidor),
             Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(lecturaCompleta.Medidor?.Afiliado),

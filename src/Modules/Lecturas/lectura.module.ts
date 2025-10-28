@@ -12,17 +12,21 @@ import { UsuariosModule } from "../Usuarios/Modules/usuarios.module";
 import { InventarioModule } from "../Inventario/inventario.module";
 import { AfiliadosModule } from "../Afiliados/afiliados.module";
 import { EstadoAfiliado } from "../Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
+import { totalLecturasService } from "./totalLecturas.service";
+import { TipoTarifaLectura } from "./LecturaEntities/TipoTarifaLectura.Entity";
+import { TipoTarifaVentaAgua } from "./LecturaEntities/TipoTarifaVentaAgua.Entity";
+import { TipoTarifaServiciosFijos } from "./LecturaEntities/TipoTarifaServiciosFijos.Entity";
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Lectura, Usuario, Medidor, EstadoMedidor, Afiliado, EstadoAfiliado]), 
+        TypeOrmModule.forFeature([Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Usuario, Medidor, EstadoMedidor, Afiliado, EstadoAfiliado]), 
         forwardRef(() => UsuariosModule),
         forwardRef(() => AuditoriaModule),
         forwardRef(() => InventarioModule),
         forwardRef(() => AfiliadosModule)
     ],
     controllers: [LecturaController],
-    providers: [LecturaService],
-    exports: [LecturaService],
+    providers: [LecturaService, totalLecturasService],
+    exports: [LecturaService, totalLecturasService],
 })
 export class LecturaModule { }

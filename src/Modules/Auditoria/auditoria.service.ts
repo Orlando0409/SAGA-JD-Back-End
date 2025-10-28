@@ -16,7 +16,7 @@ import { Acta } from "../Actas/ActaEntities/Actas.Entity";
 
 @Injectable()
 export class AuditoriaService {
-    constructor (
+    constructor(
         @InjectRepository(Auditoria)
         private readonly auditoriaRepository: Repository<Auditoria>,
 
@@ -39,7 +39,7 @@ export class AuditoriaService {
             if ((accion === 'Actualización' || accion === 'Eliminación') && datosAnteriores) {
                 try {
                     const anteriores = JSON.parse(datosAnteriores);
-                    
+
                     // Buscar el campo de nombre según el módulo
                     switch (modulo.toLowerCase()) {
                         case 'usuarios':
@@ -89,6 +89,11 @@ export class AuditoriaService {
                         case 'lecturas':
                             if (anteriores.Numero_Medidor) return anteriores.Numero_Medidor;
                             break;
+
+                        case 'faq':
+                            if (anteriores.Pregunta) return anteriores.Pregunta;
+                            break;
+
                     }
                 } catch (error) {
                     console.error('Error al parsear datos anteriores:', error);
@@ -99,7 +104,7 @@ export class AuditoriaService {
             if (accion === 'Creación' && datosNuevos) {
                 try {
                     const nuevos = JSON.parse(datosNuevos);
-                    
+
                     switch (modulo.toLowerCase()) {
                         case 'usuario':
                             if (nuevos.Nombre_Usuario) return nuevos.Nombre_Usuario;
@@ -147,6 +152,10 @@ export class AuditoriaService {
 
                         case 'lecturas':
                             if (nuevos.Numero_Medidor) return nuevos.Numero_Medidor;
+                            break;
+
+                        case 'faq':
+                            if (nuevos.Pregunta) return nuevos.Pregunta;
                             break;
                     }
                 } catch (error) {
@@ -216,6 +225,12 @@ export class AuditoriaService {
                         where: { Id_Lectura: idRegistro }
                     });
                     return lectura?.Id_Lectura.toString() || `Lectura ID: ${idRegistro}`;       // Modificación aquí
+
+                case 'faq':
+                    const faq = await this.dataSource.getRepository('FAQEntity').findOne({
+                        where: { Id_FAQ: idRegistro }
+                    });
+                    return faq?.Pregunta || `FAQ ID: ${idRegistro}`;
 
                 default:
                     return `Registro ID: ${idRegistro}`;

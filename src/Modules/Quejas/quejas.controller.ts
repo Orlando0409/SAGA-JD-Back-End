@@ -9,7 +9,7 @@ import { UpdateQuejaEstadoDto } from './QuejaDTO\'s/UpdateQuejaEstado.dto';
 
 @Controller('quejas')
 export class QuejasController {
-  constructor(private readonly quejasService: QuejasService) {}
+  constructor(private readonly quejasService: QuejasService) { }
 
   @Get()
   getAll() {

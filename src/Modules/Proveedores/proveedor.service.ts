@@ -32,7 +32,7 @@ export class ProveedorService {
     private auditoriaService: AuditoriaService,
 
     private usuariosService: UsuariosService,
-  ) {}
+  ) { }
 
   async createFisico(dto: CreateProveedorFisicoDto, idUsuario: number): Promise<ProveedorFisico> {
     if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
@@ -43,38 +43,38 @@ export class ProveedorService {
     const nombreExistente = await this.fisicoRepo.findOne({
       where: { Nombre_Proveedor: dto.Nombre_Proveedor },
     });
-    if (nombreExistente) throw new ConflictException('Este nombre ya se encuentra registrado');
+      if (nombreExistente) {
+        throw new ConflictException('Este nombre ya se encuentra registrado');
+    }
 
-    const IdentificacionExistente = await this.fisicoRepo.findOne({ where: { Identificacion: dto.Identificacion }, relations: ['Estado_Proveedor'] });
-    if (IdentificacionExistente) throw new ConflictException('Esta identificación ya se encuentra registrada');
+    const IdentificacionExistente = await this.fisicoRepo.findOne({
+      where: { Identificacion: dto.Identificacion },
+    });
+      if (IdentificacionExistente) {
+        throw new ConflictException('Esta identificación ya se encuentra registrada');
+    }
 
     const estado = await this.estadoRepo.findOne({ where: { Id_Estado_Proveedor: dto.Id_Estado_Proveedor } });
-    if (!estado) throw new NotFoundException('El estado seleccionado no es válido');
+      if (!estado) {
+        throw new NotFoundException('El estado seleccionado no es válido');
+    }
 
     // Crear primero en la tabla base para mantener integridad referencial
     const proveedor = this.proveedorRepo.create({
       ...dto,
       Tipo_Entidad: TipoEntidad.Física,
-      Estado_Proveedor: estado,
-      Usuario: usuario,
+      Estado_Proveedor: estado
     });
-    await this.proveedorRepo.save(proveedor);
+      await this.proveedorRepo.save(proveedor);
 
     // Luego crear en la tabla específica con el mismo ID
     const proveedorFisico = this.fisicoRepo.create({
       ...dto,
       Tipo_Entidad: TipoEntidad.Física,
-      Estado_Proveedor: estado,
-      Usuario: usuario,
+      Estado_Proveedor: estado
     });
 
-    const proveedorGuardado = await this.fisicoRepo.save(proveedorFisico);
-
-    // Formatear el proveedor para auditoría (sin info sensible del usuario)
-    const proveedorParaAuditoria = await this.FormatearProveedorParaResponse(proveedorGuardado);
-    await this.auditoriaService.logCreacion('proveedores', idUsuario, proveedorGuardado.Id_Proveedor, { proveedor: proveedorParaAuditoria });
-
-    return this.findOneFisico(proveedorGuardado.Id_Proveedor);
+    return this.fisicoRepo.save(proveedorFisico);
   }
 
   async createJuridico(dto: CreateProveedorJuridicoDto, idUsuario: number): Promise<ProveedorJuridico> {
@@ -86,76 +86,57 @@ export class ProveedorService {
     const nombreExistente = await this.juridicoRepo.findOne({
       where: { Nombre_Proveedor: dto.Nombre_Proveedor },
     });
-    if (nombreExistente) throw new ConflictException('Este nombre ya se encuentra registrado');
+      if (nombreExistente) {
+        throw new ConflictException('Este nombre ya se encuentra registrado');
+    }
 
     const cedulaExistente = await this.juridicoRepo.findOne({
       where: { Cedula_Juridica: (dto.Cedula_Juridica) },
     });
-    if (cedulaExistente) throw new ConflictException('Esta identificación ya se encuentra registrada');
+      if (cedulaExistente) {
+        throw new ConflictException('Esta identificación ya se encuentra registrada');
+    }
 
     const estado = await this.estadoRepo.findOne({ where: { Id_Estado_Proveedor: dto.Id_Estado_Proveedor } });
-    if (!estado) throw new NotFoundException('El estado seleccionado no es válido');
+      if (!estado) {
+        throw new NotFoundException('El estado seleccionado no es válido');
+    }
 
     // Crear primero en la tabla base para mantener integridad referencial
     const proveedor = this.proveedorRepo.create({
       ...dto,
       Tipo_Entidad: TipoEntidad.Jurídica,
-      Estado_Proveedor: estado,
-      Usuario: usuario,
+      Estado_Proveedor: estado
     });
-    await this.proveedorRepo.save(proveedor);
+      await this.proveedorRepo.save(proveedor);
 
     // Luego crear en la tabla específica con el mismo ID
     const proveedorJuridico = this.juridicoRepo.create({
       ...dto,
       Tipo_Entidad: TipoEntidad.Jurídica,
-      Estado_Proveedor: estado,
-      Usuario: usuario,
+      Estado_Proveedor: estado
     });
-
-    const proveedorGuardado = await this.juridicoRepo.save(proveedorJuridico);
-
-    // Formatear el proveedor para auditoría (sin info sensible del usuario)
-    const proveedorParaAuditoria = await this.FormatearProveedorParaResponse(proveedorGuardado);
-    await this.auditoriaService.logCreacion('proveedores', idUsuario, proveedorGuardado.Id_Proveedor, { proveedor: proveedorParaAuditoria });
-
-    return this.findOneJuridico(proveedorGuardado.Id_Proveedor);
+    
+    return this.juridicoRepo.save(proveedorJuridico);
   }
 
-  async findAll(): Promise<any[]> {
-    const proveedores = await this.proveedorRepo.find({ relations: ['Estado_Proveedor', 'Usuario'] });
-
-    return await Promise.all(proveedores.map(async (proveedor) => {
-      const usuarioFormateado = proveedor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(proveedor.Usuario) : null;
-      return { ...proveedor, Usuario: usuarioFormateado };
-    }));
+  findAll(): Promise<Proveedor[]> {
+    return this.proveedorRepo.find({ relations: ['Estado_Proveedor'] });
   }
 
-  async findAllFisico(): Promise<any[]> {
-    const proveedores = await this.fisicoRepo.find({ relations: ['Estado_Proveedor', 'Usuario'] });
+    findAllFisico(): Promise<ProveedorFisico[]> {
+      return this.fisicoRepo.find({ relations: ['Estado_Proveedor'] });
+    }
 
-    return await Promise.all(proveedores.map(async (proveedor) => {
-      const usuarioFormateado = proveedor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(proveedor.Usuario) : null;
-      return { ...proveedor, Usuario: usuarioFormateado };
-    }));
-  }
+    findAllJuridico(): Promise<ProveedorJuridico[]> {
+      return this.juridicoRepo.find({ relations: ['Estado_Proveedor'] });
+    }
 
-  async findAllJuridico(): Promise<any[]> {
-    const proveedores = await this.juridicoRepo.find({ relations: ['Estado_Proveedor', 'Usuario'] });
-
-    return await Promise.all(proveedores.map(async (proveedor) => {
-      const usuarioFormateado = proveedor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(proveedor.Usuario) : null;
-      return { ...proveedor, Usuario: usuarioFormateado };
-    }));
-  }
-
-  async findOneFisico(id: number): Promise<any> {
-    const proveedor = await this.fisicoRepo.findOne({ where: { Id_Proveedor: id }, relations: ['Estado_Proveedor', 'Usuario'] });
-    if (!proveedor) throw new NotFoundException(`Proveedor Físico ${id} no encontrado`);
-
-    const usuarioFormateado = proveedor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(proveedor.Usuario) : null;
-    return { ...proveedor, Usuario: usuarioFormateado };
-  }
+    async findOneFisico(id: number): Promise<ProveedorFisico> {
+      const proveedor = await this.fisicoRepo.findOne({ where: { Id_Proveedor: id }, relations: ['Estado_Proveedor'] });
+        if (!proveedor) throw new NotFoundException(`Proveedor Físico ${id} no encontrado`);
+      return proveedor;
+    }
 
     async findOneJuridico(id: number): Promise<ProveedorJuridico> {
       const proveedor = await this.juridicoRepo.findOne({ where: { Id_Proveedor: id }, relations: ['Estado_Proveedor'] });
@@ -198,8 +179,8 @@ export class ProveedorService {
 
       const proveedor = await this.findOneFisico(id);
 
-    const estado = await this.estadoRepo.findOne({ where: { Id_Estado_Proveedor: dto.Id_Estado_Proveedor } });
-    if (!estado) throw new NotFoundException(`Estado proveedor ${dto.Id_Estado_Proveedor} no encontrado`);
+      const estado = await this.estadoRepo.findOne({ where: { Id_Estado_Proveedor: dto.Id_Estado_Proveedor } });
+      if (!estado) throw new NotFoundException(`Estado proveedor ${dto.Id_Estado_Proveedor} no encontrado`);
 
       proveedor.Estado_Proveedor = estado;
       return this.fisicoRepo.save(proveedor);
@@ -213,8 +194,8 @@ export class ProveedorService {
 
       const proveedor = await this.findOneJuridico(id);
 
-    const estado = await this.estadoRepo.findOne({ where: { Id_Estado_Proveedor: dto.Id_Estado_Proveedor } });
-    if (!estado) throw new NotFoundException(`Estado proveedor ${dto.Id_Estado_Proveedor} no encontrado`);
+      const estado = await this.estadoRepo.findOne({ where: { Id_Estado_Proveedor: dto.Id_Estado_Proveedor } });
+      if (!estado) throw new NotFoundException(`Estado proveedor ${dto.Id_Estado_Proveedor} no encontrado`);
 
       proveedor.Estado_Proveedor = estado;
       return this.juridicoRepo.save(proveedor);
@@ -240,117 +221,117 @@ export class ProveedorService {
       await this.juridicoRepo.remove(proveedor);
     }
 
-  /**
-   * Formatea la información de un proveedor físico para responses públicos
-   * Solo devuelve información básica y necesaria
-   */
-  async FormatearProveedorFisicoParaResponse(proveedor: ProveedorFisico): Promise<{
-    Id_Proveedor: number;
-    Tipo_Entidad: number;
-    Nombre_Proveedor: string;
-    Telefono_Proveedor: string;
-    Tipo_Identificacion: string;
-    Identificacion: string;
-    Estado: {
-      Id_Estado_Proveedor: number;
-      Nombre_Estado_Proveedor: string;
-    };
-  }> {
-    return {
-      Id_Proveedor: proveedor.Id_Proveedor,
-      Tipo_Entidad: proveedor.Tipo_Entidad, // 1 = Física
-      Nombre_Proveedor: proveedor.Nombre_Proveedor,
-      Telefono_Proveedor: proveedor.Telefono_Proveedor,
-      Tipo_Identificacion: proveedor.Tipo_Identificacion,
-      Identificacion: proveedor.Identificacion,
+    /**
+     * Formatea la información de un proveedor físico para responses públicos
+     * Solo devuelve información básica y necesaria
+     */
+    async FormatearProveedorFisicoParaResponse(proveedor: ProveedorFisico): Promise<{
+      Id_Proveedor: number;
+      Tipo_Entidad: number;
+      Nombre_Proveedor: string;
+      Telefono_Proveedor: string;
+      Tipo_Identificacion: string;
+      Identificacion: string;
       Estado: {
-        Id_Estado_Proveedor: proveedor.Estado_Proveedor?.Id_Estado_Proveedor || 0,
-        Nombre_Estado_Proveedor: proveedor.Estado_Proveedor?.Estado_Proveedor || 'Sin estado'
-      }
-    };
-  }
-
-  /**
-   * Formatea la información de un proveedor jurídico para responses públicos
-   * Solo devuelve información básica y necesaria
-   */
-  async FormatearProveedorJuridicoParaResponse(proveedor: ProveedorJuridico): Promise<{
-    Id_Proveedor: number;
-    Tipo_Entidad: number;
-    Nombre_Proveedor: string;
-    Telefono_Proveedor: string;
-    Cedula_Juridica: string;
-    Razon_Social: string;
-    Estado: {
-      Id_Estado_Proveedor: number;
-      Nombre_Estado_Proveedor: string;
-    };
-  }> {
-    return {
-      Id_Proveedor: proveedor.Id_Proveedor,
-      Tipo_Entidad: proveedor.Tipo_Entidad, // 2 = Jurídica
-      Nombre_Proveedor: proveedor.Nombre_Proveedor,
-      Telefono_Proveedor: proveedor.Telefono_Proveedor,
-      Cedula_Juridica: proveedor.Cedula_Juridica,
-      Razon_Social: proveedor.Razon_Social,
-      Estado: {
-        Id_Estado_Proveedor: proveedor.Estado_Proveedor?.Id_Estado_Proveedor || 0,
-        Nombre_Estado_Proveedor: proveedor.Estado_Proveedor?.Estado_Proveedor || 'Sin estado'
-      }
-    };
-  }
-
-  /**
-   * Método universal para formatear cualquier tipo de proveedor
-   * Determina automáticamente el tipo y aplica el formateo correcto
-   * Si los campos específicos no están cargados, hace una query adicional
-   */
-  async FormatearProveedorParaResponse(proveedor: Proveedor | ProveedorFisico | ProveedorJuridico): Promise<any> {
-    // Determinar el tipo usando Tipo_Entidad (1 = Física, 2 = Jurídica)
-    const tipoEntidad = (proveedor as any).Tipo_Entidad;
-
-    // Si el tipo es 1 (Física)
-    if (tipoEntidad === 1 || tipoEntidad === TipoEntidad.Física) {
-      // Si ya tiene los campos específicos, usarlos directamente
-      if ('Tipo_Identificacion' in proveedor && 'Identificacion' in proveedor) {
-        return await this.FormatearProveedorFisicoParaResponse(proveedor as ProveedorFisico);
-      }
-      // Si no, cargar el proveedor físico completo desde la tabla específica
-      const proveedorFisico = await this.fisicoRepo.findOne({
-        where: { Id_Proveedor: proveedor.Id_Proveedor },
-        relations: ['Estado_Proveedor']
-      });
-      if (proveedorFisico) {
-        return await this.FormatearProveedorFisicoParaResponse(proveedorFisico);
-      }
+        Id_Estado_Proveedor: number;
+        Nombre_Estado_Proveedor: string;
+      };
+    }> {
+      return {
+        Id_Proveedor: proveedor.Id_Proveedor,
+        Tipo_Entidad: proveedor.Tipo_Entidad, // 1 = Física
+        Nombre_Proveedor: proveedor.Nombre_Proveedor,
+        Telefono_Proveedor: proveedor.Telefono_Proveedor,
+        Tipo_Identificacion: proveedor.Tipo_Identificacion,
+        Identificacion: proveedor.Identificacion,
+        Estado: {
+          Id_Estado_Proveedor: proveedor.Estado_Proveedor?.Id_Estado_Proveedor || 0,
+          Nombre_Estado_Proveedor: proveedor.Estado_Proveedor?.Estado_Proveedor || 'Sin estado'
+        }
+      };
     }
 
-    // Si el tipo es 2 (Jurídica)
-    else if (tipoEntidad === 2 || tipoEntidad === TipoEntidad.Jurídica) {
-      // Si ya tiene los campos específicos, usarlos directamente
-      if ('Cedula_Juridica' in proveedor && 'Razon_Social' in proveedor) {
-        return await this.FormatearProveedorJuridicoParaResponse(proveedor as ProveedorJuridico);
-      }
-      // Si no, cargar el proveedor jurídico completo desde la tabla específica
-      const proveedorJuridico = await this.juridicoRepo.findOne({
-        where: { Id_Proveedor: proveedor.Id_Proveedor },
-        relations: ['Estado_Proveedor']
-      });
-      if (proveedorJuridico) {
-        return await this.FormatearProveedorJuridicoParaResponse(proveedorJuridico);
-      }
+    /**
+     * Formatea la información de un proveedor jurídico para responses públicos
+     * Solo devuelve información básica y necesaria
+     */
+    async FormatearProveedorJuridicoParaResponse(proveedor: ProveedorJuridico): Promise<{
+      Id_Proveedor: number;
+      Tipo_Entidad: number;
+      Nombre_Proveedor: string;
+      Telefono_Proveedor: string;
+      Cedula_Juridica: string;
+      Razon_Social: string;
+      Estado: {
+        Id_Estado_Proveedor: number;
+        Nombre_Estado_Proveedor: string;
+      };
+    }> {
+      return {
+        Id_Proveedor: proveedor.Id_Proveedor,
+        Tipo_Entidad: proveedor.Tipo_Entidad, // 2 = Jurídica
+        Nombre_Proveedor: proveedor.Nombre_Proveedor,
+        Telefono_Proveedor: proveedor.Telefono_Proveedor,
+        Cedula_Juridica: proveedor.Cedula_Juridica,
+        Razon_Social: proveedor.Razon_Social,
+        Estado: {
+          Id_Estado_Proveedor: proveedor.Estado_Proveedor?.Id_Estado_Proveedor || 0,
+          Nombre_Estado_Proveedor: proveedor.Estado_Proveedor?.Estado_Proveedor || 'Sin estado'
+        }
+      };
     }
 
-    // Fallback para casos edge - devolver como objeto básico
-    return {
-      Id_Proveedor: (proveedor as any).Id_Proveedor,
-      Tipo_Entidad: tipoEntidad || 0,
-      Nombre_Proveedor: (proveedor as any).Nombre_Proveedor,
-      Telefono_Proveedor: (proveedor as any).Telefono_Proveedor,
-      Estado: {
-        Id_Estado_Proveedor: (proveedor as any).Estado_Proveedor?.Id_Estado_Proveedor || 0,
-        Nombre_Estado_Proveedor: (proveedor as any).Estado_Proveedor?.Estado_Proveedor || 'Sin estado'
+    /**
+     * Método universal para formatear cualquier tipo de proveedor
+     * Determina automáticamente el tipo y aplica el formateo correcto
+     * Si los campos específicos no están cargados, hace una query adicional
+     */
+    async FormatearProveedorParaResponse(proveedor: Proveedor | ProveedorFisico | ProveedorJuridico): Promise<any> {
+      // Determinar el tipo usando Tipo_Entidad (1 = Física, 2 = Jurídica)
+      const tipoEntidad = (proveedor as any).Tipo_Entidad;
+
+      // Si el tipo es 1 (Física)
+      if (tipoEntidad === 1 || tipoEntidad === TipoEntidad.Física) {
+        // Si ya tiene los campos específicos, usarlos directamente
+        if ('Tipo_Identificacion' in proveedor && 'Identificacion' in proveedor) {
+          return await this.FormatearProveedorFisicoParaResponse(proveedor as ProveedorFisico);
+        }
+        // Si no, cargar el proveedor físico completo desde la tabla específica
+        const proveedorFisico = await this.fisicoRepo.findOne({
+          where: { Id_Proveedor: proveedor.Id_Proveedor },
+          relations: ['Estado_Proveedor']
+        });
+        if (proveedorFisico) {
+          return await this.FormatearProveedorFisicoParaResponse(proveedorFisico);
+        }
       }
-    };
-  }
+
+      // Si el tipo es 2 (Jurídica)
+      else if (tipoEntidad === 2 || tipoEntidad === TipoEntidad.Jurídica) {
+        // Si ya tiene los campos específicos, usarlos directamente
+        if ('Cedula_Juridica' in proveedor && 'Razon_Social' in proveedor) {
+          return await this.FormatearProveedorJuridicoParaResponse(proveedor as ProveedorJuridico);
+        }
+        // Si no, cargar el proveedor jurídico completo desde la tabla específica
+        const proveedorJuridico = await this.juridicoRepo.findOne({
+          where: { Id_Proveedor: proveedor.Id_Proveedor },
+          relations: ['Estado_Proveedor']
+        });
+        if (proveedorJuridico) {
+          return await this.FormatearProveedorJuridicoParaResponse(proveedorJuridico);
+        }
+      }
+
+      // Fallback para casos edge - devolver como objeto básico
+      return {
+        Id_Proveedor: (proveedor as any).Id_Proveedor,
+        Tipo_Entidad: tipoEntidad || 0,
+        Nombre_Proveedor: (proveedor as any).Nombre_Proveedor,
+        Telefono_Proveedor: (proveedor as any).Telefono_Proveedor,
+        Estado: {
+          Id_Estado_Proveedor: (proveedor as any).Estado_Proveedor?.Id_Estado_Proveedor || 0,
+          Nombre_Estado_Proveedor: (proveedor as any).Estado_Proveedor?.Estado_Proveedor || 'Sin estado'
+        }
+      };
+    }
 }
