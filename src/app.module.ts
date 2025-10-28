@@ -67,6 +67,7 @@ import { LecturaModule } from './Modules/Lecturas/lectura.module';
 import { TipoTarifaLectura } from './Modules/Lecturas/LecturaEntities/TipoTarifaLectura.Entity';
 import { TipoTarifaServiciosFijos } from './Modules/Lecturas/LecturaEntities/TipoTarifaServiciosFijos.Entity';
 import { TipoTarifaVentaAgua } from './Modules/Lecturas/LecturaEntities/TipoTarifaVentaAgua.Entity';
+import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
 
 @Module({
   imports: [
@@ -104,7 +105,7 @@ import { TipoTarifaVentaAgua } from './Modules/Lecturas/LecturaEntities/TipoTari
         FAQEntity,
         Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario,FAQEntity, Medidor, EstadoMedidor,
         Auditoria,
-        Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua
+        Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Bloque
         ],
         synchronize: false,
         dropSchema: false,
