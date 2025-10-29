@@ -8,7 +8,6 @@ import { UpdateFAQDto } from './FAQDTO\'s/UpdateFAQ.dto';
 
 @Controller('faq')
 @ApiTags('FAQ')
-
 @UseGuards(JwtAuthGuard)
 export class FAQController {
     constructor(
