@@ -142,14 +142,14 @@ export class MedidorService {
     async createMedidor(dto: CreateMedidorDTO, idUsuario: number) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
+        if (!usuario) throw new BadRequestException(`Usuario con ID ${idUsuario} no encontrado`);
+
         const MedidorExistente = await this.medidorRepository.findOne({ where: { Numero_Medidor: dto.Numero_Medidor } });
         if (MedidorExistente) throw new BadRequestException('Ya existe un medidor con ese número.');
 
         const estadoInicial = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 1 } });
         if (!estadoInicial) throw new BadRequestException('Estado por defecto no encontrado');
-
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
-        if (!usuario) throw new BadRequestException(`Usuario con ID ${idUsuario} no encontrado`);
 
         const medidor = this.medidorRepository.create({
             ...dto,
