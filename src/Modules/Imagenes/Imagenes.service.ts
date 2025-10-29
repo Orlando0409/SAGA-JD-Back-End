@@ -1,3 +1,4 @@
+import { Usuario } from './../Usuarios/UsuarioEntities/Usuario.Entity';
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -23,41 +24,34 @@ export class ImagenesService {
   }
 
   async findOne(id: number): Promise<ImagenEntity> {
-    const imagen = await this.imagenRepository.findOne({
-      where: { Id_Imagen: id }
-    });
-
-    if (!imagen) {
-      throw new NotFoundException(`Imagen con ID ${id} no encontrada`);
-    }
+    const imagen = await this.imagenRepository.findOne({where: { Id_Imagen: id }});
+    if (!imagen) throw new NotFoundException(`Imagen con ID ${id} no encontrada`);
 
     return imagen;
   }
 
-  async create(createImagenDto: CreateImagenDto, file: Express.Multer.File): Promise<ImagenEntity> {
-    if (!file) {
-      throw new BadRequestException('El archivo de imagen es requerido');
-    }
+  async create(createImagenDto: CreateImagenDto, idUsuario: number, file: Express.Multer.File): Promise<ImagenEntity> {
+    if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+    const usuario = await this.imagenRepository.manager.getRepository(Usuario).findOne({ where: { Id_Usuario: idUsuario } });
+    if (!usuario) throw new BadRequestException('El usuario proporcionado no existe.');
+
+    if (!file) throw new BadRequestException('El archivo de imagen es requerido');
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.mimetype)) {
-      throw new BadRequestException('Tipo de archivo no válido. Solo se permiten imágenes (JPEG, PNG, GIF, WebP)');
-    }
+    if (!allowedTypes.includes(file.mimetype)) throw new BadRequestException('Tipo de archivo no válido. Solo se permiten imágenes (JPEG, PNG, GIF, WebP)');
 
     const imagenExistente = await this.imagenRepository.findOne({ where: { Nombre_Imagen: createImagenDto.Nombre_Imagen } });
-    if (imagenExistente) {
-      throw new BadRequestException('Ya existe una imagen con ese nombre. Por favor elige otro nombre.');
-    }
+    if (imagenExistente) throw new BadRequestException('Ya existe una imagen con ese nombre. Por favor elige otro nombre.');
 
     try {
-      const uploadRes = await this.dropboxService.uploadFileDownloadOnly(file, 'Imagenes', undefined, undefined, createImagenDto.Nombre_Imagen);
+      const uploadRes = await this.dropboxService.uploadFileDownloadOnly(file, 'Imagenes', createImagenDto.Nombre_Imagen);
       const dropboxUrl = uploadRes.url;
-      
+
       const nuevaImagen = this.imagenRepository.create({
         Nombre_Imagen: createImagenDto.Nombre_Imagen,
         Imagen: dropboxUrl,
-        Fecha_Creacion: new Date(),
-        Fecha_Actualizacion: new Date()
+        Usuario: usuario,
       });
 
       return await this.imagenRepository.save(nuevaImagen);
@@ -66,26 +60,25 @@ export class ImagenesService {
     }
   }
 
-  async update(id: number,updateImagenDto: UpdateImagenDto,file?: Express.Multer.File): Promise<ImagenEntity> {
+  async update(id: number, updateImagenDto: UpdateImagenDto, idUsuario: number, file?: Express.Multer.File): Promise<ImagenEntity> {
+    if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+    const usuario = await this.imagenRepository.manager.getRepository(Usuario).findOne({ where: { Id_Usuario: idUsuario } });
+    if (!usuario) throw new BadRequestException('El usuario proporcionado no existe.');
+
     const imagen = await this.findOne(id);
     const carpetaAnterior = imagen.Nombre_Imagen;
 
     try {
-    
       if (file) {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        if (!allowedTypes.includes(file.mimetype)) {
-          throw new BadRequestException('Tipo de archivo no válido. Solo se permiten imágenes.');
-        }
-       
-        const uploadRes = await this.dropboxService.uploadFile(file, 'Imagenes', undefined, undefined, updateImagenDto.Nombre_Imagen ?? imagen.Nombre_Imagen);
+        if (!allowedTypes.includes(file.mimetype)) throw new BadRequestException('Tipo de archivo no válido. Solo se permiten imágenes.');
+
+        const uploadRes = await this.dropboxService.uploadFile(file, 'Imagenes', updateImagenDto.Nombre_Imagen ?? imagen.Nombre_Imagen);
         imagen.Imagen = uploadRes.url;
       }
 
-      if (updateImagenDto.Nombre_Imagen) {
-        imagen.Nombre_Imagen = updateImagenDto.Nombre_Imagen;
-      }
-      imagen.Fecha_Actualizacion = new Date();
+      if (updateImagenDto.Nombre_Imagen) imagen.Nombre_Imagen = updateImagenDto.Nombre_Imagen;
 
       const imagenActualizada = await this.imagenRepository.save(imagen);
 
@@ -104,7 +97,7 @@ export class ImagenesService {
     }
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number, idUsuario: number): Promise<void> {
     const imagen = await this.findOne(id);
 
     try {

@@ -9,6 +9,7 @@ import {
   UseInterceptors,
   UploadedFile,
   ParseIntPipe,
+  Request,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImagenesService } from './Imagenes.service';
@@ -26,7 +27,9 @@ export class ImagenesController {
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<ImagenEntity> {
+  async findOne(
+    @Param('id', ParseIntPipe) id: number
+  ) {
     return this.imagenesService.findOne(id);
   }
 
@@ -35,8 +38,10 @@ export class ImagenesController {
   async create(
     @Body() createImagenDto: CreateImagenDto,
     @UploadedFile() Imagen: Express.Multer.File,
-  ): Promise<ImagenEntity> {
-    return this.imagenesService.create(createImagenDto, Imagen);
+    @Request() req: any,
+  ) {
+    const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+    return this.imagenesService.create(createImagenDto, idUsuario, Imagen);
   }
 
   @Put(':id')
@@ -44,13 +49,19 @@ export class ImagenesController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateImagenDto: UpdateImagenDto,
+    @Request() req: any,
     @UploadedFile() Imagen?: Express.Multer.File,
-  ): Promise<ImagenEntity> {
-    return this.imagenesService.update(id, updateImagenDto, Imagen);
+  ) {
+    const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+    return this.imagenesService.update(id, updateImagenDto, idUsuario, Imagen);
   }
 
   @Delete(':id')
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return this.imagenesService.remove(id);
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: any,
+  ) {
+    const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+    return this.imagenesService.remove(id, idUsuario);
   }
 }
