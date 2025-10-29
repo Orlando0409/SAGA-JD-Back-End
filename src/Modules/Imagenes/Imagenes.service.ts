@@ -35,7 +35,6 @@ export class ImagenesService {
   }
 
   async create(createImagenDto: CreateImagenDto, file: Express.Multer.File): Promise<ImagenEntity> {
-    
     if (!file) {
       throw new BadRequestException('El archivo de imagen es requerido');
     }
@@ -51,7 +50,7 @@ export class ImagenesService {
     }
 
     try {
-      const uploadRes = await this.dropboxService.uploadFile(file, 'Imagenes', undefined, undefined, createImagenDto.Nombre_Imagen);
+      const uploadRes = await this.dropboxService.uploadFileDownloadOnly(file, 'Imagenes', undefined, undefined, createImagenDto.Nombre_Imagen);
       const dropboxUrl = uploadRes.url;
       
       const nuevaImagen = this.imagenRepository.create({

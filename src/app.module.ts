@@ -95,7 +95,6 @@ import { ManualModule } from './Modules/ManualdeUsuario/manual.module';
         password: process.env.DB_PASSWORD,
         database: process.env.DB_DATABASE,
         entities: [
-        ImagenEntity,
         Usuario, UsuarioRol, Permiso,
         Solicitud, SolicitudFisica, SolicitudJuridica, EstadoSolicitud,
         SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudAsociadoFisica,
@@ -110,7 +109,9 @@ import { ManualModule } from './Modules/ManualdeUsuario/manual.module';
         FAQEntity,
         Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
         Auditoria,
-        Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Bloque , ManualEntity
+        Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Bloque,
+        ImagenEntity,
+        ManualEntity
         ],
         synchronize: true,
         dropSchema: true,
