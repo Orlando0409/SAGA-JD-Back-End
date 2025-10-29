@@ -74,7 +74,7 @@ export class ImagenesService {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!allowedTypes.includes(file.mimetype)) throw new BadRequestException('Tipo de archivo no válido. Solo se permiten imágenes.');
 
-        const uploadRes = await this.dropboxService.uploadFile(file, 'Imagenes', updateImagenDto.Nombre_Imagen ?? imagen.Nombre_Imagen);
+        const uploadRes = await this.dropboxService.uploadFileDownloadOnly(file, 'Imagenes', updateImagenDto.Nombre_Imagen ?? imagen.Nombre_Imagen);
         imagen.Imagen = uploadRes.url;
       }
 
