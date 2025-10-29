@@ -1,11 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException, } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ManualEntity } from './ManualEntity/manual.entity';
-import { CreateManualDto } from './ManualDTO\'s/createManual.dto';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { AuditoriaService } from '../Auditoria/auditoria.service';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
+import { ManualEntity } from './ManualEntities/Manual.Entity';
+import { CreateManualDto } from './ManualDTO\'s/CreateManual.dto';
+import { UsuariosService } from '../Usuarios/Services/usuarios.service';
 
 @Injectable()
 export class ManualService {
@@ -17,6 +18,8 @@ export class ManualService {
     private readonly usuarioRepository: Repository<Usuario>,
 
     private readonly dropboxFilesService: DropboxFilesService,
+
+    private readonly usuariosService: UsuariosService,
 
     private readonly auditoriaService: AuditoriaService,
   ) { }
@@ -31,30 +34,15 @@ export class ManualService {
     const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
     if (!usuario) throw new BadRequestException('El usuario proporcionado no existe.');
 
-    if (!file) {
-      throw new BadRequestException(
-        'Debe subir un archivo PDF para el manual de usuario.',
-      );
-    }
-
-    if (file.mimetype !== 'application/pdf') {
-      throw new BadRequestException('El archivo debe ser un PDF.');
-    }
+    if (!file) throw new BadRequestException('Debe subir un archivo PDF para el manual de usuario');
+    if (file.mimetype !== 'application/pdf') throw new BadRequestException('El archivo debe ser un PDF.');
 
     dto.Nombre_Manual = dto.Nombre_Manual.trim()[0].toUpperCase() + dto.Nombre_Manual.trim().slice(1).toLowerCase();
 
-    const manualExistente = await this.manualRepository.findOne({
-      where: { Nombre_Manual: dto.Nombre_Manual },
-    });
-    if (manualExistente) {
-      throw new BadRequestException('El nombre del manual ya existe.');
-    }
+    const manualExistente = await this.manualRepository.findOne({where: { Nombre_Manual: dto.Nombre_Manual }});
+    if (manualExistente) throw new BadRequestException('El nombre del manual ya existe.');
 
-    const fileRes = await this.dropboxFilesService.uploadFile(
-      file,
-      'Manual-de-Usuario',
-      dto.Nombre_Manual,
-    );
+    const fileRes = await this.dropboxFilesService.uploadFile(file, 'Manual-de-Usuario', dto.Nombre_Manual);
 
     const manual = this.manualRepository.create({
       Nombre_Manual: dto.Nombre_Manual,
@@ -62,13 +50,20 @@ export class ManualService {
       Usuario: usuario,
     });
 
+    await this.manualRepository.save(manual);
+
     try {
-      await this.auditoriaService.logCreacion('Manual de Usuario', idUsuario, manual.Id_Manual, {
+      await this.auditoriaService.logCreacion('Manuales de Usuario', idUsuario, manual.Id_Manual, {
         Nombre_Manual: manual.Nombre_Manual,
         PDF_Manual: manual.PDF_Manual,
       });
     } catch (error) {
       console.error('Error al registrar auditoría de creación de manual de usuario:', error);
+    }
+
+    return {
+      ...manual,
+      Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario),
     }
   }
 
@@ -92,11 +87,15 @@ export class ManualService {
     await this.manualRepository.remove(manual);
 
     try {
-      await this.auditoriaService.logEliminacion('Manual de Usuario', idUsuario, idManual, datosEliminados);
+      await this.auditoriaService.logEliminacion('Manuales de Usuario', idUsuario, idManual, datosEliminados);
     } catch (error) {
       console.error('Error al registrar auditoría de eliminación de manual de usuario:', error);
     }
 
-    return { message: 'Manual eliminado exitosamente.' };
+    return {
+      message: `Manual con ID ${idManual} eliminado correctamente.`,
+      ...manual,
+      Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario),
+    }
   }
 }
