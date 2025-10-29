@@ -200,7 +200,7 @@ export class AuditoriaService {
                     });
                     return material?.Nombre_Material || `Material ID: ${idRegistro}`;
 
-                case 'proveedor':
+                case 'proveedores':
                     const proveedor = await this.dataSource.getRepository(Proveedor).findOne({
                         where: { Id_Proveedor: idRegistro }
                     });
