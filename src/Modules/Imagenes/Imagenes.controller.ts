@@ -9,18 +9,15 @@ import {
   UseInterceptors,
   UploadedFile,
   ParseIntPipe,
-  Request,
-  UseGuards,
+  Request
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImagenesService } from './Imagenes.service';
 import { CreateImagenDto } from "./ImagenesDTO's/CreateImagen.dto";
 import { UpdateImagenDto } from "./ImagenesDTO's/UpdateImagen.dto";
-import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
 import { Public } from '../auth/Decorator/Public.decorator';
 
 @Controller('imagenes')
-@UseGuards(JwtAuthGuard)
 export class ImagenesController {
   constructor(private readonly imagenesService: ImagenesService) {}
 
