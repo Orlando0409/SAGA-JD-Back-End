@@ -68,6 +68,11 @@ import { TipoTarifaLectura } from './Modules/Lecturas/LecturaEntities/TipoTarifa
 import { TipoTarifaServiciosFijos } from './Modules/Lecturas/LecturaEntities/TipoTarifaServiciosFijos.Entity';
 import { TipoTarifaVentaAgua } from './Modules/Lecturas/LecturaEntities/TipoTarifaVentaAgua.Entity';
 import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
+import { ImagenEntity } from './Modules/Imagenes/ImagenesEntity/ImagenEntity';
+import { ImagenesModule } from './Modules/Imagenes/Imagenes.module';
+import { ManualEntity } from './Modules/ManualdeUsuario/ManualEntity/manual.entity';
+import { ManualModule } from './Modules/ManualdeUsuario/manual.module';
+
 
 @Module({
   imports: [
@@ -90,6 +95,7 @@ import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
         password: process.env.DB_PASSWORD,
         database: process.env.DB_DATABASE,
         entities: [
+        ImagenEntity,
         Usuario, UsuarioRol, Permiso,
         Solicitud, SolicitudFisica, SolicitudJuridica, EstadoSolicitud,
         SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudAsociadoFisica,
@@ -97,18 +103,17 @@ import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
         Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
         Proveedor, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
         Proyecto, EstadoProyecto,
-        CalidadAgua,
-        Acta, ArchivoActa,
-        Reporte, EstadoReporte,
+        CalidadAgua,Acta, 
+        ArchivoActa,Reporte, EstadoReporte,
         Sugerencia, EstadoSugerencia,
         Queja, EstadoQueja,
         FAQEntity,
         Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
         Auditoria,
-        Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Bloque
+        Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Bloque , ManualEntity
         ],
-        synchronize: false,
-        dropSchema: false,
+        synchronize: true,
+        dropSchema: true,
       })
     }),
     SeederModule,
@@ -129,6 +134,8 @@ import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
     SugerenciaModule,
     FAQModule,
     QuejasModule,
+    ImagenesModule,
+    ManualModule
   ],
   controllers: [],
   providers: [
