@@ -1,8 +1,8 @@
-import { Column, PrimaryGeneratedColumn, Entity } from "typeorm"
+import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
+import { Column, PrimaryGeneratedColumn, Entity, ManyToOne, JoinColumn } from "typeorm"
 
-@Entity('manuales')
+@Entity('Manuales')
 export class ManualEntity {
-
     @PrimaryGeneratedColumn()
     Id_Manual: number;
 
@@ -11,4 +11,8 @@ export class ManualEntity {
 
     @Column()
     PDF_Manual: string;
+
+    @ManyToOne(() => Usuario, { nullable: false })
+    @JoinColumn({ name: 'Id_Usuario' })
+    Usuario: Usuario;
 }
