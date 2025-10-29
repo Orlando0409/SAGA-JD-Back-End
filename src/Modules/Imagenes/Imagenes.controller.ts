@@ -10,19 +10,23 @@ import {
   UploadedFile,
   ParseIntPipe,
   Request,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImagenesService } from './Imagenes.service';
 import { CreateImagenDto } from "./ImagenesDTO's/CreateImagen.dto";
 import { UpdateImagenDto } from "./ImagenesDTO's/UpdateImagen.dto";
-import { ImagenEntity } from './ImagenesEntity/ImagenEntity';
+import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
+import { Public } from '../auth/Decorator/Public.decorator';
 
 @Controller('imagenes')
+@UseGuards(JwtAuthGuard)
 export class ImagenesController {
   constructor(private readonly imagenesService: ImagenesService) {}
 
+  @Public()
   @Get()
-  async findAll(): Promise<ImagenEntity[]> {
+  async findAll() {
     return this.imagenesService.findAll();
   }
 
