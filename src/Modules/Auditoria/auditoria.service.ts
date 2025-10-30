@@ -94,6 +94,14 @@ export class AuditoriaService {
                             if (anteriores.Pregunta) return anteriores.Pregunta;
                             break;
 
+                        case 'edicion de imagenes':
+                            if (anteriores.Nombre_Imagen) return anteriores.Nombre_Imagen;
+                            break;
+
+                        case 'manuales de usuario':
+                            if (anteriores.Nombre_Manual) return anteriores.Nombre_Manual;
+                            break;
+
                     }
                 } catch (error) {
                     console.error('Error al parsear datos anteriores:', error);
@@ -157,6 +165,14 @@ export class AuditoriaService {
                         case 'faq':
                             if (nuevos.Pregunta) return nuevos.Pregunta;
                             break;
+
+                        case 'edicion de imagenes':
+                            if (nuevos.Nombre_Imagen) return nuevos.Nombre_Imagen;
+                            break;
+
+                        case 'manuales de usuario':
+                            if (nuevos.Nombre_Manual) return nuevos.Nombre_Manual;
+                            break;
                     }
                 } catch (error) {
                     console.error('Error al parsear datos nuevos:', error);
@@ -184,7 +200,7 @@ export class AuditoriaService {
                     });
                     return material?.Nombre_Material || `Material ID: ${idRegistro}`;
 
-                case 'proveedor':
+                case 'proveedores':
                     const proveedor = await this.dataSource.getRepository(Proveedor).findOne({
                         where: { Id_Proveedor: idRegistro }
                     });
@@ -231,6 +247,18 @@ export class AuditoriaService {
                         where: { Id_FAQ: idRegistro }
                     });
                     return faq?.Pregunta || `FAQ ID: ${idRegistro}`;
+
+                case 'edicion de imagenes':
+                    const imagen = await this.dataSource.getRepository('ImagenEntity').findOne({
+                        where: { Id_Imagen: idRegistro }
+                    });
+                    return imagen?.Nombre_Imagen || `Imagen ID: ${idRegistro}`;
+
+                case 'manuales de usuario':
+                    const manual = await this.dataSource.getRepository('ManualEntity').findOne({
+                        where: { Id_Manual: idRegistro }
+                    });
+                    return manual?.Nombre_Manual || `Manual ID: ${idRegistro}`;
 
                 default:
                     return `Registro ID: ${idRegistro}`;

@@ -2,20 +2,30 @@ import { Usuario } from './../Usuarios/UsuarioEntities/Usuario.Entity';
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ImagenEntity } from './ImagenesEntity/ImagenEntity';
+import { ImagenEntity } from './ImagenesEntity/Imagen.Entity';
 import { CreateImagenDto } from "./ImagenesDTO's/CreateImagen.dto";
 import { UpdateImagenDto } from "./ImagenesDTO's/UpdateImagen.dto";
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
+import { AuditoriaService } from '../Auditoria/auditoria.service';
+import { UsuariosService } from '../Usuarios/Services/usuarios.service';
 
 @Injectable()
 export class ImagenesService {
   constructor(
     @InjectRepository(ImagenEntity)
-    private imagenRepository: Repository<ImagenEntity>,
-    private dropboxService: DropboxFilesService,
+    private readonly imagenRepository: Repository<ImagenEntity>,
+
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
+
+    private readonly usuariosService: UsuariosService,
+
+    private readonly dropboxService: DropboxFilesService,
+
+    private readonly auditoriaService: AuditoriaService
   ) { }
 
-  async findAll(): Promise<ImagenEntity[]> {
+  async findAll() {
     return await this.imagenRepository.find({
       order: {
         Fecha_Creacion: 'DESC'
@@ -23,17 +33,17 @@ export class ImagenesService {
     });
   }
 
-  async findOne(id: number): Promise<ImagenEntity> {
-    const imagen = await this.imagenRepository.findOne({where: { Id_Imagen: id }});
+  async findOne(id: number) {
+    const imagen = await this.imagenRepository.findOne({ where: { Id_Imagen: id } });
     if (!imagen) throw new NotFoundException(`Imagen con ID ${id} no encontrada`);
 
     return imagen;
   }
 
-  async create(createImagenDto: CreateImagenDto, idUsuario: number, file: Express.Multer.File): Promise<ImagenEntity> {
+  async create(createImagenDto: CreateImagenDto, idUsuario: number, file: Express.Multer.File) {
     if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
-    const usuario = await this.imagenRepository.manager.getRepository(Usuario).findOne({ where: { Id_Usuario: idUsuario } });
+    const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
     if (!usuario) throw new BadRequestException('El usuario proporcionado no existe.');
 
     if (!file) throw new BadRequestException('El archivo de imagen es requerido');
@@ -54,20 +64,40 @@ export class ImagenesService {
         Usuario: usuario,
       });
 
-      return await this.imagenRepository.save(nuevaImagen);
+      const saved = await this.imagenRepository.save(nuevaImagen);
+
+      try {
+        await this.auditoriaService.logCreacion('Edicion de imagenes', idUsuario, nuevaImagen.Id_Imagen, {
+          Nombre_Imagen: nuevaImagen.Nombre_Imagen,
+          Imagen: nuevaImagen.Imagen,
+        });
+      } catch (error) {
+        console.error('Error al registrar auditoría de creación de imagen:', error);
+      }
+
+      return {
+        ...saved,
+        Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario),
+      }
     } catch (error: any) {
       throw new Error(`Error al crear imagen: ${error?.message ?? String(error)}`);
     }
   }
 
-  async update(id: number, updateImagenDto: UpdateImagenDto, idUsuario: number, file?: Express.Multer.File): Promise<ImagenEntity> {
+  async update(id: number, updateImagenDto: UpdateImagenDto, idUsuario: number, file?: Express.Multer.File) {
     if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
-    const usuario = await this.imagenRepository.manager.getRepository(Usuario).findOne({ where: { Id_Usuario: idUsuario } });
+    const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
     if (!usuario) throw new BadRequestException('El usuario proporcionado no existe.');
 
     const imagen = await this.findOne(id);
     const carpetaAnterior = imagen.Nombre_Imagen;
+
+    const datosAnteriores = {
+      Id_Imagen: imagen.Id_Imagen,
+      Nombre_Imagen: imagen.Nombre_Imagen,
+      Imagen: imagen.Imagen
+    }
 
     try {
       if (file) {
@@ -91,21 +121,46 @@ export class ImagenesService {
         }
       }
 
-      return imagenActualizada;
+      try {
+        await this.auditoriaService.logActualizacion('Edicion de imagenes', idUsuario, imagenActualizada.Id_Imagen, datosAnteriores, {
+          Nombre_Imagen: imagenActualizada.Nombre_Imagen,
+          Imagen: imagenActualizada.Imagen,
+        });
+      } catch (error) {
+        console.error('Error al registrar auditoría de actualización de imagen:', error);
+      }
+
+      return {
+        ...imagenActualizada,
+        Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario),
+      }
     } catch (error: any) {
       throw new Error(`Error al actualizar imagen: ${error?.message ?? String(error)}`);
     }
   }
 
-  async remove(id: number, idUsuario: number): Promise<void> {
+  async remove(id: number, idUsuario: number) {
+    if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+    const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+    if (!usuario) throw new BadRequestException('El usuario proporcionado no existe.');
+
     const imagen = await this.findOne(id);
 
-    try {
-      await this.dropboxService.deletePath('Imagenes', undefined, undefined, imagen.Nombre_Imagen);
+    const datosEliminados = {
+      Id_Imagen: imagen.Id_Imagen,
+      Nombre_Imagen: imagen.Nombre_Imagen,
+      Imagen: imagen.Imagen,
+    }
 
-      await this.imagenRepository.remove(imagen);
+    try {
+      await this.auditoriaService.logEliminacion('Edicion de imagenes', idUsuario, imagen.Id_Imagen, datosEliminados);
+
+      await this.dropboxService.deletePath('Imagenes', imagen.Nombre_Imagen);
     } catch (error: any) {
       throw new Error(`Error al eliminar imagen: ${error?.message ?? String(error)}`);
     }
+
+    return await this.imagenRepository.remove(imagen);
   }
 }

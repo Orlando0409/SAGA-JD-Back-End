@@ -1,7 +1,7 @@
 import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, JoinColumn, ManyToOne } from 'typeorm';
 
-@Entity('imagenes')
+@Entity('Imagenes')
 export class ImagenEntity {
   @PrimaryGeneratedColumn()
   Id_Imagen: number;
@@ -16,7 +16,7 @@ export class ImagenEntity {
   Fecha_Actualizacion: Date;
 
   @Column()
-  Imagen: string; // URL de Dropbox
+  Imagen: string;
 
   @ManyToOne(() => Usuario, { nullable: false })
   @JoinColumn({ name: 'Id_Usuario' })

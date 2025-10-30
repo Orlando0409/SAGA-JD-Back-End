@@ -1,15 +1,16 @@
-import {Body,Controller,Delete,Get,Param,ParseIntPipe,Post,Req,UploadedFile,UseInterceptors} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ManualService } from './manual.service';
-import { CreateManualDto } from './ManualDTO\'s/createManual.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { CreateManualDto } from './ManualDTO\'s/CreateManual.dto';
 
 @Controller('manual')
 export class ManualController {
-    constructor(private readonly manualService: ManualService) { }
+    constructor(
+        private readonly manualService: ManualService
+    ) { }
 
     @Get()
-    getManuales() 
-    {
+    getManuales() {
         return this.manualService.getManuales();
     }
 

@@ -68,10 +68,10 @@ import { TipoTarifaLectura } from './Modules/Lecturas/LecturaEntities/TipoTarifa
 import { TipoTarifaServiciosFijos } from './Modules/Lecturas/LecturaEntities/TipoTarifaServiciosFijos.Entity';
 import { TipoTarifaVentaAgua } from './Modules/Lecturas/LecturaEntities/TipoTarifaVentaAgua.Entity';
 import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
-import { ImagenEntity } from './Modules/Imagenes/ImagenesEntity/ImagenEntity';
+import { ImagenEntity } from './Modules/Imagenes/ImagenesEntity/Imagen.Entity';
 import { ImagenesModule } from './Modules/Imagenes/Imagenes.module';
-import { ManualEntity } from './Modules/ManualdeUsuario/ManualEntity/manual.entity';
 import { ManualModule } from './Modules/ManualdeUsuario/manual.module';
+import { ManualEntity } from './Modules/ManualdeUsuario/ManualEntities/Manual.Entity';
 
 
 @Module({

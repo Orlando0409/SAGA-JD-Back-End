@@ -15,13 +15,19 @@ export class FAQController {
     ) { }
 
     @Patch(':id/visible')
-    async toggleVisible(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    async toggleVisible(
+        @Param('id', ParseIntPipe) id: number,
+        @Request() req: any
+    ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
         return this.faqService.toggleVisible(id, idUsuario);
     }
 
     @Post()
-    async create(@Body() createDto: CreateFAQDto, @Request() req: any) {
+    async create(
+        @Body() createDto: CreateFAQDto,
+        @Request() req: any
+    ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
         return this.faqService.create(createDto, idUsuario);
     }
