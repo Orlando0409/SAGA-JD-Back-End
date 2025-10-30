@@ -5,10 +5,8 @@ import { AfiliadoFisico, AfiliadoJuridico } from "src/Modules/Afiliados/Afiliado
 import { Repository } from "typeorm";
 
 @Injectable()
-export class ValidationsService
-{
-    constructor
-    (
+export class ValidationsService {
+    constructor(
         @InjectRepository(SolicitudAfiliacionFisica)
         private readonly solicitudAfiliacionFisicaRepository: Repository<SolicitudAfiliacionFisica>,
 

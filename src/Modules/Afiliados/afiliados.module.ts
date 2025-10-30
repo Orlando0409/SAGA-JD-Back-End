@@ -6,7 +6,6 @@ import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from "./AfiliadoEntities/A
 import { EstadoAfiliado } from "./AfiliadoEntities/EstadoAfiliado.Entity";
 import { SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica } from "../Solicitudes/SolicitudEntities/Solicitud.Entity";
 import { TipoAfiliado } from "./AfiliadoEntities/TipoAfiliado.Entity";
-import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { ValidationsModule } from "src/Validations/Validations.module";
 import { DropboxModule } from "src/Dropbox/Files/DropboxFiles.module";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";

@@ -75,7 +75,6 @@ import { ImagenesModule } from './Modules/Imagenes/Imagenes.module';
 import { ManualModule } from './Modules/ManualdeUsuario/manual.module';
 import { ManualEntity } from './Modules/ManualdeUsuario/ManualEntities/Manual.Entity';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot({

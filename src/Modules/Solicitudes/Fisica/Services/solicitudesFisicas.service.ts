@@ -82,6 +82,9 @@ export class SolicitudesFisicasService {
         return this.solicitudAsociadoFisicaRepository.find({ relations: ['Estado'] });
     }
 
+
+
+    // MÉTODOS PARA CREAR SOLICITUDES FÍSICAS
     async createSolicitudAfiliacion(dto: CreateSolicitudAfiliacionFisicaDto, files: any) {
         // Validación específica para afiliación: NO debe existir un afiliado físico
         const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
@@ -103,6 +106,7 @@ export class SolicitudesFisicasService {
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
+            Tipo_Entidad: 1, // Física
             Correo: dto.Correo,
             Numero_Telefono: dto.Numero_Telefono,
             Id_Tipo_Solicitud: 1, // Afiliación
@@ -112,6 +116,7 @@ export class SolicitudesFisicasService {
         // 2. Crear registro en tabla intermedia SolicitudFisica
         const solicitudFisica = this.solicitudFisicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
+            Tipo_Entidad: 1, // Física
             Correo: dto.Correo,
             Numero_Telefono: dto.Numero_Telefono,
             Id_Tipo_Solicitud: 1,
@@ -126,6 +131,7 @@ export class SolicitudesFisicasService {
         // 3. Crear registro en tabla específica SolicitudAfiliacionFisica
         const solicitudAfiliacion = this.solicitudAfiliacionFisicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
+            Tipo_Entidad: 1, // Física
             Correo: dto.Correo,
             Numero_Telefono: dto.Numero_Telefono,
             Id_Tipo_Solicitud: 1,
@@ -166,6 +172,7 @@ export class SolicitudesFisicasService {
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
+            Tipo_Entidad: 1, // Física
             Correo: dto.Correo,
             Numero_Telefono: dto.Numero_Telefono,
             Id_Tipo_Solicitud: 2, // Desconexión
@@ -175,6 +182,7 @@ export class SolicitudesFisicasService {
         // 2. Crear registro en tabla intermedia SolicitudFisica
         const solicitudFisica = this.solicitudFisicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
+            Tipo_Entidad: 1, // Física
             Correo: dto.Correo,
             Numero_Telefono: dto.Numero_Telefono,
             Id_Tipo_Solicitud: 2,
@@ -189,6 +197,7 @@ export class SolicitudesFisicasService {
         // 3. Crear registro en tabla específica SolicitudDesconexionFisica
         const solicitudDesconexion = this.solicitudDesconexionFisicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
+            Tipo_Entidad: 1, // Física
             Correo: dto.Correo,
             Numero_Telefono: dto.Numero_Telefono,
             Id_Tipo_Solicitud: 2,
@@ -224,6 +233,7 @@ export class SolicitudesFisicasService {
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
+            Tipo_Entidad: 1, // Física
             Correo: dto.Correo,
             Numero_Telefono: dto.Numero_Telefono,
             Id_Tipo_Solicitud: 3, // Cambio de Medidor
@@ -233,6 +243,7 @@ export class SolicitudesFisicasService {
         // 2. Crear registro en tabla intermedia SolicitudFisica
         const solicitudFisica = this.solicitudFisicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
+            Tipo_Entidad: 1, // Física
             Correo: dto.Correo,
             Numero_Telefono: dto.Numero_Telefono,
             Id_Tipo_Solicitud: 3,
@@ -247,6 +258,7 @@ export class SolicitudesFisicasService {
         // 3. Crear registro en tabla específica SolicitudCambioMedidorFisica
         const solicitudCambioMedidor = this.solicitudCambioMedidorFisicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
+            Tipo_Entidad: 1, // Física
             Correo: dto.Correo,
             Numero_Telefono: dto.Numero_Telefono,
             Id_Tipo_Solicitud: 3,
@@ -281,6 +293,7 @@ export class SolicitudesFisicasService {
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
+            Tipo_Entidad: 1, // Física
             Correo: dto.Correo,
             Numero_Telefono: dto.Numero_Telefono,
             Id_Tipo_Solicitud: 4, // Asociado
@@ -290,6 +303,7 @@ export class SolicitudesFisicasService {
         // 2. Crear registro en tabla intermedia SolicitudFisica
         const solicitudFisica = this.solicitudFisicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
+            Tipo_Entidad: 1, // Física
             Correo: dto.Correo,
             Numero_Telefono: dto.Numero_Telefono,
             Id_Tipo_Solicitud: 4,
@@ -304,6 +318,7 @@ export class SolicitudesFisicasService {
         // 3. Crear registro en tabla específica SolicitudAsociadoFisica
         const solicitudAsociado = this.solicitudAsociadoFisicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
+            Tipo_Entidad: 1, // Física
             Correo: dto.Correo,
             Numero_Telefono: dto.Numero_Telefono,
             Id_Tipo_Solicitud: 4,
@@ -320,7 +335,9 @@ export class SolicitudesFisicasService {
         return solicitudFinal;
     }
 
-    // MÉTODOS PARA CAMBIO DE ESTADO - Usando Id_Solicitud de tabla padre
+
+
+    // MÉTODOS PARA CAMBIO DE ESTADO DE SOLICITUDES FÍSICAS
     async updateEstadoSolicitudAfiliacion(idSolicitud: number, idNuevoEstado: number, idUsuario: number) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de afiliación.');
 
@@ -334,7 +351,7 @@ export class SolicitudesFisicasService {
         if (!nuevoEstado) throw new BadRequestException(`Estado con id ${idNuevoEstado} no encontrado`);
 
         const nombre = `${solicitudAfiliacion.Nombre} ${solicitudAfiliacion.Apellido1 ?? ''} ${solicitudAfiliacion.Apellido2 ?? ''}`.trim();
-        
+
         // Guardar estado anterior para auditoría
         const estadoAnterior = solicitudAfiliacion.Estado;
 
@@ -529,7 +546,7 @@ export class SolicitudesFisicasService {
             await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociado', 'Completada', nombre);
 
             // Cambiar afiliado de abonado a asociado
-            await this.afiliadosService.cambiarAbonadoAAsociadoFisico(solicitudAsociado.Identificacion);
+            await this.afiliadosService.cambiarAbonadoAAsociadoFisico(solicitudAsociado.Identificacion, idUsuario);
         }
 
         // Estado 5 = Rechazada
