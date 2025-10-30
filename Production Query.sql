@@ -42,11 +42,11 @@ select * from solicitudes_asociado_fisica;
 
 select * from solicitudes_asociado_juridica;
 
-select * from afiliado;
+select * from Afiliado;
 
-select * from afiliado_fisico;
+select * from Afiliado_Fisico;
 
-select * from afiliado_juridico;
+select * from Afiliado_Juridico;
 
 select * from proveedor;
 

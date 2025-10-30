@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, forwardRef, Inject } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { EstadoMaterial } from "../InventarioEntities/EstadoMaterial.Entity";
 import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -6,8 +6,6 @@ import { MovimientoMaterialDto } from "../InventarioDTO's/MovimientoMaterial.dto
 import { Material } from "../InventarioEntities/Material.Entity";
 import { MovimientoInventario } from "../InventarioEntities/Movimiento.Entity";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
-import { UsuariosService } from "src/Modules/Usuarios/Services/usuarios.service";
-import { MaterialService } from "./material.service";
 
 @Injectable()
 export class MovimientosService {
@@ -23,11 +21,6 @@ export class MovimientosService {
 
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
-
-        private readonly usuariosService: UsuariosService,
-
-        @Inject(forwardRef(() => MaterialService))
-        private readonly materialService: MaterialService,
     ) {}
 
     async getAllMovimientos() {
@@ -35,11 +28,11 @@ export class MovimientosService {
             .leftJoinAndSelect('movimiento.Material', 'material')
             .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
             .leftJoinAndSelect('movimiento.Usuario', 'usuario')
-            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getMany();
 
-        return Promise.all(movimientos.map(async (movimiento) => {
+        return movimientos.map(movimiento => {
             return {
                 Id_Ingreso_Egreso: movimiento.Id_Movimiento,
                 Tipo_Movimiento: movimiento.Tipo_Movimiento,
@@ -48,23 +41,32 @@ export class MovimientosService {
                 Cantidad_Nueva: movimiento.Cantidad_Nueva,
                 Observaciones: movimiento.Observaciones,
                 Fecha_Movimiento: movimiento.Fecha_Movimiento,
-                Material: await this.materialService.FormatearMaterialParaResponse(movimiento.Material),
-                Usuario: movimiento.Usuario ? await this.usuariosService.FormatearUsuarioResponse(movimiento.Usuario) : null
+                Material: {
+                    Id_Material: movimiento.Material.Id_Material,
+                    Nombre_Material: movimiento.Material.Nombre_Material,
+                    Cantidad: movimiento.Material.Cantidad,
+                    Estado_Material: movimiento.Material.Estado_Material
+                },
+                Usuario: movimiento.Usuario ? {
+                    Id_Usuario: movimiento.Usuario.Id_Usuario,
+                    Nombre_Usuario: movimiento.Usuario.Nombre_Usuario,
+                    Id_Rol: movimiento.Usuario.Id_Rol,
+                    Nombre_Rol: movimiento.Usuario.Rol?.Nombre_Rol
+                } : null
             };
-        }));
+        });
     }
 
     async getMovimientosEntradas() {
         const movimientos = await this.movimientoRepository.createQueryBuilder('movimiento')
             .leftJoinAndSelect('movimiento.Material', 'material')
-            .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
             .leftJoinAndSelect('movimiento.Usuario', 'usuario')
-            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .where('movimiento.Tipo_Movimiento = :tipo', { tipo: 'Entrada' })
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getMany();
 
-        return Promise.all(movimientos.map(async (movimiento) => {
+        return movimientos.map(movimiento => {
             return {
                 Id_Ingreso_Egreso: movimiento.Id_Movimiento,
                 Tipo_Movimiento: movimiento.Tipo_Movimiento,
@@ -73,23 +75,32 @@ export class MovimientosService {
                 Cantidad_Nueva: movimiento.Cantidad_Nueva,
                 Observaciones: movimiento.Observaciones,
                 Fecha_Movimiento: movimiento.Fecha_Movimiento,
-                Material: await this.materialService.FormatearMaterialParaResponse(movimiento.Material),
-                Usuario: movimiento.Usuario ? await this.usuariosService.FormatearUsuarioResponse(movimiento.Usuario) : null
+                Material: {
+                    Id_Material: movimiento.Material.Id_Material,
+                    Nombre_Material: movimiento.Material.Nombre_Material,
+                    Cantidad: movimiento.Material.Cantidad,
+                    Estado_Material: movimiento.Material.Estado_Material
+                },
+                Usuario: movimiento.Usuario ? {
+                    Id_Usuario: movimiento.Usuario.Id_Usuario,
+                    Nombre_Usuario: movimiento.Usuario.Nombre_Usuario,
+                    Id_Rol: movimiento.Usuario.Id_Rol,
+                    Nombre_Rol: movimiento.Usuario.Rol?.Nombre_Rol
+                } : null
             };
-        }));
+        });
     }
 
     async getMovimientosSalidas() {
         const movimientos = await this.movimientoRepository.createQueryBuilder('movimiento')
             .leftJoinAndSelect('movimiento.Material', 'material')
-            .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
             .leftJoinAndSelect('movimiento.Usuario', 'usuario')
-            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .where('movimiento.Tipo_Movimiento = :tipo', { tipo: 'Salida' })
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getMany();
 
-        return Promise.all(movimientos.map(async (movimiento) => {
+        return movimientos.map(movimiento => {
             return {
                 Id_Ingreso_Egreso: movimiento.Id_Movimiento,
                 Tipo_Movimiento: movimiento.Tipo_Movimiento,
@@ -98,10 +109,20 @@ export class MovimientosService {
                 Cantidad_Nueva: movimiento.Cantidad_Nueva,
                 Observaciones: movimiento.Observaciones,
                 Fecha_Movimiento: movimiento.Fecha_Movimiento,
-                Material: await this.materialService.FormatearMaterialParaResponse(movimiento.Material),
-                Usuario: movimiento.Usuario ? await this.usuariosService.FormatearUsuarioResponse(movimiento.Usuario) : null
+                Material: {
+                    Id_Material: movimiento.Material.Id_Material,
+                    Nombre_Material: movimiento.Material.Nombre_Material,
+                    Cantidad: movimiento.Material.Cantidad,
+                    Estado_Material: movimiento.Material.Estado_Material
+                },
+                Usuario: movimiento.Usuario ? {
+                    Id_Usuario: movimiento.Usuario.Id_Usuario,
+                    Nombre_Usuario: movimiento.Usuario.Nombre_Usuario,
+                    Id_Rol: movimiento.Usuario.Id_Rol,
+                    Nombre_Rol: movimiento.Usuario.Rol?.Nombre_Rol
+                } : null
             };
-        }));
+        });
     }
 
     async getMovimientosEntreFechas(fechaInicio: string, fechaFin: string) {
@@ -121,14 +142,13 @@ export class MovimientosService {
 
         const movimientos = await this.movimientoRepository.createQueryBuilder('movimiento')
             .leftJoinAndSelect('movimiento.Material', 'material')
-            .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
             .leftJoinAndSelect('movimiento.Usuario', 'usuario')
-            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
             .where('movimiento.Fecha_Movimiento BETWEEN :fechaInicio AND :fechaFin', { fechaInicio: fechaInicioDate, fechaFin: fechaFinDate })
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getMany();
 
-        return Promise.all(movimientos.map(async (movimiento) => {
+        return movimientos.map(movimiento => {
             return {
                 Id_Ingreso_Egreso: movimiento.Id_Movimiento,
                 Tipo_Movimiento: movimiento.Tipo_Movimiento,
@@ -137,26 +157,36 @@ export class MovimientosService {
                 Cantidad_Nueva: movimiento.Cantidad_Nueva,
                 Observaciones: movimiento.Observaciones,
                 Fecha_Movimiento: movimiento.Fecha_Movimiento,
-                Material: await this.materialService.FormatearMaterialParaResponse(movimiento.Material),
-                Usuario: movimiento.Usuario ? await this.usuariosService.FormatearUsuarioResponse(movimiento.Usuario) : null
+                Material: {
+                    Id_Material: movimiento.Material.Id_Material,
+                    Nombre_Material: movimiento.Material.Nombre_Material,
+                    Cantidad: movimiento.Material.Cantidad,
+                    Estado_Material: movimiento.Material.Estado_Material
+                },
+                Usuario: movimiento.Usuario ? {
+                    Id_Usuario: movimiento.Usuario.Id_Usuario,
+                    Nombre_Usuario: movimiento.Usuario.Nombre_Usuario,
+                    Id_Rol: movimiento.Usuario.Id_Rol,
+                    Nombre_Rol: movimiento.Usuario.Rol?.Nombre_Rol
+                } : null
             };
-        }));
+        });
     }
 
-    async getMovimientosPorUsuario(Id_Usuario: number) {
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: Id_Usuario } });
+    async getMovimientosPorUsuario(idUsuario: number) {
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) { throw new NotFoundException('Usuario no encontrado'); }
 
         const movimientos = await this.movimientoRepository.createQueryBuilder('movimiento')
             .leftJoinAndSelect('movimiento.Material', 'material')
             .leftJoinAndSelect('material.Estado_Material', 'estadoMaterial')
             .leftJoinAndSelect('movimiento.Usuario', 'usuario')
-            .leftJoinAndSelect('usuario.Rol', 'rol')
-            .where('movimiento.Usuario = :idUsuario', { idUsuario: Id_Usuario })
+            .leftJoinAndSelect('usuario.Rol', 'rolUsuario')
+            .where('movimiento.Usuario = :idUsuario', { idUsuario: idUsuario })
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getMany();
 
-        return Promise.all(movimientos.map(async (movimiento) => {
+        return movimientos.map(movimiento => {
             return {
                 Id_Ingreso_Egreso: movimiento.Id_Movimiento,
                 Tipo_Movimiento: movimiento.Tipo_Movimiento,
@@ -165,17 +195,23 @@ export class MovimientosService {
                 Cantidad_Nueva: movimiento.Cantidad_Nueva,
                 Observaciones: movimiento.Observaciones,
                 Fecha_Movimiento: movimiento.Fecha_Movimiento,
-                Material: await this.materialService.FormatearMaterialParaResponse(movimiento.Material),
-                Usuario: movimiento.Usuario ? await this.usuariosService.FormatearUsuarioResponse(movimiento.Usuario) : null
+                Material: {
+                    Id_Material: movimiento.Material.Id_Material,
+                    Nombre_Material: movimiento.Material.Nombre_Material,
+                    Cantidad: movimiento.Material.Cantidad,
+                    Estado_Material: movimiento.Material.Estado_Material
+                },
+                Usuario: movimiento.Usuario ? {
+                    Id_Usuario: movimiento.Usuario.Id_Usuario,
+                    Nombre_Usuario: movimiento.Usuario.Nombre_Usuario,
+                    Id_Rol: movimiento.Usuario.Id_Rol,
+                    Nombre_Rol: movimiento.Usuario.Rol?.Nombre_Rol
+                } : null
             };
-        }));
+        });
     }
 
     async IngresoMaterial(dto: MovimientoMaterialDto, idUsuario: number) {
-        if (!idUsuario) {
-            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
-        }
-
         if (dto.Cantidad <= 0) { throw new BadRequestException('La cantidad a ingresar debe ser mayor que cero'); }
 
         const materialExistente = await this.materialRepository.findOne({ where: { Id_Material: dto.Id_Material } });
@@ -233,12 +269,8 @@ export class MovimientosService {
             throw new NotFoundException('No se pudo encontrar el movimiento registrado.');
         }
 
-        if (!materialActualizado) {
-            throw new NotFoundException('No se pudo encontrar el material actualizado.');
-        }
-
         return {
-            Material: await this.materialService.FormatearMaterialParaResponse(materialActualizado),
+            Material: materialActualizado,
             Movimiento: {
                 Id_Ingreso_Egreso: ultimoMovimiento.Id_Movimiento,
                 Tipo_Movimiento: ultimoMovimiento.Tipo_Movimiento,
@@ -247,16 +279,17 @@ export class MovimientosService {
                 Cantidad_Nueva: ultimoMovimiento.Cantidad_Nueva,
                 Observaciones: ultimoMovimiento.Observaciones,
                 Fecha_Movimiento: ultimoMovimiento.Fecha_Movimiento,
-                Usuario: ultimoMovimiento.Usuario ? await this.usuariosService.FormatearUsuarioResponse(ultimoMovimiento.Usuario) : null
+                Usuario: {
+                    Id_Usuario: usuario.Id_Usuario,
+                    Nombre_Usuario: usuario.Nombre_Usuario,
+                    Id_Rol: usuario.Id_Rol,
+                    Nombre_Rol: usuario.Rol?.Nombre_Rol
+                }
             }
         };
     }
 
     async EgresoMaterial(idUsuario: number, dto: MovimientoMaterialDto) {
-        if (!idUsuario) {
-            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
-        }
-
         if (dto.Cantidad <= 0) { throw new BadRequestException('La cantidad a egresar debe ser mayor que cero'); }
 
         const materialExistente = await this.materialRepository.findOne({ where: { Id_Material: dto.Id_Material } });
@@ -305,10 +338,6 @@ export class MovimientosService {
             .where('material.Id_Material = :id', { id: dto.Id_Material })
             .getOne();
 
-        if (!materialActualizado) {
-            throw new NotFoundException('No se pudo encontrar el material actualizado.');
-        }
-
         // Obtener el último movimiento creado
         const ultimoMovimiento = await this.movimientoRepository.createQueryBuilder('movimiento')
             .leftJoinAndSelect('movimiento.Usuario', 'usuario')
@@ -317,7 +346,7 @@ export class MovimientosService {
             .getOne();
 
         return {
-            Material: await this.materialService.FormatearMaterialParaResponse(materialActualizado),
+            Material: materialActualizado,
             Movimiento: ultimoMovimiento ? {
                 Id_Ingreso_Egreso: ultimoMovimiento.Id_Movimiento,
                 Tipo_Movimiento: ultimoMovimiento.Tipo_Movimiento,
@@ -326,7 +355,12 @@ export class MovimientosService {
                 Cantidad_Nueva: ultimoMovimiento.Cantidad_Nueva,
                 Observaciones: ultimoMovimiento.Observaciones,
                 Fecha_Movimiento: ultimoMovimiento.Fecha_Movimiento,
-                Usuario: ultimoMovimiento.Usuario ? await this.usuariosService.FormatearUsuarioResponse(ultimoMovimiento.Usuario) : null
+                Usuario: ultimoMovimiento.Usuario ? {
+                    Id_Usuario: ultimoMovimiento.Usuario.Id_Usuario,
+                    Nombre_Usuario: ultimoMovimiento.Usuario.Nombre_Usuario,
+                    Id_Rol: ultimoMovimiento.Usuario.Id_Rol,
+                    Nombre_Rol: ultimoMovimiento.Usuario.Rol?.Nombre_Rol
+                } : null
             } : null
         };
     }

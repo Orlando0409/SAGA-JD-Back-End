@@ -1,13 +1,21 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Reporte } from './ReporteEntities/Reporte.Entity';
-import { EstadoReporte } from './ReporteEntities/EstadoReporte.Entity';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
+import { EmailService } from '../Emails/email.service';
+import { CreateReporteDto } from './ReporteDTO\'s/CreateReporte.dto';
+import { ResponderReporteDto } from './ReporteDTO\'s/ResponderReporte.dto';
+import { EstadoReporte } from './ReporteEntities/EstadoReporte';
+import { Reporte } from './ReporteEntities/Reportes.Entity';
+
+interface ReporteFiles {
+  Adjunto?: Express.Multer.File[];
+}
 
 @Injectable()
 export class ReportesService {
   private readonly logger = new Logger(ReportesService.name);
+
   constructor(
     @InjectRepository(Reporte)
     private readonly reportesRepository: Repository<Reporte>,
@@ -16,103 +24,117 @@ export class ReportesService {
     private readonly estadoReporteRepository: Repository<EstadoReporte>,
 
     private readonly dropboxFilesService: DropboxFilesService,
-  ) {}
+    private readonly emailService: EmailService,
+  ) { }
 
   async getAll() {
     return this.reportesRepository.find({ relations: ['Estado'] });
   }
 
   async getOne(id: number) {
-    const idNum = Number(id);
-    if (!Number.isInteger(idNum) || idNum <= 0) throw new BadRequestException(`Id de reporte invalido: ${id}`);
-    const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: idNum }, relations: ['Estado'] });
-    if (!repo) throw new BadRequestException(`Reporte con id ${idNum} no encontrado`);
+    const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: id }, relations: ['Estado'] });
+    if (!repo) throw new BadRequestException(`Reporte con id ${id} no encontrado`);
     return repo;
   }
 
-  async create(dto: any, files?: any) {
+  async create(dto: CreateReporteDto, files?: ReporteFiles) {
     const estado = await this.estadoReporteRepository.findOne({ where: { Id_Estado_Reporte: 1 } });
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
     const fecha = new Date();
+    const nombre = dto.Nombre?.toString().trim();
+    const primerApellido = dto.Primer_Apellido?.toString().trim();
+    const segundoApellido = dto.Segundo_Apellido?.toString().trim();
+    const rawFolder = [nombre, primerApellido, segundoApellido].filter(Boolean).join(' ');
+    const folderName = rawFolder.replace(/[\\/\:\*\?"<>\|]/g, '').replace(/\s+/g, ' ').trim();
 
-  const nombre = (dto.name || dto.Name || dto.Nombre || '')?.toString().trim();
-  const primerApellido = (dto.Papellido || dto.P_apellido || dto.Primer_Apellido || '')?.toString().trim();
-  const segundoApellido = (dto.Sapellido || dto.S_apellido || dto.Segundo_Apellido || '')?.toString().trim();
-    const primerNombre = nombre ? nombre.split(' ')[0] : '';
-    const folderName = [primerNombre, primerApellido, segundoApellido].filter(Boolean).join(' ').trim();
-
-    const archivosAdjuntos: string[] = [];
-    if (files?.Imagen || files?.Adjunto) {
-      const archivos = Array.isArray(files.Imagen) ? files.Imagen : Array.isArray(files.Adjunto) ? files.Adjunto : files.Imagen ? [files.Imagen] : files.Adjunto ? [files.Adjunto] : [];
-      for (const file of archivos) {
-        const res = await this.dropboxFilesService.uploadFile(file, 'Contacto', 'Reportes', undefined, folderName);
-        if (res?.url) archivosAdjuntos.push(res.url);
-      }
-    }
-
-    const reporte = this.reportesRepository.create({
+    const reporteData = {
       ...dto,
       Fecha_Reporte: fecha,
-      Adjunto: archivosAdjuntos,
       Estado: estado,
-    });
+    };
 
-    return this.reportesRepository.save(reporte);
-  }
+    const saved = await this.reportesRepository.save(reporteData);
 
-  async remove(id: number) {
-    const idNum = Number(id);
-    if (!Number.isInteger(idNum) || idNum <= 0) throw new BadRequestException(`Id de reporte inválido: ${id}`);
-    const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: idNum } });
-    if (!repo) throw new BadRequestException(`Reporte con id ${idNum} no encontrado`);
+    const adjuntoUrls: string[] = [];
+    if (files?.Adjunto) {
+      const archivos = Array.isArray(files.Adjunto) ? files.Adjunto : [files.Adjunto];
+      for (const file of archivos) {
+        const res = await this.dropboxFilesService.uploadFile(file, 'Contacto', 'Reportes', undefined, folderName);
+        if (res?.url) adjuntoUrls.push(res.url);
+      }
 
-  const nombre = (repo?.Nombre || '').toString().trim();
-  const primerNombre = nombre ? nombre.split(' ')[0] : '';
-    const primerApellido = (repo?.Primer_Apellido || '').toString().trim();
-    const segundoApellido = (repo?.Segundo_Apellido || '').toString().trim();
-    const folderName = `${[primerNombre, primerApellido, segundoApellido].filter(Boolean).join(' ')}`.trim();
-
-    try {
-      await this.dropboxFilesService.deletePath('Contacto', 'Reportes', undefined, folderName);
-    } catch (error) {
-      this.logger.warn(`No se pudo eliminar carpeta en Dropbox para reporte ${idNum}: ${error}`);
+      saved.Adjunto = adjuntoUrls;
+      await this.reportesRepository.save(saved);
     }
 
-    return this.reportesRepository.remove(repo);
+    if (dto.Correo) {
+      setImmediate(async () => {
+        try {
+          await this.emailService.enviarEmailReporte({
+            name: dto.Nombre,
+            Papellido: dto.Primer_Apellido,
+            Sapellido: dto.Segundo_Apellido,
+            Correo: dto.Correo,
+            ubicacion: dto.Ubicacion,
+            descripcion: dto.Descripcion,
+            adjuntos: adjuntoUrls,
+          });
+        } catch (error) {
+          this.logger.error('Error al enviar email de reporte:', error);
+        }
+      });
+    }
+
+    return saved;
   }
 
-  async updateEstadoReporte(id: number, nuevoEstadoId: number) {
-    const idNum = Number(id);
-    const estadoNum = Number(nuevoEstadoId);
-    if (!Number.isInteger(idNum) || idNum <= 0) throw new BadRequestException(`Id de reporte invalido: ${id}`);
-    if (!Number.isInteger(estadoNum) || estadoNum <= 0) throw new BadRequestException(`Id de estado invalido: ${nuevoEstadoId}`);
-    // Solo permitir estados 1 (pendiente) y 2 (revisado)
-    if (![1, 2].includes(estadoNum)) throw new BadRequestException(`Id de estado no permitido: ${estadoNum}`);
-    const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: idNum }, relations: ['Estado'] });
-    if (!repo) throw new BadRequestException(`Reporte con id ${idNum} no encontrado`);
+  async updateEstado(id: number, nuevoEstadoId: number) {
+    const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: id }, relations: ['Estado'] });
+    if (!repo) throw new BadRequestException(`Reporte con id ${id} no encontrado`);
 
-    const nuevoEstado = await this.estadoReporteRepository.findOne({ where: { Id_Estado_Reporte: estadoNum } });
-    if (!nuevoEstado) throw new BadRequestException(`Estado con id ${estadoNum} no encontrado`);
+    const nuevoEstado = await this.estadoReporteRepository.findOne({ where: { Id_Estado_Reporte: nuevoEstadoId } });
+    if (!nuevoEstado) throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);
 
     repo.Estado = nuevoEstado;
     return this.reportesRepository.save(repo);
   }
 
-  async responderReporte(id: number, respuesta: string) {
-    const idNum = Number(id);
-    if (!Number.isInteger(idNum) || idNum <= 0) throw new BadRequestException(`Id de reporte invalido: ${id}`);
+  async responderReporte(id: number, dto: ResponderReporteDto) {
+    const repo = await this.reportesRepository.findOne({
+      where: { Id_Reporte: id },
+      relations: ['Estado']
+    });
+    if (!repo) throw new BadRequestException(`Reporte con id ${id} no encontrado`);
 
-    const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: idNum }, relations: ['Estado'] });
-    if (!repo) throw new BadRequestException(`Reporte con id ${idNum} no encontrado`);
-
-    // Asignar respuesta y cambiar estado a 2 (contestada)
-    repo.Respuesta_Reporte = respuesta;
-
+    repo.RespuestasReporte = dto.Respuesta;
     const estadoContestada = await this.estadoReporteRepository.findOne({ where: { Id_Estado_Reporte: 2 } });
-    if (!estadoContestada) throw new BadRequestException('Estado contestada (2) no encontrado');
+    if (!estadoContestada) throw new BadRequestException('Estado contestada no encontrado');
 
     repo.Estado = estadoContestada;
-    return this.reportesRepository.save(repo);
+    const updatedReporte = await this.reportesRepository.save(repo);
+
+    const correoDestino = repo.Correo;
+    if (correoDestino) {
+      setImmediate(async () => {
+        try {
+          await this.emailService.enviarEmailRespuestaReporte({
+            Nombre: repo.Nombre,
+            Primer_Apellido: repo.Primer_Apellido,
+            Segundo_Apellido: repo.Segundo_Apellido,
+            Correo: correoDestino,
+            Ubicacion: repo.Ubicacion,
+            Descripcion: repo.Descripcion,
+            Respuesta: dto.Respuesta,
+          });
+        } catch (error) {
+          this.logger.error('Error al enviar email de respuesta de reporte:', error);
+        }
+      });
+    } else {
+      this.logger.warn(`No se puede enviar email de respuesta de reporte: correo no disponible para ID ${id}`);
+    }
+
+    return updatedReporte;
   }
 }

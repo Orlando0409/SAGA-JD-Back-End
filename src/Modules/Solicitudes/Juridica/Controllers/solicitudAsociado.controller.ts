@@ -33,7 +33,11 @@ export class SolicitudAsociadoJuridicaController {
 
   @Patch(':id/update/estado/:nuevoEstadoId')
   @ApiOperation({ summary: 'Actualizar el estado de una solicitud de asociado jurídica por ID' })
-  updateEstadoSolicitudAsociado(@Param('id', ParseIntPipe) id: number, @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number) {
-    return this.solicitudAsociadoJuridicaService.UpdateEstadoSolicitudAsociado(id, nuevoEstadoId);
+  updateEstadoSolicitudAsociado(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('nuevoEstadoId', ParseIntPipe) nuevoEstadoId: number,
+    @Param('idUsuario', ParseIntPipe) idUsuario: number
+  ) {
+    return this.solicitudAsociadoJuridicaService.UpdateEstadoSolicitudAsociado(id, nuevoEstadoId, idUsuario);
   }
 }

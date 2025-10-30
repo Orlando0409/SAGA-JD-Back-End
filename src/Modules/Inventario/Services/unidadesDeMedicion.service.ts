@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UnidadMedicion } from '../InventarioEntities/UnidadMedicion.Entity';
@@ -6,10 +6,10 @@ import { EstadoUnidadMedicion } from '../InventarioEntities/EstadoUnidadMedicion
 import { Material } from '../InventarioEntities/Material.Entity';
 import { CreateUnidadMedicionDto } from "../InventarioDTO's/CreateUnidadMedicion.dto";
 import { UpdateUnidadMedicionDto } from "../InventarioDTO's/UpdateUnidadMedicion.dto";
-import { getUnidadDeMedidaDTO } from "../InventarioDTO's/getUnidadDeMedida.dto";
 import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { AuditoriaService } from 'src/Modules/Auditoria/auditoria.service';
 import { UsuariosService } from 'src/Modules/Usuarios/Services/usuarios.service';
+import { GetUnidadDeMedidaDTO } from '../InventarioDTO\'s/GetUnidadDeMedida.dto';
 
 @Injectable()
 export class UnidadesDeMedicionService {
@@ -26,10 +26,12 @@ export class UnidadesDeMedicionService {
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
 
+        @Inject(forwardRef(() => AuditoriaService))
         private readonly auditoriaService: AuditoriaService,
 
+        @Inject(forwardRef(() => UsuariosService))
         private readonly usuariosService: UsuariosService
-    ) {}
+    ) { }
 
     async getAllUnidadesMedicion() {
         const unidades = await this.unidadMedicionRepository.createQueryBuilder('unidad')
@@ -46,10 +48,10 @@ export class UnidadesDeMedicionService {
         }));
     }
 
-    async getUnidadMedicionSimple(): Promise<getUnidadDeMedidaDTO[]> {
+    async getUnidadMedicionSimple(): Promise<GetUnidadDeMedidaDTO[]> {
         const unidades = await this.unidadMedicionRepository.find({ select: ['Id_Unidad_Medicion', 'Nombre_Unidad'] });
         return unidades.map(unidad => {
-            const dto = new getUnidadDeMedidaDTO();
+            const dto = new GetUnidadDeMedidaDTO();
             dto.Id_Unidad_Medicion = unidad.Id_Unidad_Medicion;
             dto.Nombre_Unidad_Medicion = unidad.Nombre_Unidad[0].toUpperCase() + unidad.Nombre_Unidad.slice(1).toLowerCase();
             return dto;
@@ -89,10 +91,6 @@ export class UnidadesDeMedicionService {
     }
 
     async createUnidadMedicion(dto: CreateUnidadMedicionDto, idUsuario: number) {
-        if (!idUsuario) {
-            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
-        }
-
         const nombreNormalizado = dto.Nombre_Unidad_Medicion[0].toUpperCase() + dto.Nombre_Unidad_Medicion.slice(1).toLowerCase();
         const abreviaturaToLowerCase = dto.Abreviatura.toLowerCase();
 
@@ -147,11 +145,7 @@ export class UnidadesDeMedicionService {
         }
     }
 
-    async updateUnidadMedicion(Id_Unidad_Medicion: number, dto: UpdateUnidadMedicionDto, idUsuario: number) {
-        if (!idUsuario) {
-            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
-        }
-
+    async updateUnidadMedicion(Id_Unidad_Medicion: number, dto: UpdateUnidadMedicionDto, usuarioId?: number) {
         const unidadExistente = await this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: Id_Unidad_Medicion } });
         if (!unidadExistente) { throw new NotFoundException(`Unidad de medición con ID ${Id_Unidad_Medicion} no encontrada`); }
 
@@ -192,12 +186,12 @@ export class UnidadesDeMedicionService {
 
         const unidadGuardada = await this.unidadMedicionRepository.save(unidadActualizada);
 
-        // Registrar en auditoría si se proporciona idUsuario
-        if (idUsuario) {
+        // Registrar en auditoría si se proporciona usuarioId
+        if (usuarioId) {
             try {
                 await this.auditoriaService.logActualizacion(
                     'Unidad de Medicion',
-                    idUsuario,
+                    usuarioId,
                     Id_Unidad_Medicion,
                     datosAnteriores,
                     {
@@ -229,11 +223,7 @@ export class UnidadesDeMedicionService {
         };
     }
 
-    async updateEstadoUnidadMedicion(Id_Unidad_Medicion: number, Id_Estado_Unidad_Medicion: number, idUsuario: number) {
-        if (!idUsuario) {
-            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
-        }
-
+    async updateEstadoUnidadMedicion(Id_Unidad_Medicion: number, Id_Estado_Unidad_Medicion: number, usuarioId?: number) {
         const unidadExistente = await this.unidadMedicionRepository.findOne({ where: { Id_Unidad_Medicion: Id_Unidad_Medicion }, relations: ['Estado_Unidad_Medicion'] });
         if (!unidadExistente) { throw new NotFoundException(`Unidad de medición con ID ${Id_Unidad_Medicion} no encontrada`); }
 
@@ -247,7 +237,7 @@ export class UnidadesDeMedicionService {
         // VALIDACIÓN DE NEGOCIO: No permitir desactivar si hay materiales usándola
         if (nuevoEstado.Nombre_Estado_Unidad_Medicion === 'Inactivo') {
             const materialesUsandoUnidad = await this.materialRepository.count({
-                where: { 
+                where: {
                     Unidad_Medicion: { Id_Unidad_Medicion: Id_Unidad_Medicion }
                     // Los materiales con Fecha_Baja null son activos (soft delete)
                 }
@@ -265,12 +255,12 @@ export class UnidadesDeMedicionService {
         unidadExistente.Estado_Unidad_Medicion = nuevoEstado;
         await this.unidadMedicionRepository.save(unidadExistente);
 
-        // Registrar en auditoría si se proporciona idUsuario
-        if (idUsuario) {
+        // Registrar en auditoría si se proporciona usuarioId
+        if (usuarioId) {
             try {
                 await this.auditoriaService.logActualizacion(
                     'Unidad de Medicion',
-                    idUsuario,
+                    usuarioId,
                     Id_Unidad_Medicion,
                     {
                         Estado_Anterior: {

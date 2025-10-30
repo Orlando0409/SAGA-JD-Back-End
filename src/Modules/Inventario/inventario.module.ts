@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MaterialService } from './Services/material.service';
 import { CategoriasService } from './Services/categorias.service';
 import { UnidadesDeMedicionService } from './Services/unidadesDeMedicion.service';
@@ -12,6 +12,7 @@ import { UnidadMedicion } from './InventarioEntities/UnidadMedicion.Entity';
 import { EstadoUnidadMedicion } from './InventarioEntities/EstadoUnidadMedicion.Entity';
 import { EstadoCategoria } from './InventarioEntities/EstadoCategoria.Entity';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
+import { UsuarioRol } from '../Usuarios/UsuarioEntities/UsuarioRol.Entity';
 import { MovimientoInventario } from './InventarioEntities/Movimiento.Entity';
 import { MovimientosService } from './Services/movimientos.service';
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from '../Proveedores/ProveedorEntities/Proveedor.Entity';
@@ -22,18 +23,22 @@ import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from '../Afiliados/Afiliad
 import { TipoAfiliado } from '../Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
 import { EstadoAfiliado } from '../Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { AuditoriaModule } from '../Auditoria/auditoria.module';
-import { UsuariosService } from '../Usuarios/Services/usuarios.service';
-import { UsuarioRol } from '../Usuarios/UsuarioEntities/UsuarioRol.Entity';
 import { ProveedorService } from '../Proveedores/proveedor.service';
 import { EstadoProveedor } from '../Proveedores/ProveedorEntities/EstadoProveedor.Entity';
+import { UsuariosModule } from '../Usuarios/Modules/usuarios.module';
+import { RolesModule } from '../Usuarios/Modules/roles.module';
+import { AfiliadosModule } from '../Afiliados/afiliados.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor ,Usuario, UsuarioRol, Proveedor, ProveedorFisico, ProveedorJuridico, EstadoProveedor, Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado]),
-    AuditoriaModule
+    TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor, Usuario, UsuarioRol, Proveedor, ProveedorFisico, ProveedorJuridico, EstadoProveedor, Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado]), 
+    forwardRef(() => AfiliadosModule),
+    forwardRef(() => UsuariosModule),
+    forwardRef(() => RolesModule),
+    forwardRef(() => AuditoriaModule)
   ],
   controllers: [InventarioController],
-  providers: [MaterialService, CategoriasService, UnidadesDeMedicionService, MovimientosService, MedidorService, UsuariosService, ProveedorService],
+  providers: [MaterialService, CategoriasService, UnidadesDeMedicionService, MovimientosService, MedidorService, ProveedorService],
   exports: [MaterialService, CategoriasService, UnidadesDeMedicionService, MovimientosService, MedidorService],
 })
-export class InventarioModule {}
+export class InventarioModule { }

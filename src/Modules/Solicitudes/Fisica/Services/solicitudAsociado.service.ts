@@ -37,7 +37,7 @@ export class SolicitudAsociadoFisicaService
     {
         // Validar que existe un afiliado físico con esa identificación
         const AfiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
-        if (!AfiliadoExistente) {
+        if (AfiliadoExistente) {
             const validacionSolicitudesActivas = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
             if (validacionSolicitudesActivas) { throw new BadRequestException(validacionSolicitudesActivas); }
 
@@ -73,7 +73,7 @@ export class SolicitudAsociadoFisicaService
         return this.solicitudAsociadoFisicaRepository.save(solicitudAsociado);
     }
 
-    async UpdateEstadoSolicitudAsociado(id: number, nuevoEstadoId: number)
+    async UpdateEstadoSolicitudAsociado(id: number, nuevoEstadoId: number, idUsuario: number)
     {
         const solicitudAsociado = await this.solicitudAsociadoFisicaRepository.findOne({where: { Id_Solicitud: id }, relations: ['Estado'] });
         if (!solicitudAsociado) {throw new BadRequestException(`Solicitud con id ${id} no encontrada`);}
@@ -88,7 +88,7 @@ export class SolicitudAsociadoFisicaService
 
         // Si el estado cambia a 3 (Aprobada), cambiar el tipo del afiliado existente de "Abonado" a "Asociado"
         if (nuevoEstadoId === 3) {
-            await this.afiliadosService.cambiarAbonadoAAsociadoFisico(solicitudAsociado.Identificacion);
+            await this.afiliadosService.cambiarAbonadoAAsociadoFisico(solicitudAsociado.Identificacion, idUsuario);
 
             const nombre = `${solicitudAsociado.Nombre} ${solicitudAsociado.Apellido1 ?? ''} ${solicitudAsociado.Apellido2 ?? ''}`.trim();
             await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociación', 'Aprobada', nombre);

@@ -1,8 +1,12 @@
-import { Controller, Get, Param, ParseIntPipe } from "@nestjs/common";
+import { Controller, Get, Param, ParseIntPipe, UseGuards } from "@nestjs/common";
 import { AuditoriaService } from "./auditoria.service";
 import { ApiOperation } from "@nestjs/swagger";
+import { JwtAuthGuard } from "../auth/Guard/JwtGuard";
+import { GetUser } from "../auth/Decorator/GetUser.decorator";
+import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 
 @Controller('auditoria')
+@UseGuards(JwtAuthGuard)
 export class AuditoriaController {
     constructor(private readonly auditoriaService: AuditoriaService) {}
 
@@ -18,18 +22,15 @@ export class AuditoriaController {
         return this.auditoriaService.getAuditoriasPorModulo(modulo);
     }
 
-    @Get('/usuario/:usuarioId')
-    @ApiOperation({ summary: 'Obtener auditorías por usuario' })
-    getAuditoriasPorUsuario(@Param('usuarioId', ParseIntPipe) usuarioId: number) {
-        return this.auditoriaService.getAuditoriasPorUsuario(usuarioId);
+    @Get('/mis-auditorias')
+    @ApiOperation({ summary: 'Obtener auditorías del usuario autenticado' })
+    getAuditoriasPorUsuario(@GetUser() usuario: Usuario) {
+        return this.auditoriaService.getAuditoriasPorUsuario(usuario.Id_Usuario);
     }
 
-    @Get('/registro/:modulo/:idRegistro')
-    @ApiOperation({ summary: 'Obtener auditorías de un registro específico' })
-    getAuditoriasPorRegistro(
-        @Param('modulo') modulo: string,
-        @Param('idRegistro', ParseIntPipe) idRegistro: number
-    ) {
-        return this.auditoriaService.getAuditoriasPorRegistro(modulo, idRegistro);
+    @Get('/usuario/:usuarioId')
+    @ApiOperation({ summary: 'Obtener auditorías por usuario (admin)' })
+    getAuditoriasPorUsuarioAdmin(@Param('usuarioId', ParseIntPipe) usuarioId: number) {
+        return this.auditoriaService.getAuditoriasPorUsuario(usuarioId);
     }
 }

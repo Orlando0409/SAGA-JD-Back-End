@@ -24,7 +24,7 @@ export class AuthService {
     private readonly configService: ConfigService,
 
     private readonly emailService: EmailService,
-  ) {}
+  ) { }
 
   async login(loginDto: LoginDto, response: Response) {
     const { Nombre_Usuario, Password } = loginDto;
@@ -37,7 +37,7 @@ export class AuthService {
     });
 
     if (!usuario) {
-        throw new UnauthorizedException('Credenciales inválidas');
+      throw new UnauthorizedException('Credenciales inválidas');
     }
     if (usuario.Fecha_Eliminacion) {
       throw new UnauthorizedException('Usuario deshabilitado');
@@ -47,19 +47,19 @@ export class AuthService {
 
     // Verificar si la contraseña está hasheada (bcrypt hash empieza con $2b$)
     if (usuario.Contraseña.startsWith('$2b$')) {
-        // Contraseña hasheada - usar bcrypt
-        contraseñaValida = await bcrypt.compare(Password, usuario.Contraseña);
+      // Contraseña hasheada - usar bcrypt
+      contraseñaValida = await bcrypt.compare(Password, usuario.Contraseña);
     }
 
     if (!contraseñaValida) {
-        throw new UnauthorizedException('Credenciales inválidas');
+      throw new UnauthorizedException('Credenciales inválidas');
     }
 
     // Generar tokens
-    const payload = { 
-      sub: usuario.Id_Usuario, 
+    const payload = {
+      sub: usuario.Id_Usuario,
       email: usuario.Correo_Electronico,
-      rol: usuario.Rol?.Nombre_Rol 
+      rol: usuario.Rol?.Nombre_Rol
     };
 
     const accessToken = await this.jwtService.signAsync(payload, {
@@ -75,7 +75,7 @@ export class AuthService {
     this.setTokenCookies(response, accessToken, refreshToken);
 
     // Guardar refresh token en la base de datos
-    await this.userRepository.update(usuario.Id_Usuario, { Refresh_Token:refreshToken });
+    await this.userRepository.update(usuario.Id_Usuario, { Refresh_Token: refreshToken });
 
     // Remover contraseña de la respuesta
     const { Contraseña: _, ...usuarioSeguro } = usuario;
@@ -106,26 +106,26 @@ export class AuthService {
       }
 
       // Generar nuevo access token
-      const newPayload = { 
-        sub: usuario.Id_Usuario, 
+      const newPayload = {
+        sub: usuario.Id_Usuario,
         email: usuario.Correo_Electronico,
-        rol: usuario.Rol?.Nombre_Rol 
+        rol: usuario.Rol?.Nombre_Rol
       };
 
       const newAccessToken = await this.jwtService.signAsync(newPayload, {
         expiresIn: process.env.JWT_EXPIRES_IN
       });
 
-     const newRefreshToken = await this.jwtService.signAsync(newPayload, {
+      const newRefreshToken = await this.jwtService.signAsync(newPayload, {
         secret: process.env.JWT_REFRESH_SECRET,
         expiresIn: process.env.JWT_REFRESH_EXPIRES_IN
-        });
+      });
 
-        //  Actualizar ambas cookies
-        this.setTokenCookies(response, newAccessToken, newRefreshToken);
-     
-        // Guardar refresh token en la base de datos
-        await this.userRepository.update(usuario.Id_Usuario, { Refresh_Token: newRefreshToken });
+      //  Actualizar ambas cookies
+      this.setTokenCookies(response, newAccessToken, newRefreshToken);
+
+      // Guardar refresh token en la base de datos
+      await this.userRepository.update(usuario.Id_Usuario, { Refresh_Token: newRefreshToken });
 
 
       return {
@@ -137,7 +137,7 @@ export class AuthService {
     }
   }
 
-   async logout(response: Response) {
+  async logout(response: Response) {
     response.clearCookie('accessToken');
     response.clearCookie('refreshToken');
   }
@@ -160,13 +160,13 @@ export class AuthService {
       jti: uuidv4(), // identificador único del token
     };
 
-   
+
     const token = await this.jwtService.signAsync(payload, { expiresIn: '10m' });
 
     const FrontendRecoverURL = `${this.configService.get('FRONTEND_URL')}/ResetPassword`;
     const url = `${FrontendRecoverURL}?token=${token}`;
 
-    
+
     try {
       await this.emailService.sendRecoverPasswordMail({
         to: email,
@@ -181,7 +181,7 @@ export class AuthService {
     return {
       mensaje: 'Si el email existe, recibirás instrucciones para recuperar tu contraseña'
     };
-}
+  }
 
   async getUserProfile(userId: number) {
     const usuario = await this.userRepository.findOne({
@@ -204,27 +204,20 @@ export class AuthService {
 
   async resetPassword(dto: ResetPasswordDto) {
     try {
-     
       const payload = await this.jwtService.verifyAsync(dto.token);
 
-      
       const usuario = await this.userRepository.findOne({
         where: { Id_Usuario: payload.id }
       });
 
-      if (!usuario) {
-        throw new NotFoundException('Usuario no encontrado');
-      }
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
       const hashedPassword = await bcrypt.hash(dto.nuevaContraseña, 10);
 
-     
       await this.userRepository.update(usuario.Id_Usuario, { Contraseña: hashedPassword });
 
       return { mensaje: 'Contraseña actualizada correctamente' };
-
     } catch (error) {
-
       console.error('Error al cambiar la contraseña:', error);
       throw new UnauthorizedException('Token inválido, expirado o contraseñas no coinciden');
     }

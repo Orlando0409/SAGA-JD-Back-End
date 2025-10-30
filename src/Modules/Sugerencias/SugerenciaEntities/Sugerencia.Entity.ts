@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { EstadoSugerencia } from './EstadoSugerencia.Entity';
+import { EstadoSugerencia } from './EstadoSugerencia';
 
 @Entity('Sugerencias')
 export class Sugerencia {
@@ -7,18 +7,21 @@ export class Sugerencia {
     Id_Sugerencia: number;
 
     @Column()
-    Mensaje: string;
-
-    @Column()
     Fecha_Sugerencia: Date;
 
-    @Column({ type: 'text', nullable: true })
-    Respuesta_Sugerencia?: string;
+    @Column()
+    Mensaje: string;
+
+    @Column({ type: 'varchar', length: 100 })
+    Correo: string;
 
     @Column({ type: 'simple-json', nullable: true })
     Adjunto?: string[];
 
+    @Column({ type: 'text', nullable: true })
+    RespuestasSugerencia?: string;
+
     @ManyToOne(() => EstadoSugerencia)
-    @JoinColumn({ name: 'Id_Estado_Sugerencia' })
+    @JoinColumn({ name: 'Id_EstadoSugerencia' })
     Estado: EstadoSugerencia;
 }
