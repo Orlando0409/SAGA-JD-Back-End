@@ -10,6 +10,8 @@ import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { AuditoriaService } from 'src/Modules/Auditoria/auditoria.service';
 import { UsuariosService } from 'src/Modules/Usuarios/Services/usuarios.service';
 import { GetUnidadDeMedidaDTO } from '../InventarioDTO\'s/GetUnidadDeMedida.dto';
+//import { GetUnidadDeMedidaDTO } from '../InventarioDTO\'s/getUnidadDeMedida.dto';
+//import { GetUnidadDeMedidaDTO } from '../InventarioDTO\'s/GetUnidadDeMedida.dto';
 
 @Injectable()
 export class UnidadesDeMedicionService {
