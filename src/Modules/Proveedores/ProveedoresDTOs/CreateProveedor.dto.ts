@@ -6,14 +6,6 @@ import { IsIdentificacionValida } from 'src/Validations/DTO Validators/Identific
 import { IsTelefonoValido } from 'src/Validations/DTO Validators/NumeroTelefono.validator';
 
 export class CreateProveedorFisicoDto {
-  @ApiProperty({ example: "Nombre Apellido" })
-  @IsString({ message: "El nombre debe ser un texto" })
-  @IsNotEmpty({ message: "El nombre no puede estar vacío" })
-  @MinLength(2, { message: "El nombre debe tener al menos 2 caracteres" })
-  @MaxLength(50, { message: "El nombre no debe superar los 50 caracteres" })
-  @Matches(/\S/, { message: "El nombre no puede contener solo espacios" })
-  Nombre_Proveedor: string;
-
   @ApiProperty({ example: 'Cedula' })
   @Transform(({ value }) => value?.trim())
   @IsEnum(TipoIdentificacion, { message: `El tipo de identificación debe ser válido` })
@@ -29,6 +21,14 @@ export class CreateProveedorFisicoDto {
   @IsString({ message: 'La identificación debe ser un string' })
   @IsIdentificacionValida()
   Identificacion: string;
+
+  @ApiProperty({ example: "Nombre Apellido" })
+  @IsString({ message: "El nombre debe ser un texto" })
+  @IsNotEmpty({ message: "El nombre no puede estar vacío" })
+  @MinLength(2, { message: "El nombre debe tener al menos 2 caracteres" })
+  @MaxLength(50, { message: "El nombre no debe superar los 50 caracteres" })
+  @Matches(/\S/, { message: "El nombre no puede contener solo espacios" })
+  Nombre_Proveedor: string;
 
   @ApiProperty({ example: '+506-8888-7777' })
   @Transform(({ value }) => value?.trim())
