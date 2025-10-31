@@ -343,7 +343,7 @@ export class SolicitudesFisicasService {
 
 
 
-    // METODOS PARA ACTUALIZAR SOLICITUDES FÍSICAS
+    // MÉTODOS PARA ACTUALIZAR SOLICITUDES FÍSICAS
     async updateSolicitudFisica(idSolicitud: number, dto: UpdateSolicitudAfiliacionFisicaDto, idUsuario: number) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar la solicitud.');
 
