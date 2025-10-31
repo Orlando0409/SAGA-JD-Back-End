@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, ParseIntPipe, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, ParseIntPipe, Patch, Request } from '@nestjs/common';
 import { RequiereRoles } from 'src/Modules/auth/Decorator/Rol.decorator';
 import { RolesService } from "../Services/roles.service";
 import { CreateRolesDto } from "../UsuarioDTO's/CreateRoles.dto";
@@ -25,24 +25,40 @@ export class RolesController {
         return this.rolesService.findOneRoles(id);
     }
 
-    @Post(':idUsuario')
+    @Post()
     @RequiereRoles('Administrador')
-    CreateRoles(@Param('idUsuario', ParseIntPipe) idUsuario: number, @Body() createRolesDto: CreateRolesDto) {
+    CreateRoles(
+        @Body() createRolesDto: CreateRolesDto,
+        @Request() req: any) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
         return this.rolesService.createRoles(createRolesDto, idUsuario);
     }
 
-    @Put(':id/:idUsuario')
-    UpdateRoles(@Param('id') id: string, @Body() updateRolesDto: UpdateRolesDto, @Param('idUsuario', ParseIntPipe) idUsuario: number) {
+    @Put(':id')
+    UpdateRoles(
+        @Param('id') id: string,
+        @Body() updateRolesDto: UpdateRolesDto,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
         return this.rolesService.updateRoles(+id, updateRolesDto, idUsuario);
     }
 
-    @Patch('restore/:id/:idUsuario')
-    RestoreRoles(@Param('id', ParseIntPipe) id: number, @Param('idUsuario', ParseIntPipe) idUsuario: number) {
+    @Patch('restore/:id')
+    RestoreRoles(
+        @Param('id', ParseIntPipe) id: number,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
         return this.rolesService.restoreRole(id, idUsuario);
     }
 
-    @Delete(':id/:idUsuario')
-    DeleteRoles(@Param('id', ParseIntPipe) id: number, @Param('idUsuario', ParseIntPipe) idUsuario: number) {
+    @Delete(':id')
+    DeleteRoles(
+        @Param('id', ParseIntPipe) id: number,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
         return this.rolesService.softDeleteRol(id, idUsuario);
     }
 }

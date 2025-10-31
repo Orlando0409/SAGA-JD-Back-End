@@ -68,10 +68,10 @@ import { TipoTarifaLectura } from './Modules/Lecturas/LecturaEntities/TipoTarifa
 import { TipoTarifaServiciosFijos } from './Modules/Lecturas/LecturaEntities/TipoTarifaServiciosFijos.Entity';
 import { TipoTarifaVentaAgua } from './Modules/Lecturas/LecturaEntities/TipoTarifaVentaAgua.Entity';
 import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
-import { ImagenEntity } from './Modules/Imagenes/ImagenesEntity/ImagenEntity';
+import { ImagenEntity } from './Modules/Imagenes/ImagenesEntity/Imagen.Entity';
 import { ImagenesModule } from './Modules/Imagenes/Imagenes.module';
-import { ManualEntity } from './Modules/ManualdeUsuario/ManualEntity/manual.entity';
 import { ManualModule } from './Modules/ManualdeUsuario/manual.module';
+import { ManualEntity } from './Modules/ManualdeUsuario/ManualEntities/Manual.Entity';
 
 
 @Module({
@@ -95,7 +95,6 @@ import { ManualModule } from './Modules/ManualdeUsuario/manual.module';
         password: process.env.DB_PASSWORD,
         database: process.env.DB_DATABASE,
         entities: [
-        ImagenEntity,
         Usuario, UsuarioRol, Permiso,
         Solicitud, SolicitudFisica, SolicitudJuridica, EstadoSolicitud,
         SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudAsociadoFisica,
@@ -110,7 +109,9 @@ import { ManualModule } from './Modules/ManualdeUsuario/manual.module';
         FAQEntity,
         Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
         Auditoria,
-        Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Bloque , ManualEntity
+        Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Bloque,
+        ImagenEntity,
+        ManualEntity
         ],
         synchronize: true,
         dropSchema: true,

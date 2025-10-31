@@ -305,6 +305,12 @@ export class InventarioController {
     return this.medidorService.getMedidoresInstalados();
   }
 
+  @Get('/medidores/averiados')
+  @ApiOperation({ summary: 'Obtiene todos los medidores que están averiados.' })
+  async getMedidoresAveriados() {
+    return this.medidorService.getMedidoresAveriados();
+  }
+
   @Get('/medidores/afiliado/:idAfiliado')
   @ApiOperation({ summary: 'Obtiene todos los medidores asociados a un afiliado específico.' })
   async getMedidoresAfiliado(
