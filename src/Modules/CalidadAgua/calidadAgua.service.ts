@@ -41,6 +41,19 @@ export class CalidadAguaService {
         })));
     }
 
+    async getCalidadAguaInvisibles() {
+        const calidadAgua = await this.calidadAguaRepository.createQueryBuilder('calidadAgua')
+            .leftJoinAndSelect('calidadAgua.Usuario', 'usuario')
+            .where('calidadAgua.Visible = :visible', { visible: false })
+            .getMany();
+
+        return Promise.all(calidadAgua.map(async calidadAgua => ({
+            ...calidadAgua,
+            Usuario: calidadAgua.Usuario ?
+                await this.usuariosService.FormatearUsuarioResponse(calidadAgua.Usuario) : null
+        })));
+    }
+
     async getCalidadAgua() {
         const calidadAgua = await this.calidadAguaRepository.createQueryBuilder('calidadAgua')
             .leftJoinAndSelect('calidadAgua.Usuario', 'usuario')
@@ -117,13 +130,9 @@ export class CalidadAguaService {
             Visible: CalidadAgua.Visible
         };
 
-        if (dto.Titulo) {
-            CalidadAgua.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
-        }
+        if (dto.Titulo) CalidadAgua.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
 
-        if (dto.Descripcion) {
-            CalidadAgua.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
-        }
+        if (dto.Descripcion) CalidadAgua.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
 
         // Si llega un archivo, subimos uno nuevo
         if (file) {
