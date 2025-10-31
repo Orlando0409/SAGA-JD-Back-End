@@ -12,9 +12,17 @@ import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 @Controller('proyectos')
 @UseGuards(JwtAuthGuard)
 export class ProyectoController {
-  constructor(private readonly proyectoService: ProyectoService) { }
+  constructor(
+    private readonly proyectoService: ProyectoService
+  ) { }
 
   @Public()
+  @Get('/visibles')
+  @ApiOperation({ summary: 'Obtener proyectos visibles (estado activo)' })
+  getProyectosVisibles() {
+    return this.proyectoService.getProyectosVisibles();
+  }
+
   @Get('/all')
   @ApiOperation({ summary: 'Obtener todos los proyectos' })
   getProyectos() {
@@ -23,7 +31,9 @@ export class ProyectoController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtener proyecto por ID' })
-  findProyectobyId(@Param('id', ParseIntPipe) id: number) {
+  findProyectobyId(
+    @Param('id', ParseIntPipe) id: number
+  ) {
     return this.proyectoService.findProyectobyId(id);
   }
 
@@ -40,19 +50,30 @@ export class ProyectoController {
 
   @Put('/update/:idProyecto')
   @ApiOperation({ summary: 'Actualizar un proyecto por ID' })
-  updateProyecto(@Param('idProyecto', ParseIntPipe) idProyecto: number, @Body() UpdateProyectoDto: UpdateProyectoDto, @GetUser() usuario: Usuario) {
+  updateProyecto(
+    @Param('idProyecto', ParseIntPipe) idProyecto: number,
+    @Body() UpdateProyectoDto: UpdateProyectoDto,
+    @GetUser() usuario: Usuario
+  ) {
     return this.proyectoService.UpdateProyecto(idProyecto, UpdateProyectoDto, usuario.Id_Usuario);
   }
 
   @Patch(':idProyecto/update/estado/:idEstadoProyecto')
   @ApiOperation({ summary: 'Actualizar el estado de proyecto por ID' })
-  updateEstadoProyecto(@Param('idProyecto', ParseIntPipe) idProyecto: number, @Param('idEstadoProyecto', ParseIntPipe) idEstadoProyecto: number, @GetUser() usuario: Usuario) {
+  updateEstadoProyecto(
+    @Param('idProyecto', ParseIntPipe) idProyecto: number,
+    @Param('idEstadoProyecto', ParseIntPipe) idEstadoProyecto: number,
+    @GetUser() usuario: Usuario
+  ) {
     return this.proyectoService.updateEstadoProyecto(idProyecto, idEstadoProyecto, usuario.Id_Usuario);
   }
 
   @Patch('/update/visibilidad/:idProyecto')
   @ApiOperation({ summary: 'Actualizar la visibilidad del proyecto por ID' })
-  updateVisibilidadProyecto(@Param('idProyecto', ParseIntPipe) idProyecto: number, @GetUser() usuario: Usuario) {
+  updateVisibilidadProyecto(
+    @Param('idProyecto', ParseIntPipe) idProyecto: number,
+    @GetUser() usuario: Usuario
+  ) {
     return this.proyectoService.updateVisibilidadProyecto(idProyecto, usuario.Id_Usuario);
   }
 }

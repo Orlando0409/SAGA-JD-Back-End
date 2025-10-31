@@ -12,7 +12,6 @@ import { UsuariosService } from '../Usuarios/Services/usuarios.service';
 import { AuditoriaService } from '../Auditoria/auditoria.service';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 
-
 interface QuejaFiles {
   Adjunto?: Express.Multer.File[];
 }
@@ -54,7 +53,6 @@ export class QuejasService {
     const estado = await this.estadoQuejaRepository.findOne({ where: { Id_Estado_Queja: 1 } });
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
-    const fecha = new Date();
     const nombre = dto.Nombre?.toString().trim();
     const primerApellido = dto.Primer_Apellido?.toString().trim();
     const segundoApellido = dto.Segundo_Apellido?.toString().trim();
@@ -63,7 +61,6 @@ export class QuejasService {
 
     const quejaData = {
       ...dto,
-      Fecha_Queja: fecha,
       Estado: estado,
     };
 
@@ -102,10 +99,10 @@ export class QuejasService {
   }
 
   async updateEstado(id: number, nuevoEstadoId: number, idUsuario: number) {
+    if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la queja');
 
     const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
     if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
-
 
     const repo = await this.quejasRepository.findOne({ where: { Id_Queja: id }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Queja con id ${id} no encontrada`);
@@ -118,9 +115,9 @@ export class QuejasService {
     repo.Estado = nuevoEstado;
     await this.quejasRepository.save(repo);
 
-    try{
+    try {
       await this.auditoriaService.logActualizacion('Quejas', idUsuario, id, datosAnteriores, { Id_Estado_Queja: nuevoEstadoId });
-    }catch (error) {
+    } catch (error) {
       this.logger.error('Error al registrar auditoría de actualización de queja:', error);
     }
     return repo;
