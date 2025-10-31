@@ -39,7 +39,6 @@ export class SugerenciaController {
     return this.sugerenciaService.updateEstado(id, body.Id_EstadoSugerencia, idUsuario);
   }
 
-  @Public()
   @Patch(':id/responder')
   responder(
     @Param('id', NumericParamPipe) id: number,
