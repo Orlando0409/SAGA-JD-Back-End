@@ -344,7 +344,7 @@ export class SolicitudesFisicasService {
 
 
     // MÉTODOS PARA ACTUALIZAR SOLICITUDES FÍSICAS
-    async updateSolicitudFisica(idSolicitud: number, dto: UpdateSolicitudAfiliacionFisicaDto, idUsuario: number) {
+    async updateSolicitudAfiliacion(idSolicitud: number, dto: UpdateSolicitudAfiliacionFisicaDto, idUsuario: number) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar la solicitud.');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });

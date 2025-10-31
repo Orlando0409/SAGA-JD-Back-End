@@ -1,8 +1,9 @@
-import { CreateSolicitudAfiliacionFisicaDto, CreateSolicitudAsociadoFisicaDto, CreateSolicitudCambioMedidorFisicaDto, CreateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/CreateSolicitudFisica.dto";import { Body, Controller, Get, Param, Patch, Post, UploadedFiles, UseInterceptors, Request } from "@nestjs/common";
+import { CreateSolicitudAfiliacionFisicaDto, CreateSolicitudAsociadoFisicaDto, CreateSolicitudCambioMedidorFisicaDto, CreateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/CreateSolicitudFisica.dto";import { Body, Controller, Get, Param, Patch, Post, UploadedFiles, UseInterceptors, Request, Put } from "@nestjs/common";
 import { SolicitudesFisicasService } from "../Services/solicitudesFisicas.service";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { ApiOperation } from "@nestjs/swagger";
+import { UpdateSolicitudAfiliacionFisicaDto, UpdateSolicitudAsociadoFisicaDto, UpdateSolicitudCambioMedidorFisicaDto, UpdateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/UpdateSolicitudFisica.dto";
 
 @Controller('solicitudes-fisicas')
 export class SolicitudesFisicasController {
@@ -82,6 +83,50 @@ export class SolicitudesFisicasController {
         @Body() solicitudAsociado: CreateSolicitudAsociadoFisicaDto,
     ) {
         return this.solicitudesFisicasService.createSolicitudAsociado(solicitudAsociado);
+    }
+
+    @Put('/update/afiliacion/:id')
+    @ApiOperation({ summary: 'Actualizar una solicitud de afiliación fisica' })
+    async updateSolicitudAfiliacion(
+        @Param('id') id: number,
+        @Body() solicitudAfiliacion: UpdateSolicitudAfiliacionFisicaDto,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.solicitudesFisicasService.updateSolicitudAfiliacion(id, solicitudAfiliacion, idUsuario);
+    }
+
+    @Put('/update/desconexion/:id')
+    @ApiOperation({ summary: 'Actualizar una solicitud de desconexión fisica' })
+    async updateSolicitudDesconexion(
+        @Param('id') id: number,
+        @Body() solicitudDesconexion: UpdateSolicitudDesconexionFisicaDto,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.solicitudesFisicasService.updateSolicitudDesconexion(id, solicitudDesconexion, idUsuario);
+    }
+
+    @Put('/update/cambio-medidor/:id')
+    @ApiOperation({ summary: 'Actualizar una solicitud de cambio de medidor fisica' })
+    async updateSolicitudCambioMedidor(
+        @Param('id') id: number,
+        @Body() solicitudCambioMedidor: UpdateSolicitudCambioMedidorFisicaDto,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.solicitudesFisicasService.updateSolicitudCambioMedidor(id, solicitudCambioMedidor, idUsuario);
+    }
+
+    @Put('/update/asociado/:id')
+    @ApiOperation({ summary: 'Actualizar una solicitud de asociado fisica' })
+    async updateSolicitudAsociado(
+        @Param('id') id: number,
+        @Body() solicitudAsociado: UpdateSolicitudAsociadoFisicaDto,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.solicitudesFisicasService.updateSolicitudAsociado(id, solicitudAsociado, idUsuario);
     }
 
     @Patch('/update/estado/afiliacion/:idSolicitud/:idNuevoEstado')
