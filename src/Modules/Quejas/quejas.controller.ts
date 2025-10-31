@@ -39,8 +39,7 @@ export class QuejasController {
   @Request() req: any
 ) {
     const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-    const nuevo = (body as any)?.Id_Estado_Queja ?? (body as any)?.IdEstadoQueja ?? (body as any)?.Id_EstadoQueja;
-    return this.quejasService.updateEstado(id, nuevo as number, idUsuario);
+    return this.quejasService.updateEstado(id, body.Id_Estado_Queja as number, idUsuario);
   }
 
   @Patch(':id/responder')
