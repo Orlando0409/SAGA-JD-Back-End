@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Patch, UploadedFiles, UseInterceptors, Request} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Patch, UploadedFiles, UseInterceptors, Request } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { SugerenciaService } from './sugerencia.service';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
@@ -9,7 +9,9 @@ import { UpdateSugerenciaEstadoDto } from './SugerenciaDTO\'s/UpdateSugerenciaEs
 
 @Controller('sugerencias')
 export class SugerenciaController {
-  constructor(private readonly sugerenciaService: SugerenciaService) {}
+  constructor(
+    private readonly sugerenciaService: SugerenciaService
+  ) { }
 
   @Get()
   getAll() {
@@ -17,7 +19,9 @@ export class SugerenciaController {
   }
 
   @Get(':id')
-  getOne(@Param('id', NumericParamPipe) id: number) {
+  getOne(
+    @Param('id', NumericParamPipe) id: number
+  ) {
     return this.sugerenciaService.getOne(id);
   }
 
@@ -27,24 +31,27 @@ export class SugerenciaController {
     { name: 'Adjunto', maxCount: 10 },
   ]))
   create(
-    @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true, forbidUnknownValues: false })) body: CreateSugerenciaDto,
+    @Body() body: CreateSugerenciaDto,
     @UploadedFiles() files: Record<string, Express.Multer.File[]>,
   ) {
     return this.sugerenciaService.create(body, files);
   }
 
   @Patch(':id/estado')
-  updateEstado(@Param('id', NumericParamPipe) id: number, @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: UpdateSugerenciaEstadoDto, @Request() req: any) {
+  updateEstado(
+    @Param('id') id: number,
+    @Body() body: UpdateSugerenciaEstadoDto,
+    @Request() req: any
+  ) {
     const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-    return this.sugerenciaService.updateEstado(id, body.Id_EstadoSugerencia, idUsuario);
+    return this.sugerenciaService.updateEstado(id, body.Id_Estado_Sugerencia, idUsuario);
   }
 
-  @Public()
   @Patch(':id/responder')
   responder(
-    @Param('id', NumericParamPipe) id: number,
-    @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: ResponderSugerenciaDto,
-    @Request() req: any,
+    @Param('id') id: number,
+    @Body() body: ResponderSugerenciaDto,
+    @Request() req: any
   ) {
     const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
     return this.sugerenciaService.responderSugerencia(id, body, idUsuario);

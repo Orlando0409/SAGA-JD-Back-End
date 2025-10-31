@@ -102,6 +102,18 @@ export class AuditoriaService {
                             if (anteriores.Nombre_Manual) return anteriores.Nombre_Manual;
                             break;
 
+                        case 'sugerencias':
+                            if (anteriores.Mensaje) return anteriores.Mensaje;
+                            break;
+
+                        case 'quejas':
+                            if (anteriores.Descripcion) return anteriores.Descripcion;
+                            break;
+
+                        case 'reportes':
+                            if (anteriores.Ubicacion) return anteriores.Ubicacion;
+                            break;
+
                     }
                 } catch (error) {
                     console.error('Error al parsear datos anteriores:', error);
@@ -154,7 +166,7 @@ export class AuditoriaService {
                             if (nuevos.Titulo) return nuevos.Titulo;
                             break;
 
-                        case 'Medidor':
+                        case 'medidor':
                             if (nuevos.Numero_Medidor) return nuevos.Numero_Medidor;
                             break;
 
@@ -173,6 +185,18 @@ export class AuditoriaService {
                         case 'manuales de usuario':
                             if (nuevos.Nombre_Manual) return nuevos.Nombre_Manual;
                             break;
+
+                        case 'sugerencias':
+                            if (nuevos.Mensaje) return nuevos.Mensaje;
+                            break;
+
+                        case 'quejas':
+                            if (nuevos.Descripcion) return nuevos.Descripcion;
+                            break;
+
+                        case 'reportes':
+                            if (nuevos.Ubicacion) return nuevos.Ubicacion;
+                            break;
                     }
                 } catch (error) {
                     console.error('Error al parsear datos nuevos:', error);
@@ -188,7 +212,6 @@ export class AuditoriaService {
                     return categoria?.Nombre_Categoria || `Categoría ID: ${idRegistro}`;
 
                 case 'unidad de medicion':
-                case 'unidadmedicion':
                     const unidad = await this.dataSource.getRepository(UnidadMedicion).findOne({
                         where: { Id_Unidad_Medicion: idRegistro }
                     });
@@ -230,7 +253,7 @@ export class AuditoriaService {
                     });
                     return proyecto?.Titulo || `Proyecto ID: ${idRegistro}`;
 
-                case 'Medidores':
+                case 'medidores':
                     const medidor = await this.dataSource.getRepository(Medidor).findOne({
                         where: { Id_Medidor: idRegistro }
                     });
@@ -259,6 +282,24 @@ export class AuditoriaService {
                         where: { Id_Manual: idRegistro }
                     });
                     return manual?.Nombre_Manual || `Manual ID: ${idRegistro}`;
+
+                case 'reportes':
+                    const reporte = await this.dataSource.getRepository('Reporte').findOne({
+                        where: { Id_Reporte: idRegistro }
+                    });
+                    return reporte?.Ubicacion || `Reporte ID: ${idRegistro}`;
+
+                case 'quejas':
+                    const queja = await this.dataSource.getRepository('Queja').findOne({
+                        where: { Id_Queja: idRegistro }
+                    });
+                    return queja?.Descripcion || `Queja ID: ${idRegistro}`;
+
+                case 'sugerencias':
+                    const sugerencia = await this.dataSource.getRepository('Sugerencia').findOne({
+                        where: { Id_Sugerencia: idRegistro }
+                    });
+                    return sugerencia?.Mensaje || `Sugerencia ID: ${idRegistro}`;
 
                 default:
                     return `Registro ID: ${idRegistro}`;

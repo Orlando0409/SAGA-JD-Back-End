@@ -26,17 +26,16 @@ export class SugerenciaService {
     @InjectRepository(EstadoSugerencia)
     private readonly estadoRepository: Repository<EstadoSugerencia>,
 
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
+
     private readonly dropboxFilesService: DropboxFilesService,
 
     private readonly emailService: EmailService,
 
     private readonly usuariosService: UsuariosService,
 
-    private readonly auditoriaService: AuditoriaService,
-
-    @InjectRepository(Usuario)
-    private readonly usuarioRepository: Repository<Usuario>,
-
+    private readonly auditoriaService: AuditoriaService
   ) { }
 
   async getAll() {
@@ -53,11 +52,9 @@ export class SugerenciaService {
     const estado = await this.estadoRepository.findOne({ where: { Id_Estado_Sugerencia: 1 } });
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
-    const fecha = new Date();
     const sugerenciaData = {
       Mensaje: dto.Mensaje,
       Correo: dto.Correo,
-      Fecha_Sugerencia: fecha,
       Estado: estado,
     };
 
@@ -67,6 +64,7 @@ export class SugerenciaService {
     if (files?.Adjunto) {
       const archivos = Array.isArray(files.Adjunto) ? files.Adjunto : [files.Adjunto];
       const folderName = `sugerencia_${saved.Id_Sugerencia}`;
+
       for (const file of archivos) {
         const res = await this.dropboxFilesService.uploadFile(file, 'Contacto', 'Sugerencias', undefined, folderName);
         if (res?.url) adjuntoUrls.push(res.url);
@@ -94,6 +92,7 @@ export class SugerenciaService {
   }
 
   async updateEstado(id: number, nuevoEstadoId: number, idUsuario: number) {
+    if (!idUsuario) throw new BadRequestException('Id_Usuario es requerido para actualizar el estado de la sugerencia');
 
     const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
     if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
@@ -109,18 +108,22 @@ export class SugerenciaService {
     repo.Estado = nuevoEstado;
     await this.sugerenciaRepository.save(repo);
 
-    try{
-      await this.auditoriaService.logActualizacion('Sugerencias', idUsuario, id, datosAnteriores, { Id_Estado_Sugerencia: nuevoEstadoId });
-    }catch (error) {
+    try {
+      await this.auditoriaService.logActualizacion('Sugerencias', idUsuario, id, datosAnteriores, {
+        Id_Estado_Sugerencia: nuevoEstadoId
+      });
+    } catch (error) {
       this.logger.error('Error al registrar auditoría de actualización de sugerencia:', error);
     }
 
-    return { ...repo,
+    return {
+      ...repo,
       Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario)
     };
   }
 
   async responderSugerencia(id: number, dto: ResponderSugerenciaDto, idUsuario: number) {
+    if (!idUsuario) throw new BadRequestException('Id_Usuario es requerido para responder la sugerencia');
 
     const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
     if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
@@ -157,9 +160,11 @@ export class SugerenciaService {
       this.logger.warn(`No se puede enviar email de respuesta de sugerencia: correo no disponible para ID ${id}`);
     }
 
-    try{
-      await this.auditoriaService.logActualizacion('Sugerencias', idUsuario, id, datosAnteriores, { Respuestas_Sugerencia: dto.Respuesta });
-    }catch (error) {
+    try {
+      await this.auditoriaService.logActualizacion('Sugerencias', idUsuario, id, datosAnteriores, {
+        Respuestas_Sugerencia: dto.Respuesta
+      });
+    } catch (error) {
       this.logger.error('Error al registrar auditoría de respuesta de sugerencia:', error);
     }
 
