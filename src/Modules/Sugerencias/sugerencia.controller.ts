@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Patch, UploadedFiles, UseInterceptors} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Patch, UploadedFiles, UseInterceptors, Request} from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { SugerenciaService } from './sugerencia.service';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
@@ -34,8 +34,9 @@ export class SugerenciaController {
   }
 
   @Patch(':id/estado')
-  updateEstado(@Param('id', NumericParamPipe) id: number, @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: UpdateSugerenciaEstadoDto) {
-    return this.sugerenciaService.updateEstado(id, body.Id_EstadoSugerencia);
+  updateEstado(@Param('id', NumericParamPipe) id: number, @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: UpdateSugerenciaEstadoDto, @Request() req: any) {
+    const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+    return this.sugerenciaService.updateEstado(id, body.Id_EstadoSugerencia, idUsuario);
   }
 
   @Public()
@@ -43,7 +44,9 @@ export class SugerenciaController {
   responder(
     @Param('id', NumericParamPipe) id: number,
     @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: ResponderSugerenciaDto,
+    @Request() req: any,
   ) {
-    return this.sugerenciaService.responderSugerencia(id, body);
+    const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+    return this.sugerenciaService.responderSugerencia(id, body, idUsuario);
   }
 }
