@@ -161,6 +161,7 @@ export class ProveedorService {
     const proveedor = await this.findOneFisico(id);
 
     // Excluir explícitamente tipo_identificacion de la actualización
+     Object.assign(proveedor, dto);
 
     return this.fisicoRepo.save(proveedor);
   }
