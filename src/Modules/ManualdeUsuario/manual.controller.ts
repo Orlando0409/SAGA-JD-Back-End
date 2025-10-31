@@ -3,6 +3,7 @@ import { ManualService } from './manual.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateManualDto } from './ManualDTO\'s/createManual.dto';
 
+
 @Controller('manual')
 export class ManualController {
     constructor(

@@ -12,6 +12,7 @@ import { UsuariosService } from 'src/Modules/Usuarios/Services/usuarios.service'
 import { GetUnidadDeMedidaDTO } from '../InventarioDTO\'s/getUnidadDeMedida.dto';
 
 
+
 @Injectable()
 export class UnidadesDeMedicionService {
     constructor(

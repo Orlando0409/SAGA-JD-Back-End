@@ -10,7 +10,6 @@ import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 import { AuditoriaModule } from '../Auditoria/auditoria.module';
 import { UsuariosModule } from '../Usuarios/Modules/usuarios.module';
 
-
 @Module({
   imports: [
     TypeOrmModule.forFeature([Sugerencia, EstadoSugerencia, Usuario]), 
@@ -21,5 +20,6 @@ import { UsuariosModule } from '../Usuarios/Modules/usuarios.module';
   ],
   controllers: [SugerenciaController],
   providers: [SugerenciaService],
+  exports: [SugerenciaService],
 })
 export class SugerenciaModule {}

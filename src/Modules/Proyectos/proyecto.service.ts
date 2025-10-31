@@ -30,19 +30,16 @@ export class ProyectoService {
         private readonly auditoriaService: AuditoriaService,
     ) { }
 
-    @Public()
     async getProyectos() {
-        return this.proyectoRepository.find({
-            relations: ['Estado'],
-            order: { Fecha_Creacion: 'DESC' }
-        });
+        return this.proyectoRepository.find({ relations: ['Estado'] });
+    }
+
+    async getProyectosVisibles() {
+        return this.proyectoRepository.find({ where: { Visible: true }, relations: ['Estado'] });
     }
 
     async findProyectobyId(Id_Proyecto: number) {
-        const proyecto = await this.proyectoRepository.findOne({
-            where: { Id_Proyecto },
-            relations: ['Estado']
-        });
+        const proyecto = await this.proyectoRepository.findOne({ where: { Id_Proyecto }, relations: ['Estado'] });
         if (!proyecto) { throw new NotFoundException(`Proyecto con id ${Id_Proyecto} no encontrado`); }
         return proyecto;
     }
