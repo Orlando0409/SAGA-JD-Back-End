@@ -1,12 +1,14 @@
-import { Solicitud, SolicitudAfiliacionJuridica, SolicitudAsociadoJuridica, SolicitudCambioMedidorJuridica, SolicitudDesconexionJuridica, SolicitudJuridica } from "../../SolicitudEntities/Solicitud.Entity";
+import { Solicitud, SolicitudAfiliacionJuridica, SolicitudAsociadoJuridica, SolicitudCambioMedidorJuridica, SolicitudDesconexionJuridica, SolicitudJuridica } from "../SolicitudEntities/Solicitud.Entity";
 import { Repository } from "typeorm";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { EstadoSolicitud } from "../../SolicitudEntities/EstadoSolicitud.Entity";
+import { EstadoSolicitud } from "../SolicitudEntities/EstadoSolicitud.Entity";
 import { EmailService } from "src/Modules/Emails/email.service";
 import { AfiliadosService } from "src/Modules/Afiliados/afiliados.service";
 import { ValidationsService } from "src/Validations/Validations.service";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
+import { UsuariosService } from "src/Modules/Usuarios/Services/usuarios.service";
+import { AuditoriaService } from "src/Modules/Auditoria/auditoria.service";
 
 @Injectable()
 export class SolicitudesJuridicasService {
@@ -33,12 +35,16 @@ export class SolicitudesJuridicasService {
         private readonly estadoSolicitudRepo: Repository<EstadoSolicitud>,
 
         private readonly dropboxFilesService: DropboxFilesService,
-
+        
         private readonly validationsService: ValidationsService,
 
         private readonly afiliadosService: AfiliadosService,
 
         private readonly emailService: EmailService,
+
+        private readonly usuariosService: UsuariosService,
+
+        private readonly auditoriaService: AuditoriaService,
     ) { }
 
     async getAllSolicitudesJuridicas() {

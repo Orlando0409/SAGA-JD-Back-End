@@ -25,14 +25,6 @@ import { EstadoReporte } from './Modules/Reportes/ReporteEntities/EstadoReporte'
 import { SugerenciaModule } from './Modules/Sugerencias/sugerencia.module';
 import { EstadoAfiliado } from './Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica, SolicitudFisica, SolicitudJuridica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
-import { SolicitudAsociadoFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAsociado.module';
-import { SolicitudCambioMedidorFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudCambioMedidor.module';
-import { SolicitudDesconexionFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudDesconexion.module';
-import { SolicitudAfiliacionFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAfiliacion.module';
-import { SolicitudAfiliacionJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudAfiliacion.module';
-import { SolicitudDesconexionJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudDesconexion.module';
-import { SolicitudCambioMedidorJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudCambioMedidor.module';
-import { SolicitudAsociadoJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudAsociado.module';
 import { TipoAfiliado } from './Modules/Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
 import { AfiliadosModule } from './Modules/Afiliados/afiliados.module';
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from './Modules/Afiliados/AfiliadoEntities/Afiliado.Entity';
@@ -58,8 +50,6 @@ import { EstadoMedidor } from './Modules/Inventario/InventarioEntities/EstadoMed
 import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity';
 import { Auditoria } from './Modules/Auditoria/AuditoriaEntities/Auditoria.Entities';
 import { AuditoriaModule } from './Modules/Auditoria/auditoria.module';
-import { SolicitudesFisicasModule } from './Modules/Solicitudes/Fisica/Modules/solicitudesFisicas.module';
-import { SolicitudesJuridicasModule } from './Modules/Solicitudes/Fisica/Modules/solicitudesJuridicas.module';
 import { ReportesModule } from './Modules/Reportes/reportes.module';
 import { Reporte } from './Modules/Reportes/ReporteEntities/Reportes.Entity';
 import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia';
@@ -103,8 +93,9 @@ import { ManualEntity } from './Modules/ManualdeUsuario/ManualEntities/Manual.En
         Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
         Proveedor, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
         Proyecto, EstadoProyecto,
-        CalidadAgua,Acta, 
-        ArchivoActa,Reporte, EstadoReporte,
+        CalidadAgua,
+        Acta, ArchivoActa,
+        Reporte, EstadoReporte,
         Sugerencia, EstadoSugerencia,
         Queja, EstadoQueja,
         FAQEntity,
@@ -131,8 +122,6 @@ import { ManualEntity } from './Modules/ManualdeUsuario/ManualEntities/Manual.En
     SolicitudesModule,
     CalidadAguaModule,
     ActasModule,
-    SolicitudesFisicasModule,
-    SolicitudesJuridicasModule,
     ReportesModule,
     ProyectoModule,
     SugerenciaModule,
