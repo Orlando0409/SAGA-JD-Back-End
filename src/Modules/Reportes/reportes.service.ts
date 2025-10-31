@@ -7,6 +7,9 @@ import { CreateReporteDto } from './ReporteDTO\'s/CreateReporte.dto';
 import { ResponderReporteDto } from './ReporteDTO\'s/ResponderReporte.dto';
 import { EstadoReporte } from './ReporteEntities/EstadoReporte';
 import { Reporte } from './ReporteEntities/Reportes.Entity';
+import { AuditoriaService } from '../Auditoria/auditoria.service';
+import { UsuariosService } from '../Usuarios/Services/usuarios.service';
+import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 
 interface ReporteFiles {
   Adjunto?: Express.Multer.File[];
@@ -24,7 +27,16 @@ export class ReportesService {
     private readonly estadoReporteRepository: Repository<EstadoReporte>,
 
     private readonly dropboxFilesService: DropboxFilesService,
+
     private readonly emailService: EmailService,
+
+    private readonly auditorService: AuditoriaService,
+
+    private readonly usuariosService: UsuariosService,
+
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
+
   ) { }
 
   async getAll() {
@@ -89,18 +101,35 @@ export class ReportesService {
     return saved;
   }
 
-  async updateEstado(id: number, nuevoEstadoId: number) {
+  async updateEstado(id: number, nuevoEstadoId: number, idUsuario: number) {
+
+    const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+    if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
+
     const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: id }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Reporte con id ${id} no encontrado`);
 
     const nuevoEstado = await this.estadoReporteRepository.findOne({ where: { Id_Estado_Reporte: nuevoEstadoId } });
     if (!nuevoEstado) throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);
 
+    const datosAnteriores = { Id_Estado_Reporte: repo.Estado.Id_Estado_Reporte };
+
     repo.Estado = nuevoEstado;
-    return this.reportesRepository.save(repo);
+    await this.reportesRepository.save(repo);
+
+    try{
+      await this.auditorService.logActualizacion('Reportes', idUsuario, id, datosAnteriores, { Id_Estado_Reporte: nuevoEstadoId });
+    }catch (error) {
+      this.logger.error('Error al registrar auditoría de actualización de reporte:', error);
+    }
+    return repo;
   }
 
-  async responderReporte(id: number, dto: ResponderReporteDto) {
+  async responderReporte(id: number, dto: ResponderReporteDto, idUsuario: number) {
+
+    const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+    if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
+
     const repo = await this.reportesRepository.findOne({
       where: { Id_Reporte: id },
       relations: ['Estado']
@@ -110,6 +139,8 @@ export class ReportesService {
     repo.RespuestasReporte = dto.Respuesta;
     const estadoContestada = await this.estadoReporteRepository.findOne({ where: { Id_Estado_Reporte: 2 } });
     if (!estadoContestada) throw new BadRequestException('Estado contestada no encontrado');
+
+    const datosAnteriores = { Respuestas_Reporte : repo.RespuestasReporte}
 
     repo.Estado = estadoContestada;
     const updatedReporte = await this.reportesRepository.save(repo);
@@ -133,6 +164,12 @@ export class ReportesService {
       });
     } else {
       this.logger.warn(`No se puede enviar email de respuesta de reporte: correo no disponible para ID ${id}`);
+    }
+
+    try{
+      await this.auditorService.logActualizacion('Reportes', idUsuario, id, datosAnteriores, { Respuestas_Reporte: dto.Respuesta });
+    }catch (error) {
+      this.logger.error('Error al registrar auditoría de actualización de reporte:', error);
     }
 
     return updatedReporte;

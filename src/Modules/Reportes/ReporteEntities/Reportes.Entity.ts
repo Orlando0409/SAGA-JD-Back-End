@@ -6,25 +6,25 @@ export class Reporte {
     @PrimaryGeneratedColumn()
     Id_Reporte: number;
 
-    @Column()
+    @Column({ nullable: false })
     Nombre: string;
 
-    @Column()
+    @Column({ nullable: false })
     Primer_Apellido: string;
 
     @Column({ nullable: true })
     Segundo_Apellido?: string;
 
-    @Column()
+    @Column({ nullable: false })
     Ubicacion: string;
 
-    @Column()
+    @Column({ nullable: false })
     Descripcion: string;
 
-    @Column()
+    @Column({ nullable: false })
     Fecha_Reporte: Date;
 
-    @Column()
+    @Column({ nullable: false })
     Correo: string;
 
     @Column({ type: 'simple-json', nullable: true })

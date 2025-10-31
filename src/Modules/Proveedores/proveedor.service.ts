@@ -80,11 +80,12 @@ export class ProveedorService {
       Estado_Proveedor: estado,
       Usuario: usuario
     });
-    await this.proveedorRepo.save(proveedor);
+    const proveedorBase = await this.proveedorRepo.save(proveedor);
 
     // Luego crear en la tabla específica con el mismo ID
     const proveedorFisico = this.fisicoRepo.create({
       ...dto,
+      Id_Proveedor : proveedorBase.Id_Proveedor,
       Tipo_Entidad: TipoEntidad.Física,
       Estado_Proveedor: estado,
       Usuario: usuario
@@ -142,11 +143,12 @@ export class ProveedorService {
       Estado_Proveedor: estado,
       Usuario: usuario
     });
-    await this.proveedorRepo.save(proveedor);
+    const proveedorBase = await this.proveedorRepo.save(proveedor);
 
     // Luego crear en la tabla específica con el mismo ID
     const proveedorJuridico = this.juridicoRepo.create({
       ...dto,
+      Id_Proveedor : proveedorBase.Id_Proveedor,
       Tipo_Entidad: TipoEntidad.Jurídica,
       Estado_Proveedor: estado,
       Usuario: usuario
