@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
 import { EstadoSugerencia } from './EstadoSugerencia';
 
 @Entity('Sugerencias')
@@ -6,10 +6,7 @@ export class Sugerencia {
     @PrimaryGeneratedColumn()
     Id_Sugerencia: number;
 
-    @Column()
-    Fecha_Sugerencia: Date;
-
-    @Column()
+    @Column({ type: 'text' })
     Mensaje: string;
 
     @Column({ type: 'varchar', length: 100 })
@@ -21,7 +18,10 @@ export class Sugerencia {
     @Column({ type: 'text', nullable: true })
     RespuestasSugerencia?: string;
 
+    @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
+    Fecha_Sugerencia: Date;
+
     @ManyToOne(() => EstadoSugerencia)
-    @JoinColumn({ name: 'Id_EstadoSugerencia' })
+    @JoinColumn({ name: 'Id_Estado_Sugerencia' })
     Estado: EstadoSugerencia;
 }
