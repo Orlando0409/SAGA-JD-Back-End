@@ -8,6 +8,10 @@ import { EstadoQueja } from './QuejaEntities/EstadoQueja';
 import { CreateQuejaDto } from './QuejaDTO\'s/CreateQueja.dto';
 import { ResponderQuejaDto } from './QuejaDTO\'s/ResponderQueja.dto';
 import { Queja } from './QuejaEntities/QuejasEntity';
+import { UsuariosService } from '../Usuarios/Services/usuarios.service';
+import { AuditoriaService } from '../Auditoria/auditoria.service';
+import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
+
 
 interface QuejaFiles {
   Adjunto?: Express.Multer.File[];
@@ -25,7 +29,15 @@ export class QuejasService {
     private readonly estadoQuejaRepository: Repository<EstadoQueja>,
 
     private readonly dropboxFilesService: DropboxFilesService,
+
     private readonly emailService: EmailService,
+
+    private readonly usuariosService: UsuariosService,
+
+    private readonly auditoriaService: AuditoriaService,
+    
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
   ) { }
 
   async getAll() {
@@ -89,18 +101,36 @@ export class QuejasService {
     return saved;
   }
 
-  async updateEstado(id: number, nuevoEstadoId: number) {
+  async updateEstado(id: number, nuevoEstadoId: number, idUsuario: number) {
+
+    const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+    if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
+
+
     const repo = await this.quejasRepository.findOne({ where: { Id_Queja: id }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Queja con id ${id} no encontrada`);
 
     const nuevoEstado = await this.estadoQuejaRepository.findOne({ where: { Id_Estado_Queja: nuevoEstadoId } });
     if (!nuevoEstado) throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);
 
+    const datosAnteriores = { Id_Estado_Queja: repo.Estado.Id_Estado_Queja };
+
     repo.Estado = nuevoEstado;
-    return this.quejasRepository.save(repo);
+    await this.quejasRepository.save(repo);
+
+    try{
+      await this.auditoriaService.logActualizacion('Quejas', idUsuario, id, datosAnteriores, { Id_Estado_Queja: nuevoEstadoId });
+    }catch (error) {
+      this.logger.error('Error al registrar auditoría de actualización de queja:', error);
+    }
+    return repo;
   }
 
-  async responderQueja(id: number, dto: ResponderQuejaDto) {
+  async responderQueja(id: number, dto: ResponderQuejaDto , idUsuario: number) {
+
+    const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+    if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
+
     const repo = await this.quejasRepository.findOne({
       where: { Id_Queja: id },
       relations: ['Estado']
@@ -110,6 +140,8 @@ export class QuejasService {
     repo.RespuestasReporte = dto.Respuesta;
     const estadoContestada = await this.estadoQuejaRepository.findOne({ where: { Id_Estado_Queja: 2 } });
     if (!estadoContestada) throw new BadRequestException('Estado contestada no encontrado');
+
+    const datosAnteriores = { Respuesta_Reporte: repo.RespuestasReporte };
 
     repo.Estado = estadoContestada;
     const updatedQueja = await this.quejasRepository.save(repo);
@@ -132,6 +164,12 @@ export class QuejasService {
       });
     } else {
       this.logger.warn(`No se puede enviar email de respuesta de queja: correo no disponible para ID ${id}`);
+    }
+
+    try{
+      await this.auditoriaService.logActualizacion('Quejas', idUsuario, id, datosAnteriores, { Respuesta_Reporte: dto.Respuesta });
+    }catch (error) {
+      this.logger.error('Error al registrar auditoría de respuesta de queja:', error);
     }
 
     return updatedQueja;

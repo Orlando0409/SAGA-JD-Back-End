@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UploadedFiles, UseInterceptors, Patch } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UploadedFiles, UseInterceptors, Patch, Request } from '@nestjs/common';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { QuejasService } from './quejas.service';
@@ -34,17 +34,23 @@ export class QuejasController {
   }
 
   @Patch(':id/estado')
-  updateEstado(@Param('id', NumericParamPipe) id: number, @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: UpdateQuejaEstadoDto) {
+  updateEstado(@Param('id', NumericParamPipe) id: number, 
+  @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: UpdateQuejaEstadoDto,
+  @Request() req: any
+) {
+    const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
     const nuevo = (body as any)?.Id_Estado_Queja ?? (body as any)?.IdEstadoQueja ?? (body as any)?.Id_EstadoQueja;
-    return this.quejasService.updateEstado(id, nuevo as number);
+    return this.quejasService.updateEstado(id, nuevo as number, idUsuario);
   }
 
   @Patch(':id/responder')
   responder(
     @Param('id', NumericParamPipe) id: number,
     @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true })) body: ResponderQuejaDto,
+    @Request() req: any,
   ) {
-    return this.quejasService.responderQueja(id, body);
+    const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+    return this.quejasService.responderQueja(id, body, idUsuario);
   }
 
 }
