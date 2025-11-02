@@ -65,7 +65,6 @@ import { ImagenesModule } from './Modules/Imagenes/Imagenes.module';
 import { ManualModule } from './Modules/ManualdeUsuario/manual.module';
 import { ManualEntity } from './Modules/ManualdeUsuario/ManualEntities/Manual.Entity';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -94,8 +93,9 @@ import { ManualEntity } from './Modules/ManualdeUsuario/ManualEntities/Manual.En
         Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
         Proveedor, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
         Proyecto, EstadoProyecto,
-        CalidadAgua,Acta, 
-        ArchivoActa,Reporte, EstadoReporte,
+        CalidadAgua,
+        Acta, ArchivoActa,
+        Reporte, EstadoReporte,
         Sugerencia, EstadoSugerencia,
         Queja, EstadoQueja,
         FAQEntity,

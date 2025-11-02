@@ -26,21 +26,27 @@ select * from estado_calidad_agua;
 
 select * from estado_medidor;
 
-select * from solicitudes_afiliacion_fisica;
+select * from solicitud;
 
-select * from solicitudes_afiliacion_juridica;
+select * from solicitud_fisica;
 
-select * from solicitudes_cambio_medidor_fisica;
+select * from solicitud_juridica;
 
-select * from solicitudes_cambio_medidor_juridica;
+select * from solicitud_afiliacion_fisica;
 
-select * from solicitudes_desconexion_fisica;
+select * from solicitud_afiliacion_juridica;
 
-select * from solicitudes_desconexion_juridica;
+select * from solicitud_cambio_medidor_fisica;
 
-select * from solicitudes_asociado_fisica;
+select * from solicitud_cambio_medidor_juridica;
 
-select * from solicitudes_asociado_juridica;
+select * from solicitud_desconexion_fisica;
+
+select * from solicitud_desconexion_juridica;
+
+select * from solicitud_asociado_fisica;
+
+select * from solicitud_asociado_juridica;
 
 select * from proyecto;
 

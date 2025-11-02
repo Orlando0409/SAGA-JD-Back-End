@@ -11,7 +11,7 @@ export class CreateSolicitudFisicaDto {
   @IsEnum(TipoIdentificacion, { message: `El tipo de identificación debe ser uno de los siguientes: ${Object.values(TipoIdentificacion).join(', ')}` })
   @IsDefined({ message: 'El tipo de identificación no puede estar vacío' })
   Tipo_Identificacion: TipoIdentificacion;
-  
+
   @ApiProperty({ example: '123456789' })
   @Transform(({ value }) => value?.trim().toUpperCase())
   @IsDefined({ message: 'La identificación no puede estar vacía' })
@@ -47,8 +47,7 @@ export class CreateSolicitudFisicaDto {
   })
   @IsString({ message: 'El segundo apellido debe ser un string' })
   @MaxLength(50, { message: 'El segundo apellido no puede tener más de 50 caracteres' })
-  @IsOptional()
-  Apellido2?: string;
+  Apellido2: string;
 
   @ApiProperty({ example: 'ejemplo@gmail.com' })
   @Transform(({ value }) => value?.trim().toLowerCase())
