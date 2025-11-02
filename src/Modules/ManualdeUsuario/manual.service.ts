@@ -6,7 +6,8 @@ import { AuditoriaService } from '../Auditoria/auditoria.service';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 import { ManualEntity } from './ManualEntities/Manual.Entity';
 import { UsuariosService } from '../Usuarios/Services/usuarios.service';
-import { CreateManualDto } from './ManualDTO\'s/CreateManual.dto';
+import { CreateManualDto } from './ManualDTO\'s/createManual.dto';
+
 
 @Injectable()
 export class ManualService {
