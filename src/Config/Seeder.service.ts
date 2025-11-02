@@ -152,11 +152,10 @@ export class SeederService implements OnModuleInit {
     private async createDefaultEstadosSolicitud() {
         const estados = [
             { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' },
-            { Id_Estado_Solicitud: 2, Nombre_Estado: 'En Revisión' },
-            { Id_Estado_Solicitud: 3, Nombre_Estado: 'Aprobada' },
-            //{ Id_Estado_Solicitud: 3, Nombre_Estado: 'En espera' },
-            //{ Id_Estado_Solicitud: 4, Nombre_Estado: 'Completada' },
-            //{ Id_Estado_Solicitud: 5, Nombre_Estado: 'Rechazada' },
+            { Id_Estado_Solicitud: 2, Nombre_Estado: 'En revisión' },
+            { Id_Estado_Solicitud: 3, Nombre_Estado: 'Aprobada y en espera' },
+            { Id_Estado_Solicitud: 4, Nombre_Estado: 'Completada' },
+            { Id_Estado_Solicitud: 5, Nombre_Estado: 'Rechazada' },
         ];
 
         for (const estado of estados) {
