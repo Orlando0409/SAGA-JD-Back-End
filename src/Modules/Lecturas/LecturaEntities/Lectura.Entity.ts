@@ -9,7 +9,7 @@ export class Lectura {
     Id_Lectura: number;
 
     @ManyToOne(() => Medidor, medidor => medidor.Lecturas, { nullable: false })
-    @JoinColumn({ name: 'Numero_Medidor' })
+    @JoinColumn({ name: 'Id_Medidor' })
     Medidor: Medidor;
 
     @ManyToOne(() => TipoTarifaLectura, tipoTarifa => tipoTarifa.Lectura, { nullable: false })

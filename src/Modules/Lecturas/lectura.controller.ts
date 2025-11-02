@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Put, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { LecturaService } from "./lectura.service";
 import { CreateLecturaDTO } from "./LecturaDTO'S/CreateLectura.dto";
 import { UpdateLecturaDTO } from "./LecturaDTO'S/UpdateLectura.dto";
 import { JwtAuthGuard } from "../auth/Guard/JwtGuard";
 import { GetUser } from "../auth/Decorator/GetUser.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
+import { FileInterceptor } from "@nestjs/platform-express";
 
 @Controller('lecturas')
 @UseGuards(JwtAuthGuard)
@@ -13,12 +14,12 @@ export class LecturaController {
         private readonly lecturaService: LecturaService
     ) { }
 
-    @Get('/all/lecturas')
+    @Get('/all')
     getAllLecturas() {
         return this.lecturaService.getAllLecturas();
     }
 
-    @Get('/all/tarifas-lecturas')
+    @Get('/tarifas-lecturas')
     getAllTarifas() {
         return this.lecturaService.getTarifasLecturas();
     }
@@ -44,6 +45,15 @@ export class LecturaController {
         @Param('fechaFin') fechaFin: string
     ) {
         return this.lecturaService.getLecturasEntreFechas(fechaInicio, fechaFin);
+    }
+
+    @Post('/cargar-csv')
+    @UseInterceptors(FileInterceptor('CSV'))
+    async uploadCSV(
+        @UploadedFile() CSV: Express.Multer.File,
+        @GetUser() usuario: Usuario
+    ) {
+        return this.lecturaService.importarArchivoCSV(CSV, usuario.Id_Usuario);
     }
 
     @Post('/create')
