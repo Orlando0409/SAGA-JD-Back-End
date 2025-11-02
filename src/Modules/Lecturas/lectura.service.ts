@@ -15,6 +15,8 @@ import { AfiliadosService } from "../Afiliados/afiliados.service";
 import { TipoTarifaLectura } from "./LecturaEntities/TipoTarifaLectura.Entity";
 import { TipoTarifaServiciosFijos } from "./LecturaEntities/TipoTarifaServiciosFijos.Entity";
 import { TipoTarifaVentaAgua } from "./LecturaEntities/TipoTarifaVentaAgua.Entity";
+import { Readable } from "stream";
+import * as csvParser from "csv-parser";
 
 @Injectable()
 export class LecturaService {
@@ -188,15 +190,210 @@ export class LecturaService {
         })));
     }
 
+    async importarArchivoCSV(CSV: Express.Multer.File, idUsuario: number) {
+        if (!idUsuario) {
+            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+        }
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) {
+            throw new BadRequestException('El usuario no existe.');
+        }
+
+        const resultados: any[] = [];
+        const stream = Readable.from(CSV.buffer);
+        const errores: string[] = [];
+        const advertencias: string[] = [];
+        let lecturasCreadas = 0;
+
+        return new Promise((resolve, reject) => {
+            stream
+                .pipe(csvParser())
+                .on('data', (data) => resultados.push(data))
+                .on('end', async () => {
+                    try {
+                        for (let i = 0; i < resultados.length; i++) {
+                            const row = resultados[i];
+                            const lineNumber = i + 2; // +2 porque: +1 por índice base 0, +1 por fila de encabezado
+
+                            try {
+                                // Validar campos requeridos
+                                if (!row.Numero_Medidor) {
+                                    errores.push(`Fila ${lineNumber}: Número de medidor es requerido`);
+                                    continue;
+                                }
+
+                                if (!row.Valor_Lectura_Actual) {
+                                    errores.push(`Fila ${lineNumber}: Valor de lectura actual es requerido`);
+                                    continue;
+                                }
+
+                                const numeroMedidor = Number(row.Numero_Medidor);
+                                const valorLecturaActual = Number(row.Valor_Lectura_Actual);
+
+                                // Validar que sean números válidos
+                                if (isNaN(numeroMedidor)) {
+                                    errores.push(`Fila ${lineNumber}: Número de medidor inválido: ${row.Numero_Medidor}`);
+                                    continue;
+                                }
+
+                                if (isNaN(valorLecturaActual) || valorLecturaActual < 0) {
+                                    errores.push(`Fila ${lineNumber}: Valor de lectura inválido: ${row.Valor_Lectura_Actual}`);
+                                    continue;
+                                }
+
+                                // Buscar medidor con sus relaciones
+                                const medidor = await this.medidorRepository.findOne({
+                                    where: { Numero_Medidor: numeroMedidor },
+                                    relations: ['Estado_Medidor', 'Afiliado']
+                                });
+
+                                if (!medidor) {
+                                    advertencias.push(`Fila ${lineNumber}: Medidor ${numeroMedidor} no encontrado`);
+                                    continue;
+                                }
+
+                                // Validar estado del medidor
+                                if (medidor.Estado_Medidor?.Id_Estado_Medidor !== 2) {
+                                    advertencias.push(`Fila ${lineNumber}: Medidor ${numeroMedidor} no está instalado`);
+                                    continue;
+                                }
+
+                                // Buscar la última lectura del medidor para calcular consumo
+                                const lecturaAnterior = await this.lecturaRepository.createQueryBuilder('lectura')
+                                    .leftJoin('lectura.Medidor', 'medidor')
+                                    .where('medidor.Numero_Medidor = :numeroMedidor', { numeroMedidor })
+                                    .orderBy('lectura.Fecha_Lectura', 'DESC')
+                                    .limit(1)
+                                    .getOne();
+
+                                let valorLecturaAnterior = 0;
+                                let consumoCalculado = valorLecturaActual;
+
+                                if (lecturaAnterior) {
+                                    valorLecturaAnterior = lecturaAnterior.Valor_Lectura_Actual;
+                                    consumoCalculado = valorLecturaActual - valorLecturaAnterior;
+
+                                    // Validar que la nueva lectura no sea menor que la anterior
+                                    if (valorLecturaActual < valorLecturaAnterior) {
+                                        errores.push(`Fila ${lineNumber}: Lectura actual (${valorLecturaActual}) es menor que la anterior (${valorLecturaAnterior})`);
+                                        continue;
+                                    }
+                                }
+
+                                // Parsear fecha si existe, si no usar fecha actual
+                                let fechaLectura = new Date();
+                                if (row.Fecha_Lectura) {
+                                    const fechaParsed = new Date(row.Fecha_Lectura);
+                                    if (!isNaN(fechaParsed.getTime())) {
+                                        fechaLectura = fechaParsed;
+                                    } else {
+                                        advertencias.push(`Fila ${lineNumber}: Fecha inválida, usando fecha actual`);
+                                    }
+                                }
+
+                                // Obtener o calcular Total_A_Pagar
+                                let totalAPagar = 0;
+                                if (row.Total_A_Pagar) {
+                                    const totalParsed = Number(row.Total_A_Pagar);
+                                    if (!isNaN(totalParsed) && totalParsed >= 0) {
+                                        totalAPagar = totalParsed;
+                                    } else {
+                                        advertencias.push(`Fila ${lineNumber}: Total_A_Pagar inválido, usando 0`);
+                                    }
+                                }
+
+                                // Obtener la tarifa (usar la primera disponible o una específica del CSV)
+                                let tipoTarifa: TipoTarifaLectura | null = null;
+                                
+                                if (row.Id_Tipo_Tarifa_Lectura) {
+                                    const idTarifa = Number(row.Id_Tipo_Tarifa_Lectura);
+                                    if (!isNaN(idTarifa)) {
+                                        tipoTarifa = await this.tipoTarifaLecturaRepository.findOne({
+                                            where: { Id_Tipo_Tarifa_Lectura: idTarifa }
+                                        });
+                                    }
+                                }
+
+                                // Si no se especificó tarifa o no se encontró, usar la primera disponible
+                                if (!tipoTarifa) {
+                                    tipoTarifa = await this.tipoTarifaLecturaRepository.findOne({
+                                        order: { Id_Tipo_Tarifa_Lectura: 'ASC' }
+                                    });
+                                    
+                                    if (!tipoTarifa) {
+                                        errores.push(`Fila ${lineNumber}: No hay tarifas disponibles en el sistema`);
+                                        continue;
+                                    }
+                                }
+
+                                // Crear nueva lectura
+                                const nuevaLectura = this.lecturaRepository.create({
+                                    Medidor: medidor,
+                                    Valor_Lectura_Anterior: valorLecturaAnterior,
+                                    Valor_Lectura_Actual: valorLecturaActual,
+                                    Consumo_Calculado_M3: consumoCalculado,
+                                    Total_A_Pagar: totalAPagar,
+                                    Fecha_Lectura: fechaLectura,
+                                    Tipo_Tarifa: tipoTarifa,
+                                    Usuario: usuario
+                                });
+
+                                await this.lecturaRepository.save(nuevaLectura);
+                                lecturasCreadas++;
+
+                                // Registrar en auditoría
+                                try {
+                                    await this.auditoriaService.logCreacion('Lecturas', idUsuario, nuevaLectura.Id_Lectura, {
+                                        Lectura_Anterior: nuevaLectura.Valor_Lectura_Anterior,
+                                        Lectura_Actual: nuevaLectura.Valor_Lectura_Actual,
+                                        Consumo_Calculado_M3: nuevaLectura.Consumo_Calculado_M3,
+                                        Fecha_Lectura: nuevaLectura.Fecha_Lectura,
+                                        Numero_Medidor: medidor.Numero_Medidor,
+                                        Origen: 'Importación CSV'
+                                    });
+                                } catch (error) {
+                                    console.error(`Error al registrar auditoría para lectura de medidor ${numeroMedidor}:`, error);
+                                }
+
+                            } catch (rowError) {
+                                errores.push(`Fila ${lineNumber}: Error procesando registro - ${rowError.message}`);
+                                console.error(`Error en fila ${lineNumber}:`, rowError);
+                            }
+                        }
+
+                        resolve({
+                            Mensaje: 'Archivo procesado',
+                            Resultados: {
+                                'Filas Totales': resultados.length,
+                                'Lecturas Creadas': lecturasCreadas,
+                                'Errores': errores.length,
+                                'Advertencias': advertencias.length,
+                                'Detalles de Errores': errores.length > 0 ? errores : undefined,
+                                'Detalles de Advertencias': advertencias.length > 0 ? advertencias : undefined
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Error procesando archivo CSV:', error);
+                        reject(new BadRequestException(`Error procesando archivo CSV: ${error.message}`));
+                    }
+                })
+                .on('error', (error) => {
+                    console.error('Error leyendo archivo CSV:', error);
+                    reject(new BadRequestException(`Error leyendo archivo CSV: ${error.message}`));
+                });
+        });
+    }
+
     async createLectura(dto: CreateLecturaDTO, idUsuario: number) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new BadRequestException('El usuario no existe.');
 
-        const medidor = await this.medidorRepository.findOne({ 
-            where: { Numero_Medidor: dto.Numero_Medidor }, 
-            relations: ['Estado_Medidor', 'Afiliado', 'Afiliado.Tipo_Afiliado', 'Afiliado.Estado'] 
+        const medidor = await this.medidorRepository.findOne({
+            where: { Numero_Medidor: dto.Numero_Medidor },
+            relations: ['Estado_Medidor', 'Afiliado', 'Afiliado.Tipo_Afiliado', 'Afiliado.Estado']
         });
         if (!medidor) throw new BadRequestException('El medidor especificado no existe.');
         if (medidor.Estado_Medidor.Id_Estado_Medidor !== 2) throw new BadRequestException('El medidor no está en un estado válido para registrar lecturas.');
