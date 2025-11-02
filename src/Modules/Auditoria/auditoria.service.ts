@@ -82,7 +82,7 @@ export class AuditoriaService {
                             if (anteriores.Titulo) return anteriores.Titulo;
                             break;
 
-                        case 'Medidor':
+                        case 'medidores':
                             if (anteriores.Numero_Medidor) return anteriores.Numero_Medidor;
                             break;
 
@@ -166,7 +166,7 @@ export class AuditoriaService {
                             if (nuevos.Titulo) return nuevos.Titulo;
                             break;
 
-                        case 'medidor':
+                        case 'medidores':
                             if (nuevos.Numero_Medidor) return nuevos.Numero_Medidor;
                             break;
 
@@ -332,7 +332,7 @@ export class AuditoriaService {
                 Id_Auditoria: auditoria.Id_Auditoria,
                 Modulo: auditoria.Modulo,
                 Accion: auditoria.Accion,
-                Nombre_Registro: nombreRegistro, // Nombre legible del registro
+                Registro_Afectado: nombreRegistro, // Nombre legible del registro
                 Fecha_Accion: auditoria.Fecha_Accion,
                 Usuario: auditoria.Usuario ? {
                     Id_Usuario: auditoria.Usuario.Id_Usuario,
@@ -345,34 +345,6 @@ export class AuditoriaService {
                 Datos_Nuevos: auditoria.Datos_Nuevos
             };
         }));
-    }
-
-    async createAuditoria(modulo: string, accion: string, usuarioId: number, idRegistro: number, datosAnteriores?: any, datosNuevos?: any): Promise<Auditoria> {
-        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: usuarioId } });
-        if (!usuario) { throw new Error('Usuario no encontrado'); }
-
-        const nuevaAuditoria = new Auditoria();
-        nuevaAuditoria.Modulo = modulo;
-        nuevaAuditoria.Accion = accion;
-        nuevaAuditoria.Id_Registro = idRegistro;
-        nuevaAuditoria.Datos_Anteriores = datosAnteriores ? JSON.stringify(datosAnteriores) : '';
-        nuevaAuditoria.Datos_Nuevos = datosNuevos ? JSON.stringify(datosNuevos) : '';
-        nuevaAuditoria.Usuario = usuario;
-
-        return await this.auditoriaRepository.save(nuevaAuditoria);
-    }
-
-    // Métodos helper para las operaciones más comunes
-    async logCreacion(modulo: string, usuarioId: number, idRegistro: number, datosNuevos: any): Promise<Auditoria> {
-        return this.createAuditoria(modulo, 'Creación', usuarioId, idRegistro, null, datosNuevos);
-    }
-
-    async logActualizacion(modulo: string, usuarioId: number, idRegistro: number, datosAnteriores: any, datosNuevos: any): Promise<Auditoria> {
-        return this.createAuditoria(modulo, 'Actualización', usuarioId, idRegistro, datosAnteriores, datosNuevos);
-    }
-
-    async logEliminacion(modulo: string, usuarioId: number, idRegistro: number, datosAnteriores: any): Promise<Auditoria> {
-        return this.createAuditoria(modulo, 'Eliminación', usuarioId, idRegistro, datosAnteriores, null);
     }
 
     // Métodos de consulta
@@ -406,5 +378,33 @@ export class AuditoriaService {
             Usuario: auditoria.Usuario ?
                 await this.usuariosService.FormatearUsuarioResponse(auditoria.Usuario) : null
         })));
+    }
+
+    async createAuditoria(modulo: string, accion: string, usuarioId: number, idRegistro: number, datosAnteriores?: any, datosNuevos?: any): Promise<Auditoria> {
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: usuarioId } });
+        if (!usuario) { throw new Error('Usuario no encontrado'); }
+
+        const nuevaAuditoria = new Auditoria();
+        nuevaAuditoria.Modulo = modulo;
+        nuevaAuditoria.Accion = accion;
+        nuevaAuditoria.Id_Registro = idRegistro;
+        nuevaAuditoria.Datos_Anteriores = datosAnteriores ? JSON.stringify(datosAnteriores) : '';
+        nuevaAuditoria.Datos_Nuevos = datosNuevos ? JSON.stringify(datosNuevos) : '';
+        nuevaAuditoria.Usuario = usuario;
+
+        return await this.auditoriaRepository.save(nuevaAuditoria);
+    }
+
+    // Métodos helper para las operaciones más comunes
+    async logCreacion(modulo: string, usuarioId: number, idRegistro: number, datosNuevos: any): Promise<Auditoria> {
+        return this.createAuditoria(modulo, 'Creación', usuarioId, idRegistro, null, datosNuevos);
+    }
+
+    async logActualizacion(modulo: string, usuarioId: number, idRegistro: number, datosAnteriores: any, datosNuevos: any): Promise<Auditoria> {
+        return this.createAuditoria(modulo, 'Actualización', usuarioId, idRegistro, datosAnteriores, datosNuevos);
+    }
+
+    async logEliminacion(modulo: string, usuarioId: number, idRegistro: number, datosAnteriores: any): Promise<Auditoria> {
+        return this.createAuditoria(modulo, 'Eliminación', usuarioId, idRegistro, datosAnteriores, null);
     }
 }
