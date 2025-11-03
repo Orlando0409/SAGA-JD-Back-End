@@ -4,6 +4,7 @@ import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EmailModule } from '../Emails/email.module';
+import { AuditoriaModule } from '../Auditoria/auditoria.module';
 
 
 // Entities
@@ -29,6 +30,7 @@ import { AuthService } from './Auth.service';
 @Module({
     imports: [
         EmailModule,
+        AuditoriaModule,
         PassportModule.register({ defaultStrategy: 'jwt' }),
         JwtModule.registerAsync({
             imports: [ConfigModule, EmailModule],

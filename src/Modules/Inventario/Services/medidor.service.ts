@@ -32,6 +32,7 @@ export class MedidorService {
 
         @InjectRepository(AfiliadoJuridico)
         private readonly afiliadoJuridicoRepository: Repository<AfiliadoJuridico>,
+
         private readonly afiliadoService: AfiliadosService,
 
         private readonly auditoriaService: AuditoriaService,
@@ -195,12 +196,10 @@ export class MedidorService {
 
         // Registrar en auditoría
         try {
-            await this.auditoriaService.logCreacion('Medidor', idUsuario, medidorGuardado.Id_Medidor, {
-                Id_Medidor: medidorGuardado.Id_Medidor,
+            await this.auditoriaService.logCreacion('Medidores', idUsuario, medidorGuardado.Id_Medidor, {
                 Numero_Medidor: medidorGuardado.Numero_Medidor,
                 Estado_Inicial: 'Disponible'
-            }
-            );
+            });
         } catch (error) {
             console.error('Error al registrar auditoría de creación de medidor:', error);
         }
@@ -216,12 +215,7 @@ export class MedidorService {
 
         return {
             ...medidorCompleto,
-            Usuario: {
-                Id_Usuario: medidorCompleto.Usuario.Id_Usuario,
-                Nombre_Usuario: medidorCompleto.Usuario.Nombre_Usuario,
-                Id_Rol: medidorCompleto.Usuario.Id_Rol,
-                Nombre_Rol: medidorCompleto.Usuario.Rol?.Nombre_Rol
-            }
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(medidorCompleto.Usuario)
         };
     }
 
@@ -245,28 +239,32 @@ export class MedidorService {
         const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
         if (!estadoInstalado) throw new BadRequestException('Estado "Instalado" no encontrado');
 
+        const datosAnteriores = {
+            Numero_Medidor: medidor.Numero_Medidor,
+            Estado_Anterior: medidor.Estado_Medidor.Nombre_Estado_Medidor,
+            Afiliado_Anterior: medidor.Afiliado ? {
+                Id_Afiliado: medidor.Afiliado.Id_Afiliado,
+                Tipo_Entidad: medidor.Afiliado.Tipo_Entidad
+            } : null
+        };
+
         // Asignar el afiliado al medidor y cambiar el estado
         medidor.Afiliado = afiliado;
         medidor.Estado_Medidor = estadoInstalado;
         await this.medidorRepository.save(medidor);
 
         // Registrar en auditoría si se proporciona idUsuario
-        if (idUsuario) {
-            try {
-                await this.auditoriaService.logActualizacion('Medidor', idUsuario, dto.Id_Medidor, {
-                    Estado_Anterior: 'Disponible',
-                    Afiliado_Anterior: null
-                }, {
-                    Estado_Nuevo: 'Instalado',
-                    Afiliado_Asignado: {
-                        Id: afiliado.Id_Afiliado,
-                        Tipo: dto.Id_Tipo_Entidad === 1 ? 'Físico' : 'Jurídico'
-                    }
+        try {
+            await this.auditoriaService.logActualizacion('Medidores', idUsuario, dto.Id_Medidor, datosAnteriores, {
+                Numero_Medidor: medidor.Numero_Medidor,
+                Estado_Nuevo: 'Instalado',
+                Afiliado_Asignado: {
+                    Id_Afiliado: afiliado.Id_Afiliado,
+                    Tipo_Entidad: dto.Id_Tipo_Entidad === 1 ? 'Físico' : 'Jurídico'
                 }
-                );
-            } catch (error) {
-                console.error('Error al registrar auditoría de asignación de medidor:', error);
-            }
+            });
+        } catch (error) {
+            console.error('Error al registrar auditoría de asignación de medidor:', error);
         }
 
         // Obtener el medidor actualizado con todas sus relaciones
@@ -283,57 +281,56 @@ export class MedidorService {
         return {
             ...medidorActualizado,
             Afiliado: await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidorActualizado.Afiliado),
-            Usuario: medidorActualizado.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidorActualizado.Usuario) : null
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(medidorActualizado.Usuario)
         };
     }
 
-    async updateEstadoMedidor(Id_Medidor: number, Id_Estado_Medidor: number, idUsuario: number) {
+    async updateEstadoMedidor(idMedidor: number, idEstadoMedidor: number, idUsuario: number) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
-        const medidor = await this.medidorRepository.findOne({ where: { Id_Medidor }, relations: ['Estado_Medidor'] });
-        const nuevoEstado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor } });
+        const medidor = await this.medidorRepository.findOne({ where: { Id_Medidor: idMedidor }, relations: ['Estado_Medidor'] });
+        const nuevoEstado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: idEstadoMedidor } });
 
-        if (!medidor) throw new BadRequestException(`Medidor con ID ${Id_Medidor} no encontrado`);
+        if (!medidor) throw new BadRequestException(`Medidor con ID ${idMedidor} no encontrado`);
+        if (!nuevoEstado) throw new BadRequestException(`Estado con ID ${idEstadoMedidor} no encontrado`);
 
-        if (!nuevoEstado) throw new BadRequestException(`Estado con ID ${Id_Estado_Medidor} no encontrado`);
+        if (medidor.Afiliado === null && nuevoEstado.Id_Estado_Medidor === 2) throw new BadRequestException(`No se puede cambiar el estado del medidor con ID ${idMedidor} a ${nuevoEstado.Nombre_Estado_Medidor} porque no está asignado a ningún afiliado.`);
 
-        const estadoAnterior = medidor.Estado_Medidor;
+        const datosAnteriores = {
+            Numero_Medidor: medidor.Numero_Medidor,
+            Id_Estado_Medidor: medidor.Estado_Medidor.Id_Estado_Medidor,
+            Estado_Anterior: medidor.Estado_Medidor.Nombre_Estado_Medidor
+        };
 
         medidor.Estado_Medidor = nuevoEstado;
         await this.medidorRepository.save(medidor);
 
         // Registrar en auditoría si se proporciona idUsuario
-        if (idUsuario) {
-            try {
-                await this.auditoriaService.logActualizacion('Medidor', idUsuario, Id_Medidor, {
-                    Estado_Anterior: {
-                        Id: estadoAnterior.Id_Estado_Medidor,
-                        Nombre: estadoAnterior.Nombre_Estado_Medidor
-                    }
-                }, {
-                    Estado_Nuevo: {
-                        Id: nuevoEstado.Id_Estado_Medidor,
-                        Nombre: nuevoEstado.Nombre_Estado_Medidor
-                    }
+        try {
+            await this.auditoriaService.logActualizacion('Medidores', idUsuario, idMedidor, datosAnteriores, {
+                Numero_Medidor: medidor.Numero_Medidor,
+                Estado_Nuevo: {
+                    Id_Estado_Medidor: nuevoEstado.Id_Estado_Medidor,
+                    Estado_Anterior: nuevoEstado.Nombre_Estado_Medidor
                 }
-                );
-            } catch (error) {
-                console.error('Error al registrar auditoría de actualización de medidor:', error);
-            }
+            });
+        } catch (error) {
+            console.error('Error al registrar auditoría de actualización de medidor:', error);
         }
 
         const medidorActualizado = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
-            .where('medidor.Id_Medidor = :id', { id: Id_Medidor })
+            .where('medidor.Id_Medidor = :id', { id: idMedidor })
             .getOne();
 
-        if (!medidorActualizado) throw new BadRequestException(`Error al recuperar el medidor actualizado con ID ${Id_Medidor}`);
+        if (!medidorActualizado) throw new BadRequestException(`Error al recuperar el medidor actualizado con ID ${idMedidor}`);
 
         return {
             ...medidorActualizado,
-            Usuario: medidorActualizado.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidorActualizado.Usuario) : null
+            Afiliado: await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidorActualizado.Afiliado),
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(medidorActualizado.Usuario)
         };
     }
 
