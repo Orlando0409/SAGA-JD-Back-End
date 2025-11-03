@@ -1,21 +1,26 @@
+import { EmailModule } from 'src/Modules/Emails/email.module';
+import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
+import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { Module } from "@nestjs/common";
-import { SolicitudAfiliacionFisicaModule } from "./Fisica/Modules/solicitudAfiliacion.module";
-import { SolicitudDesconexionFisicaModule } from "./Fisica/Modules/solicitudDesconexion.module";
-import { SolicitudCambioMedidorFisicaModule } from "./Fisica/Modules/solicitudCambioMedidor.module";
-import { SolicitudAsociadoFisicaModule } from "./Fisica/Modules/solicitudAsociado.module";
-import { SolicitudAfiliacionJuridicaModule } from "./Juridica/Modules/solicitudAfiliacion.module";
-import { SolicitudDesconexionJuridicaModule } from "./Juridica/Modules/solicitudDesconexion.module";
-import { SolicitudCambioMedidorJuridicaModule } from "./Juridica/Modules/solicitudCambioMedidor.module";
-import { SolicitudAsociadoJuridicaModule } from "./Juridica/Modules/solicitudAsociado.module";
-import { SolicitudesController } from "./solicitudes.controller";
-import { SolicitudesService } from "./solicitudes.service";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica, SolicitudFisica, SolicitudJuridica } from "./SolicitudEntities/Solicitud.Entity";
+import { SolicitudesFisicasService } from "./Services/solicitudesFisicas.service";
+import { SolicitudesJuridicasService } from "./Services/solicitudesJuridicas.service";
+import { EstadoSolicitud } from "./SolicitudEntities/EstadoSolicitud.Entity";
+import { SolicitudesJuridicasController } from "./Controllers/solicitudesJuridicas.controller";
+import { SolicitudesFisicasController } from "./Controllers/solicitudesFisicas.controller";
+import { AuditoriaModule } from "../Auditoria/auditoria.module";
+import { UsuariosModule } from "../Usuarios/Modules/usuarios.module";
+import { ValidationsModule } from 'src/Validations/Validations.module';
+import { AfiliadosModule } from '../Afiliados/afiliados.module';
+import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from '../Afiliados/AfiliadoEntities/Afiliado.Entity';
+import { EstadoAfiliado } from '../Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 
 @Module({
-    imports: [SolicitudAfiliacionFisicaModule, SolicitudDesconexionFisicaModule, SolicitudCambioMedidorFisicaModule,
-        SolicitudAsociadoFisicaModule, SolicitudAfiliacionJuridicaModule, SolicitudDesconexionJuridicaModule,
-        SolicitudCambioMedidorJuridicaModule, SolicitudAsociadoJuridicaModule],
-    controllers: [SolicitudesController],
-    providers: [SolicitudesService],
+    imports: [TypeOrmModule.forFeature([Usuario, Afiliado, EstadoAfiliado, AfiliadoFisico, AfiliadoJuridico, Solicitud, EstadoSolicitud, SolicitudFisica, SolicitudJuridica, SolicitudAfiliacionFisica, SolicitudDesconexionFisica, SolicitudCambioMedidorFisica, SolicitudAsociadoFisica, SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica]), DropboxModule, AuditoriaModule, UsuariosModule, AfiliadosModule, EmailModule, ValidationsModule],
+    controllers: [SolicitudesFisicasController, SolicitudesJuridicasController],
+    providers: [SolicitudesFisicasService, SolicitudesJuridicasService],
+    exports: [SolicitudesFisicasService, SolicitudesJuridicasService],
 })
 
-export class SolicitudesModule {}
+export class SolicitudesModule { }

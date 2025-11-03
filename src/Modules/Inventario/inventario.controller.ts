@@ -316,7 +316,7 @@ export class InventarioController {
   async getMedidoresAfiliado(
     @Param('idAfiliado', ParseIntPipe) idAfiliado: number
   ) {
-    return this.medidorService.getMedidoresAfiliado(idAfiliado);
+    return this.medidorService.getMedidoresByAfiliado(idAfiliado);
   }
 
   @Post('/create/medidor')

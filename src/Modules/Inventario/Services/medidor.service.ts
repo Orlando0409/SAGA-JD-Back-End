@@ -119,7 +119,41 @@ export class MedidorService {
         return medidoresConAfiliados;
     }
 
-    async getMedidoresAfiliado(idAfiliado: number) {
+    async getMedidoresConAfiliado() {
+        const medidores = await this.medidorRepository.createQueryBuilder('medidor')
+            .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+            .getMany();
+
+        const medidoresConAfiliados = await Promise.all(
+            medidores.map(async (medidor) => ({
+                ...medidor,
+                Afiliado: medidor.Afiliado ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado) : null,
+                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
+            }))
+        );
+
+        return medidoresConAfiliados;
+    }
+
+    async getMedidoresSinAfiliado() {
+        const medidores = await this.medidorRepository.createQueryBuilder('medidor')
+            .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+            .where('medidor.Afiliado IS NULL')
+            .getMany();
+
+        const medidoresConAfiliados = await Promise.all(
+            medidores.map(async (medidor) => ({
+                ...medidor,
+                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
+            }))
+        );
+
+        return medidoresConAfiliados;
+    }
+
+    async getMedidoresByAfiliado(idAfiliado: number) {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
