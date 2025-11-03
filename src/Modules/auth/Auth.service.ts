@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import { EmailService } from '../Emails/email.service';
 import { ResetPasswordDto } from './DTO/ResetPasswordDto';
 import { ChangePasswordDTO } from './DTO/ChangePasswordDTO';
+import { AuditoriaService } from '../Auditoria/auditoria.service';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +25,8 @@ export class AuthService {
     private readonly configService: ConfigService,
 
     private readonly emailService: EmailService,
+
+    private readonly auditoriaService: AuditoriaService,
   ) { }
 
   async login(loginDto: LoginDto, response: Response) {
@@ -36,12 +39,8 @@ export class AuthService {
       withDeleted: true
     });
 
-    if (!usuario) {
-      throw new UnauthorizedException('Credenciales inválidas');
-    }
-    if (usuario.Fecha_Eliminacion) {
-      throw new UnauthorizedException('Usuario deshabilitado');
-    }
+    if (!usuario) throw new UnauthorizedException('Credenciales inválidas');
+    if (usuario.Fecha_Eliminacion) throw new UnauthorizedException('Usuario deshabilitado');
 
     let contraseñaValida = false;
 
@@ -51,9 +50,7 @@ export class AuthService {
       contraseñaValida = await bcrypt.compare(Password, usuario.Contraseña);
     }
 
-    if (!contraseñaValida) {
-      throw new UnauthorizedException('Credenciales inválidas');
-    }
+    if (!contraseñaValida) throw new UnauthorizedException('Credenciales inválidas');
 
     // Generar tokens
     const payload = {
@@ -77,6 +74,17 @@ export class AuthService {
     // Guardar refresh token en la base de datos
     await this.userRepository.update(usuario.Id_Usuario, { Refresh_Token: refreshToken });
 
+    // Registrar en auditoría
+    try {
+      await this.auditoriaService.logAutenticacion('Login', usuario.Id_Usuario, {
+        Nombre_Usuario: usuario.Nombre_Usuario,
+        Correo_Electronico: usuario.Correo_Electronico,
+        Rol: usuario.Rol?.Nombre_Rol
+      });
+    } catch (error) {
+      console.error('Error al registrar auditoría de login:', error);
+    }
+
     // Remover contraseña de la respuesta
     const { Contraseña: _, ...usuarioSeguro } = usuario;
 
@@ -98,12 +106,8 @@ export class AuthService {
         relations: ['Rol']
       });
 
-      if (!usuario) {
-        throw new UnauthorizedException('Usuario no válido');
-      }
-      if (usuario.Refresh_Token !== refreshToken) {
-        throw new UnauthorizedException('Refresh token no coincide');
-      }
+      if (!usuario) throw new UnauthorizedException('Usuario no válido');
+      if (usuario.Refresh_Token !== refreshToken) throw new UnauthorizedException('Refresh token no coincide');
 
       // Generar nuevo access token
       const newPayload = {
@@ -137,22 +141,42 @@ export class AuthService {
     }
   }
 
-  async logout(response: Response) {
+  async logout(usuarioId: number, response: Response) {
+    // Obtener información del usuario antes de hacer logout
+    const usuario = await this.userRepository.findOne({
+      where: { Id_Usuario: usuarioId },
+      relations: ['Rol']
+    });
+
+    // Limpiar cookies
     response.clearCookie('accessToken');
     response.clearCookie('refreshToken');
+
+    // Limpiar refresh token de la base de datos
+    if (usuario) {
+      await this.userRepository.update(usuarioId, { Refresh_Token: '' });
+    }
+
+    // Registrar en auditoría
+    if (usuario) {
+      try {
+        await this.auditoriaService.logAutenticacion('Logout', usuarioId, {
+          Nombre_Usuario: usuario.Nombre_Usuario,
+          Correo_Electronico: usuario.Correo_Electronico,
+          Rol: usuario.Rol?.Nombre_Rol
+        });
+      } catch (error) {
+        console.error('Error al registrar auditoría de logout:', error);
+      }
+    }
   }
 
   async forgotPassword(email: string) {
-
     const usuario = await this.userRepository.findOne({
       where: { Correo_Electronico: email }
     });
 
-    if (!usuario) {
-      return {
-        mensaje: 'Si el email existe, recibirás instrucciones para recuperar tu contraseña'
-      };
-    }
+    if (!usuario) return { mensaje: 'Si el email existe, recibirás instrucciones para recuperar tu contraseña' };
 
     const payload = {
       email: usuario.Correo_Electronico,
@@ -160,12 +184,10 @@ export class AuthService {
       jti: uuidv4(), // identificador único del token
     };
 
-
     const token = await this.jwtService.signAsync(payload, { expiresIn: '10m' });
 
     const FrontendRecoverURL = `${this.configService.get('FRONTEND_URL')}/ResetPassword`;
     const url = `${FrontendRecoverURL}?token=${token}`;
-
 
     try {
       await this.emailService.sendRecoverPasswordMail({
@@ -178,9 +200,7 @@ export class AuthService {
       console.error('Error al enviar el correo de recuperación:', error);
     }
 
-    return {
-      mensaje: 'Si el email existe, recibirás instrucciones para recuperar tu contraseña'
-    };
+    return { mensaje: 'Si el email existe, recibirás instrucciones para recuperar tu contraseña' };
   }
 
   async getUserProfile(userId: number) {
@@ -189,17 +209,11 @@ export class AuthService {
       relations: ['Rol', 'Rol.Permisos']
     });
 
-    if (!usuario) {
-      throw new NotFoundException('Usuario no encontrado');
-    }
+    if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
     const { Contraseña, ...usuarioSeguro } = usuario;
 
-
-
-    return {
-      ...usuarioSeguro
-    };
+    return { ...usuarioSeguro };
   }
 
   async resetPassword(dto: ResetPasswordDto) {
@@ -229,23 +243,19 @@ export class AuthService {
       where: { Id_Usuario: UsuarioId },
       withDeleted: true
     });
-    if (!usuario) {
-      throw new NotFoundException('Usuario no encontrado');
-    }
-    if (usuario.Fecha_Eliminacion) {
-      throw new UnauthorizedException('Usuario deshabilitado');
-    }
+
+    if (!usuario) throw new NotFoundException('Usuario no encontrado');
+    if (usuario.Fecha_Eliminacion) throw new UnauthorizedException('Usuario deshabilitado');
+
     const contraseñaValida = await bcrypt.compare(Contraseña_Actual, usuario.Contraseña);
-    if (!contraseñaValida) {
-      throw new UnauthorizedException('Contraseña actual incorrecta');
-    }
+    if (!contraseñaValida) throw new UnauthorizedException('Contraseña actual incorrecta');
+
     const hashedPassword = await bcrypt.hash(Nueva_Contraseña, 10);
     await this.userRepository.update(usuario.Id_Usuario, { Contraseña: hashedPassword });
     return { mensaje: 'Contraseña cambiada exitosamente' };
   }
 
   private setTokenCookies(response: Response, accessToken: string, refreshToken: string) {
-
     // Cookie para access token
     response.cookie('accessToken', accessToken, {
       httpOnly: true,

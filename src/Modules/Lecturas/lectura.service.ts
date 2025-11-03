@@ -66,10 +66,16 @@ export class LecturaService {
             .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
             .leftJoinAndSelect('afiliado.Estado', 'estadoAfiliado')
             .leftJoinAndSelect('lectura.Usuario', 'usuario')
+            .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
             .getMany();
 
         return Promise.all(lecturas.map(async lectura => ({
             Id_Lectura: lectura.Id_Lectura,
+            Tipo_Tarifa: lectura.Tipo_Tarifa ? {
+                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
+                Cargo_Fijo_Por_Mes: lectura.Tipo_Tarifa.Cargo_Fijo_Por_Mes
+            } : null,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
             Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
@@ -92,11 +98,17 @@ export class LecturaService {
             .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
             .leftJoinAndSelect('afiliado.Estado', 'estadoAfiliado')
             .leftJoinAndSelect('lectura.Usuario', 'usuario')
+            .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
             .where('afiliado.Id_Afiliado = :idAfiliado', { idAfiliado })
             .getMany();
 
         return Promise.all(lecturas.map(async lectura => ({
             Id_Lectura: lectura.Id_Lectura,
+            Tipo_Tarifa: lectura.Tipo_Tarifa ? {
+                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
+                Cargo_Fijo_Por_Mes: lectura.Tipo_Tarifa.Cargo_Fijo_Por_Mes
+            } : null,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
             Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
@@ -115,11 +127,17 @@ export class LecturaService {
             .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
             .leftJoinAndSelect('afiliado.Estado', 'estadoAfiliado')
             .leftJoinAndSelect('lectura.Usuario', 'usuario')
+            .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
             .where('usuario.Id_Usuario = :idUsuario', { idUsuario })
             .getMany();
 
         return Promise.all(lecturas.map(async lectura => ({
             Id_Lectura: lectura.Id_Lectura,
+            Tipo_Tarifa: lectura.Tipo_Tarifa ? {
+                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
+                Cargo_Fijo_Por_Mes: lectura.Tipo_Tarifa.Cargo_Fijo_Por_Mes
+            } : null,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
             Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
@@ -138,11 +156,17 @@ export class LecturaService {
             .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
             .leftJoinAndSelect('afiliado.Estado', 'estadoAfiliado')
             .leftJoinAndSelect('lectura.Usuario', 'usuario')
+            .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
             .where('medidor.Numero_Medidor = :numeroMedidor', { numeroMedidor })
             .getMany();
 
         return Promise.all(lecturas.map(async lectura => ({
             Id_Lectura: lectura.Id_Lectura,
+            Tipo_Tarifa: lectura.Tipo_Tarifa ? {
+                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
+                Cargo_Fijo_Por_Mes: lectura.Tipo_Tarifa.Cargo_Fijo_Por_Mes
+            } : null,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
             Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
@@ -164,9 +188,7 @@ export class LecturaService {
         const fechaFinDate = parseDDMMYYYY(fechaFin);
         fechaFinDate.setDate(fechaFinDate.getDate() + 1);
 
-        if (isNaN(fechaInicioDate.getTime()) || isNaN(fechaFinDate.getTime())) {
-            throw new BadRequestException('Fechas inválidas');
-        }
+        if (isNaN(fechaInicioDate.getTime()) || isNaN(fechaFinDate.getTime())) throw new BadRequestException('Fechas inválidas');
 
         const lecturas = await this.lecturaRepository.createQueryBuilder('lectura')
             .leftJoinAndSelect('lectura.Medidor', 'medidor')
@@ -175,11 +197,17 @@ export class LecturaService {
             .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
             .leftJoinAndSelect('afiliado.Estado', 'estadoAfiliado')
             .leftJoinAndSelect('lectura.Usuario', 'usuario')
+            .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
             .where('lectura.Fecha_Lectura BETWEEN :fechaInicio AND :fechaFin', { fechaInicio: fechaInicioDate, fechaFin: fechaFinDate })
             .getMany();
 
         return Promise.all(lecturas.map(async lectura => ({
             Id_Lectura: lectura.Id_Lectura,
+            Tipo_Tarifa: lectura.Tipo_Tarifa ? {
+                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
+                Cargo_Fijo_Por_Mes: lectura.Tipo_Tarifa.Cargo_Fijo_Por_Mes
+            } : null,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
             Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
@@ -191,14 +219,10 @@ export class LecturaService {
     }
 
     async importarArchivoCSV(CSV: Express.Multer.File, idUsuario: number) {
-        if (!idUsuario) {
-            throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
-        }
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
-        if (!usuario) {
-            throw new BadRequestException('El usuario no existe.');
-        }
+        if (!usuario) throw new BadRequestException('El usuario no existe.');
 
         const resultados: any[] = [];
         const stream = Readable.from(CSV.buffer);
@@ -395,8 +419,12 @@ export class LecturaService {
             where: { Numero_Medidor: dto.Numero_Medidor },
             relations: ['Estado_Medidor', 'Afiliado', 'Afiliado.Tipo_Afiliado', 'Afiliado.Estado']
         });
+
         if (!medidor) throw new BadRequestException('El medidor especificado no existe.');
         if (medidor.Estado_Medidor.Id_Estado_Medidor !== 2) throw new BadRequestException('El medidor no está en un estado válido para registrar lecturas.');
+
+        const tipoTarifa = await this.tipoTarifaLecturaRepository.findOne({ where: { Id_Tipo_Tarifa_Lectura: dto.Id_Tipo_Tarifa } });
+        if (!tipoTarifa) throw new BadRequestException('La tarifa especificada no existe');
 
         // Obtener la lectura anterior más reciente del mismo medidor (filtrando por Numero_Medidor)
         const lecturaAnterior = await this.lecturaRepository.createQueryBuilder('lectura')
@@ -414,16 +442,17 @@ export class LecturaService {
             valorLecturaAnterior = lecturaAnterior.Valor_Lectura_Actual;
             consumoCalculado = dto.Valor_Lectura - valorLecturaAnterior;
 
-            if (dto.Valor_Lectura < valorLecturaAnterior) {
-                throw new BadRequestException(`La lectura actual (${dto.Valor_Lectura}) no puede ser menor que la lectura anterior (${valorLecturaAnterior})`);
-            }
+            if (dto.Valor_Lectura < valorLecturaAnterior) throw new BadRequestException(`La lectura actual (${dto.Valor_Lectura}) no puede ser menor que la lectura anterior (${valorLecturaAnterior})`);
         }
 
         const nuevaLectura = this.lecturaRepository.create({
+            Tipo_Tarifa: tipoTarifa,
             Valor_Lectura_Anterior: valorLecturaAnterior,
             Valor_Lectura_Actual: dto.Valor_Lectura,
             Consumo_Calculado_M3: consumoCalculado,
+            Total_A_Pagar: 1000,                            // Valor por defecto, ajustar según sea necesario
             Medidor: medidor,
+            Usuario: usuario,
         });
 
         const lecturaGuardada = await this.lecturaRepository.save(nuevaLectura);
@@ -443,6 +472,11 @@ export class LecturaService {
 
         return {
             Id_Lectura: lecturaGuardada.Id_Lectura,
+            Tipo_Tarifa: tipoTarifa ? {
+                Id_Tipo_Tarifa_Lectura: tipoTarifa.Id_Tipo_Tarifa_Lectura,
+                Nombre_Tipo_Tarifa: tipoTarifa.Nombre_Tipo_Tarifa,
+                Cargo_Fijo_Por_Mes: tipoTarifa.Cargo_Fijo_Por_Mes
+            } : null,
             Valor_Lectura_Anterior: lecturaGuardada.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lecturaGuardada.Valor_Lectura_Actual,
             Consumo_Calculado_M3: lecturaGuardada.Consumo_Calculado_M3,
@@ -463,6 +497,7 @@ export class LecturaService {
         if (!lectura) throw new BadRequestException('La lectura especificada no existe.');
 
         const datosAnteriores = {
+            Id_Tipo_Tarifa: lectura.Tipo_Tarifa,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
             Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
@@ -485,7 +520,7 @@ export class LecturaService {
         // Cargar las relaciones necesarias para el response
         const lecturaCompleta = await this.lecturaRepository.findOne({
             where: { Id_Lectura: lecturaActualizada.Id_Lectura },
-            relations: ['Medidor', 'Medidor.Estado_Medidor', 'Medidor.Afiliado', 'Medidor.Afiliado.Tipo_Afiliado', 'Medidor.Afiliado.Estado']
+            relations: ['Medidor', 'Medidor.Estado_Medidor', 'Medidor.Afiliado', 'Medidor.Afiliado.Tipo_Afiliado', 'Medidor.Afiliado.Estado', 'Tipo_Tarifa', 'Usuario']
         });
 
         if (!lecturaCompleta) throw new BadRequestException('No se pudo cargar la lectura actualizada');
@@ -493,10 +528,11 @@ export class LecturaService {
         // Registrar en auditoría
         try {
             await this.auditoriaService.logActualizacion('Lecturas', idUsuario, lecturaActualizada.Id_Lectura, datosAnteriores, {
+                Id_Tipo_Tarifa: lecturaActualizada.Tipo_Tarifa,
                 Consumo_Calculado_M3: lecturaActualizada.Consumo_Calculado_M3,
                 Valor_Lectura_Actual: lecturaActualizada.Valor_Lectura_Actual,
                 Valor_Lectura_Anterior: lecturaActualizada.Valor_Lectura_Anterior,
-                Fecha_Creacion: lecturaActualizada.Fecha_Lectura
+                Fecha_Lectura: lecturaActualizada.Fecha_Lectura
             });
         } catch (error) {
             console.error('Error al registrar auditoría de actualización de lectura:', error);
@@ -504,6 +540,11 @@ export class LecturaService {
 
         return {
             Id_Lectura: lecturaCompleta.Id_Lectura,
+            Tipo_Tarifa: lecturaCompleta.Tipo_Tarifa ? {
+                Id_Tipo_Tarifa_Lectura: lecturaCompleta.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Nombre_Tipo_Tarifa: lecturaCompleta.Tipo_Tarifa.Nombre_Tipo_Tarifa,
+                Cargo_Fijo_Por_Mes: lecturaCompleta.Tipo_Tarifa.Cargo_Fijo_Por_Mes
+            } : null,
             Valor_Lectura_Anterior: lecturaCompleta.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lecturaCompleta.Valor_Lectura_Actual,
             Consumo_Calculado_M3: lecturaCompleta.Consumo_Calculado_M3,
