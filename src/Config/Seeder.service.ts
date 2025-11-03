@@ -156,7 +156,7 @@ export class SeederService implements OnModuleInit {
             { Id_Estado_Solicitud: 3, Nombre_Estado: 'Aprobada' },
             //{ Id_Estado_Solicitud: 3, Nombre_Estado: 'En espera' },
             //{ Id_Estado_Solicitud: 4, Nombre_Estado: 'Completada' },
-            //{ Id_Estado_Solicitud: 5, Nombre_Estado: 'Rechazada' },
+            { Id_Estado_Solicitud: 5, Nombre_Estado: 'Rechazada' },
         ];
 
         for (const estado of estados) {

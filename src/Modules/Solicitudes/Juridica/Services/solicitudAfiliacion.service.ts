@@ -97,7 +97,7 @@ export class SolicitudAfiliacionJuridicaService
             await this.emailService.enviarEmailActualizacionEstado(solicitud.Correo, 'Afiliación', 'Aprobada', solicitud.Razon_Social);
         }
 
-        if (nuevoEstadoId === 4) { // Estado 4 = Rechazada
+        if (nuevoEstadoId === 5) { // Estado 4 = Rechazada
             await this.emailService.enviarEmailActualizacionEstado(solicitud.Correo, 'Afiliación', 'Rechazada', solicitud.Razon_Social);
         }
 

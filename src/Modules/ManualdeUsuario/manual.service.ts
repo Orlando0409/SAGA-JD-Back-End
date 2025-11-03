@@ -5,7 +5,6 @@ import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { AuditoriaService } from '../Auditoria/auditoria.service';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 import { ManualEntity } from './ManualEntities/Manual.Entity';
-//import { CreateManualDto } from './ManualDTO\'s/CreateManual.dto';
 import { UsuariosService } from '../Usuarios/Services/usuarios.service';
 import { CreateManualDto } from './ManualDTO\'s/CreateManual.dto';
 
