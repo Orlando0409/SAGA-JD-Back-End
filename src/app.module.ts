@@ -105,8 +105,8 @@ import { ManualEntity } from './Modules/ManualdeUsuario/ManualEntities/Manual.En
         ImagenEntity,
         ManualEntity
         ],
-        synchronize: true,
-        dropSchema: true,
+        synchronize: false,
+        dropSchema: false,
       })
     }),
     SeederModule,

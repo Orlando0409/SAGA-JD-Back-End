@@ -14,7 +14,7 @@ export class AsignarMedidorDTO {
     Id_Tipo_Entidad: TipoEntidad;
 
     @ApiProperty({ example: 1 })
-    @IsDefined({ message: 'El ID del afiliado no puede estar vacio' })
-    @IsInt({ message: 'El ID del afiliado debe ser un número entero' })
-    Id_Afiliado: number;
+    @IsDefined({ message: 'El ID de la solicitud no puede estar vacio' })
+    @IsInt({ message: 'El ID de la solicitud debe ser un número entero' })
+    Id_Solicitud: number;
 }

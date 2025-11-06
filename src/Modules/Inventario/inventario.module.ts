@@ -28,10 +28,11 @@ import { EstadoProveedor } from '../Proveedores/ProveedorEntities/EstadoProveedo
 import { UsuariosModule } from '../Usuarios/Modules/usuarios.module';
 import { RolesModule } from '../Usuarios/Modules/roles.module';
 import { AfiliadosModule } from '../Afiliados/afiliados.module';
+import { Solicitud } from '../Solicitudes/SolicitudEntities/Solicitud.Entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor, Usuario, UsuarioRol, Proveedor, ProveedorFisico, ProveedorJuridico, EstadoProveedor, Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado]), 
+    TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor, Usuario, Proveedor, ProveedorFisico, ProveedorJuridico, EstadoProveedor, Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado, Solicitud]),
     forwardRef(() => AfiliadosModule),
     forwardRef(() => UsuariosModule),
     forwardRef(() => RolesModule),
