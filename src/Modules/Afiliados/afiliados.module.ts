@@ -11,9 +11,10 @@ import { DropboxModule } from "src/Dropbox/Files/DropboxFiles.module";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { UsuariosModule } from "../Usuarios/Modules/usuarios.module";
 import { AuditoriaModule } from "../Auditoria/auditoria.module";
+import { Medidor } from "../Inventario/InventarioEntities/Medidor.Entity";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, Usuario]), ValidationsModule, DropboxModule, UsuariosModule, AuditoriaModule],
+  imports: [TypeOrmModule.forFeature([Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, Usuario, Medidor]), ValidationsModule, DropboxModule, UsuariosModule, AuditoriaModule],
   controllers: [AfiliadosController],
   providers: [AfiliadosService],
   exports: [AfiliadosService],
