@@ -13,6 +13,7 @@ import { Proyecto } from "../Proyectos/ProyectoEntities/Proyecto.Entity";
 import { Lectura } from "../Lecturas/LecturaEntities/Lectura.Entity";
 import { Medidor } from "../Inventario/InventarioEntities/Medidor.Entity";
 import { Acta } from "../Actas/ActaEntities/Actas.Entity";
+import { Solicitud } from "../Solicitudes/SolicitudEntities/Solicitud.Entity";
 
 @Injectable()
 export class AuditoriaService {
@@ -78,8 +79,8 @@ export class AuditoriaService {
                             if (anteriores.Titulo) return anteriores.Titulo;
                             break;
 
-                        case 'proyectos':
-                            if (anteriores.Titulo) return anteriores.Titulo;
+                        case 'solicitudes':
+                            if (anteriores.correo) return anteriores.correo;
                             break;
 
                         case 'medidores':
@@ -166,8 +167,8 @@ export class AuditoriaService {
                             if (nuevos.Titulo) return nuevos.Titulo;
                             break;
 
-                        case 'proyectos':
-                            if (nuevos.Titulo) return nuevos.Titulo;
+                        case 'solicitudes':
+                            if (nuevos.Correo) return nuevos.Correo;
                             break;
 
                         case 'medidores':
@@ -260,6 +261,12 @@ export class AuditoriaService {
                         where: { Id_Proyecto: idRegistro }
                     });
                     return proyecto?.Titulo || `Proyecto ID: ${idRegistro}`;
+
+                case 'solicitudes':
+                    const solicitud = await this.dataSource.getRepository(Solicitud).findOne({
+                        where: { Id_Solicitud: idRegistro }
+                    });
+                    return solicitud?.Correo || `Solicitud ID: ${idRegistro}`;
 
                 case 'medidores':
                     const medidor = await this.dataSource.getRepository(Medidor).findOne({
