@@ -59,11 +59,12 @@ import { LecturaModule } from './Modules/Lecturas/lectura.module';
 import { TipoTarifaLectura } from './Modules/Lecturas/LecturaEntities/TipoTarifaLectura.Entity';
 import { TipoTarifaServiciosFijos } from './Modules/Lecturas/LecturaEntities/TipoTarifaServiciosFijos.Entity';
 import { TipoTarifaVentaAgua } from './Modules/Lecturas/LecturaEntities/TipoTarifaVentaAgua.Entity';
-import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
 import { ImagenEntity } from './Modules/Imagenes/ImagenesEntity/Imagen.Entity';
 import { ImagenesModule } from './Modules/Imagenes/Imagenes.module';
 import { ManualModule } from './Modules/ManualdeUsuario/manual.module';
 import { ManualEntity } from './Modules/ManualdeUsuario/ManualEntities/Manual.Entity';
+import { RangoAfiliados } from './Modules/Lecturas/LecturaEntities/RangoAfiliados.Entity';
+import { RangoConsumo } from './Modules/Lecturas/LecturaEntities/RangoConsumo.Entity';
 
 @Module({
   imports: [
@@ -101,11 +102,11 @@ import { ManualEntity } from './Modules/ManualdeUsuario/ManualEntities/Manual.En
         FAQEntity,
         Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
         Auditoria,
-        Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Bloque,
+        Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, RangoAfiliados, RangoConsumo,
         ImagenEntity,
         ManualEntity
         ],
-        synchronize: false,
+        synchronize: true,
         dropSchema: false,
       })
     }),

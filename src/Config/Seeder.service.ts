@@ -1,4 +1,3 @@
-import { Bloque } from './../Modules/Lecturas/LecturaEntities/Bloque.Entity';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -23,6 +22,8 @@ import { EstadoMedidor } from 'src/Modules/Inventario/InventarioEntities/EstadoM
 import { TipoTarifaLectura } from 'src/Modules/Lecturas/LecturaEntities/TipoTarifaLectura.Entity';
 import { TipoTarifaServiciosFijos } from 'src/Modules/Lecturas/LecturaEntities/TipoTarifaServiciosFijos.Entity';
 import { TipoTarifaVentaAgua } from 'src/Modules/Lecturas/LecturaEntities/TipoTarifaVentaAgua.Entity';
+import { RangoAfiliados } from 'src/Modules/Lecturas/LecturaEntities/RangoAfiliados.Entity';
+import { RangoConsumo } from 'src/Modules/Lecturas/LecturaEntities/RangoConsumo.Entity';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -87,8 +88,11 @@ export class SeederService implements OnModuleInit {
         @InjectRepository(TipoTarifaVentaAgua)
         private readonly tipoTarifaVentaAguaRepository: Repository<TipoTarifaVentaAgua>,
 
-        @InjectRepository(Bloque)
-        private readonly bloqueRepository: Repository<Bloque>,
+        @InjectRepository(RangoAfiliados)
+        private readonly rangoAfiliadosRepository: Repository<RangoAfiliados>,
+
+        @InjectRepository(RangoConsumo)
+        private readonly rangoConsumoRepository: Repository<RangoConsumo>,
     ) { }
 
     async onModuleInit() {
@@ -111,7 +115,8 @@ export class SeederService implements OnModuleInit {
             await this.createDefaultTiposTarifaLectura();
             await this.createDefaultTiposTarifaServiciosFijos();
             await this.createDefaultTiposTarifaVentaAgua();
-            await this.createCostosPorBloque();
+            await this.createRangosAfiliados();
+            await this.createRangosConsumo();
         } catch (err) {
             console.error('Error ejecutando Seeder.onModuleInit:', err);
         }
@@ -426,7 +431,7 @@ export class SeederService implements OnModuleInit {
     // VALORES FIJOS PARA TARIFAS DEL 10/26/2025
     private async createDefaultTiposTarifaLectura() {
         const tipos = [
-            { Id_Tipo_Tarifa_Lectura: 1, Nombre_Tipo_Tarifa: 'Residencial', Cargo_Fijo_Por_Mes: 360 },
+            { Id_Tipo_Tarifa_Lectura: 1, Nombre_Tipo_Tarifa: 'Residencial', Cargo_Fijo_Por_Mes: 3100 },
             { Id_Tipo_Tarifa_Lectura: 2, Nombre_Tipo_Tarifa: 'Comercio y Servicios', Cargo_Fijo_Por_Mes: 508 },
             { Id_Tipo_Tarifa_Lectura: 3, Nombre_Tipo_Tarifa: 'Industrial', Cargo_Fijo_Por_Mes: 536 },
             { Id_Tipo_Tarifa_Lectura: 4, Nombre_Tipo_Tarifa: 'Preferencial', Cargo_Fijo_Por_Mes: 480 },
@@ -447,236 +452,256 @@ export class SeederService implements OnModuleInit {
         }
     }
 
-    // VALORES FIJOS PARA TARIFAS DEL 10/26/2025
     private async createDefaultTiposTarifaServiciosFijos() {
         const tipos = [
-            { Id_Tipo_Tarifa_Servicios_Fijos: 1, Nombre_Tipo_Tarifa: 'Residencial', Cargo_Base: 7535 },
-            { Id_Tipo_Tarifa_Servicios_Fijos: 2, Nombre_Tipo_Tarifa: 'Residencial Pobreza Basica', Cargo_Base: 6185 },
-            { Id_Tipo_Tarifa_Servicios_Fijos: 3, Nombre_Tipo_Tarifa: 'Residencial Pobreza Extrema', Cargo_Base: 4834 },
-            { Id_Tipo_Tarifa_Servicios_Fijos: 4, Nombre_Tipo_Tarifa: 'Comercio y Servicios', Cargo_Base: 9110 },
-            { Id_Tipo_Tarifa_Servicios_Fijos: 5, Nombre_Tipo_Tarifa: 'Industrial', Cargo_Base: 51554 },
-            { Id_Tipo_Tarifa_Servicios_Fijos: 6, Nombre_Tipo_Tarifa: 'Preferencial', Cargo_Base: 49405 },
-            { Id_Tipo_Tarifa_Servicios_Fijos: 7, Nombre_Tipo_Tarifa: 'Grandes Consumidores', Cargo_Base: 384754 },
-            { Id_Tipo_Tarifa_Servicios_Fijos: 8, Nombre_Tipo_Tarifa: 'GC Bien Social', Cargo_Base: 305518 },
+            // RESIDENCIA (Tarifa 1)
+            { Id_Tipo_Tarifa: 1, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 7535 },
+            { Id_Tipo_Tarifa: 1, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 6228 },
+            { Id_Tipo_Tarifa: 1, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 5132 },
+            { Id_Tipo_Tarifa: 1, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 3772 },
+
+            // RESIDENCIAL POBREZA BÁSICA (Tarifa 6)
+            { Id_Tipo_Tarifa: 6, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 6185 },
+            { Id_Tipo_Tarifa: 6, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 5112 },
+            { Id_Tipo_Tarifa: 6, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 4212 },
+            { Id_Tipo_Tarifa: 6, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 3096 },
+
+            // RESIDENCIAL POBREZA EXTREMA (Tarifa 7)
+            { Id_Tipo_Tarifa: 7, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 4834 },
+            { Id_Tipo_Tarifa: 7, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 3995 },
+            { Id_Tipo_Tarifa: 7, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 3292 },
+            { Id_Tipo_Tarifa: 7, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 2420 },
+
+            // COMERCIO Y SERVICIOS (Tarifa 2)
+            { Id_Tipo_Tarifa: 2, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 9110 },
+            { Id_Tipo_Tarifa: 2, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 5919 },
+            { Id_Tipo_Tarifa: 2, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 4815 },
+            { Id_Tipo_Tarifa: 2, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 3564 },
+
+            // INDUSTRIAL (Tarifa 3)
+            { Id_Tipo_Tarifa: 3, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 51554 },
+            { Id_Tipo_Tarifa: 3, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 34545 },
+            { Id_Tipo_Tarifa: 3, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 27771 },
+            { Id_Tipo_Tarifa: 3, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 20327 },
+
+            // PREFERENCIAL (Tarifa 4)
+            { Id_Tipo_Tarifa: 4, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 49405 },
+            { Id_Tipo_Tarifa: 4, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 32145 },
+            { Id_Tipo_Tarifa: 4, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 26488 },
+            { Id_Tipo_Tarifa: 4, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 19469 },
+
+            // GRANDES CONSUMIDORES (Tarifa 5)
+            { Id_Tipo_Tarifa: 5, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 384754 },
+            { Id_Tipo_Tarifa: 5, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 251052 },
+            { Id_Tipo_Tarifa: 5, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 203833 },
+            { Id_Tipo_Tarifa: 5, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 151001 },
+
+            // GC BIEN SOCIAL (Tarifa 8)
+            { Id_Tipo_Tarifa: 8, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 305518 },
+            { Id_Tipo_Tarifa: 8, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 199763 },
+            { Id_Tipo_Tarifa: 8, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 163616 },
+            { Id_Tipo_Tarifa: 8, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 120598 },
         ];
 
         for (const tipo of tipos) {
             const existe = await this.tipoTarifaServiciosFijosRepository.findOne({
-                where: { Id_Tipo_Tarifa_Servicios_Fijos: tipo.Id_Tipo_Tarifa_Servicios_Fijos }
+                where: {
+                    Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: tipo.Id_Tipo_Tarifa },
+                    Minimo_Afiliados: tipo.Minimo,
+                }
             });
             if (!existe) {
-                const nuevo = this.tipoTarifaServiciosFijosRepository.create(tipo);
+                const nuevo = this.tipoTarifaServiciosFijosRepository.create({
+                    Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: tipo.Id_Tipo_Tarifa },
+                    Minimo_Afiliados: tipo.Minimo,
+                    Maximo_Afiliados: tipo.Maximo,
+                    Nombre_Rango: tipo.Nombre_Rango,
+                    Cargo_Base: tipo.Cargo_Base,
+                });
                 await this.tipoTarifaServiciosFijosRepository.save(nuevo);
             }
         }
+        console.log('✅ Servicios Fijos creados (32 registros según rangos de afiliados)');
     }
 
-    // VALORES FIJOS PARA TARIFAS DEL 10/26/2025
     private async createDefaultTiposTarifaVentaAgua() {
         const tipos = [
-            { Id_Tipo_Tarifa_Venta_Agua: 1, Nombre_Tipo_Tarifa: 'Conducción', Cargo_Por_M3: 159 },
-            { Id_Tipo_Tarifa_Venta_Agua: 2, Nombre_Tipo_Tarifa: 'Potabilización', Cargo_Por_M3: 48 },
-            { Id_Tipo_Tarifa_Venta_Agua: 3, Nombre_Tipo_Tarifa: 'Distribución', Cargo_Por_M3: 238 },
+            // CONDUCCIÓN por rango de afiliados
+            { Nombre: 'Conducción', Minimo: 1, Maximo: 100, Rango: '1-100', Cargo_Por_M3: 159 },
+            { Nombre: 'Conducción', Minimo: 101, Maximo: 300, Rango: '101-300', Cargo_Por_M3: 122 },
+            { Nombre: 'Conducción', Minimo: 301, Maximo: 1000, Rango: '301-1000', Cargo_Por_M3: 101 },
+            { Nombre: 'Conducción', Minimo: 1001, Maximo: 999999, Rango: '1000+', Cargo_Por_M3: 74 },
+
+            // POTABILIZACIÓN por rango de afiliados
+            { Nombre: 'Potabilización', Minimo: 1, Maximo: 100, Rango: '1-100', Cargo_Por_M3: 48 },
+            { Nombre: 'Potabilización', Minimo: 101, Maximo: 300, Rango: '101-300', Cargo_Por_M3: 37 },
+            { Nombre: 'Potabilización', Minimo: 301, Maximo: 1000, Rango: '301-1000', Cargo_Por_M3: 30 },
+            { Nombre: 'Potabilización', Minimo: 1001, Maximo: 999999, Rango: '1000+', Cargo_Por_M3: 22 },
+
+            // DISTRIBUCIÓN por rango de afiliados
+            { Nombre: 'Distribución', Minimo: 1, Maximo: 100, Rango: '1-100', Cargo_Por_M3: 238 },
+            { Nombre: 'Distribución', Minimo: 101, Maximo: 300, Rango: '101-300', Cargo_Por_M3: 183 },
+            { Nombre: 'Distribución', Minimo: 301, Maximo: 1000, Rango: '301-1000', Cargo_Por_M3: 151 },
+            { Nombre: 'Distribución', Minimo: 1001, Maximo: 999999, Rango: '1000+', Cargo_Por_M3: 111 },
         ];
 
         for (const tipo of tipos) {
             const existe = await this.tipoTarifaVentaAguaRepository.findOne({
-                where: { Id_Tipo_Tarifa_Venta_Agua: tipo.Id_Tipo_Tarifa_Venta_Agua }
+                where: {
+                    Nombre_Tipo_Tarifa: tipo.Nombre,
+                    Minimo_Afiliados: tipo.Minimo,
+                }
             });
             if (!existe) {
-                const nuevo = this.tipoTarifaVentaAguaRepository.create(tipo);
+                const nuevo = this.tipoTarifaVentaAguaRepository.create({
+                    Nombre_Tipo_Tarifa: tipo.Nombre,
+                    Minimo_Afiliados: tipo.Minimo,
+                    Maximo_Afiliados: tipo.Maximo,
+                    Nombre_Rango: tipo.Rango,
+                    Cargo_Por_M3: tipo.Cargo_Por_M3,
+                });
                 await this.tipoTarifaVentaAguaRepository.save(nuevo);
             }
         }
     }
 
-    // VALORES FIJOS PARA COSTOS POR BLOQUE DEL 10/26/2025
-    private async createCostosPorBloque() {
-        const costos = [
-            // Residencial bloque 1
-            { Id_Bloque: 1, Id_Tipo_Tarifa: 1, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 360 },
-            { Id_Bloque: 2, Id_Tipo_Tarifa: 1, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 298 },
-            { Id_Bloque: 3, Id_Tipo_Tarifa: 1, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 245 },
-            { Id_Bloque: 4, Id_Tipo_Tarifa: 1, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 180 },
+    private async createRangosAfiliados() {
+        const rangos = [
+            // ==================== RESIDENCIAL (Tarifa 1) ====================
+            { Id_Tipo_Tarifa: 1, Minimo: 1, Maximo: 100, Nombre: '1-100', Costo_Por_M3: 360 },
+            { Id_Tipo_Tarifa: 1, Minimo: 101, Maximo: 300, Nombre: '101-300', Costo_Por_M3: 298 },
+            { Id_Tipo_Tarifa: 1, Minimo: 301, Maximo: 1000, Nombre: '301-1000', Costo_Por_M3: 245 },
+            { Id_Tipo_Tarifa: 1, Minimo: 1001, Maximo: 999999, Nombre: '1000+', Costo_Por_M3: 180 },
 
-            // Residencial bloque 2
-            { Id_Bloque: 5, Id_Tipo_Tarifa: 1, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 416 },
-            { Id_Bloque: 6, Id_Tipo_Tarifa: 1, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 344 },
-            { Id_Bloque: 7, Id_Tipo_Tarifa: 1, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 283 },
-            { Id_Bloque: 8, Id_Tipo_Tarifa: 1, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 208 },
+            // ==================== COMERCIO Y SERVICIOS (Tarifa 2) ====================
+            { Id_Tipo_Tarifa: 2, Minimo: 1, Maximo: 100, Nombre: '1-100', Costo_Por_M3: 508 },
+            { Id_Tipo_Tarifa: 2, Minimo: 101, Maximo: 300, Nombre: '101-300', Costo_Por_M3: 330 },
+            { Id_Tipo_Tarifa: 2, Minimo: 301, Maximo: 1000, Nombre: '301-1000', Costo_Por_M3: 269 },
+            { Id_Tipo_Tarifa: 2, Minimo: 1001, Maximo: 999999, Nombre: '1000+', Costo_Por_M3: 199 },
 
-            // Residencial bloque 3
-            { Id_Bloque: 9, Id_Tipo_Tarifa: 1, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 486 },
-            { Id_Bloque: 10, Id_Tipo_Tarifa: 1, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 402 },
-            { Id_Bloque: 11, Id_Tipo_Tarifa: 1, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 331 },
-            { Id_Bloque: 12, Id_Tipo_Tarifa: 1, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 243 },
+            // ==================== INDUSTRIAL (Tarifa 3) ====================
+            { Id_Tipo_Tarifa: 3, Minimo: 1, Maximo: 100, Nombre: '1-100', Costo_Por_M3: 536 },
+            { Id_Tipo_Tarifa: 3, Minimo: 101, Maximo: 300, Nombre: '101-300', Costo_Por_M3: 359 },
+            { Id_Tipo_Tarifa: 3, Minimo: 301, Maximo: 1000, Nombre: '301-1000', Costo_Por_M3: 289 },
+            { Id_Tipo_Tarifa: 3, Minimo: 1001, Maximo: 999999, Nombre: '1000+', Costo_Por_M3: 211 },
 
-            // Residencial bloque 4
-            { Id_Bloque: 13, Id_Tipo_Tarifa: 1, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 540 },
-            { Id_Bloque: 14, Id_Tipo_Tarifa: 1, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 447 },
-            { Id_Bloque: 15, Id_Tipo_Tarifa: 1, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 368 },
-            { Id_Bloque: 16, Id_Tipo_Tarifa: 1, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 270 },
+            // ==================== PREFERENCIAL (Tarifa 4) ====================
+            { Id_Tipo_Tarifa: 4, Minimo: 1, Maximo: 100, Nombre: '1-100', Costo_Por_M3: 480 },
+            { Id_Tipo_Tarifa: 4, Minimo: 101, Maximo: 300, Nombre: '101-300', Costo_Por_M3: 313 },
+            { Id_Tipo_Tarifa: 4, Minimo: 301, Maximo: 1000, Nombre: '301-1000', Costo_Por_M3: 258 },
+            { Id_Tipo_Tarifa: 4, Minimo: 1001, Maximo: 999999, Nombre: '1000+', Costo_Por_M3: 189 },
 
+            // ==================== GRANDES CONSUMIDORES (Tarifa 5) ====================
+            { Id_Tipo_Tarifa: 5, Minimo: 1, Maximo: 100, Nombre: '1-100', Costo_Por_M3: 513 },
+            { Id_Tipo_Tarifa: 5, Minimo: 101, Maximo: 300, Nombre: '101-300', Costo_Por_M3: 333 },
+            { Id_Tipo_Tarifa: 5, Minimo: 301, Maximo: 1000, Nombre: '301-1000', Costo_Por_M3: 271 },
+            { Id_Tipo_Tarifa: 5, Minimo: 1001, Maximo: 999999, Nombre: '1000+', Costo_Por_M3: 201 },
 
+            // ==================== RESIDENCIAL POBREZA BÁSICA (Tarifa 6) ====================
+            { Id_Tipo_Tarifa: 6, Minimo: 1, Maximo: 100, Nombre: '1-100', Costo_Por_M3: 360 },
+            { Id_Tipo_Tarifa: 6, Minimo: 101, Maximo: 300, Nombre: '101-300', Costo_Por_M3: 298 },
+            { Id_Tipo_Tarifa: 6, Minimo: 301, Maximo: 1000, Nombre: '301-1000', Costo_Por_M3: 245 },
+            { Id_Tipo_Tarifa: 6, Minimo: 1001, Maximo: 999999, Nombre: '1000+', Costo_Por_M3: 180 },
 
-            // Comercial bloque 1
-            { Id_Bloque: 17, Id_Tipo_Tarifa: 2, Minimo_M3: 0, Maximo_M3: 20, Cargo_Base: 508 },
-            { Id_Bloque: 18, Id_Tipo_Tarifa: 2, Minimo_M3: 0, Maximo_M3: 20, Cargo_Base: 330 },
-            { Id_Bloque: 19, Id_Tipo_Tarifa: 2, Minimo_M3: 0, Maximo_M3: 20, Cargo_Base: 269 },
-            { Id_Bloque: 20, Id_Tipo_Tarifa: 2, Minimo_M3: 0, Maximo_M3: 20, Cargo_Base: 199 },
+            // ==================== RESIDENCIAL POBREZA EXTREMA (Tarifa 7) ====================
+            { Id_Tipo_Tarifa: 7, Minimo: 1, Maximo: 100, Nombre: '1-100', Costo_Por_M3: 180 },
+            { Id_Tipo_Tarifa: 7, Minimo: 101, Maximo: 300, Nombre: '101-300', Costo_Por_M3: 149 },
+            { Id_Tipo_Tarifa: 7, Minimo: 301, Maximo: 1000, Nombre: '301-1000', Costo_Por_M3: 123 },
+            { Id_Tipo_Tarifa: 7, Minimo: 1001, Maximo: 999999, Nombre: '1000+', Costo_Por_M3: 90 },
 
-            // Comercial bloque 2
-            { Id_Bloque: 21, Id_Tipo_Tarifa: 2, Minimo_M3: 21, Maximo_M3: 65, Cargo_Base: 582 },
-            { Id_Bloque: 22, Id_Tipo_Tarifa: 2, Minimo_M3: 21, Maximo_M3: 65, Cargo_Base: 388 },
-            { Id_Bloque: 23, Id_Tipo_Tarifa: 2, Minimo_M3: 21, Maximo_M3: 65, Cargo_Base: 315 },
-            { Id_Bloque: 24, Id_Tipo_Tarifa: 2, Minimo_M3: 21, Maximo_M3: 65, Cargo_Base: 236 },
-
-            // Comercial bloque 3
-            { Id_Bloque: 25, Id_Tipo_Tarifa: 2, Minimo_M3: 66, Maximo_M3: 1000000, Cargo_Base: 762 },
-            { Id_Bloque: 26, Id_Tipo_Tarifa: 2, Minimo_M3: 66, Maximo_M3: 1000000, Cargo_Base: 506 },
-            { Id_Bloque: 27, Id_Tipo_Tarifa: 2, Minimo_M3: 66, Maximo_M3: 1000000, Cargo_Base: 410 },
-            { Id_Bloque: 28, Id_Tipo_Tarifa: 2, Minimo_M3: 66, Maximo_M3: 1000000, Cargo_Base: 302 },
-
-
-
-            // Industrial bloque 1
-            { Id_Bloque: 29, Id_Tipo_Tarifa: 3, Minimo_M3: 0, Maximo_M3: 120, Cargo_Base: 536 },
-            { Id_Bloque: 30, Id_Tipo_Tarifa: 3, Minimo_M3: 0, Maximo_M3: 120, Cargo_Base: 359 },
-            { Id_Bloque: 31, Id_Tipo_Tarifa: 3, Minimo_M3: 0, Maximo_M3: 120, Cargo_Base: 289 },
-            { Id_Bloque: 32, Id_Tipo_Tarifa: 3, Minimo_M3: 0, Maximo_M3: 120, Cargo_Base: 211 },
-
-            // Industrial bloque 2
-            { Id_Bloque: 33, Id_Tipo_Tarifa: 3, Minimo_M3: 121, Maximo_M3: 1000000, Cargo_Base: 832 },
-            { Id_Bloque: 34, Id_Tipo_Tarifa: 3, Minimo_M3: 121, Maximo_M3: 1000000, Cargo_Base: 548 },
-            { Id_Bloque: 35, Id_Tipo_Tarifa: 3, Minimo_M3: 121, Maximo_M3: 1000000, Cargo_Base: 447 },
-            { Id_Bloque: 36, Id_Tipo_Tarifa: 3, Minimo_M3: 121, Maximo_M3: 1000000, Cargo_Base: 328 },
-
-
-
-            // Preferencial bloque 1
-            { Id_Bloque: 37, Id_Tipo_Tarifa: 4, Minimo_M3: 0, Maximo_M3: 120, Cargo_Base: 480 },
-            { Id_Bloque: 38, Id_Tipo_Tarifa: 4, Minimo_M3: 0, Maximo_M3: 120, Cargo_Base: 313 },
-            { Id_Bloque: 39, Id_Tipo_Tarifa: 4, Minimo_M3: 0, Maximo_M3: 120, Cargo_Base: 258 },
-            { Id_Bloque: 40, Id_Tipo_Tarifa: 4, Minimo_M3: 0, Maximo_M3: 120, Cargo_Base: 189 },
-
-            // Preferencial bloque 2
-            { Id_Bloque: 41, Id_Tipo_Tarifa: 4, Minimo_M3: 121, Maximo_M3: 1000000, Cargo_Base: 709 },
-            { Id_Bloque: 42, Id_Tipo_Tarifa: 4, Minimo_M3: 121, Maximo_M3: 1000000, Cargo_Base: 461 },
-            { Id_Bloque: 43, Id_Tipo_Tarifa: 4, Minimo_M3: 121, Maximo_M3: 1000000, Cargo_Base: 380 },
-            { Id_Bloque: 44, Id_Tipo_Tarifa: 4, Minimo_M3: 121, Maximo_M3: 1000000, Cargo_Base: 279 },
-
-
-
-            // Grandes Consumidores bloque 1
-            { Id_Bloque: 45, Id_Tipo_Tarifa: 5, Minimo_M3: 0, Maximo_M3: 2500, Cargo_Base: 513 },
-            { Id_Bloque: 46, Id_Tipo_Tarifa: 5, Minimo_M3: 0, Maximo_M3: 2500, Cargo_Base: 333 },
-            { Id_Bloque: 47, Id_Tipo_Tarifa: 5, Minimo_M3: 0, Maximo_M3: 2500, Cargo_Base: 271 },
-            { Id_Bloque: 48, Id_Tipo_Tarifa: 5, Minimo_M3: 0, Maximo_M3: 2500, Cargo_Base: 201 },
-
-            // Grandes Consumidores bloque 2
-            { Id_Bloque: 49, Id_Tipo_Tarifa: 5, Minimo_M3: 2501, Maximo_M3: 6000, Cargo_Base: 663 },
-            { Id_Bloque: 50, Id_Tipo_Tarifa: 5, Minimo_M3: 2501, Maximo_M3: 6000, Cargo_Base: 437 },
-            { Id_Bloque: 51, Id_Tipo_Tarifa: 5, Minimo_M3: 2501, Maximo_M3: 6000, Cargo_Base: 355 },
-            { Id_Bloque: 52, Id_Tipo_Tarifa: 5, Minimo_M3: 2501, Maximo_M3: 6000, Cargo_Base: 263 },
-
-            // Grandes Consumidores bloque 3
-            { Id_Bloque: 53, Id_Tipo_Tarifa: 5, Minimo_M3: 6001, Maximo_M3: 1000000, Cargo_Base: 787 },
-            { Id_Bloque: 54, Id_Tipo_Tarifa: 5, Minimo_M3: 6001, Maximo_M3: 1000000, Cargo_Base: 522 },
-            { Id_Bloque: 55, Id_Tipo_Tarifa: 5, Minimo_M3: 6001, Maximo_M3: 1000000, Cargo_Base: 423 },
-            { Id_Bloque: 56, Id_Tipo_Tarifa: 5, Minimo_M3: 6001, Maximo_M3: 1000000, Cargo_Base: 313 },
-
-
-
-            // Residencial Pobreza Basica bloque 1
-            { Id_Bloque: 57, Id_Tipo_Tarifa: 6, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 360 },
-            { Id_Bloque: 58, Id_Tipo_Tarifa: 6, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 298 },
-            { Id_Bloque: 59, Id_Tipo_Tarifa: 6, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 245 },
-            { Id_Bloque: 60, Id_Tipo_Tarifa: 6, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 180 },
-
-            // Residencial Pobreza Basica bloque 2
-            { Id_Bloque: 61, Id_Tipo_Tarifa: 6, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 416 },
-            { Id_Bloque: 62, Id_Tipo_Tarifa: 6, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 344 },
-            { Id_Bloque: 63, Id_Tipo_Tarifa: 6, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 283 },
-            { Id_Bloque: 64, Id_Tipo_Tarifa: 6, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 208 },
-
-            // Residencial Pobreza Basica bloque 3
-            { Id_Bloque: 65, Id_Tipo_Tarifa: 6, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 486 },
-            { Id_Bloque: 66, Id_Tipo_Tarifa: 6, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 402 },
-            { Id_Bloque: 67, Id_Tipo_Tarifa: 6, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 331 },
-            { Id_Bloque: 68, Id_Tipo_Tarifa: 6, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 243 },
-
-            // Residencial Pobreza Basica bloque 4
-            { Id_Bloque: 69, Id_Tipo_Tarifa: 6, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 540 },
-            { Id_Bloque: 70, Id_Tipo_Tarifa: 6, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 447 },
-            { Id_Bloque: 71, Id_Tipo_Tarifa: 6, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 368 },
-            { Id_Bloque: 72, Id_Tipo_Tarifa: 6, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 270 },
-
-
-
-            // Residencial Pobreza Extrema bloque 1
-            { Id_Bloque: 73, Id_Tipo_Tarifa: 7, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 180 },
-            { Id_Bloque: 74, Id_Tipo_Tarifa: 7, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 149 },
-            { Id_Bloque: 75, Id_Tipo_Tarifa: 7, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 123 },
-            { Id_Bloque: 76, Id_Tipo_Tarifa: 7, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 90 },
-
-            // Residencial Pobreza Extrema bloque 2
-            { Id_Bloque: 77, Id_Tipo_Tarifa: 7, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 416 },
-            { Id_Bloque: 78, Id_Tipo_Tarifa: 7, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 344 },
-            { Id_Bloque: 79, Id_Tipo_Tarifa: 7, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 283 },
-            { Id_Bloque: 80, Id_Tipo_Tarifa: 7, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 208 },
-
-            // Residencial Pobreza Extrema bloque 3
-            { Id_Bloque: 81, Id_Tipo_Tarifa: 7, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 486 },
-            { Id_Bloque: 82, Id_Tipo_Tarifa: 7, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 402 },
-            { Id_Bloque: 83, Id_Tipo_Tarifa: 7, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 331 },
-            { Id_Bloque: 84, Id_Tipo_Tarifa: 7, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 243 },
-
-            // Residencial Pobreza Extrema bloque 4
-            { Id_Bloque: 85, Id_Tipo_Tarifa: 7, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 540 },
-            { Id_Bloque: 86, Id_Tipo_Tarifa: 7, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 447 },
-            { Id_Bloque: 87, Id_Tipo_Tarifa: 7, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 368 },
-            { Id_Bloque: 88, Id_Tipo_Tarifa: 7, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 270 },
-
-
-
-            // GC Bien Social bloque 1
-            { Id_Bloque: 89, Id_Tipo_Tarifa: 8, Minimo_M3: 0, Maximo_M3: 2500, Cargo_Base: 360 },
-            { Id_Bloque: 90, Id_Tipo_Tarifa: 8, Minimo_M3: 0, Maximo_M3: 2500, Cargo_Base: 234 },
-            { Id_Bloque: 91, Id_Tipo_Tarifa: 8, Minimo_M3: 0, Maximo_M3: 2500, Cargo_Base: 193 },
-            { Id_Bloque: 92, Id_Tipo_Tarifa: 8, Minimo_M3: 0, Maximo_M3: 2500, Cargo_Base: 142 },
-
-            // GC Bien Social bloque 2
-            { Id_Bloque: 93, Id_Tipo_Tarifa: 8, Minimo_M3: 2501, Maximo_M3: 6000, Cargo_Base: 663 },
-            { Id_Bloque: 94, Id_Tipo_Tarifa: 8, Minimo_M3: 2501, Maximo_M3: 6000, Cargo_Base: 437 },
-            { Id_Bloque: 95, Id_Tipo_Tarifa: 8, Minimo_M3: 2501, Maximo_M3: 6000, Cargo_Base: 355 },
-            { Id_Bloque: 96, Id_Tipo_Tarifa: 8, Minimo_M3: 2501, Maximo_M3: 6000, Cargo_Base: 263 },
-
-            // GC Bien Social bloque 3
-            { Id_Bloque: 97, Id_Tipo_Tarifa: 8, Minimo_M3: 6001, Maximo_M3: 1000000, Cargo_Base: 787 },
-            { Id_Bloque: 98, Id_Tipo_Tarifa: 8, Minimo_M3: 6001, Maximo_M3: 1000000, Cargo_Base: 522 },
-            { Id_Bloque: 99, Id_Tipo_Tarifa: 8, Minimo_M3: 6001, Maximo_M3: 1000000, Cargo_Base: 423 },
-            { Id_Bloque: 100, Id_Tipo_Tarifa: 8, Minimo_M3: 6001, Maximo_M3: 1000000, Cargo_Base: 313 },
+            // ==================== GC BIEN SOCIAL (Tarifa 8) ====================
+            { Id_Tipo_Tarifa: 8, Minimo: 1, Maximo: 100, Nombre: '1-100', Costo_Por_M3: 360 },
+            { Id_Tipo_Tarifa: 8, Minimo: 101, Maximo: 300, Nombre: '101-300', Costo_Por_M3: 234 },
+            { Id_Tipo_Tarifa: 8, Minimo: 301, Maximo: 1000, Nombre: '301-1000', Costo_Por_M3: 193 },
+            { Id_Tipo_Tarifa: 8, Minimo: 1001, Maximo: 999999, Nombre: '1000+', Costo_Por_M3: 142 },
         ];
 
-        for (const costo of costos) {
-            const existe = await this.bloqueRepository.findOne({
-                where: { Id_Bloque: costo.Id_Bloque }
+        for (const rango of rangos) {
+            const existe = await this.rangoAfiliadosRepository.findOne({
+                where: {
+                    Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: rango.Id_Tipo_Tarifa },
+                    Minimo_Afiliados: rango.Minimo,
+                }
             });
+
             if (!existe) {
-                const nuevo = this.bloqueRepository.create({
-                    Id_Bloque: costo.Id_Bloque,
-                    Id_Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: costo.Id_Tipo_Tarifa },
-                    Minimo_M3: costo.Minimo_M3,
-                    Maximo_M3: costo.Maximo_M3,
-                    Cargo_Base: costo.Cargo_Base
+                const nuevo = this.rangoAfiliadosRepository.create({
+                    Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: rango.Id_Tipo_Tarifa },
+                    Minimo_Afiliados: rango.Minimo,
+                    Maximo_Afiliados: rango.Maximo,
+                    Nombre_Rango: rango.Nombre,
+                    Costo_Por_M3: rango.Costo_Por_M3,
                 });
-                await this.bloqueRepository.save(nuevo);
+                await this.rangoAfiliadosRepository.save(nuevo);
+            }
+        }
+    }
+
+    private async createRangosConsumo() {
+        const rangos = [
+            // ==================== RESIDENCIAL (Tarifa 1) - 4 bloques ====================
+            { Id_Tipo_Tarifa: 1, Minimo_M3: 0, Maximo_M3: 15, Costo_Por_M3: 360 },
+            { Id_Tipo_Tarifa: 1, Minimo_M3: 16, Maximo_M3: 30, Costo_Por_M3: 416 },
+            { Id_Tipo_Tarifa: 1, Minimo_M3: 31, Maximo_M3: 60, Costo_Por_M3: 486 },
+            { Id_Tipo_Tarifa: 1, Minimo_M3: 61, Maximo_M3: 999999, Costo_Por_M3: 540 },
+
+            // ==================== COMERCIO Y SERVICIOS (Tarifa 2) - 3 bloques ====================
+            { Id_Tipo_Tarifa: 2, Minimo_M3: 0, Maximo_M3: 20, Costo_Por_M3: 508 },
+            { Id_Tipo_Tarifa: 2, Minimo_M3: 21, Maximo_M3: 65, Costo_Por_M3: 582 },
+            { Id_Tipo_Tarifa: 2, Minimo_M3: 66, Maximo_M3: 999999, Costo_Por_M3: 762 },
+
+            // ==================== INDUSTRIAL (Tarifa 3) - 2 bloques ====================
+            { Id_Tipo_Tarifa: 3, Minimo_M3: 0, Maximo_M3: 120, Costo_Por_M3: 536 },
+            { Id_Tipo_Tarifa: 3, Minimo_M3: 121, Maximo_M3: 999999, Costo_Por_M3: 832 },
+
+            // ==================== PREFERENCIAL (Tarifa 4) - 2 bloques ====================
+            { Id_Tipo_Tarifa: 4, Minimo_M3: 0, Maximo_M3: 120, Costo_Por_M3: 480 },
+            { Id_Tipo_Tarifa: 4, Minimo_M3: 121, Maximo_M3: 999999, Costo_Por_M3: 709 },
+
+            // ==================== GRANDES CONSUMIDORES (Tarifa 5) - 3 bloques ====================
+            { Id_Tipo_Tarifa: 5, Minimo_M3: 0, Maximo_M3: 2500, Costo_Por_M3: 513 },
+            { Id_Tipo_Tarifa: 5, Minimo_M3: 2501, Maximo_M3: 6000, Costo_Por_M3: 663 },
+            { Id_Tipo_Tarifa: 5, Minimo_M3: 6001, Maximo_M3: 999999, Costo_Por_M3: 787 },
+
+            // ==================== RESIDENCIAL POBREZA BÁSICA (Tarifa 6) - 4 bloques ====================
+            { Id_Tipo_Tarifa: 6, Minimo_M3: 0, Maximo_M3: 15, Costo_Por_M3: 360 },
+            { Id_Tipo_Tarifa: 6, Minimo_M3: 16, Maximo_M3: 30, Costo_Por_M3: 416 },
+            { Id_Tipo_Tarifa: 6, Minimo_M3: 31, Maximo_M3: 60, Costo_Por_M3: 486 },
+            { Id_Tipo_Tarifa: 6, Minimo_M3: 61, Maximo_M3: 999999, Costo_Por_M3: 540 },
+
+            // ==================== RESIDENCIAL POBREZA EXTREMA (Tarifa 7) - 4 bloques ====================
+            { Id_Tipo_Tarifa: 7, Minimo_M3: 0, Maximo_M3: 15, Costo_Por_M3: 180 },
+            { Id_Tipo_Tarifa: 7, Minimo_M3: 16, Maximo_M3: 30, Costo_Por_M3: 416 },
+            { Id_Tipo_Tarifa: 7, Minimo_M3: 31, Maximo_M3: 60, Costo_Por_M3: 486 },
+            { Id_Tipo_Tarifa: 7, Minimo_M3: 61, Maximo_M3: 999999, Costo_Por_M3: 540 },
+
+            // ==================== GC BIEN SOCIAL (Tarifa 8) - 3 bloques ====================
+            { Id_Tipo_Tarifa: 8, Minimo_M3: 0, Maximo_M3: 2500, Costo_Por_M3: 360 },
+            { Id_Tipo_Tarifa: 8, Minimo_M3: 2501, Maximo_M3: 6000, Costo_Por_M3: 663 },
+            { Id_Tipo_Tarifa: 8, Minimo_M3: 6001, Maximo_M3: 999999, Costo_Por_M3: 787 },
+        ];
+
+        for (const rango of rangos) {
+            const existe = await this.rangoConsumoRepository.findOne({
+                where: {
+                    Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: rango.Id_Tipo_Tarifa },
+                    Minimo_M3: rango.Minimo_M3,
+                }
+            });
+
+            if (!existe) {
+                const nuevo = this.rangoConsumoRepository.create({
+                    Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: rango.Id_Tipo_Tarifa },
+                    Minimo_M3: rango.Minimo_M3,
+                    Maximo_M3: rango.Maximo_M3,
+                    Costo_Por_M3: rango.Costo_Por_M3,
+                });
+                await this.rangoConsumoRepository.save(nuevo);
             }
         }
     }
 
     private async createPermisos() {
-
         const modulos = [
             'usuarios',
             'actas',

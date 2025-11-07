@@ -97,10 +97,7 @@ export class ActasService {
             Archivos: actaExistente.Archivos
         };
 
-        if (dto.Descripcion) {
-            dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
-        }
-
+        if (dto.Descripcion) dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
         if (dto.Titulo) {
             dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
             const actaConMismoTitulo = await this.actaRepository.findOne({ where: { Titulo: dto.Titulo } });
@@ -135,7 +132,10 @@ export class ActasService {
                 console.error('Error al registrar auditoría de actualización de acta:', error);
             }
 
-            return actaGuardada;
+            return {
+                ...actaGuardada,
+                Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario)
+            };
         }   
     }   
 
