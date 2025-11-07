@@ -10,7 +10,7 @@ export class Proyecto {
   @Column({ nullable: false })
   Titulo: string;
 
-  @Column({ type: 'text' })
+  @Column({ nullable: false })
   Descripcion: string;
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
