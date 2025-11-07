@@ -1,15 +1,24 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ReportesService } from './reportes.service';
 import { ReportesController } from './reportes.controller';
-import { Reporte } from './ReporteEntities/Reporte.Entity';
-import { EstadoReporte } from './ReporteEntities/EstadoReporte.Entity';
-import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
-import { DropboxAuthService } from 'src/Dropbox/DropboxAuth.service';
+import { ReportesService } from './reportes.service';
+import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
+import { EmailModule } from '../Emails/email.module';
+import { EstadoReporte } from './ReporteEntities/EstadoReporte';
+import { Reporte } from './ReporteEntities/Reportes.Entity';
+import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
+import { AuditoriaModule } from '../Auditoria/auditoria.module';
+import { UsuariosModule } from '../Usuarios/Modules/usuarios.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Reporte, EstadoReporte])],
-  providers: [ReportesService, DropboxFilesService, DropboxAuthService],
+  imports: [
+    TypeOrmModule.forFeature([Reporte, EstadoReporte, Usuario]), 
+    DropboxModule,
+    EmailModule,
+    AuditoriaModule,
+    UsuariosModule
+  ],
   controllers: [ReportesController],
+  providers: [ReportesService],
 })
 export class ReportesModule {}

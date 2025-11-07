@@ -1,15 +1,24 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Sugerencia } from './SugerenciaEntities/Sugerencia.Entity';
-import { EstadoSugerencia } from './SugerenciaEntities/EstadoSugerencia.Entity';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
-import { CreateSugerenciaDto } from './SugerenciaDTO\'S/CreateSugerencia.dto';
+import { EmailService } from '../Emails/email.service';
+import { EstadoSugerencia } from './SugerenciaEntities/EstadoSugerencia';
+import { Sugerencia } from './SugerenciaEntities/Sugerencia.Entity';
+import { CreateSugerenciaDto } from './SugerenciaDTO\'s/CreateSugerencia.dto';
+import { ResponderSugerenciaDto } from './SugerenciaDTO\'s/ResponderSugerencia.dto';
+import { UsuariosService } from '../Usuarios/Services/usuarios.service';
+import { AuditoriaService } from '../Auditoria/auditoria.service';
+import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 
+interface SugerenciaFiles {
+  Adjunto?: Express.Multer.File[];
+}
 
 @Injectable()
 export class SugerenciaService {
-  
+  private readonly logger = new Logger(SugerenciaService.name);
+
   constructor(
     @InjectRepository(Sugerencia)
     private readonly sugerenciaRepository: Repository<Sugerencia>,
@@ -17,8 +26,17 @@ export class SugerenciaService {
     @InjectRepository(EstadoSugerencia)
     private readonly estadoRepository: Repository<EstadoSugerencia>,
 
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
+
     private readonly dropboxFilesService: DropboxFilesService,
-  ) {}
+
+    private readonly emailService: EmailService,
+
+    private readonly usuariosService: UsuariosService,
+
+    private readonly auditoriaService: AuditoriaService
+  ) { }
 
   async getAll() {
     return this.sugerenciaRepository.find({ relations: ['Estado'] });
@@ -30,73 +48,129 @@ export class SugerenciaService {
     return repo;
   }
 
-  async create(dto: CreateSugerenciaDto, files?: any) {
+  async create(dto: CreateSugerenciaDto, files?: SugerenciaFiles) {
     const estado = await this.estadoRepository.findOne({ where: { Id_Estado_Sugerencia: 1 } });
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
-    
-    const fecha = new Date();
-    const sugerencia = this.sugerenciaRepository.create({
-      ...dto,
-      Fecha_Sugerencia: fecha,
+    const sugerenciaData = {
+      Mensaje: dto.Mensaje,
+      Correo: dto.Correo,
       Estado: estado,
-    });
+    };
 
-  
-  const insertRes = await this.sugerenciaRepository.insert(sugerencia as any);
-  const generatedId = insertRes.identifiers && insertRes.identifiers[0] ? insertRes.identifiers[0].Id_Sugerencia || insertRes.identifiers[0].id : null;
-  const saved = await this.sugerenciaRepository.findOne({ where: { Id_Sugerencia: generatedId } }) as Sugerencia;
+    const saved = await this.sugerenciaRepository.save(sugerenciaData);
 
-    
     const adjuntoUrls: string[] = [];
     if (files?.Adjunto) {
       const archivos = Array.isArray(files.Adjunto) ? files.Adjunto : [files.Adjunto];
       const folderName = `sugerencia_${saved.Id_Sugerencia}`;
+
       for (const file of archivos) {
         const res = await this.dropboxFilesService.uploadFile(file, 'Contacto', 'Sugerencias', undefined, folderName);
         if (res?.url) adjuntoUrls.push(res.url);
       }
 
       saved.Adjunto = adjuntoUrls;
-  await this.sugerenciaRepository.save(saved);
+      await this.sugerenciaRepository.save(saved);
     }
+
+    if (dto.Correo) {
+      setImmediate(async () => {
+        try {
+          await this.emailService.enviarEmailSugerencia({
+            Correo: dto.Correo,
+            Mensaje: dto.Mensaje,
+            adjuntos: adjuntoUrls,
+          });
+        } catch (error) {
+          this.logger.error('Error al enviar email de sugerencia:', error);
+        }
+      });
+    }
+
     return saved;
   }
 
-  async updateEstado(id: number, nuevoEstadoId: number) {
+  async updateEstado(id: number, nuevoEstadoId: number, idUsuario: number) {
+    if (!idUsuario) throw new BadRequestException('Id_Usuario es requerido para actualizar el estado de la sugerencia');
+
+    const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+    if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
+
     const repo = await this.sugerenciaRepository.findOne({ where: { Id_Sugerencia: id }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Sugerencia con id ${id} no encontrada`);
 
     const nuevoEstado = await this.estadoRepository.findOne({ where: { Id_Estado_Sugerencia: nuevoEstadoId } });
     if (!nuevoEstado) throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);
 
+    const datosAnteriores = { Id_Estado_Sugerencia: repo.Estado.Id_Estado_Sugerencia };
+
     repo.Estado = nuevoEstado;
-    return this.sugerenciaRepository.save(repo);
+    await this.sugerenciaRepository.save(repo);
+
+    try {
+      await this.auditoriaService.logActualizacion('Sugerencias', idUsuario, id, datosAnteriores, {
+        Id_Estado_Sugerencia: nuevoEstadoId
+      });
+    } catch (error) {
+      this.logger.error('Error al registrar auditoría de actualización de sugerencia:', error);
+    }
+
+    return {
+      ...repo,
+      Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario)
+    };
   }
 
-  async responderSugerencia(id: number, respuesta: string) {
-    const repo = await this.sugerenciaRepository.findOne({ where: { Id_Sugerencia: id }, relations: ['Estado'] });
+  async responderSugerencia(id: number, dto: ResponderSugerenciaDto, idUsuario: number) {
+    if (!idUsuario) throw new BadRequestException('Id_Usuario es requerido para responder la sugerencia');
+
+    const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+    if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
+
+    const repo = await this.sugerenciaRepository.findOne({
+      where: { Id_Sugerencia: id },
+      relations: ['Estado']
+    });
     if (!repo) throw new BadRequestException(`Sugerencia con id ${id} no encontrada`);
 
-    repo.Respuesta_Sugerencia = respuesta;
+    repo.RespuestasSugerencia = dto.Respuesta;
     const estadoContestada = await this.estadoRepository.findOne({ where: { Id_Estado_Sugerencia: 2 } });
     if (!estadoContestada) throw new BadRequestException('Estado contestada no encontrado');
 
+    const datosAnteriores = { Respuestas_Sugerencia: repo.RespuestasSugerencia };
+
     repo.Estado = estadoContestada;
-    return this.sugerenciaRepository.save(repo);
-  }
+    const updatedSugerencia = await this.sugerenciaRepository.save(repo);
 
-  async remove(id: number) {
-    const repo = await this.sugerenciaRepository.findOne({ where: { Id_Sugerencia: id } });
-    if (!repo) throw new BadRequestException(`Sugerencia con id ${id} no encontrada`);
-
-    try {
-      const folderName = `sugerencia_${id}`;
-      await this.dropboxFilesService.deletePath('Contacto', 'Sugerencias', undefined, folderName);
-    } catch (err) {
-      console.warn(`No se pudo eliminar carpeta en Dropbox para sugerencia ${id}: ${err}`);
+    const correoDestino = repo.Correo;
+    if (correoDestino) {
+      setImmediate(async () => {
+        try {
+          await this.emailService.enviarEmailRespuestaSugerencia({
+            Correo: correoDestino,
+            Mensaje: repo.Mensaje,
+            respuesta: dto.Respuesta,
+          });
+        } catch (error) {
+          this.logger.error('Error al enviar email de respuesta de sugerencia:', error);
+        }
+      });
+    } else {
+      this.logger.warn(`No se puede enviar email de respuesta de sugerencia: correo no disponible para ID ${id}`);
     }
 
-    return this.sugerenciaRepository.remove(repo);
+    try {
+      await this.auditoriaService.logActualizacion('Sugerencias', idUsuario, id, datosAnteriores, {
+        Respuestas_Sugerencia: dto.Respuesta
+      });
+    } catch (error) {
+      this.logger.error('Error al registrar auditoría de respuesta de sugerencia:', error);
+    }
+
+    return {
+      ...updatedSugerencia,
+      Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario)
+    };
   }
 }

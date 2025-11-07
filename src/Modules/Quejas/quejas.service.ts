@@ -1,13 +1,25 @@
+
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Queja } from './QuejaEntities/Queja.Entity';
-import { EstadoQueja } from './QuejaEntities/EstadoQueja.Entity';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
+import { EmailService } from '../Emails/email.service';
+import { EstadoQueja } from './QuejaEntities/EstadoQueja';
+import { CreateQuejaDto } from './QuejaDTO\'s/CreateQueja.dto';
+import { ResponderQuejaDto } from './QuejaDTO\'s/ResponderQueja.dto';
+import { Queja } from './QuejaEntities/QuejasEntity';
+import { UsuariosService } from '../Usuarios/Services/usuarios.service';
+import { AuditoriaService } from '../Auditoria/auditoria.service';
+import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
+
+interface QuejaFiles {
+  Adjunto?: Express.Multer.File[];
+}
 
 @Injectable()
 export class QuejasService {
   private readonly logger = new Logger(QuejasService.name);
+
   constructor(
     @InjectRepository(Queja)
     private readonly quejasRepository: Repository<Queja>,
@@ -16,6 +28,15 @@ export class QuejasService {
     private readonly estadoQuejaRepository: Repository<EstadoQueja>,
 
     private readonly dropboxFilesService: DropboxFilesService,
+
+    private readonly emailService: EmailService,
+
+    private readonly usuariosService: UsuariosService,
+
+    private readonly auditoriaService: AuditoriaService,
+    
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
   ) { }
 
   async getAll() {
@@ -23,94 +44,131 @@ export class QuejasService {
   }
 
   async getOne(id: number) {
-    const idNum = Number(id);
-    if (!Number.isInteger(idNum) || idNum <= 0) throw new BadRequestException(`Id de queja invalido: ${id}`);
-    const ent = await this.quejasRepository.findOne({ where: { Id_Queja: idNum }, relations: ['Estado'] });
-    if (!ent) throw new BadRequestException(`Queja con id ${idNum} no encontrada`);
-    return ent;
+    const repo = await this.quejasRepository.findOne({ where: { Id_Queja: id }, relations: ['Estado'] });
+    if (!repo) throw new BadRequestException(`Queja con id ${id} no encontrada`);
+    return repo;
   }
 
-  async create(dto: any, files?: any) {
+  async create(dto: CreateQuejaDto, files?: QuejaFiles) {
     const estado = await this.estadoQuejaRepository.findOne({ where: { Id_Estado_Queja: 1 } });
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
-    const fecha = new Date();
-    const nombre = (dto.name || dto.Name || dto.Nombre || '')?.toString().trim();
-    const primerApellido = (dto.Papellido || dto.P_apellido || dto.Primer_Apellido || '')?.toString().trim();
-    const segundoApellido = (dto.Sapellido || dto.S_apellido || dto.Segundo_Apellido || '')?.toString().trim();
-    const primerNombre = nombre ? nombre.split(' ')[0] : '';
-    const folderName = [primerNombre, primerApellido, segundoApellido].filter(Boolean).join(' ').trim();
+    const nombre = dto.Nombre?.toString().trim();
+    const primerApellido = dto.Primer_Apellido?.toString().trim();
+    const segundoApellido = dto.Segundo_Apellido?.toString().trim();
+    const rawFolder = [nombre, primerApellido, segundoApellido].filter(Boolean).join(' ');
+    const folderName = rawFolder.replace(/[\\/\:\*\?"<>\|]/g, '').replace(/\s+/g, ' ').trim();
 
-    const archivosAdjuntos: string[] = [];
-    if (files?.Imagen || files?.Adjunto) {
-      const archivos = Array.isArray(files.Imagen) ? files.Imagen : Array.isArray(files.Adjunto) ? files.Adjunto : files.Imagen ? [files.Imagen] : files.Adjunto ? [files.Adjunto] : [];
+    const quejaData = {
+      ...dto,
+      Estado: estado,
+    };
+
+    const saved = await this.quejasRepository.save(quejaData);
+
+    const adjuntoUrls: string[] = [];
+    if (files?.Adjunto) {
+      const archivos = Array.isArray(files.Adjunto) ? files.Adjunto : [files.Adjunto];
       for (const file of archivos) {
         const res = await this.dropboxFilesService.uploadFile(file, 'Contacto', 'Quejas', undefined, folderName);
-        if (res?.url) archivosAdjuntos.push(res.url);
+        if (res?.url) adjuntoUrls.push(res.url);
       }
+
+      saved.Adjunto = adjuntoUrls;
+      await this.quejasRepository.save(saved);
     }
 
-    const queja = this.quejasRepository.create({
-      ...dto,
-      Fecha_Queja: fecha,
-      Adjunto: archivosAdjuntos,
-      Estado: estado,
-    });
-
-    return this.quejasRepository.save(queja);
-  }
-
-  async remove(id: number) {
-    const idNum = Number(id);
-    if (!Number.isInteger(idNum) || idNum <= 0) throw new BadRequestException(`Id de queja invalido: ${id}`);
-    const repo = await this.quejasRepository.findOne({ where: { Id_Queja: idNum } });
-    if (!repo) throw new BadRequestException(`Queja con id ${idNum} no encontrada`);
-
-    const nombre = (repo?.Nombre || '').toString().trim();
-    const primerNombre = nombre ? nombre.split(' ')[0] : '';
-    const primerApellido = (repo?.Primer_Apellido || '').toString().trim();
-    const segundoApellido = (repo?.Segundo_Apellido || '').toString().trim();
-    const folderName = `${[primerNombre, primerApellido, segundoApellido].filter(Boolean).join(' ')}`.trim();
-
-    try {
-      await this.dropboxFilesService.deletePath('Contacto', 'Quejas', undefined, folderName);
-    } catch (error) {
-      this.logger.warn(`No se pudo eliminar carpeta en Dropbox para queja ${idNum}: ${error}`);
+    if (dto.Correo) {
+      setImmediate(async () => {
+        try {
+          await this.emailService.enviarEmailQueja({
+            name: dto.Nombre,
+            Papellido: dto.Primer_Apellido,
+            Sapellido: dto.Segundo_Apellido,
+            Correo: dto.Correo,
+            descripcion: dto.Descripcion,
+            adjuntos: adjuntoUrls,
+          });
+        } catch (error) {
+          this.logger.error('Error al enviar email de queja:', error);
+        }
+      });
     }
 
-    return this.quejasRepository.remove(repo);
+    return saved;
   }
 
-  async updateEstado(id: number, nuevoEstadoId: number) {
-    const idNum = Number(id);
-    const estadoNum = Number(nuevoEstadoId);
-    if (!Number.isInteger(idNum) || idNum <= 0) throw new BadRequestException(`Id de queja invalido: ${id}`);
-    if (!Number.isInteger(estadoNum) || estadoNum <= 0) throw new BadRequestException(`Id de estado invalido: ${nuevoEstadoId}`);
-    if (![1, 2].includes(estadoNum)) throw new BadRequestException(`Id de estado no permitido: ${estadoNum}`);
+  async updateEstado(id: number, nuevoEstadoId: number, idUsuario: number) {
+    if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la queja');
 
-    const repo = await this.quejasRepository.findOne({ where: { Id_Queja: idNum }, relations: ['Estado'] });
-    if (!repo) throw new BadRequestException(`Queja con id ${idNum} no encontrada`);
+    const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+    if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
 
-    const nuevoEstado = await this.estadoQuejaRepository.findOne({ where: { Id_Estado_Queja: estadoNum } });
-    if (!nuevoEstado) throw new BadRequestException(`Estado con id ${estadoNum} no encontrado`);
+    const repo = await this.quejasRepository.findOne({ where: { Id_Queja: id }, relations: ['Estado'] });
+    if (!repo) throw new BadRequestException(`Queja con id ${id} no encontrada`);
+
+    const nuevoEstado = await this.estadoQuejaRepository.findOne({ where: { Id_Estado_Queja: nuevoEstadoId } });
+    if (!nuevoEstado) throw new BadRequestException(`Estado con id ${nuevoEstadoId} no encontrado`);
+
+    const datosAnteriores = { Id_Estado_Queja: repo.Estado.Id_Estado_Queja };
 
     repo.Estado = nuevoEstado;
-    return this.quejasRepository.save(repo);
+    await this.quejasRepository.save(repo);
+
+    try {
+      await this.auditoriaService.logActualizacion('Quejas', idUsuario, id, datosAnteriores, { Id_Estado_Queja: nuevoEstadoId });
+    } catch (error) {
+      this.logger.error('Error al registrar auditoría de actualización de queja:', error);
+    }
+    return repo;
   }
 
-  async responderQueja(id: number, respuesta: string) {
-    const idNum = Number(id);
-    if (!Number.isInteger(idNum) || idNum <= 0) throw new BadRequestException(`Id de queja invalido: ${id}`);
+  async responderQueja(id: number, dto: ResponderQuejaDto , idUsuario: number) {
 
-    const repo = await this.quejasRepository.findOne({ where: { Id_Queja: idNum }, relations: ['Estado'] });
-    if (!repo) throw new BadRequestException(`Queja con id ${idNum} no encontrada`);
+    const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+    if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
 
-    repo.Respuesta_Queja = respuesta;
+    const repo = await this.quejasRepository.findOne({
+      where: { Id_Queja: id },
+      relations: ['Estado']
+    });
+    if (!repo) throw new BadRequestException(`Queja con id ${id} no encontrada`);
 
+    repo.RespuestasReporte = dto.Respuesta;
     const estadoContestada = await this.estadoQuejaRepository.findOne({ where: { Id_Estado_Queja: 2 } });
-    if (!estadoContestada) throw new BadRequestException('Estado contestada (2) no encontrado');
+    if (!estadoContestada) throw new BadRequestException('Estado contestada no encontrado');
+
+    const datosAnteriores = { Respuesta_Reporte: repo.RespuestasReporte };
 
     repo.Estado = estadoContestada;
-    return this.quejasRepository.save(repo);
+    const updatedQueja = await this.quejasRepository.save(repo);
+
+    const correoDestino = repo.Correo;
+    if (correoDestino) {
+      setImmediate(async () => {
+        try {
+          await this.emailService.enviarEmailRespuestaQueja({
+            name: repo.Nombre,
+            Papellido: repo.Primer_Apellido,
+            Sapellido: repo.Segundo_Apellido,
+            Correo: correoDestino,
+            descripcion: repo.Descripcion,
+            respuesta: dto.Respuesta,
+          });
+        } catch (error) {
+          this.logger.error('Error al enviar email de respuesta de queja:', error);
+        }
+      });
+    } else {
+      this.logger.warn(`No se puede enviar email de respuesta de queja: correo no disponible para ID ${id}`);
+    }
+
+    try{
+      await this.auditoriaService.logActualizacion('Quejas', idUsuario, id, datosAnteriores, { Respuesta_Reporte: dto.Respuesta });
+    }catch (error) {
+      this.logger.error('Error al registrar auditoría de respuesta de queja:', error);
+    }
+
+    return updatedQueja;
   }
 }

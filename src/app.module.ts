@@ -21,22 +21,10 @@ import { Proyecto } from './Modules/Proyectos/ProyectoEntities/Proyecto.Entity';
 import { EstadoProyecto } from './Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 import { CalidadAguaModule } from './Modules/CalidadAgua/calidadAgua.module';
 import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity';
-import { ReportesModule } from './Modules/Reportes/reportes.module';
-import { Reporte } from './Modules/Reportes/ReporteEntities/Reporte.Entity';
-import { EstadoReporte } from './Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
+import { EstadoReporte } from './Modules/Reportes/ReporteEntities/EstadoReporte';
 import { SugerenciaModule } from './Modules/Sugerencias/sugerencia.module';
-import { Sugerencia } from './Modules/Sugerencias/SugerenciaEntities/Sugerencia.Entity';
-import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
 import { EstadoAfiliado } from './Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica, SolicitudFisica, SolicitudJuridica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
-import { SolicitudAsociadoFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAsociado.module';
-import { SolicitudCambioMedidorFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudCambioMedidor.module';
-import { SolicitudDesconexionFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudDesconexion.module';
-import { SolicitudAfiliacionFisicaModule } from './Modules/Solicitudes/Fisica/Modules/solicitudAfiliacion.module';
-import { SolicitudAfiliacionJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudAfiliacion.module';
-import { SolicitudDesconexionJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudDesconexion.module';
-import { SolicitudCambioMedidorJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudCambioMedidor.module';
-import { SolicitudAsociadoJuridicaModule } from './Modules/Solicitudes/Juridica/Modules/solicitudAsociado.module';
 import { TipoAfiliado } from './Modules/Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
 import { AfiliadosModule } from './Modules/Afiliados/afiliados.module';
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from './Modules/Afiliados/AfiliadoEntities/Afiliado.Entity';
@@ -53,13 +41,29 @@ import { EstadoUnidadMedicion } from './Modules/Inventario/InventarioEntities/Es
 import { EstadoCategoria } from './Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from './Modules/Proveedores/ProveedorEntities/Proveedor.Entity';
 import { MovimientoInventario } from './Modules/Inventario/InventarioEntities/Movimiento.Entity';
-import { TipoProveedor } from './Modules/Proveedores/ProveedorEntities/TipoProveedor.Entity';
 import { QuejasModule } from './Modules/Quejas/quejas.module';
-import { Queja } from './Modules/Quejas/QuejaEntities/Queja.Entity';
-import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
+import { FAQModule } from './Modules/FAQ/faq.module';
+import { FAQEntity } from './Modules/FAQ/FAQEntities/FAQ.Entity';
+import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja';
 import { SeederModule } from './Config/Seeder.module';
 import { EstadoMedidor } from './Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
 import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity';
+import { Auditoria } from './Modules/Auditoria/AuditoriaEntities/Auditoria.Entities';
+import { AuditoriaModule } from './Modules/Auditoria/auditoria.module';
+import { ReportesModule } from './Modules/Reportes/reportes.module';
+import { Reporte } from './Modules/Reportes/ReporteEntities/Reportes.Entity';
+import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia';
+import { Sugerencia } from './Modules/Sugerencias/SugerenciaEntities/Sugerencia.Entity';
+import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity'; import { Lectura } from './Modules/Lecturas/LecturaEntities/Lectura.Entity';
+import { LecturaModule } from './Modules/Lecturas/lectura.module';
+import { TipoTarifaLectura } from './Modules/Lecturas/LecturaEntities/TipoTarifaLectura.Entity';
+import { TipoTarifaServiciosFijos } from './Modules/Lecturas/LecturaEntities/TipoTarifaServiciosFijos.Entity';
+import { TipoTarifaVentaAgua } from './Modules/Lecturas/LecturaEntities/TipoTarifaVentaAgua.Entity';
+import { Bloque } from './Modules/Lecturas/LecturaEntities/Bloque.Entity';
+import { ImagenEntity } from './Modules/Imagenes/ImagenesEntity/Imagen.Entity';
+import { ImagenesModule } from './Modules/Imagenes/Imagenes.module';
+import { ManualModule } from './Modules/ManualdeUsuario/manual.module';
+import { ManualEntity } from './Modules/ManualdeUsuario/ManualEntities/Manual.Entity';
 
 @Module({
   imports: [
@@ -72,7 +76,7 @@ import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity'
 
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      inject:[ConfigService], 
+      inject: [ConfigService],
 
       useFactory: (config: ConfigService) => ({
         type: 'mysql',
@@ -87,14 +91,19 @@ import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity'
         SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudAsociadoFisica,
         SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
         Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
-        Proveedor, EstadoProveedor, TipoProveedor, ProveedorFisico, ProveedorJuridico,
+        Proveedor, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
         Proyecto, EstadoProyecto,
         CalidadAgua,
         Acta, ArchivoActa,
         Reporte, EstadoReporte,
         Sugerencia, EstadoSugerencia,
         Queja, EstadoQueja,
-        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor
+        FAQEntity,
+        Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
+        Auditoria,
+        Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Bloque,
+        ImagenEntity,
+        ManualEntity
         ],
         synchronize: false,
         dropSchema: false,
@@ -104,25 +113,22 @@ import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity'
     AuthModule,
     RolesModule,
     UsuariosModule,
+    AuditoriaModule,
     ProveedorModule,
     InventarioModule,
+    LecturaModule,
     FacturaModule,
     AfiliadosModule,
     SolicitudesModule,
     CalidadAguaModule,
-    ProyectoModule,
     ActasModule,
-    SolicitudAfiliacionFisicaModule,
-    SolicitudAfiliacionJuridicaModule,
-    SolicitudDesconexionFisicaModule,
-    SolicitudDesconexionJuridicaModule,
-    SolicitudCambioMedidorFisicaModule,
-    SolicitudCambioMedidorJuridicaModule,
-    SolicitudAsociadoFisicaModule,
-    SolicitudAsociadoJuridicaModule,
     ReportesModule,
+    ProyectoModule,
     SugerenciaModule,
+    FAQModule,
     QuejasModule,
+    ImagenesModule,
+    ManualModule
   ],
   controllers: [],
   providers: [
@@ -140,4 +146,4 @@ import { Medidor } from './Modules/Inventario/InventarioEntities/Medidor.Entity'
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

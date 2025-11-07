@@ -49,11 +49,19 @@ export class AuthController {
     return this.authService.refresh(refreshToken, response);
   }
 
-  @Public()
   @Post('logout')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Cerrar sesión' })
-  async logout(@Res({ passthrough: true }) response: Response) {
-    await this.authService.logout(response);
+  async logout(
+    @Req() req: any,
+    @Res({ passthrough: true }) response: Response
+  ) {
+    const usuarioId = req.user?.Id_Usuario; // El usuario viene del JwtAuthGuard
+    if (!usuarioId) {
+      throw new Error('Usuario no autenticado');
+    }
+    await this.authService.logout(usuarioId, response);
+    return { mensaje: 'Sesión cerrada exitosamente' };
   }
 
   @Public()

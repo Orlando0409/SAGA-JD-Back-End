@@ -1,77 +1,119 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, ParseIntPipe, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, ParseIntPipe, Patch, Request, UseGuards } from '@nestjs/common';
 import { ProveedorService } from './proveedor.service';
 import { CreateProveedorFisicoDto, CreateProveedorJuridicoDto } from './ProveedoresDTOs/CreateProveedor.dto';
 import { UpdateProveedorFisicoDto, UpdateProveedorJuridicoDto } from './ProveedoresDTOs/UpdateProveedor.dto';
 import { UpdateEstadoProveedorDto } from './ProveedoresDTOs/UpdateEstadoProveedor.dto';
-import { ProveedorFisico, ProveedorJuridico } from './ProveedorEntities/Proveedor.Entity';
+import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
 
 @Controller('Proveedores')
+@UseGuards(JwtAuthGuard)
 export class ProveedorController {
-  constructor(private readonly proveedorService: ProveedorService) {}
+    constructor(
+        private readonly proveedorService: ProveedorService
+    ) { }
 
-  @Post('fisico/create')
-  createFisico(@Body() dto: CreateProveedorFisicoDto): Promise<ProveedorFisico> {
-    return this.proveedorService.createFisico(dto);
-  }
+    @Get('All')
+    findAll() {
+        return this.proveedorService.findAll();
+    }
 
-  @Get('fisico')
-  findAllFisico(): Promise<ProveedorFisico[]> {
-    return this.proveedorService.findAllFisico();
-  }
+    @Post('fisico/create')
+    createFisico(
+        @Body() dto: CreateProveedorFisicoDto,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.proveedorService.createFisico(dto, idUsuario);
+    }
 
-  @Get('fisico/:id')
-  findOneFisico(@Param('id', ParseIntPipe) id: number): Promise<ProveedorFisico> {
-    return this.proveedorService.findOneFisico(id);
-  }
+    @Get('fisico')
+    findAllFisico() {
+        return this.proveedorService.findAllFisico();
+    }
 
-  @Put('fisico/:id')
-  updateFisico(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateProveedorFisicoDto
-  ): Promise<ProveedorFisico> {
-    return this.proveedorService.updateFisico(id, dto);
-  }
+    @Get('fisico/:id')
+    findOneFisico(
+        @Param('id', ParseIntPipe) id: number
+    ) {
+        return this.proveedorService.findOneFisico(id);
+    }
 
-  @Delete('fisico/:id')
-  removeFisico(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return this.proveedorService.removeFisico(id);
-  }
+    @Put('fisico/:id')
+    updateFisico(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() dto: UpdateProveedorFisicoDto,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.proveedorService.updateFisico(id, dto, idUsuario);
+    }
 
-  @Post('juridico')
-  createJuridico(@Body() dto: CreateProveedorJuridicoDto): Promise<ProveedorJuridico> {
-    return this.proveedorService.createJuridico(dto);
-  }
+    @Delete('fisico/:id')
+    removeFisico(
+        @Param('id', ParseIntPipe) id: number,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.proveedorService.removeFisico(id, idUsuario);
+    }
 
-  @Get('juridico')
-  findAllJuridico(): Promise<ProveedorJuridico[]> {
-    return this.proveedorService.findAllJuridico();
-  }
+    @Post('juridico/create')
+    createJuridico(
+        @Body() dto: CreateProveedorJuridicoDto,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.proveedorService.createJuridico(dto, idUsuario);
+    }
 
-  @Get('juridico/:id')
-  findOneJuridico(@Param('id', ParseIntPipe) id: number): Promise<ProveedorJuridico> {
-    return this.proveedorService.findOneJuridico(id);
-  }
+    @Get('juridico')
+    findAllJuridico() {
+        return this.proveedorService.findAllJuridico();
+    }
 
-  @Put('juridico/:id')
-  updateJuridico(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateProveedorJuridicoDto
-  ): Promise<ProveedorJuridico> {
-    return this.proveedorService.updateJuridico(id, dto);
-  }
+    @Get('juridico/:id')
+    findOneJuridico(
+        @Param('id', ParseIntPipe) id: number
+    ) {
+        return this.proveedorService.findOneJuridico(id);
+    }
 
-  @Delete('juridico/:id')
-  removeJuridico(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return this.proveedorService.removeJuridico(id);
-  }
+    @Put('juridico/:id')
+    updateJuridico(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() dto: UpdateProveedorJuridicoDto,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.proveedorService.updateJuridico(id, dto, idUsuario);
+    }
 
-  @Patch('Fisico/:id/estado')
-    updateEstadoFisico(@Param('id') id: number, @Body() dto: UpdateEstadoProveedorDto) {
-    return this.proveedorService.updateEstadoFisico(id, dto);
-  }
+    @Delete('juridico/:id')
+    removeJuridico(
+        @Param('id', ParseIntPipe) id: number,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.proveedorService.removeJuridico(id, idUsuario);
+    }
 
-  @Patch('Juridico/:id/estado')
-  updateEstadoJuridico(@Param('id') id: number, @Body() dto: UpdateEstadoProveedorDto) {
-    return this.proveedorService.updateEstadoJuridico(id, dto);
-  }
+    @Patch('Fisico/:id/estado')
+    updateEstadoFisico(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() dto: UpdateEstadoProveedorDto,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.proveedorService.updateEstadoFisico(id, dto, idUsuario);
+    }
+
+    @Patch('Juridico/:id/estado')
+    updateEstadoJuridico(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() dto: UpdateEstadoProveedorDto,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.proveedorService.updateEstadoJuridico(id, dto, idUsuario);
+    }
 }

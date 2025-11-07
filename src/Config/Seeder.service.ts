@@ -1,3 +1,4 @@
+import { Bloque } from './../Modules/Lecturas/LecturaEntities/Bloque.Entity';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -6,7 +7,6 @@ import { Permiso } from 'src/Modules/Usuarios/UsuarioEntities/Permiso.Entity';
 import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { UsuarioRol } from 'src/Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
 import { EstadoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/EstadoProveedor.Entity';
-import { TipoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/TipoProveedor.Entity';
 import { EstadoProyecto } from 'src/Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
 import { EstadoSolicitud } from 'src/Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
 import { EstadoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
@@ -16,57 +16,85 @@ import { Categoria } from 'src/Modules/Inventario/InventarioEntities/Categoria.E
 import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
 import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
-import { EstadoReporte } from 'src/Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
-import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
-import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
+import { EstadoReporte } from 'src/Modules/Reportes/ReporteEntities/EstadoReporte';
+import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia';
+import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja';
 import { EstadoMedidor } from 'src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
+import { TipoTarifaLectura } from 'src/Modules/Lecturas/LecturaEntities/TipoTarifaLectura.Entity';
+import { TipoTarifaServiciosFijos } from 'src/Modules/Lecturas/LecturaEntities/TipoTarifaServiciosFijos.Entity';
+import { TipoTarifaVentaAgua } from 'src/Modules/Lecturas/LecturaEntities/TipoTarifaVentaAgua.Entity';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
     constructor(
         @InjectRepository(UsuarioRol)
         private readonly rolRepository: Repository<UsuarioRol>,
+
         @InjectRepository(Permiso)
         private readonly permisoRepository: Repository<Permiso>,
+
         @InjectRepository(Usuario)
         private readonly userRepository: Repository<Usuario>,
+
         @InjectRepository(EstadoProveedor)
         private readonly estadoProveedorRepo: Repository<EstadoProveedor>,
-        @InjectRepository(TipoProveedor)
-        private readonly tipoProveedorRepository: Repository<TipoProveedor>,
+
         @InjectRepository(EstadoProyecto)
         private readonly proyectoEstadoRepository: Repository<EstadoProyecto>,
+
         @InjectRepository(EstadoSolicitud)
         private readonly solicitudEstadoRepository: Repository<EstadoSolicitud>,
+
         @InjectRepository(EstadoAfiliado)
         private readonly afiliadoEstadoRepository: Repository<EstadoAfiliado>,
+
         @InjectRepository(TipoAfiliado)
         private readonly tipoAfiliadoRepository: Repository<TipoAfiliado>,
+
         @InjectRepository(EstadoMaterial)
         private readonly estadoMaterialRepository: Repository<EstadoMaterial>,
+
         @InjectRepository(Categoria)
         private readonly categoriaMaterialRepository: Repository<Categoria>,
+
         @InjectRepository(EstadoCategoria)
         private readonly estadoCategoriaRepository: Repository<EstadoCategoria>,
+
         @InjectRepository(EstadoUnidadMedicion)
         private readonly estadoUnidadMedicionRepository: Repository<EstadoUnidadMedicion>,
+
         @InjectRepository(UnidadMedicion)
         private readonly unidadMedicionRepository: Repository<UnidadMedicion>,
+
         @InjectRepository(EstadoReporte)
         private readonly estadoReporteRepository: Repository<EstadoReporte>,
+
         @InjectRepository(EstadoSugerencia)
         private readonly estadoSugerenciaRepository: Repository<EstadoSugerencia>,
+
         @InjectRepository(EstadoQueja)
         private readonly estadoQuejaRepository: Repository<EstadoQueja>,
+
         @InjectRepository(EstadoMedidor)
         private readonly estadoMedidorRepository: Repository<EstadoMedidor>,
+
+        @InjectRepository(TipoTarifaLectura)
+        private readonly tipoTarifaLecturaRepository: Repository<TipoTarifaLectura>,
+
+        @InjectRepository(TipoTarifaServiciosFijos)
+        private readonly tipoTarifaServiciosFijosRepository: Repository<TipoTarifaServiciosFijos>,
+
+        @InjectRepository(TipoTarifaVentaAgua)
+        private readonly tipoTarifaVentaAguaRepository: Repository<TipoTarifaVentaAgua>,
+
+        @InjectRepository(Bloque)
+        private readonly bloqueRepository: Repository<Bloque>,
     ) { }
 
     async onModuleInit() {
         try {
             await this.createInitialData();
             await this.createDefaultEstadosProveedor();
-            await this.createDefaultTiposProveedor();
             await this.createDefaultEstadosProyecto();
             await this.createDefaultEstadosSolicitud();
             await this.createDefaultEstadosReporte();
@@ -80,6 +108,10 @@ export class SeederService implements OnModuleInit {
             await this.createDefaultEstadosUnidadMedicion();
             await this.createDefaultUnidadesMedicion();
             await this.createDefaultEstadosMedidor();
+            await this.createDefaultTiposTarifaLectura();
+            await this.createDefaultTiposTarifaServiciosFijos();
+            await this.createDefaultTiposTarifaVentaAgua();
+            await this.createCostosPorBloque();
         } catch (err) {
             console.error('Error ejecutando Seeder.onModuleInit:', err);
         }
@@ -120,11 +152,10 @@ export class SeederService implements OnModuleInit {
     private async createDefaultEstadosSolicitud() {
         const estados = [
             { Id_Estado_Solicitud: 1, Nombre_Estado: 'Pendiente' },
-            { Id_Estado_Solicitud: 2, Nombre_Estado: 'En Revisión' },
-            { Id_Estado_Solicitud: 3, Nombre_Estado: 'Aprobada' },
-            //{ Id_Estado_Solicitud: 3, Nombre_Estado: 'En espera' },
-            //{ Id_Estado_Solicitud: 4, Nombre_Estado: 'Completada' },
-            //{ Id_Estado_Solicitud: 5, Nombre_Estado: 'Rechazada' },
+            { Id_Estado_Solicitud: 2, Nombre_Estado: 'En revisión' },
+            { Id_Estado_Solicitud: 3, Nombre_Estado: 'Aprobada y en espera' },
+            { Id_Estado_Solicitud: 4, Nombre_Estado: 'Completada' },
+            { Id_Estado_Solicitud: 5, Nombre_Estado: 'Rechazada' },
         ];
 
         for (const estado of estados) {
@@ -153,24 +184,6 @@ export class SeederService implements OnModuleInit {
             if (!existe) {
                 const nuevoEstado = this.afiliadoEstadoRepository.create(estado);
                 await this.afiliadoEstadoRepository.save(nuevoEstado);
-            }
-        }
-    }
-
-    private async createDefaultTiposProveedor() {
-        const tipos = [
-            { Id_Tipo_Proveedor: 1, Tipo_Proveedor: 'Fisico' },
-            { Id_Tipo_Proveedor: 2, Tipo_Proveedor: 'Juridico' }
-        ];
-
-        for (const tipo of tipos) {
-            const existe = await this.tipoProveedorRepository.findOne({
-                where: { Id_Tipo_Proveedor: tipo.Id_Tipo_Proveedor }
-            });
-
-            if (!existe) {
-                const nuevoTipo = this.tipoProveedorRepository.create(tipo);
-                await this.tipoProveedorRepository.save(nuevoTipo);
             }
         }
     }
@@ -258,7 +271,7 @@ export class SeederService implements OnModuleInit {
 
                 // Asignar el usuario creador si existe
                 if (adminUser) {
-                    nuevaCategoria.Usuario_Creador = adminUser;
+                    nuevaCategoria.Usuario = adminUser;
                 }
 
                 await this.categoriaMaterialRepository.save(nuevaCategoria);
@@ -310,7 +323,7 @@ export class SeederService implements OnModuleInit {
 
                 // Asignar el usuario creador si existe
                 if (adminUser) {
-                    nuevaUnidad.Usuario_Creador = adminUser;
+                    nuevaUnidad.Usuario = adminUser;
                 }
 
                 await this.unidadMedicionRepository.save(nuevaUnidad);
@@ -339,7 +352,6 @@ export class SeederService implements OnModuleInit {
 
     private async createDefaultEstadosProveedor() {
         const estados = [
-
             { Id_Estado_Proveedor: 1, Estado_Proveedor: 'Activo' },
             { Id_Estado_Proveedor: 2, Estado_Proveedor: 'Inactivo' },
         ];
@@ -360,6 +372,7 @@ export class SeederService implements OnModuleInit {
         const estados = [
             { Id_Estado_Queja: 1, Estado_Queja: 'Pendiente' },
             { Id_Estado_Queja: 2, Estado_Queja: 'Contestado' },
+            { Id_Estado_Queja: 3, Estado_Queja: 'Archivado' }
         ];
 
         for (const estado of estados) {
@@ -377,6 +390,8 @@ export class SeederService implements OnModuleInit {
         const estados = [
             { Id_Estado_Sugerencia: 1, Estado_Sugerencia: 'Pendiente' },
             { Id_Estado_Sugerencia: 2, Estado_Sugerencia: 'Contestado' },
+            { Id_Estado_Sugerencia: 3, Estado_Sugerencia: 'Archivado' },
+            { Id_Estado_Sugerencia: 3, Estado_Sugerencia: 'Archivado' },
         ];
 
         for (const estado of estados) {
@@ -394,6 +409,7 @@ export class SeederService implements OnModuleInit {
         const estados = [
             { Id_Estado_Reporte: 1, Estado_Reporte: 'Pendiente' },
             { Id_Estado_Reporte: 2, Estado_Reporte: 'Contestado' },
+            { Id_Estado_Reporte: 3, Estado_Reporte: 'Archivado' }
         ];
 
         for (const estado of estados) {
@@ -407,7 +423,260 @@ export class SeederService implements OnModuleInit {
         }
     }
 
+    // VALORES FIJOS PARA TARIFAS DEL 10/26/2025
+    private async createDefaultTiposTarifaLectura() {
+        const tipos = [
+            { Id_Tipo_Tarifa_Lectura: 1, Nombre_Tipo_Tarifa: 'Residencial', Cargo_Fijo_Por_Mes: 360 },
+            { Id_Tipo_Tarifa_Lectura: 2, Nombre_Tipo_Tarifa: 'Comercio y Servicios', Cargo_Fijo_Por_Mes: 508 },
+            { Id_Tipo_Tarifa_Lectura: 3, Nombre_Tipo_Tarifa: 'Industrial', Cargo_Fijo_Por_Mes: 536 },
+            { Id_Tipo_Tarifa_Lectura: 4, Nombre_Tipo_Tarifa: 'Preferencial', Cargo_Fijo_Por_Mes: 480 },
+            { Id_Tipo_Tarifa_Lectura: 5, Nombre_Tipo_Tarifa: 'Grandes Consumidores', Cargo_Fijo_Por_Mes: 513 },
+            { Id_Tipo_Tarifa_Lectura: 6, Nombre_Tipo_Tarifa: 'Residencial Pobreza Basica', Cargo_Fijo_Por_Mes: 360 },
+            { Id_Tipo_Tarifa_Lectura: 7, Nombre_Tipo_Tarifa: 'Residencial Pobreza Extrema', Cargo_Fijo_Por_Mes: 180 },
+            { Id_Tipo_Tarifa_Lectura: 8, Nombre_Tipo_Tarifa: 'Grandes Consumidores Residenciales Bien Social', Cargo_Fijo_Por_Mes: 360 },
+        ];
+
+        for (const tipo of tipos) {
+            const existe = await this.tipoTarifaLecturaRepository.findOne({
+                where: { Id_Tipo_Tarifa_Lectura: tipo.Id_Tipo_Tarifa_Lectura }
+            });
+            if (!existe) {
+                const nuevo = this.tipoTarifaLecturaRepository.create(tipo);
+                await this.tipoTarifaLecturaRepository.save(nuevo);
+            }
+        }
+    }
+
+    // VALORES FIJOS PARA TARIFAS DEL 10/26/2025
+    private async createDefaultTiposTarifaServiciosFijos() {
+        const tipos = [
+            { Id_Tipo_Tarifa_Servicios_Fijos: 1, Nombre_Tipo_Tarifa: 'Residencial', Cargo_Base: 7535 },
+            { Id_Tipo_Tarifa_Servicios_Fijos: 2, Nombre_Tipo_Tarifa: 'Residencial Pobreza Basica', Cargo_Base: 6185 },
+            { Id_Tipo_Tarifa_Servicios_Fijos: 3, Nombre_Tipo_Tarifa: 'Residencial Pobreza Extrema', Cargo_Base: 4834 },
+            { Id_Tipo_Tarifa_Servicios_Fijos: 4, Nombre_Tipo_Tarifa: 'Comercio y Servicios', Cargo_Base: 9110 },
+            { Id_Tipo_Tarifa_Servicios_Fijos: 5, Nombre_Tipo_Tarifa: 'Industrial', Cargo_Base: 51554 },
+            { Id_Tipo_Tarifa_Servicios_Fijos: 6, Nombre_Tipo_Tarifa: 'Preferencial', Cargo_Base: 49405 },
+            { Id_Tipo_Tarifa_Servicios_Fijos: 7, Nombre_Tipo_Tarifa: 'Grandes Consumidores', Cargo_Base: 384754 },
+            { Id_Tipo_Tarifa_Servicios_Fijos: 8, Nombre_Tipo_Tarifa: 'GC Bien Social', Cargo_Base: 305518 },
+        ];
+
+        for (const tipo of tipos) {
+            const existe = await this.tipoTarifaServiciosFijosRepository.findOne({
+                where: { Id_Tipo_Tarifa_Servicios_Fijos: tipo.Id_Tipo_Tarifa_Servicios_Fijos }
+            });
+            if (!existe) {
+                const nuevo = this.tipoTarifaServiciosFijosRepository.create(tipo);
+                await this.tipoTarifaServiciosFijosRepository.save(nuevo);
+            }
+        }
+    }
+
+    // VALORES FIJOS PARA TARIFAS DEL 10/26/2025
+    private async createDefaultTiposTarifaVentaAgua() {
+        const tipos = [
+            { Id_Tipo_Tarifa_Venta_Agua: 1, Nombre_Tipo_Tarifa: 'Conducción', Cargo_Por_M3: 159 },
+            { Id_Tipo_Tarifa_Venta_Agua: 2, Nombre_Tipo_Tarifa: 'Potabilización', Cargo_Por_M3: 48 },
+            { Id_Tipo_Tarifa_Venta_Agua: 3, Nombre_Tipo_Tarifa: 'Distribución', Cargo_Por_M3: 238 },
+        ];
+
+        for (const tipo of tipos) {
+            const existe = await this.tipoTarifaVentaAguaRepository.findOne({
+                where: { Id_Tipo_Tarifa_Venta_Agua: tipo.Id_Tipo_Tarifa_Venta_Agua }
+            });
+            if (!existe) {
+                const nuevo = this.tipoTarifaVentaAguaRepository.create(tipo);
+                await this.tipoTarifaVentaAguaRepository.save(nuevo);
+            }
+        }
+    }
+
+    // VALORES FIJOS PARA COSTOS POR BLOQUE DEL 10/26/2025
+    private async createCostosPorBloque() {
+        const costos = [
+            // Residencial bloque 1
+            { Id_Bloque: 1, Id_Tipo_Tarifa: 1, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 360 },
+            { Id_Bloque: 2, Id_Tipo_Tarifa: 1, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 298 },
+            { Id_Bloque: 3, Id_Tipo_Tarifa: 1, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 245 },
+            { Id_Bloque: 4, Id_Tipo_Tarifa: 1, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 180 },
+
+            // Residencial bloque 2
+            { Id_Bloque: 5, Id_Tipo_Tarifa: 1, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 416 },
+            { Id_Bloque: 6, Id_Tipo_Tarifa: 1, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 344 },
+            { Id_Bloque: 7, Id_Tipo_Tarifa: 1, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 283 },
+            { Id_Bloque: 8, Id_Tipo_Tarifa: 1, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 208 },
+
+            // Residencial bloque 3
+            { Id_Bloque: 9, Id_Tipo_Tarifa: 1, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 486 },
+            { Id_Bloque: 10, Id_Tipo_Tarifa: 1, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 402 },
+            { Id_Bloque: 11, Id_Tipo_Tarifa: 1, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 331 },
+            { Id_Bloque: 12, Id_Tipo_Tarifa: 1, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 243 },
+
+            // Residencial bloque 4
+            { Id_Bloque: 13, Id_Tipo_Tarifa: 1, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 540 },
+            { Id_Bloque: 14, Id_Tipo_Tarifa: 1, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 447 },
+            { Id_Bloque: 15, Id_Tipo_Tarifa: 1, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 368 },
+            { Id_Bloque: 16, Id_Tipo_Tarifa: 1, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 270 },
+
+
+
+            // Comercial bloque 1
+            { Id_Bloque: 17, Id_Tipo_Tarifa: 2, Minimo_M3: 0, Maximo_M3: 20, Cargo_Base: 508 },
+            { Id_Bloque: 18, Id_Tipo_Tarifa: 2, Minimo_M3: 0, Maximo_M3: 20, Cargo_Base: 330 },
+            { Id_Bloque: 19, Id_Tipo_Tarifa: 2, Minimo_M3: 0, Maximo_M3: 20, Cargo_Base: 269 },
+            { Id_Bloque: 20, Id_Tipo_Tarifa: 2, Minimo_M3: 0, Maximo_M3: 20, Cargo_Base: 199 },
+
+            // Comercial bloque 2
+            { Id_Bloque: 21, Id_Tipo_Tarifa: 2, Minimo_M3: 21, Maximo_M3: 65, Cargo_Base: 582 },
+            { Id_Bloque: 22, Id_Tipo_Tarifa: 2, Minimo_M3: 21, Maximo_M3: 65, Cargo_Base: 388 },
+            { Id_Bloque: 23, Id_Tipo_Tarifa: 2, Minimo_M3: 21, Maximo_M3: 65, Cargo_Base: 315 },
+            { Id_Bloque: 24, Id_Tipo_Tarifa: 2, Minimo_M3: 21, Maximo_M3: 65, Cargo_Base: 236 },
+
+            // Comercial bloque 3
+            { Id_Bloque: 25, Id_Tipo_Tarifa: 2, Minimo_M3: 66, Maximo_M3: 1000000, Cargo_Base: 762 },
+            { Id_Bloque: 26, Id_Tipo_Tarifa: 2, Minimo_M3: 66, Maximo_M3: 1000000, Cargo_Base: 506 },
+            { Id_Bloque: 27, Id_Tipo_Tarifa: 2, Minimo_M3: 66, Maximo_M3: 1000000, Cargo_Base: 410 },
+            { Id_Bloque: 28, Id_Tipo_Tarifa: 2, Minimo_M3: 66, Maximo_M3: 1000000, Cargo_Base: 302 },
+
+
+
+            // Industrial bloque 1
+            { Id_Bloque: 29, Id_Tipo_Tarifa: 3, Minimo_M3: 0, Maximo_M3: 120, Cargo_Base: 536 },
+            { Id_Bloque: 30, Id_Tipo_Tarifa: 3, Minimo_M3: 0, Maximo_M3: 120, Cargo_Base: 359 },
+            { Id_Bloque: 31, Id_Tipo_Tarifa: 3, Minimo_M3: 0, Maximo_M3: 120, Cargo_Base: 289 },
+            { Id_Bloque: 32, Id_Tipo_Tarifa: 3, Minimo_M3: 0, Maximo_M3: 120, Cargo_Base: 211 },
+
+            // Industrial bloque 2
+            { Id_Bloque: 33, Id_Tipo_Tarifa: 3, Minimo_M3: 121, Maximo_M3: 1000000, Cargo_Base: 832 },
+            { Id_Bloque: 34, Id_Tipo_Tarifa: 3, Minimo_M3: 121, Maximo_M3: 1000000, Cargo_Base: 548 },
+            { Id_Bloque: 35, Id_Tipo_Tarifa: 3, Minimo_M3: 121, Maximo_M3: 1000000, Cargo_Base: 447 },
+            { Id_Bloque: 36, Id_Tipo_Tarifa: 3, Minimo_M3: 121, Maximo_M3: 1000000, Cargo_Base: 328 },
+
+
+
+            // Preferencial bloque 1
+            { Id_Bloque: 37, Id_Tipo_Tarifa: 4, Minimo_M3: 0, Maximo_M3: 120, Cargo_Base: 480 },
+            { Id_Bloque: 38, Id_Tipo_Tarifa: 4, Minimo_M3: 0, Maximo_M3: 120, Cargo_Base: 313 },
+            { Id_Bloque: 39, Id_Tipo_Tarifa: 4, Minimo_M3: 0, Maximo_M3: 120, Cargo_Base: 258 },
+            { Id_Bloque: 40, Id_Tipo_Tarifa: 4, Minimo_M3: 0, Maximo_M3: 120, Cargo_Base: 189 },
+
+            // Preferencial bloque 2
+            { Id_Bloque: 41, Id_Tipo_Tarifa: 4, Minimo_M3: 121, Maximo_M3: 1000000, Cargo_Base: 709 },
+            { Id_Bloque: 42, Id_Tipo_Tarifa: 4, Minimo_M3: 121, Maximo_M3: 1000000, Cargo_Base: 461 },
+            { Id_Bloque: 43, Id_Tipo_Tarifa: 4, Minimo_M3: 121, Maximo_M3: 1000000, Cargo_Base: 380 },
+            { Id_Bloque: 44, Id_Tipo_Tarifa: 4, Minimo_M3: 121, Maximo_M3: 1000000, Cargo_Base: 279 },
+
+
+
+            // Grandes Consumidores bloque 1
+            { Id_Bloque: 45, Id_Tipo_Tarifa: 5, Minimo_M3: 0, Maximo_M3: 2500, Cargo_Base: 513 },
+            { Id_Bloque: 46, Id_Tipo_Tarifa: 5, Minimo_M3: 0, Maximo_M3: 2500, Cargo_Base: 333 },
+            { Id_Bloque: 47, Id_Tipo_Tarifa: 5, Minimo_M3: 0, Maximo_M3: 2500, Cargo_Base: 271 },
+            { Id_Bloque: 48, Id_Tipo_Tarifa: 5, Minimo_M3: 0, Maximo_M3: 2500, Cargo_Base: 201 },
+
+            // Grandes Consumidores bloque 2
+            { Id_Bloque: 49, Id_Tipo_Tarifa: 5, Minimo_M3: 2501, Maximo_M3: 6000, Cargo_Base: 663 },
+            { Id_Bloque: 50, Id_Tipo_Tarifa: 5, Minimo_M3: 2501, Maximo_M3: 6000, Cargo_Base: 437 },
+            { Id_Bloque: 51, Id_Tipo_Tarifa: 5, Minimo_M3: 2501, Maximo_M3: 6000, Cargo_Base: 355 },
+            { Id_Bloque: 52, Id_Tipo_Tarifa: 5, Minimo_M3: 2501, Maximo_M3: 6000, Cargo_Base: 263 },
+
+            // Grandes Consumidores bloque 3
+            { Id_Bloque: 53, Id_Tipo_Tarifa: 5, Minimo_M3: 6001, Maximo_M3: 1000000, Cargo_Base: 787 },
+            { Id_Bloque: 54, Id_Tipo_Tarifa: 5, Minimo_M3: 6001, Maximo_M3: 1000000, Cargo_Base: 522 },
+            { Id_Bloque: 55, Id_Tipo_Tarifa: 5, Minimo_M3: 6001, Maximo_M3: 1000000, Cargo_Base: 423 },
+            { Id_Bloque: 56, Id_Tipo_Tarifa: 5, Minimo_M3: 6001, Maximo_M3: 1000000, Cargo_Base: 313 },
+
+
+
+            // Residencial Pobreza Basica bloque 1
+            { Id_Bloque: 57, Id_Tipo_Tarifa: 6, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 360 },
+            { Id_Bloque: 58, Id_Tipo_Tarifa: 6, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 298 },
+            { Id_Bloque: 59, Id_Tipo_Tarifa: 6, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 245 },
+            { Id_Bloque: 60, Id_Tipo_Tarifa: 6, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 180 },
+
+            // Residencial Pobreza Basica bloque 2
+            { Id_Bloque: 61, Id_Tipo_Tarifa: 6, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 416 },
+            { Id_Bloque: 62, Id_Tipo_Tarifa: 6, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 344 },
+            { Id_Bloque: 63, Id_Tipo_Tarifa: 6, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 283 },
+            { Id_Bloque: 64, Id_Tipo_Tarifa: 6, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 208 },
+
+            // Residencial Pobreza Basica bloque 3
+            { Id_Bloque: 65, Id_Tipo_Tarifa: 6, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 486 },
+            { Id_Bloque: 66, Id_Tipo_Tarifa: 6, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 402 },
+            { Id_Bloque: 67, Id_Tipo_Tarifa: 6, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 331 },
+            { Id_Bloque: 68, Id_Tipo_Tarifa: 6, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 243 },
+
+            // Residencial Pobreza Basica bloque 4
+            { Id_Bloque: 69, Id_Tipo_Tarifa: 6, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 540 },
+            { Id_Bloque: 70, Id_Tipo_Tarifa: 6, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 447 },
+            { Id_Bloque: 71, Id_Tipo_Tarifa: 6, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 368 },
+            { Id_Bloque: 72, Id_Tipo_Tarifa: 6, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 270 },
+
+
+
+            // Residencial Pobreza Extrema bloque 1
+            { Id_Bloque: 73, Id_Tipo_Tarifa: 7, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 180 },
+            { Id_Bloque: 74, Id_Tipo_Tarifa: 7, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 149 },
+            { Id_Bloque: 75, Id_Tipo_Tarifa: 7, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 123 },
+            { Id_Bloque: 76, Id_Tipo_Tarifa: 7, Minimo_M3: 0, Maximo_M3: 15, Cargo_Base: 90 },
+
+            // Residencial Pobreza Extrema bloque 2
+            { Id_Bloque: 77, Id_Tipo_Tarifa: 7, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 416 },
+            { Id_Bloque: 78, Id_Tipo_Tarifa: 7, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 344 },
+            { Id_Bloque: 79, Id_Tipo_Tarifa: 7, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 283 },
+            { Id_Bloque: 80, Id_Tipo_Tarifa: 7, Minimo_M3: 16, Maximo_M3: 30, Cargo_Base: 208 },
+
+            // Residencial Pobreza Extrema bloque 3
+            { Id_Bloque: 81, Id_Tipo_Tarifa: 7, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 486 },
+            { Id_Bloque: 82, Id_Tipo_Tarifa: 7, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 402 },
+            { Id_Bloque: 83, Id_Tipo_Tarifa: 7, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 331 },
+            { Id_Bloque: 84, Id_Tipo_Tarifa: 7, Minimo_M3: 31, Maximo_M3: 60, Cargo_Base: 243 },
+
+            // Residencial Pobreza Extrema bloque 4
+            { Id_Bloque: 85, Id_Tipo_Tarifa: 7, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 540 },
+            { Id_Bloque: 86, Id_Tipo_Tarifa: 7, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 447 },
+            { Id_Bloque: 87, Id_Tipo_Tarifa: 7, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 368 },
+            { Id_Bloque: 88, Id_Tipo_Tarifa: 7, Minimo_M3: 61, Maximo_M3: 1000000, Cargo_Base: 270 },
+
+
+
+            // GC Bien Social bloque 1
+            { Id_Bloque: 89, Id_Tipo_Tarifa: 8, Minimo_M3: 0, Maximo_M3: 2500, Cargo_Base: 360 },
+            { Id_Bloque: 90, Id_Tipo_Tarifa: 8, Minimo_M3: 0, Maximo_M3: 2500, Cargo_Base: 234 },
+            { Id_Bloque: 91, Id_Tipo_Tarifa: 8, Minimo_M3: 0, Maximo_M3: 2500, Cargo_Base: 193 },
+            { Id_Bloque: 92, Id_Tipo_Tarifa: 8, Minimo_M3: 0, Maximo_M3: 2500, Cargo_Base: 142 },
+
+            // GC Bien Social bloque 2
+            { Id_Bloque: 93, Id_Tipo_Tarifa: 8, Minimo_M3: 2501, Maximo_M3: 6000, Cargo_Base: 663 },
+            { Id_Bloque: 94, Id_Tipo_Tarifa: 8, Minimo_M3: 2501, Maximo_M3: 6000, Cargo_Base: 437 },
+            { Id_Bloque: 95, Id_Tipo_Tarifa: 8, Minimo_M3: 2501, Maximo_M3: 6000, Cargo_Base: 355 },
+            { Id_Bloque: 96, Id_Tipo_Tarifa: 8, Minimo_M3: 2501, Maximo_M3: 6000, Cargo_Base: 263 },
+
+            // GC Bien Social bloque 3
+            { Id_Bloque: 97, Id_Tipo_Tarifa: 8, Minimo_M3: 6001, Maximo_M3: 1000000, Cargo_Base: 787 },
+            { Id_Bloque: 98, Id_Tipo_Tarifa: 8, Minimo_M3: 6001, Maximo_M3: 1000000, Cargo_Base: 522 },
+            { Id_Bloque: 99, Id_Tipo_Tarifa: 8, Minimo_M3: 6001, Maximo_M3: 1000000, Cargo_Base: 423 },
+            { Id_Bloque: 100, Id_Tipo_Tarifa: 8, Minimo_M3: 6001, Maximo_M3: 1000000, Cargo_Base: 313 },
+        ];
+
+        for (const costo of costos) {
+            const existe = await this.bloqueRepository.findOne({
+                where: { Id_Bloque: costo.Id_Bloque }
+            });
+            if (!existe) {
+                const nuevo = this.bloqueRepository.create({
+                    Id_Bloque: costo.Id_Bloque,
+                    Id_Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: costo.Id_Tipo_Tarifa },
+                    Minimo_M3: costo.Minimo_M3,
+                    Maximo_M3: costo.Maximo_M3,
+                    Cargo_Base: costo.Cargo_Base
+                });
+                await this.bloqueRepository.save(nuevo);
+            }
+        }
+    }
+
     private async createPermisos() {
+
         const modulos = [
             'usuarios',
             'actas',
@@ -445,15 +714,16 @@ export class SeederService implements OnModuleInit {
                 Editar: true,
             });
 
-            // Permiso de lectura para bitacora
+            // Permiso de lectura para auditoria
             await this.createPermisoIfNotExists({
-                Modulo: 'bitacora',
+                Modulo: 'auditoria',
                 Ver: true,
                 Editar: false,
             });
-            // Sin permisos para bitacora
+
+            // Sin permisos para auditoria
             await this.createPermisoIfNotExists({
-                Modulo: 'bitacora',
+                Modulo: 'auditoria',
                 Ver: false,
                 Editar: false,
             });
@@ -480,7 +750,6 @@ export class SeederService implements OnModuleInit {
     }
 
     private async createAdminRole() {
-
         const adminRoleExistente = await this.rolRepository.findOne({
             where: { Nombre_Rol: 'Administrador' }
         });
@@ -510,7 +779,7 @@ export class SeederService implements OnModuleInit {
         const todosLosPermisos = await this.permisoRepository.find({
             where: [
                 { Ver: true, Editar: true },
-                { Modulo: 'bitacora', Ver: true, Editar: false }
+                { Modulo: 'auditoria', Ver: true, Editar: false }
             ]
         });
 
@@ -525,11 +794,9 @@ export class SeederService implements OnModuleInit {
         // Asignar los permisos al rol Administrador
         adminRole.Permisos = todosLosPermisos;
         await this.rolRepository.save(adminRole);
-
     }
 
     private async createAdminUser() {
-
         const adminExistente = await this.userRepository.findOne({
             where: { Nombre_Usuario: 'admin' }
         });

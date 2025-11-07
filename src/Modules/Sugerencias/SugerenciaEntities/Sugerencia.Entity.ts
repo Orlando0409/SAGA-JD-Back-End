@@ -1,22 +1,25 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { EstadoSugerencia } from './EstadoSugerencia.Entity';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
+import { EstadoSugerencia } from './EstadoSugerencia';
 
 @Entity('Sugerencias')
 export class Sugerencia {
     @PrimaryGeneratedColumn()
     Id_Sugerencia: number;
 
-    @Column()
+    @Column({ type: 'text' })
     Mensaje: string;
 
-    @Column()
-    Fecha_Sugerencia: Date;
-
-    @Column({ type: 'text', nullable: true })
-    Respuesta_Sugerencia?: string;
+    @Column({ type: 'varchar', length: 100 })
+    Correo: string;
 
     @Column({ type: 'simple-json', nullable: true })
     Adjunto?: string[];
+
+    @Column({ type: 'text', nullable: true })
+    RespuestasSugerencia?: string;
+
+    @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
+    Fecha_Sugerencia: Date;
 
     @ManyToOne(() => EstadoSugerencia)
     @JoinColumn({ name: 'Id_Estado_Sugerencia' })

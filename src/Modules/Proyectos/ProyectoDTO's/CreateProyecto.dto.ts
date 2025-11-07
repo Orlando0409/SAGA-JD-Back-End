@@ -1,4 +1,4 @@
-import { IsString, IsInt, IsUrl, IsDefined, IsNotEmpty, MinLength, MaxLength, Matches, IsPositive, Min, Max } from 'class-validator';
+import { IsString, IsDefined, IsNotEmpty, MinLength, MaxLength, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -22,14 +22,4 @@ export class CreateProyectoDto {
     @MaxLength(1000, { message: 'La descripción no puede tener más de 1000 caracteres' })
     @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s!?¿¡().,:;-]+$/, { message: 'La descripción solo puede contener letras, números, espacios y los caracteres !?¿¡().,:;-' })
     Descripcion: string;
-
-    @ApiProperty({ example: 1 })
-    @IsInt({ message: 'El ID del usuario debe ser un numero entero' })
-    @IsDefined({ message: 'El ID del usuario no puede estar vacio' })
-    @IsNotEmpty({ message: 'El ID del usuario no puede estar vacío' })
-    @IsPositive({ message: 'El ID del usuario debe ser un número positivo' })
-    @Min(1, { message: 'El ID del usuario debe ser mayor a 0' })
-    @Max(999999, { message: 'El ID del usuario no puede ser mayor a 999,999' })
-    Id_Usuario: number;
-    // CAMBIAR A USUARIO RELACION
 }

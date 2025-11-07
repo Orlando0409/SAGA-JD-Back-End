@@ -1,14 +1,17 @@
-import { Body, Controller, Delete, Get, Param, Post, Patch, UploadedFiles, UseInterceptors, BadRequestException } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Patch, UploadedFiles, UseInterceptors, Request } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { SugerenciaService } from './sugerencia.service';
 import { NumericParamPipe } from 'src/Common/Pipes/numeric-param.pipe';
-import { UpdateSugerenciaEstadoDto } from './SugerenciaDTO\'S/UpdateSugerenciaEstado.dto';
-import { CreateSugerenciaDto } from './SugerenciaDTO\'S/CreateSugerencia.dto';
-import { Public } from '../auth/Decorator/Public.decorator';
+import { Public } from "src/Modules/auth/Decorator/Public.decorator";
+import { CreateSugerenciaDto } from './SugerenciaDTO\'s/CreateSugerencia.dto';
+import { ResponderSugerenciaDto } from './SugerenciaDTO\'s/ResponderSugerencia.dto';
+import { UpdateSugerenciaEstadoDto } from './SugerenciaDTO\'s/UpdateSugerenciaEstado.dto';
 
 @Controller('sugerencias')
 export class SugerenciaController {
-  constructor(private readonly sugerenciaService: SugerenciaService) {}
+  constructor(
+    private readonly sugerenciaService: SugerenciaService
+  ) { }
 
   @Get()
   getAll() {
@@ -16,7 +19,9 @@ export class SugerenciaController {
   }
 
   @Get(':id')
-  getOne(@Param('id', NumericParamPipe) id: number) {
+  getOne(
+    @Param('id', NumericParamPipe) id: number
+  ) {
     return this.sugerenciaService.getOne(id);
   }
 
@@ -26,41 +31,29 @@ export class SugerenciaController {
     { name: 'Adjunto', maxCount: 10 },
   ]))
   create(
-    @Body(new (require('@nestjs/common').ValidationPipe)({ transform: true, whitelist: true, forbidUnknownValues: false })) body: CreateSugerenciaDto,
+    @Body() body: CreateSugerenciaDto,
     @UploadedFiles() files: Record<string, Express.Multer.File[]>,
   ) {
     return this.sugerenciaService.create(body, files);
   }
 
   @Patch(':id/estado')
-  updateEstado(@Param('id', NumericParamPipe) id: number, @Body() body: UpdateSugerenciaEstadoDto) {
-    const nuevo = (body as any)?.Id_EstadoSugerencia ?? (body as any)?.IdEstadoSugerencia ?? (body as any)?.Id_EstadoSugerencia;
-    if (typeof nuevo !== 'number') throw new BadRequestException('Id_EstadoSugerencia debe ser numero');
-    return this.sugerenciaService.updateEstado(id, nuevo);
-  }
-
-  @Post(':id/responder')
-  responder(
-    @Param('id', NumericParamPipe) id: number,
-    @Body('respuesta') respuestaField: any,
-    @Body() rawBody: any,
+  updateEstado(
+    @Param('id') id: number,
+    @Body() body: UpdateSugerenciaEstadoDto,
+    @Request() req: any
   ) {
-    // extraer la respuesta del body de forma segura (JSON form-data o raw text)
-    let respuesta = respuestaField;
-    if (!respuesta) {
-      if (rawBody && typeof rawBody === 'object') {
-        respuesta = (rawBody as any).respuesta ?? (rawBody as any).Respuesta ?? (rawBody as any).respuesta;
-      } else if (typeof rawBody === 'string') {
-        respuesta = rawBody;
-      }
-    }
-
-    if (!respuesta) throw new BadRequestException('respuesta es requerida');
-    return this.sugerenciaService.responderSugerencia(id, respuesta);
+    const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+    return this.sugerenciaService.updateEstado(id, body.Id_Estado_Sugerencia, idUsuario);
   }
 
-  @Delete(':id')
-  remove(@Param('id', NumericParamPipe) id: number) {
-    return this.sugerenciaService.remove(id);
+  @Patch(':id/responder')
+  responder(
+    @Param('id') id: number,
+    @Body() body: ResponderSugerenciaDto,
+    @Request() req: any
+  ) {
+    const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+    return this.sugerenciaService.responderSugerencia(id, body, idUsuario);
   }
 }
