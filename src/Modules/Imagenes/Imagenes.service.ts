@@ -84,13 +84,13 @@ export class ImagenesService {
     }
   }
 
-  async update(id: number, updateImagenDto: UpdateImagenDto, idUsuario: number, file?: Express.Multer.File) {
+  async update(idImagen: number, updateImagenDto: UpdateImagenDto, idUsuario: number, file?: Express.Multer.File) {
     if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
     const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
     if (!usuario) throw new BadRequestException('El usuario proporcionado no existe.');
 
-    const imagen = await this.findOne(id);
+    const imagen = await this.findOne(idImagen);
     const carpetaAnterior = imagen.Nombre_Imagen;
 
     const datosAnteriores = {
@@ -99,43 +99,39 @@ export class ImagenesService {
       Imagen: imagen.Imagen
     }
 
-    try {
-      if (file) {
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        if (!allowedTypes.includes(file.mimetype)) throw new BadRequestException('Tipo de archivo no válido. Solo se permiten imágenes.');
+    if (file) {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.mimetype)) throw new BadRequestException('Tipo de archivo no válido. Solo se permiten imágenes.');
 
-        const uploadRes = await this.dropboxService.uploadFileDownloadOnly(file, 'Imagenes', updateImagenDto.Nombre_Imagen ?? imagen.Nombre_Imagen);
-        imagen.Imagen = uploadRes.url;
-      }
+      const uploadRes = await this.dropboxService.uploadFileDownloadOnly(file, 'Imagenes', updateImagenDto.Nombre_Imagen ?? imagen.Nombre_Imagen);
+      imagen.Imagen = uploadRes.url;
+    }
 
-      if (updateImagenDto.Nombre_Imagen) imagen.Nombre_Imagen = updateImagenDto.Nombre_Imagen;
+    if (updateImagenDto.Nombre_Imagen) imagen.Nombre_Imagen = updateImagenDto.Nombre_Imagen;
 
-      const imagenActualizada = await this.imagenRepository.save(imagen);
+    const imagenActualizada = await this.imagenRepository.save(imagen);
 
-      if (updateImagenDto.Nombre_Imagen && carpetaAnterior !== imagen.Nombre_Imagen) {
-        try {
-          await this.dropboxService.deletePath('Imagenes', undefined, undefined, carpetaAnterior);
-          console.log(`Carpeta anterior eliminada: ${carpetaAnterior}`);
-        } catch (deleteError) {
-          console.warn(`No se pudo eliminar la carpeta anterior: ${carpetaAnterior}`, deleteError);
-        }
-      }
-
+    if (updateImagenDto.Nombre_Imagen && carpetaAnterior !== imagen.Nombre_Imagen) {
       try {
-        await this.auditoriaService.logActualizacion('Edicion de imagenes', idUsuario, imagenActualizada.Id_Imagen, datosAnteriores, {
-          Nombre_Imagen: imagenActualizada.Nombre_Imagen,
-          Imagen: imagenActualizada.Imagen,
-        });
-      } catch (error) {
-        console.error('Error al registrar auditoría de actualización de imagen:', error);
+        await this.dropboxService.deletePath('Imagenes', undefined, undefined, carpetaAnterior);
+        console.log(`Carpeta anterior eliminada: ${carpetaAnterior}`);
+      } catch (deleteError) {
+        console.warn(`No se pudo eliminar la carpeta anterior: ${carpetaAnterior}`, deleteError);
       }
+    }
 
-      return {
-        ...imagenActualizada,
-        Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario),
-      }
-    } catch (error: any) {
-      throw new Error(`Error al actualizar imagen: ${error?.message ?? String(error)}`);
+    try {
+      await this.auditoriaService.logActualizacion('Edicion de imagenes', idUsuario, imagenActualizada.Id_Imagen, datosAnteriores, {
+        Nombre_Imagen: imagenActualizada.Nombre_Imagen,
+        Imagen: imagenActualizada.Imagen,
+      });
+    } catch (error) {
+      console.error('Error al registrar auditoría de actualización de imagen:', error);
+    }
+
+    return {
+      ...imagenActualizada,
+      Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario),
     }
   }
 
