@@ -14,6 +14,7 @@ import { Lectura } from "../Lecturas/LecturaEntities/Lectura.Entity";
 import { Medidor } from "../Inventario/InventarioEntities/Medidor.Entity";
 import { Acta } from "../Actas/ActaEntities/Actas.Entity";
 import { Solicitud } from "../Solicitudes/SolicitudEntities/Solicitud.Entity";
+import { MovimientoInventario } from "../Inventario/InventarioEntities/Movimiento.Entity";
 
 @Injectable()
 export class AuditoriaService {
@@ -119,6 +120,10 @@ export class AuditoriaService {
                             if (anteriores.Nombre_Usuario) return anteriores.Nombre_Usuario;
                             break;
 
+                case 'movimientos':
+                    if (anteriores.Nombre_Material) return anteriores.Nombre_Material;
+                    if (anteriores.Registro_Afectado) return anteriores.Registro_Afectado;
+                    break;
                     }
                 } catch (error) {
                     console.error('Error al parsear datos anteriores:', error);
@@ -173,6 +178,11 @@ export class AuditoriaService {
 
                         case 'medidores':
                             if (nuevos.Numero_Medidor) return nuevos.Numero_Medidor;
+                            break;
+
+                        case 'movimientos':
+                            if (nuevos.Nombre_Material) return nuevos.Nombre_Material;
+                            if (nuevos.Registro_Afectado) return nuevos.Registro_Afectado;
                             break;
 
                         case 'lecturas':
@@ -231,6 +241,13 @@ export class AuditoriaService {
                         where: { Id_Material: idRegistro }
                     });
                     return material?.Nombre_Material || `Material ID: ${idRegistro}`;
+
+                case 'movimientos':
+                    const movimiento = await this.dataSource.getRepository(MovimientoInventario).findOne({
+                        where: { Id_Movimiento: idRegistro },
+                        relations: ['Material']
+                    });
+                    return movimiento?.Material?.Nombre_Material || `Movimiento ID: ${idRegistro}`;
 
                 case 'proveedores':
                     const proveedor = await this.dataSource.getRepository(Proveedor).findOne({

@@ -3,24 +3,24 @@ import { ApiOperation } from '@nestjs/swagger';
 import { MaterialService } from './Services/material.service';
 import { CategoriasService } from './Services/categorias.service';
 import { UnidadesDeMedicionService } from './Services/unidadesDeMedicion.service';
+import { CreateMaterialDto } from "./InventarioDTO's/CreateMaterial.dto";
+import { CreateCategoriaDto } from "./InventarioDTO's/CreateCategoria.dto";
+import { UpdateMaterialDto } from "./InventarioDTO's/UpdateMaterial.dto";
+import { CreateUnidadMedicionDto } from "./InventarioDTO's/CreateUnidadMedicion.dto";
+import { MovimientoMaterialDto } from "./InventarioDTO's/MovimientoMaterial.dto";
+import { UpdateUnidadMedicionDto } from "./InventarioDTO's/UpdateUnidadMedicion.dto";
+import { UpdateCategoriaDto } from './InventarioDTO\'s/UpdateCategoria.dto';
 import { MovimientosService } from './Services/movimientos.service';
 import { MedidorService } from './Services/medidor.service';
-import { CreateMaterialDto } from "./InventarioDTO's/CreateMaterial.dto";
-import { UpdateMaterialDto } from "./InventarioDTO's/UpdateMaterial.dto";
-import { CreateCategoriaDto } from "./InventarioDTO's/CreateCategoria.dto";
-import { UpdateCategoriaDto } from "./InventarioDTO's/UpdateCategoria.dto";
-import { CreateUnidadMedicionDto } from "./InventarioDTO's/CreateUnidadMedicion.dto";
-import { UpdateUnidadMedicionDto } from "./InventarioDTO's/UpdateUnidadMedicion.dto";
-import { MovimientoMaterialDto } from "./InventarioDTO's/MovimientoMaterial.dto";
-import { CreateMedidorDTO } from "./InventarioDTO's/CreateMedidor.dto";
-import { AsignarMedidorDTO } from "./InventarioDTO's/AsignarMedidor.dto";
+import { CreateMedidorDTO } from './InventarioDTO\'s/CreateMedidor.dto';
+import { AsignarMedidorDTO } from './InventarioDTO\'s/AsignarMedidor.dto';
 import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
 import { GetUser } from '../auth/Decorator/GetUser.decorator';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 
 @Controller('Inventario')
 @UseGuards(JwtAuthGuard)
-@UseInterceptors(ClassSerializerInterceptor)
+@UseInterceptors(ClassSerializerInterceptor) // Agregar el interceptor para serialización
 export class InventarioController {
   constructor(
     private readonly materialService: MaterialService,

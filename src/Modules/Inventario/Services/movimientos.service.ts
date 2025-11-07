@@ -6,6 +6,8 @@ import { MovimientoMaterialDto } from "../InventarioDTO's/MovimientoMaterial.dto
 import { Material } from "../InventarioEntities/Material.Entity";
 import { MovimientoInventario } from "../InventarioEntities/Movimiento.Entity";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
+import { AuditoriaService } from "src/Modules/Auditoria/auditoria.service";
+import { UsuariosService } from "src/Modules/Usuarios/Services/usuarios.service";
 
 @Injectable()
 export class MovimientosService {
@@ -21,6 +23,10 @@ export class MovimientosService {
 
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
+
+        private readonly auditoriaService: AuditoriaService,
+
+        private readonly usuarioService: UsuariosService
     ) {}
 
     async getAllMovimientos() {
@@ -148,7 +154,7 @@ export class MovimientosService {
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getMany();
 
-        return movimientos.map(movimiento => {
+        return Promise.all(movimientos.map(async movimiento => {
             return {
                 Id_Ingreso_Egreso: movimiento.Id_Movimiento,
                 Tipo_Movimiento: movimiento.Tipo_Movimiento,
@@ -163,14 +169,9 @@ export class MovimientosService {
                     Cantidad: movimiento.Material.Cantidad,
                     Estado_Material: movimiento.Material.Estado_Material
                 },
-                Usuario: movimiento.Usuario ? {
-                    Id_Usuario: movimiento.Usuario.Id_Usuario,
-                    Nombre_Usuario: movimiento.Usuario.Nombre_Usuario,
-                    Id_Rol: movimiento.Usuario.Id_Rol,
-                    Nombre_Rol: movimiento.Usuario.Rol?.Nombre_Rol
-                } : null
+                Usuario: await this.usuarioService.FormatearUsuarioResponse(movimiento.Usuario)
             };
-        });
+        }));
     }
 
     async getMovimientosPorUsuario(idUsuario: number) {
@@ -186,7 +187,7 @@ export class MovimientosService {
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getMany();
 
-        return movimientos.map(movimiento => {
+        return Promise.all(movimientos.map(async movimiento => {
             return {
                 Id_Ingreso_Egreso: movimiento.Id_Movimiento,
                 Tipo_Movimiento: movimiento.Tipo_Movimiento,
@@ -201,24 +202,25 @@ export class MovimientosService {
                     Cantidad: movimiento.Material.Cantidad,
                     Estado_Material: movimiento.Material.Estado_Material
                 },
-                Usuario: movimiento.Usuario ? {
-                    Id_Usuario: movimiento.Usuario.Id_Usuario,
-                    Nombre_Usuario: movimiento.Usuario.Nombre_Usuario,
-                    Id_Rol: movimiento.Usuario.Id_Rol,
-                    Nombre_Rol: movimiento.Usuario.Rol?.Nombre_Rol
-                } : null
+                Usuario: await this.usuarioService.FormatearUsuarioResponse(movimiento.Usuario)
             };
-        });
+        }));
     }
 
     async IngresoMaterial(dto: MovimientoMaterialDto, idUsuario: number) {
-        if (dto.Cantidad <= 0) { throw new BadRequestException('La cantidad a ingresar debe ser mayor que cero'); }
+        if (dto.Cantidad <= 0) throw new BadRequestException('La cantidad a ingresar debe ser mayor que cero');
 
         const materialExistente = await this.materialRepository.findOne({ where: { Id_Material: dto.Id_Material } });
-        if (!materialExistente) { throw new NotFoundException('Material no encontrado'); }
+        if (!materialExistente) throw new NotFoundException('Material no encontrado');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
-        if (!usuario) { throw new NotFoundException('Usuario no encontrado'); }
+        if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
+        const datosAnteriores = {
+            Nombre_Material: materialExistente.Nombre_Material,
+            Cantidad: materialExistente.Cantidad,
+            Estado: materialExistente.Estado_Material
+        };
 
         // Guardar cantidad anterior para el registro
         const cantidadAnterior = materialExistente.Cantidad;
@@ -265,8 +267,17 @@ export class MovimientosService {
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getOne();
 
-        if (!ultimoMovimiento) {
-            throw new NotFoundException('No se pudo encontrar el movimiento registrado.');
+        if (!ultimoMovimiento) throw new NotFoundException('No se pudo encontrar el movimiento registrado.');
+        if (!materialActualizado) throw new NotFoundException('No se pudo encontrar el material actualizado.');
+
+        try {
+            await this.auditoriaService.logActualizacion('Movimientos', idUsuario, ultimoMovimiento.Id_Movimiento, datosAnteriores,{
+                Nombre_Material: materialActualizado.Nombre_Material,
+                Tipo_Movimiento: ultimoMovimiento.Tipo_Movimiento,
+                Cantidad: ultimoMovimiento.Cantidad,
+            });
+        } catch (error) {
+            console.error('Error al registrar auditoría:', error);
         }
 
         return {
@@ -279,26 +290,27 @@ export class MovimientosService {
                 Cantidad_Nueva: ultimoMovimiento.Cantidad_Nueva,
                 Observaciones: ultimoMovimiento.Observaciones,
                 Fecha_Movimiento: ultimoMovimiento.Fecha_Movimiento,
-                Usuario: {
-                    Id_Usuario: usuario.Id_Usuario,
-                    Nombre_Usuario: usuario.Nombre_Usuario,
-                    Id_Rol: usuario.Id_Rol,
-                    Nombre_Rol: usuario.Rol?.Nombre_Rol
-                }
+                Usuario: await this.usuarioService.FormatearUsuarioResponse(usuario)
             }
         };
     }
 
     async EgresoMaterial(idUsuario: number, dto: MovimientoMaterialDto) {
-        if (dto.Cantidad <= 0) { throw new BadRequestException('La cantidad a egresar debe ser mayor que cero'); }
+        if (dto.Cantidad <= 0) throw new BadRequestException('La cantidad a egresar debe ser mayor que cero');
 
         const materialExistente = await this.materialRepository.findOne({ where: { Id_Material: dto.Id_Material } });
-        if (!materialExistente) { throw new NotFoundException('Material no encontrado'); }
+        if (!materialExistente) throw new NotFoundException('Material no encontrado');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
-        if (!usuario) { throw new NotFoundException('Usuario no encontrado'); }
+        if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
-        if (materialExistente.Cantidad < dto.Cantidad) { throw new BadRequestException('No hay suficiente cantidad en inventario para realizar el egreso'); }
+        const datosAnteriores = {
+            Nombre_Material: materialExistente.Nombre_Material,
+            Cantidad: materialExistente.Cantidad,
+            Estado: materialExistente.Estado_Material
+        };
+
+        if (materialExistente.Cantidad < dto.Cantidad) throw new BadRequestException('No hay suficiente cantidad en inventario para realizar el egreso');
 
         // Guardar cantidad anterior para el registro
         const cantidadAnterior = materialExistente.Cantidad;
@@ -345,6 +357,21 @@ export class MovimientosService {
             .orderBy('movimiento.Fecha_Movimiento', 'DESC')
             .getOne();
 
+        if (!ultimoMovimiento) throw new NotFoundException('No se pudo encontrar el movimiento registrado.');
+        if (!materialActualizado) throw new NotFoundException('No se pudo encontrar el material actualizado.');
+
+            try {
+                await this.auditoriaService.logActualizacion('Movimientos', idUsuario, ultimoMovimiento.Id_Movimiento, datosAnteriores, {
+                    Nombre_Material: materialActualizado.Nombre_Material,
+                    Tipo_Movimiento: ultimoMovimiento.Tipo_Movimiento,
+                    Cantidad_Anterior: ultimoMovimiento.Cantidad_Anterior,
+                    Cantidad_Nueva: ultimoMovimiento.Cantidad_Nueva,
+                    Cantidad: ultimoMovimiento.Cantidad,
+                });
+            } catch (error) {
+                console.error('Error al registrar la auditoría:', error);
+            }
+
         return {
             Material: materialActualizado,
             Movimiento: ultimoMovimiento ? {
@@ -355,12 +382,7 @@ export class MovimientosService {
                 Cantidad_Nueva: ultimoMovimiento.Cantidad_Nueva,
                 Observaciones: ultimoMovimiento.Observaciones,
                 Fecha_Movimiento: ultimoMovimiento.Fecha_Movimiento,
-                Usuario: ultimoMovimiento.Usuario ? {
-                    Id_Usuario: ultimoMovimiento.Usuario.Id_Usuario,
-                    Nombre_Usuario: ultimoMovimiento.Usuario.Nombre_Usuario,
-                    Id_Rol: ultimoMovimiento.Usuario.Id_Rol,
-                    Nombre_Rol: ultimoMovimiento.Usuario.Rol?.Nombre_Rol
-                } : null
+                Usuario: await this.usuarioService.FormatearUsuarioResponse(usuario)
             } : null
         };
     }

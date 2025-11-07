@@ -121,7 +121,7 @@ export class ProyectoService {
 
         if (file) {
             try {
-                const fileRes = await this.dropboxFilesService.uploadFile(file, 'Proyectos', dto.Titulo || proyectoExistente.Titulo);
+                const fileRes = await this.dropboxFilesService.uploadFileDownloadOnly(file, 'Proyectos', dto.Titulo || proyectoExistente.Titulo);
                 proyectoExistente.Imagen_Url = fileRes.url;
             } catch (err) {
                 console.error('Error al subir el archivo a Dropbox:', err);
