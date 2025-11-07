@@ -1,6 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Lectura } from "./Lectura.Entity";
-import { Bloque } from "./Bloque.Entity";
 
 @Entity('Tipo_Tarifa_Lectura')
 export class TipoTarifaLectura {
@@ -15,7 +14,4 @@ export class TipoTarifaLectura {
 
     @OneToMany(() => Lectura, lectura => lectura.Tipo_Tarifa, { nullable: false })
     Lectura: Lectura[];
-
-    @OneToMany(() => Bloque, bloque => bloque.Id_Tipo_Tarifa, { nullable: false })
-    Bloques: Bloque[];
 }

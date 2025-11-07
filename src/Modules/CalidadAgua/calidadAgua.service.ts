@@ -113,14 +113,14 @@ export class CalidadAguaService {
         }
     }
 
-    async updateCalidadAgua(Id_Calidad_Agua: number, dto: UpdateCalidadAguaDto, idUsuario: number, file?: Express.Multer.File) {
+    async updateCalidadAgua(idCalidadAgua: number, dto: UpdateCalidadAguaDto, idUsuario: number, file?: Express.Multer.File) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new BadRequestException('El usuario no existe.');
 
-        const CalidadAgua = await this.calidadAguaRepository.findOne({ where: { Id_Calidad_Agua } });
-        if (!CalidadAgua) throw new NotFoundException(`Registro con ID ${Id_Calidad_Agua} no encontrado`);
+        const CalidadAgua = await this.calidadAguaRepository.findOne({ where: { Id_Calidad_Agua: idCalidadAgua } });
+        if (!CalidadAgua) throw new NotFoundException(`Registro con ID ${idCalidadAgua} no encontrado`);
 
         // Guardar datos anteriores para auditoría
         const datosAnteriores = {
@@ -166,7 +166,7 @@ export class CalidadAguaService {
 
         // Registrar en auditoría
         try {
-            await this.auditoriaService.logActualizacion('Calidad de Agua', idUsuario, Id_Calidad_Agua, datosAnteriores, {
+            await this.auditoriaService.logActualizacion('Calidad de Agua', idUsuario, idCalidadAgua, datosAnteriores, {
                 Titulo: calidadAguaActualizada.Titulo,
                 Descripcion: calidadAguaActualizada.Descripcion,
                 Url_Archivo: calidadAguaActualizada.Url_Archivo,
@@ -179,11 +179,11 @@ export class CalidadAguaService {
         return calidadAguaActualizada;
     }
 
-    async updateVisibilidadCalidadAgua(Id_Calidad_Agua: number, idUsuario: number) {
+    async updateVisibilidadCalidadAgua(idCalidadAgua: number, idUsuario: number) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
-        const calidadAgua = await this.calidadAguaRepository.findOne({ where: { Id_Calidad_Agua } });
-        if (!calidadAgua) throw new NotFoundException(`Registro con ID ${Id_Calidad_Agua} no encontrado`);
+        const calidadAgua = await this.calidadAguaRepository.findOne({ where: { Id_Calidad_Agua: idCalidadAgua } });
+        if (!calidadAgua) throw new NotFoundException(`Registro con ID ${idCalidadAgua} no encontrado`);
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
         if (!usuario) throw new BadRequestException('Usuario no encontrado');
@@ -200,7 +200,7 @@ export class CalidadAguaService {
         const calidadAguaActualizada = await this.calidadAguaRepository.save(calidadAgua);
 
         try {
-            await this.auditoriaService.logActualizacion('Calidad de Agua', idUsuario, Id_Calidad_Agua, datosAnteriores, {
+            await this.auditoriaService.logActualizacion('Calidad de Agua', idUsuario, idCalidadAgua, datosAnteriores, {
                 Titulo: calidadAguaActualizada.Titulo,
                 Descripcion: calidadAguaActualizada.Descripcion,
                 Url_Archivo: calidadAguaActualizada.Url_Archivo,

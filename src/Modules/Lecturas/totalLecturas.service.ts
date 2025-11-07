@@ -7,6 +7,8 @@ import { TipoTarifaServiciosFijos } from "./LecturaEntities/TipoTarifaServiciosF
 import { TipoTarifaVentaAgua } from "./LecturaEntities/TipoTarifaVentaAgua.Entity";
 import { EstadoAfiliado } from '../Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { getTotalPorM3DTO } from './LecturaDTO\'S/getTotalPorM3.dto';
+import { RangoConsumo } from './LecturaEntities/RangoConsumo.Entity';
+import { RangoAfiliados } from './LecturaEntities/RangoAfiliados.Entity';
 
 export class totalLecturasService {
     constructor(
@@ -21,6 +23,12 @@ export class totalLecturasService {
 
         @InjectRepository(TipoTarifaVentaAgua)
         private readonly tipoTarifaVentaAguaRepository: Repository<TipoTarifaVentaAgua>,
+
+        @InjectRepository(RangoConsumo)
+        private readonly rangoConsumoRepository: Repository<RangoConsumo>,
+
+        @InjectRepository(RangoAfiliados)
+        private readonly rangoAfiliadosRepository: Repository<RangoAfiliados>,
 
         @InjectRepository(Afiliado)
         private readonly afiliadoRepository: Repository<Afiliado>,
@@ -201,9 +209,5 @@ export class totalLecturasService {
         }
 
         return valorPorM3;
-    }
-
-    async getTotalLectura(valorCalculado: number) {
-
     }
 }
