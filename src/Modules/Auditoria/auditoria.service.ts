@@ -114,6 +114,10 @@ export class AuditoriaService {
                             if (anteriores.Ubicacion) return anteriores.Ubicacion;
                             break;
 
+                        case 'autenticación':
+                            if (anteriores.Nombre_Usuario) return anteriores.Nombre_Usuario;
+                            break;
+
                     }
                 } catch (error) {
                     console.error('Error al parsear datos anteriores:', error);
@@ -196,6 +200,10 @@ export class AuditoriaService {
 
                         case 'reportes':
                             if (nuevos.Ubicacion) return nuevos.Ubicacion;
+                            break;
+
+                        case 'autenticación':
+                            if (nuevos.Nombre_Usuario) return nuevos.Nombre_Usuario;
                             break;
                     }
                 } catch (error) {
@@ -300,6 +308,12 @@ export class AuditoriaService {
                         where: { Id_Sugerencia: idRegistro }
                     });
                     return sugerencia?.Mensaje || `Sugerencia ID: ${idRegistro}`;
+
+                case 'autenticación':
+                    const usuarioAuth = await this.usuarioRepository.findOne({
+                        where: { Id_Usuario: idRegistro }
+                    });
+                    return usuarioAuth?.Nombre_Usuario || `Usuario ID: ${idRegistro}`;
 
                 default:
                     return `Registro ID: ${idRegistro}`;
@@ -406,5 +420,10 @@ export class AuditoriaService {
 
     async logEliminacion(modulo: string, usuarioId: number, idRegistro: number, datosAnteriores: any): Promise<Auditoria> {
         return this.createAuditoria(modulo, 'Eliminación', usuarioId, idRegistro, datosAnteriores, null);
+    }
+
+    async logAutenticacion(accion: 'Login' | 'Logout', usuarioId: number, datosAdicionales?: any): Promise<Auditoria> {
+        // Para eventos de autenticación, usamos el ID del usuario como Id_Registro
+        return this.createAuditoria('Autenticación', accion, usuarioId, usuarioId, null, datosAdicionales || {});
     }
 }
