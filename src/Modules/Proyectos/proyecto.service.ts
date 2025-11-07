@@ -6,7 +6,6 @@ import { CreateProyectoDto } from "./ProyectoDTO's/CreateProyecto.dto";
 import { Proyecto } from "./ProyectoEntities/Proyecto.Entity";
 import { EstadoProyecto } from "./ProyectoEntities/EstadoProyecto.Entity";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
-import { Public } from "../auth/Decorator/Public.decorator";
 import { UsuariosService } from "../Usuarios/Services/usuarios.service";
 import { AuditoriaService } from "../Auditoria/auditoria.service";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
@@ -31,11 +30,26 @@ export class ProyectoService {
     ) { }
 
     async getProyectos() {
-        return this.proyectoRepository.find({ relations: ['Estado'] });
+        const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
+            .leftJoinAndSelect('proyecto.Estado', 'estado')
+            .leftJoinAndSelect('proyecto.Usuario', 'usuario')
+            .getMany();
+
+        return Promise.all(proyectos.map(async proyecto => ({
+                ...proyecto,
+                Usuario: await this.usuariosService.FormatearUsuarioResponse(proyecto.Usuario)
+            })));
     }
 
     async getProyectosVisibles() {
-        return this.proyectoRepository.find({ where: { Visible: true }, relations: ['Estado'] });
+        const proyectos = await this.proyectoRepository.createQueryBuilder('proyecto')
+            .leftJoinAndSelect('proyecto.Estado', 'estado')
+            .where('proyecto.Visible = :visible', { visible: true })
+            .getMany();
+
+        return Promise.all(proyectos.map(async proyecto => ({
+                ...proyecto
+            })));
     }
 
     async findProyectobyId(Id_Proyecto: number) {
@@ -93,53 +107,53 @@ export class ProyectoService {
         }
     }
 
-    async UpdateProyecto(Id_Proyecto: number, dto: UpdateProyectoDto, idUsuario: number) {
+    async UpdateProyecto(idProyecto: number, dto: UpdateProyectoDto, idUsuario: number, file?: Express.Multer.File) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new BadRequestException('El usuario no existe.');
 
-        const proyecto = await this.proyectoRepository.findOne({
-            where: { Id_Proyecto },
-            relations: ['Estado', 'Usuario', 'Usuario.Rol']
-        });
-        if (!proyecto) { throw new NotFoundException(`Proyecto con id ${Id_Proyecto} no encontrado`); }
+        const proyectoExistente = await this.proyectoRepository.findOne({ where: { Id_Proyecto: idProyecto }, relations: ['Estado', 'Usuario'] });
+        if (!proyectoExistente) throw new NotFoundException(`Proyecto con id ${idProyecto} no encontrado`);
+
+        if (dto.Titulo) proyectoExistente.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
+        if (dto.Descripcion) proyectoExistente.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
+
+        if (file) {
+            try {
+                const fileRes = await this.dropboxFilesService.uploadFile(file, 'Proyectos', dto.Titulo || proyectoExistente.Titulo);
+                proyectoExistente.Imagen_Url = fileRes.url;
+            } catch (err) {
+                console.error('Error al subir el archivo a Dropbox:', err);
+            }
+        }
 
         // Guardar datos anteriores para auditoría
         const datosAnteriores = {
-            Titulo: proyecto.Titulo,
-            Descripcion: proyecto.Descripcion,
-            Estado: proyecto.Estado?.Nombre_Estado,
-            Visible: false
+            Titulo: proyectoExistente.Titulo,
+            Descripcion: proyectoExistente.Descripcion,
+            Imagen_Url: proyectoExistente.Imagen_Url,
+            Estado: proyectoExistente.Estado.Nombre_Estado,
+            Visible: proyectoExistente.Visible
         };
 
-        if (dto.Titulo) {
-            dto.Titulo = dto.Titulo.trim()[0].toUpperCase() + dto.Titulo.trim().slice(1).toLowerCase();
-        }
-
-        if (dto.Descripcion) {
-            dto.Descripcion = dto.Descripcion.trim()[0].toUpperCase() + dto.Descripcion.trim().slice(1).toLowerCase();
-        }
-
-        Object.assign(proyecto, dto);
-        const proyectoActualizado = await this.proyectoRepository.save(proyecto);
+        const proyectoGuardado = await this.proyectoRepository.save(proyectoExistente);
 
         // Registrar en auditoría
         try {
-            await this.auditoriaService.logActualizacion('Proyecto', idUsuario, Id_Proyecto, datosAnteriores, {
-                Titulo: proyectoActualizado.Titulo,
-                Descripcion: proyectoActualizado.Descripcion,
-                Estado: proyectoActualizado.Estado?.Nombre_Estado,
-                Visible: proyectoActualizado.Visible
+            await this.auditoriaService.logActualizacion('Proyectos', idUsuario, idProyecto, datosAnteriores, {
+                Titulo: proyectoGuardado.Titulo,
+                Descripcion: proyectoGuardado.Descripcion,
+                Estado: proyectoGuardado.Estado.Nombre_Estado,
+                Visible: proyectoGuardado.Visible
             });
         } catch (error) {
             console.error('Error al registrar auditoría de actualización de proyecto:', error);
         }
 
         return {
-            ...proyectoActualizado,
-            Usuario: proyectoActualizado.Usuario ?
-                await this.usuariosService.FormatearUsuarioResponse(proyectoActualizado.Usuario) : null
+            ...proyectoGuardado,
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(proyectoGuardado.Usuario)
         };
     }
 
@@ -151,30 +165,30 @@ export class ProyectoService {
 
         const proyecto = await this.proyectoRepository.findOne({
             where: { Id_Proyecto: idProyecto },
-            relations: ['Estado', 'Usuario', 'Usuario.Rol']
+            relations: ['Estado', 'Usuario']
         });
         if (!proyecto) throw new NotFoundException(`Proyecto con id ${idProyecto} no encontrado`);
 
         const nuevoEstado = await this.proyectoEstadoRepository.findOne({ where: { Id_Estado_Proyecto: idEstadoProyecto } });
-        if (!nuevoEstado) { throw new Error(`Estado con id ${idEstadoProyecto} no encontrado`); }
+        if (!nuevoEstado) throw new Error(`Estado con id ${idEstadoProyecto} no encontrado`);
 
         // Guardar estado anterior para auditoría
-        const estadoAnterior = proyecto.Estado;
+        const datosAnteriores = {
+            Titulo: proyecto.Titulo,
+            Estado_Anterior: {
+                Id_Estado: proyecto.Estado.Id_Estado_Proyecto,
+                Nombre: proyecto.Estado.Nombre_Estado
+            }
+        };
 
         proyecto.Estado = nuevoEstado;
         const proyectoActualizado = await this.proyectoRepository.save(proyecto);
 
         // Registrar en auditoría
         try {
-            await this.auditoriaService.logActualizacion('Proyecto', idUsuario, idProyecto, {
-                Titulo: proyecto.Titulo,
-                Estado_Anterior: {
-                    Id: estadoAnterior.Id_Estado_Proyecto,
-                    Nombre: estadoAnterior.Nombre_Estado
-                }
-            }, {
+            await this.auditoriaService.logActualizacion('Proyectos', idUsuario, idProyecto, datosAnteriores, {
                 Estado_Nuevo: {
-                    Id: nuevoEstado.Id_Estado_Proyecto,
+                    Id_Estado: nuevoEstado.Id_Estado_Proyecto,
                     Nombre: nuevoEstado.Nombre_Estado
                 }
             });
@@ -184,25 +198,27 @@ export class ProyectoService {
 
         return {
             ...proyectoActualizado,
-            Usuario: proyectoActualizado.Usuario ?
-                await this.usuariosService.FormatearUsuarioResponse(proyectoActualizado.Usuario) : null
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(proyectoActualizado.Usuario)
         };
     }
 
-    async updateVisibilidadProyecto(Id_Proyecto: number, idUsuario: number) {
+    async updateVisibilidadProyecto(IdProyecto: number, idUsuario: number) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new BadRequestException('El usuario no existe.');
 
         const proyecto = await this.proyectoRepository.findOne({
-            where: { Id_Proyecto },
+            where: { Id_Proyecto: IdProyecto },
             relations: ['Estado', 'Usuario', 'Usuario.Rol']
         });
-        if (!proyecto) { throw new Error(`Proyecto con id ${Id_Proyecto} no encontrado`); }
+        if (!proyecto) throw new Error(`Proyecto con id ${IdProyecto} no encontrado`);
 
         // Guardar visibilidad anterior para auditoría
-        const visibilidadAnterior = proyecto.Visible;
+        const datosAnteriores = {
+            Titulo: proyecto.Titulo,
+            Visibilidad_Anterior: proyecto.Visible
+        };
 
         // Toggle: alterna entre true y false
         proyecto.Visible = !proyecto.Visible;
@@ -210,11 +226,9 @@ export class ProyectoService {
 
         // Registrar en auditoría
         try {
-            await this.auditoriaService.logActualizacion('Proyecto', idUsuario, Id_Proyecto, {
-                Titulo: proyecto.Titulo,
-                Visibilidad_Anterior: visibilidadAnterior ? 'Público' : 'Privado'
-            }, {
-                Visibilidad_Nueva: proyectoActualizado.Visible ? 'Público' : 'Privado'
+            await this.auditoriaService.logActualizacion('Proyectos', idUsuario, IdProyecto, datosAnteriores, {
+                Titulo: proyectoActualizado.Titulo,
+                Visibilidad_Nueva: proyectoActualizado.Visible
             });
         } catch (error) {
             console.error('Error al registrar auditoría de cambio de visibilidad de proyecto:', error);
@@ -222,7 +236,7 @@ export class ProyectoService {
 
         return {
             ...proyectoActualizado,
-            Usuario: proyectoActualizado.Usuario ? await this.usuariosService.FormatearUsuarioResponse(proyectoActualizado.Usuario) : null
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(proyectoActualizado.Usuario)
         };
     }
 }

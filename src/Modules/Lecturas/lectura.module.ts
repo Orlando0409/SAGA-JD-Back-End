@@ -16,10 +16,12 @@ import { totalLecturasService } from "./totalLecturas.service";
 import { TipoTarifaLectura } from "./LecturaEntities/TipoTarifaLectura.Entity";
 import { TipoTarifaVentaAgua } from "./LecturaEntities/TipoTarifaVentaAgua.Entity";
 import { TipoTarifaServiciosFijos } from "./LecturaEntities/TipoTarifaServiciosFijos.Entity";
+import { RangoAfiliados } from "./LecturaEntities/RangoAfiliados.Entity";
+import { RangoConsumo } from "./LecturaEntities/RangoConsumo.Entity";
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, Usuario, Medidor, EstadoMedidor, Afiliado, EstadoAfiliado]), 
+        TypeOrmModule.forFeature([Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, RangoAfiliados, RangoConsumo, Usuario, Medidor, EstadoMedidor, Afiliado, EstadoAfiliado]), 
         forwardRef(() => UsuariosModule),
         forwardRef(() => AuditoriaModule),
         forwardRef(() => InventarioModule),

@@ -1,11 +1,11 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { TipoTarifaLectura } from "./TipoTarifaLectura.Entity";
 
-// Tabla para almacenar los cargos fijos mensuales por servicios según tipo de tarifa y rango de afiliados
-@Entity('Tipo_Tarifa_Servicios_Fijos')
-export class TipoTarifaServiciosFijos {
+// Tabla para definir rangos de afiliados con sus costos base directos
+@Entity('Rango_Afiliados')
+export class RangoAfiliados {
     @PrimaryGeneratedColumn()
-    Id_Tipo_Tarifa_Servicios_Fijos: number;
+    Id_Rango_Afiliados: number;
 
     @ManyToOne(() => TipoTarifaLectura, { nullable: false })
     @JoinColumn({ name: 'Id_Tipo_Tarifa_Lectura' })
@@ -17,9 +17,9 @@ export class TipoTarifaServiciosFijos {
     @Column({ type: 'int', nullable: false })
     Maximo_Afiliados: number;
 
-    @Column({ type: 'varchar', length: 20, nullable: false })
-    Nombre_Rango: string; // "1-100", "101-300", "301-1000", "1000+"
+    @Column({ nullable: false })
+    Nombre_Rango: string; // "1-100", "101-300", etc.
 
     @Column({ type: 'int', nullable: false })
-    Cargo_Base: number; // Cargo fijo mensual en colones
+    Costo_Por_M3: number; // Costo base directo en colones por M³
 }

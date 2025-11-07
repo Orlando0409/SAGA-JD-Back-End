@@ -77,3 +77,5 @@ select * from unidades_medicion;
 select * from movimiento;
 
 select * from medidor;
+
+select * from Tipo_Tarifa_Servicios_Fijos;

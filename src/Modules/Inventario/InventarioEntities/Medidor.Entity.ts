@@ -13,6 +13,9 @@ export class Medidor {
     @Column({ nullable: false, unique: true })
     Numero_Medidor: number;
 
+    @Column({ nullable: true })
+    Id_Solicitud: number; // ID de la solicitud asociada (se asigna antes de crear el afiliado)
+
     @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Creacion: Date;
 

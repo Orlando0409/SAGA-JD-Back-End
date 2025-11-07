@@ -38,8 +38,8 @@ export class ProyectoController {
   }
 
   @Post('/create')
-  @UseInterceptors(FileInterceptor("Imagen_Proyecto"))
   @ApiOperation({ summary: "Crear un nuevo proyecto" })
+  @UseInterceptors(FileInterceptor("Imagen_Proyecto"))
   CreateProyecto(
     @Body() createProyectoDto: CreateProyectoDto,
     @GetUser() usuario: Usuario,
@@ -50,12 +50,14 @@ export class ProyectoController {
 
   @Put('/update/:idProyecto')
   @ApiOperation({ summary: 'Actualizar un proyecto por ID' })
+  @UseInterceptors(FileInterceptor("Imagen_Proyecto"))
   updateProyecto(
     @Param('idProyecto', ParseIntPipe) idProyecto: number,
     @Body() UpdateProyectoDto: UpdateProyectoDto,
-    @GetUser() usuario: Usuario
+    @UploadedFile() Imagen_Proyecto: Express.Multer.File,
+    @GetUser() usuario: Usuario,
   ) {
-    return this.proyectoService.UpdateProyecto(idProyecto, UpdateProyectoDto, usuario.Id_Usuario);
+    return this.proyectoService.UpdateProyecto(idProyecto, UpdateProyectoDto, usuario.Id_Usuario, Imagen_Proyecto);
   }
 
   @Patch(':idProyecto/update/estado/:idEstadoProyecto')

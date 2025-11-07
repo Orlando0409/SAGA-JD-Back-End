@@ -13,6 +13,7 @@ import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
 import { AuditoriaService } from "../Auditoria/auditoria.service";
 import { UsuariosService } from "../Usuarios/Services/usuarios.service";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
+import { Medidor } from "../Inventario/InventarioEntities/Medidor.Entity";
 
 @Injectable()
 export class AfiliadosService {
@@ -40,6 +41,9 @@ export class AfiliadosService {
 
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
+
+        @InjectRepository(Medidor)
+        private readonly medidorRepository: Repository<Medidor>,
 
         @Inject(forwardRef(() => AuditoriaService))
         private readonly auditoriaService: AuditoriaService,
@@ -159,7 +163,25 @@ export class AfiliadosService {
             Edad: solicitud.Edad
         });
 
-        return this.afiliadoFisicoRepository.save(afiliadoFisico);
+        const afiliadoFisicoGuardado = await this.afiliadoFisicoRepository.save(afiliadoFisico);
+
+        // 3. Buscar y vincular el medidor que estaba asignado a esta solicitud
+        const medidor = await this.medidorRepository.findOne({
+            where: { Id_Solicitud: solicitud.Id_Solicitud },
+            relations: ['Estado_Medidor']
+        });
+
+        if (medidor) {
+            // Asignar el medidor al nuevo afiliado
+            medidor.Afiliado = afiliadoGuardado;
+            await this.medidorRepository.save(medidor);
+
+            console.log(`Medidor ${medidor.Numero_Medidor} vinculado exitosamente al afiliado físico ${solicitud.Identificacion}`);
+        } else {
+            console.warn(`No se encontró medidor asignado a la solicitud ${solicitud.Id_Solicitud} para vincular con el afiliado`);
+        }
+
+        return afiliadoFisicoGuardado;
     }
 
     async createAfiliadoFisico(dto: CreateAfiliadoFisicoDto, idUsuario: number, files: any) {
@@ -245,7 +267,25 @@ export class AfiliadosService {
             Razon_Social: solicitud.Razon_Social
         });
 
-        return this.afiliadoJuridicoRepository.save(afiliadoJuridico);
+        const afiliadoJuridicoGuardado = await this.afiliadoJuridicoRepository.save(afiliadoJuridico);
+
+        // 3. Buscar y vincular el medidor que estaba asignado a esta solicitud
+        const medidor = await this.medidorRepository.findOne({
+            where: { Id_Solicitud: solicitud.Id_Solicitud },
+            relations: ['Estado_Medidor']
+        });
+
+        if (medidor) {
+            // Asignar el medidor al nuevo afiliado
+            medidor.Afiliado = afiliadoGuardado;
+            await this.medidorRepository.save(medidor);
+
+            console.log(`Medidor ${medidor.Numero_Medidor} vinculado exitosamente al afiliado jurídico ${solicitud.Cedula_Juridica}`);
+        } else {
+            console.warn(`No se encontró medidor asignado a la solicitud ${solicitud.Id_Solicitud} para vincular con el afiliado`);
+        }
+
+        return afiliadoJuridicoGuardado;
     }
 
     async createAfiliadoJuridico(dto: CreateAfiliacionJuridicaDto, idUsuario: number, files: any) {
