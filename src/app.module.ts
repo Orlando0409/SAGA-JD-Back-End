@@ -65,6 +65,7 @@ import { ManualModule } from './Modules/ManualdeUsuario/manual.module';
 import { ManualEntity } from './Modules/ManualdeUsuario/ManualEntities/Manual.Entity';
 import { RangoAfiliados } from './Modules/Lecturas/LecturaEntities/RangoAfiliados.Entity';
 import { RangoConsumo } from './Modules/Lecturas/LecturaEntities/RangoConsumo.Entity';
+import { MailerGmailModule } from './Modules/Emails/nodemailer/mailer.module';
 
 @Module({
   imports: [
@@ -129,7 +130,8 @@ import { RangoConsumo } from './Modules/Lecturas/LecturaEntities/RangoConsumo.En
     FAQModule,
     QuejasModule,
     ImagenesModule,
-    ManualModule
+    ManualModule,
+    MailerGmailModule
   ],
   controllers: [],
   providers: [
