@@ -51,7 +51,7 @@ export class CreateAfiliadoFisicoDto extends CreateAfiliadoDto {
   Identificacion: string;
 
   @ApiProperty({ example: 'Mario' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim() ? value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase() : value)
   @IsString({ message: 'El nombre debe ser un string' })
   @IsDefined({ message: 'El nombre no puede estar vacío' })
   @IsNotEmpty({ message: 'El nombre no puede estar vacío' })
@@ -61,7 +61,7 @@ export class CreateAfiliadoFisicoDto extends CreateAfiliadoDto {
   Nombre: string;
 
   @ApiProperty({ example: 'Perez' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => value?.trim() ? value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase() : value)
   @IsString({ message: 'El primer apellido debe ser un string' })
   @IsDefined({ message: 'El primer apellido no puede estar vacío' })
   @IsNotEmpty({ message: 'El primer apellido no puede estar vacío' })
@@ -70,15 +70,15 @@ export class CreateAfiliadoFisicoDto extends CreateAfiliadoDto {
   @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'El primer apellido solo puede contener letras y espacios' })
   Apellido1: string;
 
-  @ApiProperty({ example: 'Lopez', required: false })
-  @Transform(({ value }) => {
-    if (!value || value.trim() === '') return 'No Proporcionado';
-    return value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase();
-  })
+  @ApiProperty({ example: 'Lopez' })
+  @Transform(({ value }) => value?.trim() ? value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase() : value)
   @IsString({ message: 'El segundo apellido debe ser un string' })
+  @IsDefined({ message: 'El segundo apellido no puede estar vacío' })
+  @IsNotEmpty({ message: 'El segundo apellido no puede estar vacío' })
+  @MinLength(2, { message: 'El segundo apellido debe tener al menos 2 caracteres' })
   @MaxLength(50, { message: 'El segundo apellido no puede tener más de 50 caracteres' })
-  @IsOptional()
-  Apellido2?: string;
+  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'El segundo apellido solo puede contener letras y espacios' })
+  Apellido2: string;
 
   @ApiProperty({ example: 25 })
   @IsNumber({}, { message: 'La edad debe ser un número' })

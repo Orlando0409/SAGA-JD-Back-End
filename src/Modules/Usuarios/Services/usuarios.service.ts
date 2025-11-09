@@ -21,88 +21,64 @@ export class UsuariosService {
         private readonly auditoriaService: AuditoriaService,
     ) { }
 
-    async createUser(createUserDto: CreateUsuarioDto, idUsuario: number) {
+    async createUser(dto: CreateUsuarioDto, idUsuario: number) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
-        const { Id_Rol, Contraseña, Correo_Electronico, Nombre_Usuario, ...userData } = createUserDto;
+        // Validar nombre de usuario existente
+        const nombreUsuarioExistente = await this.usuarioRepository.findOne({ where: { Nombre_Usuario: dto.Nombre_Usuario } });
+        if (nombreUsuarioExistente) throw new BadRequestException('El nombre de usuario ya está registrado');
+
         // Validar correo existente
-        const correoExistente = await this.usuarioRepository.findOne({ where: { Correo_Electronico }, withDeleted: true });
+        const correoExistente = await this.usuarioRepository.findOne({ where: { Correo_Electronico: dto.Correo_Electronico } });
         if (correoExistente) throw new BadRequestException('El correo electrónico ya está registrado');
 
-        // Validar nombre de usuario existente
-        if (Nombre_Usuario) {
-            const nombreExistente = await this.usuarioRepository.findOne({ where: { Nombre_Usuario }, withDeleted: true });
-            if (nombreExistente) throw new BadRequestException('El nombre de usuario ya está registrado');
-        }
+        const rolExistente = await this.rolRepository.findOne({ where: { Id_Rol: dto.Id_Rol }, relations: ['Permisos'] });
+        if (!rolExistente) throw new NotFoundException('Rol no encontrado');
 
         //  Hashear la contraseña antes de guardar
-        let hashedPassword = Contraseña;
-        if (Contraseña) hashedPassword = await bcrypt.hash(Contraseña, 10);
+        let hashedPassword = dto.Contraseña;
+        if (dto.Contraseña) hashedPassword = await bcrypt.hash(dto.Contraseña, 10);
 
-        if (Id_Rol && Id_Rol !== 0) {
-            const rol = await this.rolRepository.findOneBy({ Id_Rol: Id_Rol });
-            if (!rol) throw new NotFoundException('Rol no encontrado');
-
-            const user = this.usuarioRepository.create({
-                ...userData,
-                Nombre_Usuario,
-                Contraseña: hashedPassword, //  Usar contraseña hasheada
-                Id_Rol: Id_Rol,
-                Correo_Electronico
-            });
-            const usuarioGuardado = await this.usuarioRepository.save(user);
-
-            // Registrar en auditoría - usuario con rol
-            try {
-                await this.auditoriaService.logCreacion('Usuario', usuarioGuardado.Id_Usuario, usuarioGuardado.Id_Usuario, {
-                    Id_Usuario: usuarioGuardado.Id_Usuario,
-                    Nombre_Usuario: usuarioGuardado.Nombre_Usuario,
-                    Correo_Electronico: usuarioGuardado.Correo_Electronico,
-                    Id_Rol: usuarioGuardado.Id_Rol,
-                    Nombre_Rol: rol.Nombre_Rol
-                });
-            } catch (error) {
-                console.error('Error al registrar auditoría de creación de usuario:', error);
-            }
-
-            return usuarioGuardado;
-        }
         const user = this.usuarioRepository.create({
-            ...userData,
-            Nombre_Usuario,
-            Correo_Electronico,
-            Contraseña: hashedPassword //  Usar contraseña hasheada
+            ...dto,
+            Contraseña: hashedPassword,
         });
+
         const usuarioGuardado = await this.usuarioRepository.save(user);
 
-        // Registrar en auditoría - usuario sin rol
+        // Registrar en auditoría - usuario con rol
         try {
             await this.auditoriaService.logCreacion('Usuario', usuarioGuardado.Id_Usuario, usuarioGuardado.Id_Usuario, {
                 Id_Usuario: usuarioGuardado.Id_Usuario,
                 Nombre_Usuario: usuarioGuardado.Nombre_Usuario,
                 Correo_Electronico: usuarioGuardado.Correo_Electronico,
-                Id_Rol: 0,
-                Nombre_Rol: 'Sin rol'
+                Id_Rol: usuarioGuardado.Id_Rol,
+                Nombre_Rol: rolExistente.Nombre_Rol
             });
         } catch (error) {
             console.error('Error al registrar auditoría de creación de usuario:', error);
         }
 
-        return usuarioGuardado;
+        const { Contraseña, Refresh_Token, Id_Rol, ...userWithoutPassword } = usuarioGuardado;
+
+        return {
+            ...userWithoutPassword,
+            Rol: rolExistente
+        };
     }
 
     async AllUser() {
-        const users = await this.usuarioRepository.find({
-            relations: ['Rol', 'Rol.Permisos'],
-            withDeleted: true
-        });
+        const users = await this.usuarioRepository.createQueryBuilder('usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .leftJoinAndSelect('rol.Permisos', 'permisos')
+            .withDeleted()
+            .getMany();
 
-        //  Remover contraseñas de la respuesta
         return users.map(user => {
-            const { Contraseña, ...userWithoutPassword } = user;
+            const { Contraseña, Refresh_Token, Id_Rol, ...userWithoutPassword } = user;
             return {
                 ...userWithoutPassword,
                 Rol: user.Rol || 'Este usuario no posee rol'
@@ -111,16 +87,16 @@ export class UsuariosService {
     }
 
     async findOneUser(id: number) {
-        const user = await this.usuarioRepository.findOne({
-            where: { Id_Usuario: id },
-            relations: ['Rol', 'Rol.Permisos'],
-            withDeleted: true
-        });
+        const user = await this.usuarioRepository.createQueryBuilder('usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .leftJoinAndSelect('rol.Permisos', 'permisos')
+            .withDeleted()
+            .where('usuario.Id_Usuario = :id', { id })
+            .getOne();
 
         if (!user) throw new NotFoundException('Usuario no encontrado');
 
-        //  Remover contraseña de la respuesta
-        const { Contraseña, ...userWithoutPassword } = user;
+        const { Contraseña, Refresh_Token, Id_Rol, ...userWithoutPassword } = user;
 
         return {
             ...userWithoutPassword,
@@ -134,12 +110,28 @@ export class UsuariosService {
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
-        const user = await this.usuarioRepository.findOne({
-            where: { Id_Usuario: id },
-            relations: ['Rol', 'Rol.Permisos'],
-        });
-
+        const user = await this.usuarioRepository.findOne({ where: { Id_Usuario: id }, relations: ['Rol', 'Rol.Permisos'] });
         if (!user) throw new NotFoundException('Usuario no encontrado');
+
+        // Validar nombre de usuario único (si se está cambiando)
+        if (updateUserDto.Nombre_Usuario !== undefined && updateUserDto.Nombre_Usuario !== user.Nombre_Usuario) {
+            const nombreUsuarioExistente = await this.usuarioRepository.findOne({
+                where: { Nombre_Usuario: updateUserDto.Nombre_Usuario }
+            });
+            if (nombreUsuarioExistente) {
+                throw new BadRequestException('El nombre de usuario ya está registrado');
+            }
+        }
+
+        // Validar correo único (si se está cambiando)
+        if (updateUserDto.Correo_Electronico !== undefined && updateUserDto.Correo_Electronico !== user.Correo_Electronico) {
+            const correoExistente = await this.usuarioRepository.findOne({
+                where: { Correo_Electronico: updateUserDto.Correo_Electronico }
+            });
+            if (correoExistente) {
+                throw new BadRequestException('El correo electrónico ya está registrado');
+            }
+        }
 
         // Guardar datos anteriores para auditoría
         const datosAnteriores = {
@@ -150,13 +142,8 @@ export class UsuariosService {
         };
 
         // Manejar campos específicos
-        if (updateUserDto.Nombre_Usuario !== undefined) {
-            user.Nombre_Usuario = updateUserDto.Nombre_Usuario;
-        }
-
-        if (updateUserDto.Correo_Electronico !== undefined) {
-            user.Correo_Electronico = updateUserDto.Correo_Electronico;
-        }
+        if (updateUserDto.Nombre_Usuario !== undefined) user.Nombre_Usuario = updateUserDto.Nombre_Usuario;
+        if (updateUserDto.Correo_Electronico !== undefined) user.Correo_Electronico = updateUserDto.Correo_Electronico;
 
         // Manejar el rol
         if (updateUserDto.Id_Rol !== undefined) {
@@ -165,9 +152,8 @@ export class UsuariosService {
                 user.Rol.Id_Rol = 0;
             } else {
                 const nuevoRol = await this.rolRepository.findOneBy({ Id_Rol: updateUserDto.Id_Rol });
-                if (!nuevoRol) {
-                    throw new NotFoundException('Rol no encontrado');
-                }
+                if (!nuevoRol) throw new NotFoundException('Rol no encontrado');
+
                 user.Id_Rol = updateUserDto.Id_Rol;
                 user.Rol = nuevoRol;
             }
@@ -187,9 +173,17 @@ export class UsuariosService {
             console.error('Error al registrar auditoría de actualización de usuario:', error);
         }
 
-        // Remover la contraseña de la respuesta
-        const { Contraseña, ...userWithoutPassword } = updatedUser;
-        return userWithoutPassword;
+        // Recargar el usuario con todas las relaciones para asegurar que se tienen los permisos
+        const userConPermisos = await this.usuarioRepository.findOne({ where: { Id_Usuario: id }, relations: ['Rol', 'Rol.Permisos'] });
+        if (!userConPermisos) throw new NotFoundException('Usuario no encontrado después de actualizar');
+
+        // Remover la contraseña y datos sensibles de la respuesta
+        const { Contraseña, Refresh_Token, Id_Rol, ...userWithoutPassword } = userConPermisos;
+
+        return {
+            ...userWithoutPassword,
+            Rol: userConPermisos.Rol || 'Este usuario no posee rol'
+        };
     }
 
     async softDeleteUser(id: number, idUsuario: number) {
@@ -198,15 +192,10 @@ export class UsuariosService {
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
-        const user = await this.usuarioRepository.findOne({
-            where: { Id_Usuario: id },
-            relations: ['Rol'],
-            withDeleted: true,
-        });
-
+        const user = await this.usuarioRepository.findOne({ where: { Id_Usuario: id }, relations: ['Rol'] });
         if (!user) throw new NotFoundException('Usuario no encontrado.');
 
-        if (user.Fecha_Eliminacion) throw new BadRequestException('El usuario ya está inactivo.');
+        if (user.Fecha_Eliminacion != null) throw new BadRequestException('El usuario ya está inactivo.');
 
         // Guardar datos anteriores para auditoría
         const datosAnteriores = {
@@ -241,22 +230,14 @@ export class UsuariosService {
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
-        const user = await this.usuarioRepository.findOne({
-            where: { Id_Usuario: id },
-            relations: ['Rol'],
-            withDeleted: true,
-        });
-
+        const user = await this.usuarioRepository.findOne({ where: { Id_Usuario: id }, relations: ['Rol'] });
         if (!user) throw new NotFoundException('Usuario no encontrado.');
 
         if (!user.Fecha_Eliminacion) throw new BadRequestException('El usuario no estaba inactivo.');
 
-        const isRolActive = await this.rolRepository.findOne({
-            where: { Id_Rol: user.Id_Rol },
-            withDeleted: true,
-        });
+        const rolActivo = await this.rolRepository.findOne({ where: { Id_Rol: user.Id_Rol } });
 
-        if (!isRolActive || isRolActive.Fecha_Eliminacion) throw new BadRequestException('No se puede restaurar el usuario porque su rol está deshabilitado.');
+        if (!rolActivo || rolActivo.Fecha_Eliminacion) throw new BadRequestException('No se puede restaurar el usuario porque su rol está deshabilitado.');
 
         // Guardar datos anteriores para auditoría
         const datosAnteriores = {
