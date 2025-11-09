@@ -24,22 +24,20 @@ export class RolesService {
         private readonly auditoriaService: AuditoriaService,
     ) { }
 
-    async createRoles(createRolesDto: CreateRolesDto, idUsuario: number) {
+    async createRoles(dto: CreateRolesDto, idUsuario: number) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para crear un rol.');
 
         const usuario = await this.userRepository.findOne({ where: { Id_Usuario: idUsuario }, withDeleted: true });
         if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
-        const { IDS_Permisos, ...rolData } = createRolesDto;
-
-        const rolExistente = await this.rolesRepository.findOne({ where: { Nombre_Rol: rolData.Nombre_Rol }, withDeleted: true });
+        const rolExistente = await this.rolesRepository.findOne({ where: { Nombre_Rol: dto.Nombre_Rol }, withDeleted: true });
         if (rolExistente) throw new NotFoundException('El nombre del rol ya está registrado');
 
-        const rol = this.rolesRepository.create(rolData);
+        const rol = this.rolesRepository.create(dto);
 
-        if (IDS_Permisos && IDS_Permisos.length > 0) {
-            const permisos = await this.permisosRepository.findBy({ Id: In(IDS_Permisos) });
-            if (permisos.length !== IDS_Permisos.length) {
+        if (dto.IDS_Permisos && dto.IDS_Permisos.length > 0) {
+            const permisos = await this.permisosRepository.findBy({ Id: In(dto.IDS_Permisos) });
+            if (permisos.length !== dto.IDS_Permisos.length) {
                 throw new NotFoundException('Uno o más permisos no fueron encontrados');
             }
             rol.Permisos = permisos;
