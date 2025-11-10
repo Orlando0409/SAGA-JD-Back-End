@@ -4,6 +4,16 @@ import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches
 import { IsCedulaJuridicaValida } from "src/Validations/DTO Validators/CedulaJuridica.validator";
 import { IsTelefonoValido } from "src/Validations/DTO Validators/NumeroTelefono.validator";
 
+// Función helper para capitalizar cada palabra (para razones sociales que pueden tener múltiples palabras)
+const capitalizarCadaPalabra = (value: string): string => {
+  if (!value) return value;
+  return value
+    .trim()
+    .split(/\s+/) // Divide por espacios (uno o más)
+    .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase())
+    .join(' ');
+};
+
 export class CreateSolicitudJuridicaDto {
   @ApiProperty({ example: '3101234567' })
   @Transform(({ value }) => value?.trim())
@@ -14,7 +24,7 @@ export class CreateSolicitudJuridicaDto {
   Cedula_Juridica: string;
 
   @ApiProperty({ example: 'Empresa Ejemplo S.A.' })
-  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
+  @Transform(({ value }) => capitalizarCadaPalabra(value))
   @IsString({ message: 'La razón social debe ser un string' })
   @IsDefined({ message: 'La razón social no puede estar vacía' })
   @IsNotEmpty({ message: 'La razón social no puede estar vacía' })
