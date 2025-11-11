@@ -5,6 +5,16 @@ import { TipoIdentificacion } from 'src/Common/Enums/TipoIdentificacion.enum';
 import { IsIdentificacionValida } from 'src/Validations/DTO Validators/Identificacion.validator';
 import { IsTelefonoValido } from 'src/Validations/DTO Validators/NumeroTelefono.validator';
 
+// Función helper para capitalizar cada palabra
+const capitalizarCadaPalabra = (value: string): string => {
+  if (!value) return value;
+  return value
+    .trim()
+    .split(/\s+/) // Divide por espacios (uno o más)
+    .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase())
+    .join(' ');
+};
+
 export class CreateProveedorFisicoDto {
   @ApiProperty({ example: 'Cedula' })
   @Transform(({ value }) => value?.trim())
@@ -22,7 +32,8 @@ export class CreateProveedorFisicoDto {
   @IsIdentificacionValida()
   Identificacion: string;
 
-  @ApiProperty({ example: "Nombre Apellido" })
+  @ApiProperty({ example: "Nombre" })
+  @Transform(({ value }) => capitalizarCadaPalabra(value))
   @IsString({ message: "El nombre debe ser un texto" })
   @IsNotEmpty({ message: "El nombre no puede estar vacío" })
   @MinLength(2, { message: "El nombre debe tener al menos 2 caracteres" })

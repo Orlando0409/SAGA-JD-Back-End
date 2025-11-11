@@ -98,8 +98,6 @@ export class SolicitudesJuridicasService {
         const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(dto.Cedula_Juridica);
         if (afiliadoExistente) throw new BadRequestException(`Ya existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}`);
 
-        dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
-
         const planoFile = files?.Planos_Terreno?.[0];
         const escrituraFile = files?.Escritura_Terreno?.[0];
         const razonSocial = dto.Razon_Social;
@@ -154,8 +152,6 @@ export class SolicitudesJuridicasService {
         // Validación específica para desconexión: SÍ debe existir un afiliado jurídico
         const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(dto.Cedula_Juridica);
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}`);
-
-        dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
 
         const planoFile = files?.Planos_Terreno?.[0];
         const escrituraFile = files?.Escritura_Terreno?.[0];
@@ -213,8 +209,6 @@ export class SolicitudesJuridicasService {
         const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(dto.Cedula_Juridica);
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}`);
 
-        dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
-
         const razonSocial = dto.Razon_Social;
 
         // 1. Crear registro en tabla padre Solicitud
@@ -264,8 +258,6 @@ export class SolicitudesJuridicasService {
         // Validación específica para asociado: SÍ debe existir un afiliado jurídico
         const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(dto.Cedula_Juridica);
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}. No se puede crear la solicitud de asociado.`);
-
-        dto.Razon_Social = dto.Razon_Social.trim()[0].toUpperCase() + dto.Razon_Social.trim().slice(1).toLowerCase();
 
         const razonSocial = dto.Razon_Social;
 

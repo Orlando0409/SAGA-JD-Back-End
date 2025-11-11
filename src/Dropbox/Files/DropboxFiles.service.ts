@@ -1,25 +1,22 @@
-import { Body, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Dropbox } from 'dropbox';
 import { DropboxAuthService } from '../DropboxAuth.service';
+import * as sharp from 'sharp';
+import heicConvert from 'heic-convert';
+import { extname } from 'path';
 
 @Injectable()
 export class DropboxFilesService {
   private dbx: Dropbox;
   private accessToken: string;
 
-  constructor(
-    private readonly dropboxAuthService: DropboxAuthService,
-  ) {
+  constructor(private readonly dropboxAuthService: DropboxAuthService) {
     this.initializeDropbox();
   }
 
   private async initializeDropbox() {
     this.accessToken = await this.dropboxAuthService.getAccessToken();
-
-    if (!this.accessToken) {
-      throw new Error('Token de acceso de Dropbox no disponible');
-    }
-
+    if (!this.accessToken) throw new Error('Token de acceso de Dropbox no disponible');
     this.dbx = new Dropbox({ accessToken: this.accessToken });
   }
 
@@ -28,130 +25,157 @@ export class DropboxFilesService {
     return link.result.url.replace('?dl=0', '?raw=1');
   }
 
-  // Método para obtener el tipo de archivo
   private getFileType(filename: string): string {
     const extension = filename.toLowerCase().substring(filename.lastIndexOf('.'));
-
     if (['.pdf'].includes(extension)) return 'document';
-    if (['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'].includes(extension)) return 'image';
+    if (['.jpg', '.jpeg', '.png', '.heif', '.bmp', '.webp', '.heic'].includes(extension)) return 'image';
     if (['.txt', '.md', '.csv', '.json', '.xml', '.html', '.htm'].includes(extension)) return 'text';
     if (['.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'].includes(extension)) return 'office';
     if (['.zip', '.rar', '.7z', '.tar', '.gz'].includes(extension)) return 'archive';
-
     return 'other';
   }
 
-  // Extensiones que permiten previsualización
   private readonly previewableExtensions = [
     '.pdf', '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp',
     '.txt', '.md', '.csv', '.json', '.xml', '.html', '.htm'
   ];
 
-  // Método para verificar si un archivo puede ser previsualizado
   private canPreview(filename: string): boolean {
     const extension = filename.toLowerCase().substring(filename.lastIndexOf('.'));
     return this.previewableExtensions.includes(extension);
   }
 
+  // Método para validar archivos permitidos
+  private validateFile(file: Express.Multer.File): void {
+    if (!file) {
+      throw new BadRequestException('No se ha recibido ningún archivo');
+    }
+
+    const allowedExt = ['.pdf', '.jpg', '.jpeg', '.png', '.webp', '.heic', '.docx', '.xls', '.xlsx'];
+    const ext = extname(file.originalname).toLowerCase();
+
+    if (!allowedExt.includes(ext)) {
+      throw new BadRequestException(
+        `Tipo de archivo no permitido (${ext}). Solo se permiten: ${allowedExt.join(', ')}`
+      );
+    }
+
+    if (file.size > 20 * 1024 * 1024) {
+      throw new BadRequestException('El archivo no debe superar los 20 MB');
+    }
+  }
+
   async uploadFile(file: Express.Multer.File, carpetaPrincipal: string, carpetaSecundaria?: string, Identificacion?: string, Nombre?: string, soloDescargar?: boolean) {
     try {
-      if (!file) {
-        throw new Error('No se ha recibido ningún archivo');
-      }
+      // Validar el archivo antes de procesar
+      this.validateFile(file);
 
-      //  Determinar si permitir previsualización (automático si no se especifica)
       const shouldAllowPreview = soloDescargar ?? this.canPreview(file.originalname);
       const folderPath = process.env.DROPBOX_FOLDER_PATH;
-
-      // Construcción de la ruta en Dropbox
       let dropboxPath: string;
       const baseFolder = carpetaSecundaria ? `${folderPath}/${carpetaPrincipal}/${carpetaSecundaria}` : `${folderPath}/${carpetaPrincipal}`;
 
       if (Identificacion) {
-        if (Nombre && Nombre.toString().trim() !== '') {
-          dropboxPath = `${baseFolder}/${Identificacion} - ${Nombre}/${file.originalname}`;
-        } else {
-          // Usar Identificacion como nombre de carpeta sin guion
-          dropboxPath = `${baseFolder}/${Identificacion}/${file.originalname}`;
+        dropboxPath = Nombre && Nombre.trim() !== ''
+          ? `${baseFolder}/${Identificacion} - ${Nombre}/${file.originalname}`
+          : `${baseFolder}/${Identificacion}/${file.originalname}`;
+      } else {
+        dropboxPath = Nombre && Nombre.trim() !== ''
+          ? `${baseFolder}/${Nombre}/${file.originalname}`
+          : `${baseFolder}/${file.originalname}`;
+      }
+
+      // Procesamiento de imagen si es aplicable
+      const isImage = this.getFileType(file.originalname) === 'image';
+      let processedBuffer = file.buffer;
+
+      //
+      if (isImage) {
+
+        const MAX_SIZE_MB = 3;
+        const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+        let bufferToProcess = file.buffer;
+
+        // Conversión HEIC → JPEG
+        if (file.mimetype === 'image/heic' || file.mimetype === 'image/heif' || file.originalname.toLowerCase().endsWith('.heic')) {
+
+          // Convertir HEIC a JPEG antes de cualquier otro procesamiento
+          bufferToProcess = await heicConvert({
+            buffer: file.buffer,
+            format: 'JPEG',
+            quality: 1
+          });
+          file.originalname = file.originalname.replace(/\.[^.]+$/, '.jpg');
         }
+
+
+        // Reducción de tamaño y conversión a WebP
+        let quality = 90;
+        if (bufferToProcess.length > MAX_SIZE_BYTES) {
+          quality = 75;
+        }
+
+        // Procesar imagen con Sharp
+        processedBuffer = await sharp(bufferToProcess)
+          .rotate()
+          .resize({ width: 1600, withoutEnlargement: true })
+          .webp({ quality })
+          .toBuffer();
+
+        file.originalname = file.originalname.replace(/\.[^.]+$/, '.webp');
       }
 
-      else {
-        // Si no hay Identificacion, pero sí un Nombre, crear carpeta con ese Nombre
-        if (Nombre && Nombre.toString().trim() !== '') { dropboxPath = `${baseFolder}/${Nombre}/${file.originalname}`; }
-        else { dropboxPath = `${baseFolder}/${file.originalname}`; }
-      }
-
-      // 🚀 Subir archivo a Dropbox
       const uploadRes = await this.dbx.filesUpload({
         path: dropboxPath,
-        contents: file.buffer,
+        contents: processedBuffer,
         mode: { '.tag': 'overwrite' },
       });
 
-      // 🔗 Intentar crear un link compartido
       let sharedLink;
       try {
-        sharedLink = await this.dbx.sharingCreateSharedLinkWithSettings({
-          path: dropboxPath,
-        });
+        sharedLink = await this.dbx.sharingCreateSharedLinkWithSettings({ path: dropboxPath });
       } catch (error: any) {
-        // Caso especial: si ya existe el link
         if (error?.error?.error?.['.tag'] === 'shared_link_already_exists') {
-          const listLinks = await this.dbx.sharingListSharedLinks({
-            path: dropboxPath,
-            direct_only: true,
-          });
-
-          if (listLinks.result.links.length > 0) {
-            sharedLink = { result: listLinks.result.links[0] };
-          }
-
-          else { throw error; }
-        }
-
-        else { throw error; }
+          const listLinks = await this.dbx.sharingListSharedLinks({ path: dropboxPath, direct_only: true });
+          if (listLinks.result.links.length > 0) sharedLink = { result: listLinks.result.links[0] };
+        } else throw error;
       }
 
-      // 🔄 Generar el tipo de link apropiado según shouldAllowPreview
       let url: string;
       let viewUrl: string | null = null;
 
       if (shouldAllowPreview) {
-        // Para previsualización: mantener dl=0 para ver en navegador
-        viewUrl = sharedLink.result.url; // Link para previsualizar
-        url = sharedLink.result.url.replace('dl=0'); // Link para descargar
-      }
-
-      else {
-        // Solo descarga: forzar descarga directa
+        viewUrl = sharedLink.result.url;
+        url = sharedLink.result.url.replace('dl=0');
+      } else {
         url = sharedLink.result.url.replace('dl=0', 'dl=1');
       }
 
-      // respuesta final
       return {
         id: uploadRes.result.id,
         name: uploadRes.result.name,
         size: uploadRes.result.size,
         path: dropboxPath,
-        url, // 👈 Link de descarga directa
-        viewUrl, // 👈 Link de previsualización (null si no se permite)
+        url,
+        viewUrl,
         allowPreview: shouldAllowPreview,
         fileType: this.getFileType(file.originalname)
       };
+
     } catch (error) {
       console.error('Error subiendo archivo a Dropbox:', error);
       throw error;
     }
   }
 
+
+
   async replaceFileInSameFolder(
     file: Express.Multer.File,
     existingFilePath: string
   ) {
-    if (!file) {
-      throw new Error('No se ha recibido ningún archivo');
-    }
+    // Validar el archivo antes de procesar
+    this.validateFile(file);
 
     // Extraer la carpeta del archivo actual
     const folderPath = existingFilePath.substring(0, existingFilePath.lastIndexOf('/'));
@@ -201,6 +225,8 @@ export class DropboxFilesService {
       throw error;
     }
   }
+
+
 
   async updateFile(oldPath: string, newPath: string) {
     try {
