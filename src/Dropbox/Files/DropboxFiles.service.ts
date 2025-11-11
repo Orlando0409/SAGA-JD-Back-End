@@ -1,6 +1,7 @@
-import { Body, Injectable } from '@nestjs/common';
+import { Body, Injectable, BadRequestException } from '@nestjs/common';
 import { Dropbox } from 'dropbox';
 import { DropboxAuthService } from '../DropboxAuth.service';
+import { extname } from 'path';
 
 @Injectable()
 export class DropboxFilesService {
@@ -53,11 +54,30 @@ export class DropboxFilesService {
     return this.previewableExtensions.includes(extension);
   }
 
+  // Método para validar archivos permitidos
+  private validateFile(file: Express.Multer.File): void {
+    if (!file) {
+      throw new BadRequestException('No se ha recibido ningún archivo');
+    }
+
+    const allowedExt = ['.pdf', '.jpg', '.jpeg', '.png', '.webp', '.heic', '.docx', '.xls', '.xlsx'];
+    const ext = extname(file.originalname).toLowerCase();
+
+    if (!allowedExt.includes(ext)) {
+      throw new BadRequestException(
+        `Tipo de archivo no permitido (${ext}). Solo se permiten: ${allowedExt.join(', ')}`
+      );
+    }
+
+    if (file.size > 20 * 1024 * 1024) {
+      throw new BadRequestException('El archivo no debe superar los 20 MB');
+    }
+  }
+
   async uploadFile(file: Express.Multer.File, carpetaPrincipal: string, carpetaSecundaria?: string, Identificacion?: string, Nombre?: string, soloDescargar?: boolean) {
     try {
-      if (!file) {
-        throw new Error('No se ha recibido ningún archivo');
-      }
+      // Validar el archivo antes de procesar
+      this.validateFile(file);
 
       //  Determinar si permitir previsualización (automático si no se especifica)
       const shouldAllowPreview = soloDescargar ?? this.canPreview(file.originalname);
@@ -149,9 +169,8 @@ export class DropboxFilesService {
     file: Express.Multer.File,
     existingFilePath: string
   ) {
-    if (!file) {
-      throw new Error('No se ha recibido ningún archivo');
-    }
+    // Validar el archivo antes de procesar
+    this.validateFile(file);
 
     // Extraer la carpeta del archivo actual
     const folderPath = existingFilePath.substring(0, existingFilePath.lastIndexOf('/'));
