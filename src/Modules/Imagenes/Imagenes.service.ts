@@ -48,9 +48,6 @@ export class ImagenesService {
 
     if (!file) throw new BadRequestException('El archivo de imagen es requerido');
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.mimetype)) throw new BadRequestException('Tipo de archivo no válido. Solo se permiten imágenes (JPEG, PNG, GIF, WebP)');
-
     const imagenExistente = await this.imagenRepository.findOne({ where: { Nombre_Imagen: createImagenDto.Nombre_Imagen } });
     if (imagenExistente) throw new BadRequestException('Ya existe una imagen con ese nombre. Por favor elige otro nombre.');
 
