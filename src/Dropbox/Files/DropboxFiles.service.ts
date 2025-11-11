@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Dropbox } from 'dropbox';
 import { DropboxAuthService } from '../DropboxAuth.service';
 import * as sharp from 'sharp';
 import heicConvert from 'heic-convert';
+import { extname } from 'path';
 
 @Injectable()
 export class DropboxFilesService {
@@ -66,7 +67,8 @@ export class DropboxFilesService {
 
   async uploadFile(file: Express.Multer.File, carpetaPrincipal: string, carpetaSecundaria?: string, Identificacion?: string, Nombre?: string, soloDescargar?: boolean) {
     try {
-      if (!file) throw new Error('No se ha recibido ningún archivo');
+      // Validar el archivo antes de procesar
+      this.validateFile(file);
 
       const shouldAllowPreview = soloDescargar ?? this.canPreview(file.originalname);
       const folderPath = process.env.DROPBOX_FOLDER_PATH;
@@ -74,7 +76,7 @@ export class DropboxFilesService {
       const baseFolder = carpetaSecundaria ? `${folderPath}/${carpetaPrincipal}/${carpetaSecundaria}` : `${folderPath}/${carpetaPrincipal}`;
 
       if (Identificacion) {
-        dropboxPath = Nombre && Nombre.trim() !== '' 
+        dropboxPath = Nombre && Nombre.trim() !== ''
           ? `${baseFolder}/${Identificacion} - ${Nombre}/${file.originalname}`
           : `${baseFolder}/${Identificacion}/${file.originalname}`;
       } else {
@@ -95,8 +97,8 @@ export class DropboxFilesService {
         let bufferToProcess = file.buffer;
 
         // Conversión HEIC → JPEG
-        if ( file.mimetype === 'image/heic' || file.mimetype === 'image/heif' || file.originalname.toLowerCase().endsWith('.heic')) {
-         
+        if (file.mimetype === 'image/heic' || file.mimetype === 'image/heif' || file.originalname.toLowerCase().endsWith('.heic')) {
+
           // Convertir HEIC a JPEG antes de cualquier otro procesamiento
           bufferToProcess = await heicConvert({
             buffer: file.buffer,
@@ -112,7 +114,6 @@ export class DropboxFilesService {
         if (bufferToProcess.length > MAX_SIZE_BYTES) {
           quality = 75;
         }
-
 
         // Procesar imagen con Sharp
         processedBuffer = await sharp(bufferToProcess)
@@ -162,7 +163,7 @@ export class DropboxFilesService {
       };
 
     } catch (error) {
-      console.error('❌ Error subiendo archivo a Dropbox:', error);
+      console.error('Error subiendo archivo a Dropbox:', error);
       throw error;
     }
   }
@@ -224,6 +225,8 @@ export class DropboxFilesService {
       throw error;
     }
   }
+
+
 
   async updateFile(oldPath: string, newPath: string) {
     try {

@@ -39,25 +39,25 @@ export class ProyectoController {
 
   @Post('/create')
   @ApiOperation({ summary: "Crear un nuevo proyecto" })
-  @UseInterceptors(FileInterceptor("Imagen_Proyecto"))
+  @UseInterceptors(FileInterceptor("Imagen_Url"))
   CreateProyecto(
     @Body() createProyectoDto: CreateProyectoDto,
     @GetUser() usuario: Usuario,
-    @UploadedFile() Imagen_Proyecto: Express.Multer.File,
+    @UploadedFile() Imagen_Url: Express.Multer.File,
   ) {
-    return this.proyectoService.CreateProyecto(createProyectoDto, usuario.Id_Usuario, Imagen_Proyecto);
+    return this.proyectoService.CreateProyecto(createProyectoDto, usuario.Id_Usuario, Imagen_Url);
   }
 
   @Put('/update/:idProyecto')
   @ApiOperation({ summary: 'Actualizar un proyecto por ID' })
-  @UseInterceptors(FileInterceptor("Imagen_Proyecto"))
+  @UseInterceptors(FileInterceptor("Imagen_Url"))
   updateProyecto(
     @Param('idProyecto', ParseIntPipe) idProyecto: number,
     @Body() UpdateProyectoDto: UpdateProyectoDto,
-    @UploadedFile() Imagen_Proyecto: Express.Multer.File,
+    @UploadedFile() Imagen_Url: Express.Multer.File,
     @GetUser() usuario: Usuario,
   ) {
-    return this.proyectoService.UpdateProyecto(idProyecto, UpdateProyectoDto, usuario.Id_Usuario, Imagen_Proyecto);
+    return this.proyectoService.UpdateProyecto(idProyecto, UpdateProyectoDto, usuario.Id_Usuario, Imagen_Url);
   }
 
   @Patch(':idProyecto/update/estado/:idEstadoProyecto')
