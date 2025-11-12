@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
+import * as SendGrid from '@sendgrid/mail';
+import * as fs from 'fs';
+import * as path from 'path';
 import { createEmailDTO } from './DTO/createEmailDTO';
 import { EstadoSolicitudEmailDTO } from './DTO/EstadoSolicitudEmail.dto';
 import { RecoverPasswordMail } from './Template/RecoverPasswordMail';
-import { EstadoSolicitudMail, SolicitudCreadaExitosamenteMail } from './Template/SolicitudMail';
+import { SolicitudCreadaExitosamenteMail, EstadoSolicitudMail } from './Template/SolicitudMail';
 import { ReporteMail } from './Template/PlantillaReporte';
 import { ReporteRespondidoMail } from './Template/ReporteRespondidoMail';
 import { QuejaMail } from './Template/QuejaMail';
@@ -12,15 +14,41 @@ import { QuejaRespondidaMail } from './Template/QuejaRespondidaMail';
 import { SugerenciaMail } from './Template/SugerenciaMail';
 import { SugerenciaRespondidaMail } from './Template/SugerenciaRespondidaMail';
 
-
 @Injectable()
 export class EmailService {
+  private logoBase64: string;
 
   constructor(
-    private readonly mailService: MailerService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {
+    const apiKey = this.configService.get<string>('SENDGRID_API_KEY');
+    if (!apiKey) {
+      throw new Error('SENDGRID_API_KEY no está configurado en las variables de entorno');
+    }
+    SendGrid.setApiKey(apiKey!);
+    
+    // Cargar logo en base64 una sola vez
+    try {
+      const logoPath = path.join(process.cwd(), 'src/Modules/Emails/Logo/logo.jpeg');
+      const logoBuffer = fs.readFileSync(logoPath);
+      this.logoBase64 = logoBuffer.toString('base64');
+    } catch (error) {
+      console.error('Error al cargar el logo:', error);
+      this.logoBase64 = '';
+    }
+  }
 
+  private getLogoAttachment() {
+    if (!this.logoBase64) return [];
+    
+    return [{
+      content: this.logoBase64,
+      filename: 'logo.jpeg',
+      type: 'image/jpeg',
+      disposition: 'inline',
+      content_id: 'logo'
+    }];
+  }
   // Enviar email cuando el admin responde al reporte
   async enviarEmailRespuestaReporte(reporteData: {
     Nombre?: string;
@@ -36,42 +64,29 @@ export class EmailService {
       if (!to) {
         throw new Error('Correo destinatario no proporcionado');
       }
-      const attachments: any[] = [
-        {
-          filename: 'logo.jpeg',
-          path: process.cwd() + '/src/Modules/Emails/Logo/logo.jpeg',
-          cid: 'logo',
-        },
-      ];
 
-      await this.mailService.sendMail({
+      await SendGrid.send({
         to,
         from: this.configService.get<string>('MAIL_FROM')!,
         subject: 'Respuesta a tu reporte',
         html: ReporteRespondidoMail(reporteData),
-        attachments,
+        attachments: this.getLogoAttachment(),
       });
       console.log('Email de respuesta de reporte enviado a', to);
     } catch (error) {
-      console.error('Error al enviar el correo electrónico:', error);
+      console.error('Error al enviar email de respuesta de reporte:', error);
       throw error;
     }
   }
 
   async sendRecoverPasswordMail(createEmailDTO: createEmailDTO) {
     try {
-      await this.mailService.sendMail({
+      await SendGrid.send({
         to: createEmailDTO.to,
         from: this.configService.get<string>('MAIL_FROM')!,
         subject: createEmailDTO.subject,
         html: RecoverPasswordMail(createEmailDTO.RecoverPasswordURL),
-        attachments: [
-          {
-            filename: 'logo.jpeg',
-            path: process.cwd() + '/src/Modules/Emails/Logo/logo.jpeg',
-            cid: 'logo'
-          }
-        ]
+        attachments: this.getLogoAttachment(),
       });
     } catch (error) {
       console.error('Error al enviar el correo electrónico:', error);
@@ -85,18 +100,12 @@ export class EmailService {
     nombreApellidos?: string
   ) {
     try {
-      await this.mailService.sendMail({
+      await SendGrid.send({
         to: emailDestino,
         from: this.configService.get<string>('MAIL_FROM')!,
         subject: `Solicitud de ${tipoSolicitud} - Recibida Exitosamente`,
         html: SolicitudCreadaExitosamenteMail(tipoSolicitud, nombreApellidos),
-        attachments: [
-          {
-            filename: 'logo.jpeg',
-            path: process.cwd() + '/src/Modules/Emails/Logo/logo.jpeg',
-            cid: 'logo'
-          }
-        ]
+        attachments: this.getLogoAttachment(),
       });
       console.log('Email de solicitud creada enviado exitosamente');
     } catch (error) {
@@ -111,7 +120,7 @@ export class EmailService {
       // Extraer tipo de solicitud del subject si viene incluido
       const tipoSolicitud = emailData.subject.replace(/^(Actualización:|Estado de|Solicitud de)/i, '').trim();
 
-      await this.mailService.sendMail({
+      await SendGrid.send({
         to: emailData.to,
         from: this.configService.get<string>('MAIL_FROM')!,
         subject: emailData.subject,
@@ -120,13 +129,7 @@ export class EmailService {
           emailData.estadoSolicitud,
           emailData.message // Usando message como nombreApellidos
         ),
-        attachments: [
-          {
-            filename: 'logo.jpeg',
-            path: process.cwd() + '/src/Modules/Emails/Logo/logo.jpeg',
-            cid: 'logo'
-          }
-        ]
+        attachments: this.getLogoAttachment(),
       });
       console.log('Email de cambio de estado de solicitud enviado exitosamente');
     } catch (error) {
@@ -143,18 +146,12 @@ export class EmailService {
     nombreApellidos?: string
   ) {
     try {
-      await this.mailService.sendMail({
+      await SendGrid.send({
         to: emailDestino,
         from: this.configService.get<string>('MAIL_FROM')!,
         subject: `Actualización de ${tipoSolicitud} - Estado: ${estadoSolicitud}`,
         html: EstadoSolicitudMail(tipoSolicitud, estadoSolicitud, nombreApellidos),
-        attachments: [
-          {
-            filename: 'logo.jpeg',
-            path: process.cwd() + '/src/Modules/Emails/Logo/logo.jpeg',
-            cid: 'logo'
-          }
-        ]
+        attachments: this.getLogoAttachment(),
       });
       console.log('Email de actualización de estado enviado exitosamente');
     } catch (error) {
@@ -178,20 +175,13 @@ export class EmailService {
       if (!to) {
         throw new Error('Correo destinatario no proporcionado');
       }
-      const attachments: any[] = [
-        {
-          filename: 'logo.jpeg',
-          path: process.cwd() + '/src/Modules/Emails/Logo/logo.jpeg',
-          cid: 'logo',
-        },
-      ];
 
-      await this.mailService.sendMail({
+      await SendGrid.send({
         to,
         from: this.configService.get<string>('MAIL_FROM')!,
         subject: 'Confirmación de recepción de tu reporte',
         html: ReporteMail(reporteData),
-        attachments,
+        attachments: this.getLogoAttachment(),
       });
       console.log('Email de reporte enviado a', to);
     } catch (error) {
@@ -214,20 +204,13 @@ export class EmailService {
       if (!to) {
         throw new Error('Correo destinatario no proporcionado');
       }
-      const attachments: any[] = [
-        {
-          filename: 'logo.jpeg',
-          path: process.cwd() + '/src/Modules/Emails/Logo/logo.jpeg',
-          cid: 'logo',
-        },
-      ];
 
-      await this.mailService.sendMail({
+      await SendGrid.send({
         to,
         from: this.configService.get<string>('MAIL_FROM')!,
         subject: 'Confirmación de recepción de tu queja',
         html: QuejaMail(quejaData),
-        attachments,
+        attachments: this.getLogoAttachment(),
       });
       console.log('Email de queja enviado a', to);
     } catch (error) {
@@ -250,20 +233,13 @@ export class EmailService {
       if (!to) {
         throw new Error('Correo destinatario no proporcionado');
       }
-      const attachments: any[] = [
-        {
-          filename: 'logo.jpeg',
-          path: process.cwd() + '/src/Modules/Emails/Logo/logo.jpeg',
-          cid: 'logo',
-        },
-      ];
 
-      await this.mailService.sendMail({
+      await SendGrid.send({
         to,
         from: this.configService.get<string>('MAIL_FROM')!,
         subject: 'Respuesta a tu queja',
         html: QuejaRespondidaMail(quejaData),
-        attachments,
+        attachments: this.getLogoAttachment(),
       });
       console.log('Email de respuesta de queja enviado a', to);
     } catch (error) {
@@ -283,20 +259,13 @@ export class EmailService {
       if (!to) {
         throw new Error('Correo destinatario no proporcionado');
       }
-      const attachments: any[] = [
-        {
-          filename: 'logo.jpeg',
-          path: process.cwd() + '/src/Modules/Emails/Logo/logo.jpeg',
-          cid: 'logo',
-        },
-      ];
 
-      await this.mailService.sendMail({
+      await SendGrid.send({
         to,
         from: this.configService.get<string>('MAIL_FROM')!,
         subject: 'Confirmación de recepción de tu sugerencia',
         html: SugerenciaMail(sugerenciaData),
-        attachments,
+        attachments: this.getLogoAttachment(),
       });
       console.log('Email de sugerencia enviado a', to);
     } catch (error) {
@@ -316,20 +285,13 @@ export class EmailService {
       if (!to) {
         throw new Error('Correo destinatario no proporcionado');
       }
-      const attachments: any[] = [
-        {
-          filename: 'logo.jpeg',
-          path: process.cwd() + '/src/Modules/Emails/Logo/logo.jpeg',
-          cid: 'logo',
-        },
-      ];
 
-      await this.mailService.sendMail({
+      await SendGrid.send({
         to,
         from: this.configService.get<string>('MAIL_FROM')!,
         subject: 'Respuesta a tu sugerencia',
         html: SugerenciaRespondidaMail(sugerenciaData),
-        attachments,
+        attachments: this.getLogoAttachment(),
       });
       console.log('Email de respuesta de sugerencia enviado a', to);
     } catch (error) {
