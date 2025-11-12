@@ -7,21 +7,21 @@ import { extname } from 'path';
 
 @Injectable()
 export class DropboxFilesService {
-  private dbx: Dropbox;
-  private accessToken: string;
-
   constructor(private readonly dropboxAuthService: DropboxAuthService) {
-    this.initializeDropbox();
+    this.getDropboxInstance();
   }
+  
 
-  private async initializeDropbox() {
-    this.accessToken = await this.dropboxAuthService.getAccessToken();
-    if (!this.accessToken) throw new Error('Token de acceso de Dropbox no disponible');
-    this.dbx = new Dropbox({ accessToken: this.accessToken });
-  }
+  private async getDropboxInstance(): Promise<Dropbox> {
+  const accessToken = await this.dropboxAuthService.getAccessToken();
+  if (!accessToken) throw new Error('Token de acceso de Dropbox no disponible');
+  return new Dropbox({ accessToken });
+}
 
   async getPublicUrl(path: string): Promise<string> {
-    const link = await this.dbx.sharingCreateSharedLinkWithSettings({ path });
+    const dbx = await this.getDropboxInstance();
+
+    const link = await dbx.sharingCreateSharedLinkWithSettings({ path });
     return link.result.url.replace('?dl=0', '?raw=1');
   }
 
@@ -47,9 +47,7 @@ export class DropboxFilesService {
 
   // Método para validar archivos permitidos
   private validateFile(file: Express.Multer.File): void {
-    if (!file) {
-      throw new BadRequestException('No se ha recibido ningún archivo');
-    }
+    if (!file) throw new BadRequestException('No se ha recibido ningún archivo');
 
     const allowedExt = ['.pdf', '.jpg', '.jpeg', '.png', '.webp', '.heic', '.docx', '.xls', '.xlsx'];
     const ext = extname(file.originalname).toLowerCase();
@@ -60,9 +58,7 @@ export class DropboxFilesService {
       );
     }
 
-    if (file.size > 20 * 1024 * 1024) {
-      throw new BadRequestException('El archivo no debe superar los 20 MB');
-    }
+    if (file.size > 20 * 1024 * 1024) throw new BadRequestException('El archivo no debe superar los 20 MB');
   }
 
   async uploadFile(file: Express.Multer.File, carpetaPrincipal: string, carpetaSecundaria?: string, Identificacion?: string, Nombre?: string, soloDescargar?: boolean) {
@@ -125,7 +121,9 @@ export class DropboxFilesService {
         file.originalname = file.originalname.replace(/\.[^.]+$/, '.webp');
       }
 
-      const uploadRes = await this.dbx.filesUpload({
+      const dbx = await this.getDropboxInstance();
+
+      const uploadRes = await dbx.filesUpload({
         path: dropboxPath,
         contents: processedBuffer,
         mode: { '.tag': 'overwrite' },
@@ -133,10 +131,10 @@ export class DropboxFilesService {
 
       let sharedLink;
       try {
-        sharedLink = await this.dbx.sharingCreateSharedLinkWithSettings({ path: dropboxPath });
+        sharedLink = await dbx.sharingCreateSharedLinkWithSettings({ path: dropboxPath });
       } catch (error: any) {
         if (error?.error?.error?.['.tag'] === 'shared_link_already_exists') {
-          const listLinks = await this.dbx.sharingListSharedLinks({ path: dropboxPath, direct_only: true });
+          const listLinks = await dbx.sharingListSharedLinks({ path: dropboxPath, direct_only: true });
           if (listLinks.result.links.length > 0) sharedLink = { result: listLinks.result.links[0] };
         } else throw error;
       }
@@ -170,12 +168,11 @@ export class DropboxFilesService {
 
 
 
-  async replaceFileInSameFolder(
-    file: Express.Multer.File,
-    existingFilePath: string
-  ) {
+  async replaceFileInSameFolder(file: Express.Multer.File, existingFilePath: string) {
     // Validar el archivo antes de procesar
     this.validateFile(file);
+
+    const dbx = await this.getDropboxInstance();
 
     // Extraer la carpeta del archivo actual
     const folderPath = existingFilePath.substring(0, existingFilePath.lastIndexOf('/'));
@@ -184,7 +181,7 @@ export class DropboxFilesService {
     const newPath = `${folderPath}/${file.originalname}`;
 
     try {
-      const uploadRes = await this.dbx.filesUpload({
+      const uploadRes = await dbx.filesUpload({
         path: newPath,
         contents: file.buffer,
         mode: { '.tag': 'overwrite' }, // sobrescribe el anterior
@@ -193,10 +190,10 @@ export class DropboxFilesService {
       // Intentar obtener o crear link compartido
       let sharedLink;
       try {
-        sharedLink = await this.dbx.sharingCreateSharedLinkWithSettings({ path: newPath });
+        sharedLink = await dbx.sharingCreateSharedLinkWithSettings({ path: newPath });
       } catch (error: any) {
         if (error?.error?.error?.['.tag'] === 'shared_link_already_exists') {
-          const listLinks = await this.dbx.sharingListSharedLinks({
+          const listLinks = await dbx.sharingListSharedLinks({
             path: newPath,
             direct_only: true,
           });
@@ -229,8 +226,10 @@ export class DropboxFilesService {
 
 
   async updateFile(oldPath: string, newPath: string) {
+    const dbx = await this.getDropboxInstance();
+
     try {
-      const result = await this.dbx.filesMoveV2({
+      const result = await dbx.filesMoveV2({
         from_path: oldPath,
         to_path: newPath,
       });
@@ -247,6 +246,7 @@ export class DropboxFilesService {
 
   // Eliminar una carpeta o ruta en Dropbox construida igual que en uploadFile
   async deletePath(carpetaPrincipal: string, carpetaSecundaria?: string, Identificacion?: string, Nombre?: string) {
+    const dbx = await this.getDropboxInstance();
     const folderPath = process.env.DROPBOX_FOLDER_PATH;
     const baseFolder = carpetaSecundaria ? `${folderPath}/${carpetaPrincipal}/${carpetaSecundaria}` : `${folderPath}/${carpetaPrincipal}`;
 
@@ -262,7 +262,7 @@ export class DropboxFilesService {
     }
 
     try {
-      await this.dbx.filesDeleteV2({ path: dropboxPath });
+      await dbx.filesDeleteV2({ path: dropboxPath });
       return { deleted: true, path: dropboxPath };
     }
 
