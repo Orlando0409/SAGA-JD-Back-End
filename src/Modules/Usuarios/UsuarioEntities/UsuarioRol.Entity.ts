@@ -7,10 +7,10 @@ export class UsuarioRol {
   @PrimaryGeneratedColumn()
   Id_Rol: number;
 
-  @Column()
+  @Column({ nullable: false })
   Nombre_Rol: string;
 
-  @DeleteDateColumn({ name: 'Fecha_Eliminacion', nullable: true })
+  @DeleteDateColumn({ nullable: true })
   Fecha_Eliminacion: Date;
 
   @OneToMany(() => Usuario, usuario => usuario.Rol)

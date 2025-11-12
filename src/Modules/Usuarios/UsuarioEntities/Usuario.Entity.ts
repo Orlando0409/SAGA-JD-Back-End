@@ -6,13 +6,13 @@ export class Usuario {
     @PrimaryGeneratedColumn()
     Id_Usuario: number;
 
-    @Column()
+    @Column({ nullable: false })
     Nombre_Usuario: string;
 
-    @Column()
+    @Column({ nullable: false })
     Contraseña: string;
 
-    @Column()
+    @Column({ nullable: false })
     Correo_Electronico: string;
 
     @Column({ nullable: true })

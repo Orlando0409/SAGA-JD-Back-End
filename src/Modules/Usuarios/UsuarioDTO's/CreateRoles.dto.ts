@@ -1,9 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsArray, IsDefined, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateRolesDto {
   @ApiProperty({ example: "Administrador" })
   @IsString({ message: "El nombre del rol debe ser un string" })
+  @IsDefined({ message: "El nombre del rol es obligatorio" })
+  @Transform(({ value }) => value?.trim() ? value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase() : value)
   @IsNotEmpty({ message: "El nombre del rol no puede estar vacío" })
   Nombre_Rol: string;
 

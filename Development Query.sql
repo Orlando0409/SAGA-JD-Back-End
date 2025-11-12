@@ -91,3 +91,5 @@ select * from lectura;
 select * from faq;
 
 select * from auditoria;
+
+select * from manuales;

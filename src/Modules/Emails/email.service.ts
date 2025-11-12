@@ -14,7 +14,6 @@ import { QuejaRespondidaMail } from './Template/QuejaRespondidaMail';
 import { SugerenciaMail } from './Template/SugerenciaMail';
 import { SugerenciaRespondidaMail } from './Template/SugerenciaRespondidaMail';
 
-
 @Injectable()
 export class EmailService {
   private logoBase64: string;
