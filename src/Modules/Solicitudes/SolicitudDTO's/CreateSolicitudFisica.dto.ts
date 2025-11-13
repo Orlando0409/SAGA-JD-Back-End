@@ -139,7 +139,6 @@ export class CreateSolicitudCambioMedidorFisicaDto extends CreateSolicitudFisica
   Motivo_Solicitud: string;
 
   @ApiProperty({example: 456789})
-  @Transform(({ value }) => value?.trim())
   @IsInt({message: 'El numero de medidor anterior debe ser un numero entero'})
   @IsDefined({message: 'El numero de medidor anterior no puede estar vacio'})
   @IsNotEmpty({ message: 'El número de medidor anterior no puede estar vacío' })
