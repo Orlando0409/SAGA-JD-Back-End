@@ -104,7 +104,7 @@ import { RangoConsumo } from './Modules/Lecturas/LecturaEntities/RangoConsumo.En
           Auditoria,
           Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua,
           ImagenEntity,
-          ManualEntity,RangoAfiliados,RangoConsumo
+          ManualEntity, RangoAfiliados, RangoConsumo
         ],
         synchronize: false,
         dropSchema: false,
