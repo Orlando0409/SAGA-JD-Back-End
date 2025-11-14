@@ -103,9 +103,9 @@ import { MailerGmailModule } from './Modules/Emails/nodemailer/mailer.module';
           FAQEntity,
           Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
           Auditoria,
-          Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua,
+          Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, RangoAfiliados, RangoConsumo,
           ImagenEntity,
-          ManualEntity,RangoAfiliados,RangoConsumo
+          ManualEntity,
         ],
         synchronize: false,
         dropSchema: false,
