@@ -27,7 +27,7 @@ export class MovimientosService {
         private readonly auditoriaService: AuditoriaService,
 
         private readonly usuarioService: UsuariosService
-    ) {}
+    ) { }
 
     async getAllMovimientos() {
         const movimientos = await this.movimientoRepository.createQueryBuilder('movimiento')
@@ -131,15 +131,17 @@ export class MovimientosService {
         });
     }
 
-    async getMovimientosEntreFechas(fechaInicio: string, fechaFin: string) {
+    async getMovimientosEntreFechas(fechaInicio?: string, fechaFin?: string) {
         function parseDDMMYYYY(dateStr: string): Date {
             // Espera formato DD-MM-YYYY
             const [day, month, year] = dateStr.split('-').map(Number);
             return new Date(year, month - 1, day);
         }
 
-        const fechaInicioDate = parseDDMMYYYY(fechaInicio);
-        const fechaFinDate = parseDDMMYYYY(fechaFin);
+        if (!fechaInicio && !fechaFin) throw new BadRequestException('Se requieren al menos una fecha de inicio o fin');
+
+        const fechaInicioDate = fechaInicio ? parseDDMMYYYY(fechaInicio) : new Date('15-08-2025');
+        const fechaFinDate = fechaFin ? parseDDMMYYYY(fechaFin) : new Date();
         fechaFinDate.setDate(fechaFinDate.getDate() + 1);
 
         if (isNaN(fechaInicioDate.getTime()) || isNaN(fechaFinDate.getTime())) {
@@ -226,9 +228,9 @@ export class MovimientosService {
         const cantidadAnterior = materialExistente.Cantidad;
 
         materialExistente.Cantidad += dto.Cantidad;
-        if(materialExistente.Cantidad > 0 && materialExistente.Estado_Material.Id_Estado_Material === 4) {
+        if (materialExistente.Cantidad > 0 && materialExistente.Estado_Material.Id_Estado_Material === 4) {
             const estadoActivo = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 3 } });
-            if(estadoActivo) {
+            if (estadoActivo) {
                 materialExistente.Estado_Material = estadoActivo;
             }
         }
@@ -252,7 +254,7 @@ export class MovimientosService {
             Cantidad_Nueva: materialExistente.Cantidad,
             Usuario: usuario
         });
-        
+
         await this.movimientoRepository.save(movimiento);
 
         const materialActualizado = await this.materialRepository.createQueryBuilder('material')
@@ -271,7 +273,7 @@ export class MovimientosService {
         if (!materialActualizado) throw new NotFoundException('No se pudo encontrar el material actualizado.');
 
         try {
-            await this.auditoriaService.logActualizacion('Movimientos', idUsuario, ultimoMovimiento.Id_Movimiento, datosAnteriores,{
+            await this.auditoriaService.logActualizacion('Movimientos', idUsuario, ultimoMovimiento.Id_Movimiento, datosAnteriores, {
                 Nombre_Material: materialActualizado.Nombre_Material,
                 Tipo_Movimiento: ultimoMovimiento.Tipo_Movimiento,
                 Cantidad: ultimoMovimiento.Cantidad,
@@ -316,9 +318,9 @@ export class MovimientosService {
         const cantidadAnterior = materialExistente.Cantidad;
 
         materialExistente.Cantidad -= dto.Cantidad;
-        if(materialExistente.Cantidad === 0 && materialExistente.Estado_Material.Id_Estado_Material === 3) {
+        if (materialExistente.Cantidad === 0 && materialExistente.Estado_Material.Id_Estado_Material === 3) {
             const estadoInactivo = await this.estadoMaterialRepository.findOne({ where: { Id_Estado_Material: 4 } });
-            if(estadoInactivo) {
+            if (estadoInactivo) {
                 materialExistente.Estado_Material = estadoInactivo;
             }
         }
@@ -360,17 +362,17 @@ export class MovimientosService {
         if (!ultimoMovimiento) throw new NotFoundException('No se pudo encontrar el movimiento registrado.');
         if (!materialActualizado) throw new NotFoundException('No se pudo encontrar el material actualizado.');
 
-            try {
-                await this.auditoriaService.logActualizacion('Movimientos', idUsuario, ultimoMovimiento.Id_Movimiento, datosAnteriores, {
-                    Nombre_Material: materialActualizado.Nombre_Material,
-                    Tipo_Movimiento: ultimoMovimiento.Tipo_Movimiento,
-                    Cantidad_Anterior: ultimoMovimiento.Cantidad_Anterior,
-                    Cantidad_Nueva: ultimoMovimiento.Cantidad_Nueva,
-                    Cantidad: ultimoMovimiento.Cantidad,
-                });
-            } catch (error) {
-                console.error('Error al registrar la auditoría:', error);
-            }
+        try {
+            await this.auditoriaService.logActualizacion('Movimientos', idUsuario, ultimoMovimiento.Id_Movimiento, datosAnteriores, {
+                Nombre_Material: materialActualizado.Nombre_Material,
+                Tipo_Movimiento: ultimoMovimiento.Tipo_Movimiento,
+                Cantidad_Anterior: ultimoMovimiento.Cantidad_Anterior,
+                Cantidad_Nueva: ultimoMovimiento.Cantidad_Nueva,
+                Cantidad: ultimoMovimiento.Cantidad,
+            });
+        } catch (error) {
+            console.error('Error al registrar la auditoría:', error);
+        }
 
         return {
             Material: materialActualizado,

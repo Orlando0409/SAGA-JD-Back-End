@@ -5,6 +5,16 @@ import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { IsIdentificacionValida } from "src/Validations/DTO Validators/Identificacion.validator";
 import { IsTelefonoValido } from "src/Validations/DTO Validators/NumeroTelefono.validator";
 
+// Función helper para capitalizar cada palabra
+const capitalizarCadaPalabra = (value: string): string => {
+  if (!value) return value;
+  return value
+    .trim()
+    .split(/\s+/) // Divide por espacios (uno o más)
+    .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase())
+    .join(' ');
+};
+
 export class CreateSolicitudFisicaDto {
   @ApiProperty({ example: 'Cedula' })
   @Transform(({ value }) => value?.trim())
@@ -21,7 +31,7 @@ export class CreateSolicitudFisicaDto {
   Identificacion: string;
 
   @ApiProperty({ example: 'Mario' })
-  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
+  @Transform(({ value }) => capitalizarCadaPalabra(value))
   @IsString({ message: 'El nombre debe ser un string' })
   @IsDefined({ message: 'El nombre no puede estar vacío' })
   @IsNotEmpty({ message: 'El nombre no puede estar vacío' })
@@ -31,7 +41,7 @@ export class CreateSolicitudFisicaDto {
   Nombre: string;
 
   @ApiProperty({ example: 'Perez' })
-  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
+  @Transform(({ value }) => capitalizarCadaPalabra(value))
   @IsString({ message: 'El primer apellido debe ser un string' })
   @IsDefined({ message: 'El primer apellido no puede estar vacío' })
   @IsNotEmpty({ message: 'El primer apellido no puede estar vacío' })
@@ -41,10 +51,7 @@ export class CreateSolicitudFisicaDto {
   Apellido1: string;
 
   @ApiProperty({ example: 'Lopez', required: false })
-  @Transform(({ value }) => {
-    if (!value || value.trim() === '') return 'No Proporcionado';
-    return value.trim()[0].toUpperCase() + value.trim().slice(1).toLowerCase();
-  })
+  @Transform(({ value }) => capitalizarCadaPalabra(value))
   @IsString({ message: 'El segundo apellido debe ser un string' })
   @MaxLength(50, { message: 'El segundo apellido no puede tener más de 50 caracteres' })
   Apellido2: string;
