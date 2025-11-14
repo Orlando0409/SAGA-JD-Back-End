@@ -28,6 +28,7 @@ export class ActasService {
     async getAllActas() {
         const actas = await this.actaRepository.createQueryBuilder('acta')
             .leftJoinAndSelect('acta.Usuario', 'usuario')
+            .leftJoinAndSelect('acta.Archivos', 'archivos')
             .getMany();
 
         return Promise.all(actas.map(async acta => ({
