@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
 import * as SendGrid from '@sendgrid/mail';
 import * as fs from 'fs';
@@ -21,7 +20,6 @@ export class EmailService {
   private logoBase64: string;
 
   constructor(
-    private readonly mailService: MailerService,
     private readonly configService: ConfigService,
   ) {
     const apiKey = this.configService.get<string>('SENDGRID_API_KEY');
