@@ -23,11 +23,12 @@ export class ActasService {
         private readonly usuariosService: UsuariosService,
 
         private readonly auditoriaService: AuditoriaService,
-    ) {}
+    ) { }
 
     async getAllActas() {
         const actas = await this.actaRepository.createQueryBuilder('acta')
             .leftJoinAndSelect('acta.Usuario', 'usuario')
+            .leftJoinAndSelect('acta.Archivos', 'archivos')
             .getMany();
 
         return Promise.all(actas.map(async acta => ({
@@ -136,8 +137,8 @@ export class ActasService {
                 ...actaGuardada,
                 Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario)
             };
-        }   
-    }   
+        }
+    }
 
     async deleteActa(idActa: number, idUsuario: number) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
