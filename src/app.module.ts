@@ -106,8 +106,8 @@ import { RangoConsumo } from './Modules/Lecturas/LecturaEntities/RangoConsumo.En
           ImagenEntity,
           ManualEntity, RangoAfiliados, RangoConsumo
         ],
-        synchronize: false,
-        dropSchema: false,
+        synchronize: true,
+        dropSchema: true,
       })
     }),
     SeederModule,
