@@ -14,6 +14,7 @@ import { QuejaRespondidaMail } from './Template/QuejaRespondidaMail';
 import { SugerenciaMail } from './Template/SugerenciaMail';
 import { SugerenciaRespondidaMail } from './Template/SugerenciaRespondidaMail';
 
+
 @Injectable()
 export class EmailService {
   private logoBase64: string;
@@ -49,6 +50,7 @@ export class EmailService {
       content_id: 'logo'
     }];
   }
+
   // Enviar email cuando el admin responde al reporte
   async enviarEmailRespuestaReporte(reporteData: {
     Nombre?: string;
@@ -74,7 +76,7 @@ export class EmailService {
       });
       console.log('Email de respuesta de reporte enviado a', to);
     } catch (error) {
-      console.error('Error al enviar email de respuesta de reporte:', error);
+      console.error('Error al enviar el correo electrónico:', error);
       throw error;
     }
   }

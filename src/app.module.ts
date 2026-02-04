@@ -105,7 +105,7 @@ import { MailerGmailModule } from './Modules/Emails/nodemailer/mailer.module';
           Auditoria,
           Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, RangoAfiliados, RangoConsumo,
           ImagenEntity,
-          ManualEntity,
+          ManualEntity, RangoAfiliados, RangoConsumo
         ],
         synchronize: false,
         dropSchema: false,

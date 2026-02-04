@@ -283,6 +283,8 @@ export class ProveedorService {
 
     proveedor.Estado_Proveedor = estado;
 
+    await this.juridicoRepo.save(proveedor);
+
     try {
       await this.auditoriaService.logActualizacion('Proveedores', idUsuario, proveedor.Id_Proveedor, datosAnteriores, {
         Id_Estado_Proveedor: estado.Id_Estado_Proveedor
