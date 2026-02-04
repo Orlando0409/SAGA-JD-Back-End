@@ -1,7 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Lectura } from "./Lectura.Entity";
 
-@Entity('Tipo_Tarifa_Lectura')
+@Entity('tipo_tarifa_lectura')
 export class TipoTarifaLectura {
     @PrimaryGeneratedColumn()
     Id_Tipo_Tarifa_Lectura: number;

@@ -7,7 +7,7 @@ import { Expose } from "class-transformer";
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from "src/Modules/Proveedores/ProveedorEntities/Proveedor.Entity";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
-@Entity('Material')
+@Entity('material')
 export class Material {
     @PrimaryGeneratedColumn()
     Id_Material: number;

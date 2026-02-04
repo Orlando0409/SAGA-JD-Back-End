@@ -3,7 +3,7 @@ import { Material } from "./Material.Entity";
 import { EstadoUnidadMedicion } from "./EstadoUnidadMedicion.Entity";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
-@Entity('Unidades_Medicion')
+@Entity('unidades_medicion')
 export class UnidadMedicion {
     @PrimaryGeneratedColumn()
     Id_Unidad_Medicion: number;

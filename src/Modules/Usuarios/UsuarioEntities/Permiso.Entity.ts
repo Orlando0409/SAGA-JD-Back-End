@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from "typeorm";
 import { UsuarioRol } from "./UsuarioRol.Entity";
 
-@Entity("Permisos")
+@Entity("permisos")
 export class Permiso {
   @PrimaryGeneratedColumn()
   Id: number;

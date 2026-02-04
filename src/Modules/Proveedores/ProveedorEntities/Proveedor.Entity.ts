@@ -6,7 +6,7 @@ import { Material } from "src/Modules/Inventario/InventarioEntities/Material.Ent
 import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
-@Entity("Proveedor")
+@Entity("proveedor")
 export abstract class Proveedor {
     @PrimaryGeneratedColumn()
     Id_Proveedor: number;
@@ -53,7 +53,7 @@ export abstract class Proveedor {
     }
 }
 
-@Entity('Proveedor_Fisico')
+@Entity('proveedor_fisico')
 export class ProveedorFisico extends Proveedor {
     @Column({ type: 'enum', enum: TipoIdentificacion, nullable: false })
     Tipo_Identificacion: TipoIdentificacion;
@@ -69,7 +69,7 @@ export class ProveedorFisico extends Proveedor {
     }
 }
 
-@Entity('Proveedor_Juridico')
+@Entity('proveedor_juridico')
 export class ProveedorJuridico extends Proveedor {
     @Column({ type: "varchar", length: 25 })
     Cedula_Juridica: string;

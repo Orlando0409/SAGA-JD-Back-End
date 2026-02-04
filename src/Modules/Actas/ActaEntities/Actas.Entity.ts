@@ -2,7 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, Pri
 import { ArchivoActa } from "./ArchivoActa.Entity";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
-@Entity('Acta')
+@Entity('acta')
 export class Acta
 {
     @PrimaryGeneratedColumn()

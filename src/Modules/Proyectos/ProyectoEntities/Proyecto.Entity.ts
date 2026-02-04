@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, Jo
 import { EstadoProyecto } from './EstadoProyecto.Entity';
 import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 
-@Entity('Proyecto')
+@Entity('proyecto')
 export class Proyecto {
   @PrimaryGeneratedColumn()
   Id_Proyecto: number;

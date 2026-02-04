@@ -3,7 +3,12 @@ import { ConfigService } from "@nestjs/config";
 import { config } from "dotenv";
 import 'reflect-metadata';
 
-config();
+// Cargar el archivo .env correcto según el entorno
+const envFile = process.env.NODE_ENV === 'production' 
+    ? '.env.production' 
+    : '.env.development';
+
+config({ path: envFile });
 
 const configService = new ConfigService();
 

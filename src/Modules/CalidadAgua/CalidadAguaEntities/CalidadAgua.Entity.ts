@@ -1,7 +1,7 @@
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
-@Entity('Calidad_Agua')
+@Entity('calidad_agua')
 export class CalidadAgua {
     @PrimaryGeneratedColumn()
     Id_Calidad_Agua: number;

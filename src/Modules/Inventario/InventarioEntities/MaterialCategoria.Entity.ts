@@ -2,7 +2,7 @@ import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Material } from "./Material.Entity";
 import { Categoria } from "./Categoria.Entity";
 
-@Entity('Material_Categoria')
+@Entity('material_categoria')
 export class MaterialCategoria {
     @PrimaryGeneratedColumn()
     Id_Material_Categoria: number;

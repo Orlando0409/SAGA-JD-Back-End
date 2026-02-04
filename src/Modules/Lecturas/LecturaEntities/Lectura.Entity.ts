@@ -3,7 +3,7 @@ import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entit
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 import { TipoTarifaLectura } from "./TipoTarifaLectura.Entity";
 
-@Entity('Lectura')
+@Entity('lectura')
 export class Lectura {
     @PrimaryGeneratedColumn()
     Id_Lectura: number;

@@ -1,7 +1,7 @@
 import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, JoinColumn, ManyToOne } from 'typeorm';
 
-@Entity('Imagenes')
+@Entity('imagenes')
 export class ImagenEntity {
   @PrimaryGeneratedColumn()
   Id_Imagen: number;

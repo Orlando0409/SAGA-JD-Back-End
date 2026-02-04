@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "t
 import { TipoTarifaLectura } from "./TipoTarifaLectura.Entity";
 
 // Tabla para definir rangos de consumo y sus costos base por M3
-@Entity('Rango_Consumo')
+@Entity('rango_consumo')
 export class RangoConsumo {
     @PrimaryGeneratedColumn()
     Id_Rango_Consumo: number;
