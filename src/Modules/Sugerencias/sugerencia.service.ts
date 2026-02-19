@@ -3,13 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
-import { EstadoSugerencia } from './SugerenciaEntities/EstadoSugerencia';
 import { Sugerencia } from './SugerenciaEntities/Sugerencia.Entity';
 import { CreateSugerenciaDto } from './SugerenciaDTO\'s/CreateSugerencia.dto';
 import { ResponderSugerenciaDto } from './SugerenciaDTO\'s/ResponderSugerencia.dto';
 import { UsuariosService } from '../Usuarios/Services/usuarios.service';
 import { AuditoriaService } from '../Auditoria/auditoria.service';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
+import { EstadoSugerencia } from './SugerenciaEntities/EstadoSugerencia.Entity';
 
 interface SugerenciaFiles {
   Adjunto?: Express.Multer.File[];
