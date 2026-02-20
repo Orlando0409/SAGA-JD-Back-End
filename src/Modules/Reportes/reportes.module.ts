@@ -4,7 +4,7 @@ import { ReportesController } from './reportes.controller';
 import { ReportesService } from './reportes.service';
 import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
 import { EmailModule } from '../Emails/email.module';
-import { EstadoReporte } from './ReporteEntities/EstadoReporte';
+import { EstadoReporte } from './ReporteEntities/EstadoReporte.Entity';
 import { Reporte } from './ReporteEntities/Reportes.Entity';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 import { AuditoriaModule } from '../Auditoria/auditoria.module';

@@ -13,9 +13,9 @@ import { Categoria } from 'src/Modules/Inventario/InventarioEntities/Categoria.E
 import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
 import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
-import { EstadoReporte } from 'src/Modules/Reportes/ReporteEntities/EstadoReporte';
-import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia';
-import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja';
+import { EstadoReporte } from 'src/Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
+import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
+import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
 import { SeederService } from './Seeder.service';
 import { EstadoMedidor } from 'src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
 import { TipoTarifaLectura } from 'src/Modules/Lecturas/LecturaEntities/TipoTarifaLectura.Entity';

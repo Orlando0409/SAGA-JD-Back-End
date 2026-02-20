@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
-import { EstadoSugerencia } from './SugerenciaEntities/EstadoSugerencia';
+import { EstadoSugerencia } from './SugerenciaEntities/EstadoSugerencia.Entity';
 import { Sugerencia } from './SugerenciaEntities/Sugerencia.Entity';
 import { CreateSugerenciaDto } from './SugerenciaDTO\'s/CreateSugerencia.dto';
 import { ResponderSugerenciaDto } from './SugerenciaDTO\'s/ResponderSugerencia.dto';

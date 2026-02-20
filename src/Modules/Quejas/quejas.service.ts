@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
-import { EstadoQueja } from './QuejaEntities/EstadoQueja';
+import { EstadoQueja } from './QuejaEntities/EstadoQueja.Entity';
 import { CreateQuejaDto } from './QuejaDTO\'s/CreateQueja.dto';
 import { ResponderQuejaDto } from './QuejaDTO\'s/ResponderQueja.dto';
 import { Queja } from './QuejaEntities/QuejasEntity';

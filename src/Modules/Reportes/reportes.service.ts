@@ -5,7 +5,7 @@ import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
 import { CreateReporteDto } from './ReporteDTO\'s/CreateReporte.dto';
 import { ResponderReporteDto } from './ReporteDTO\'s/ResponderReporte.dto';
-import { EstadoReporte } from './ReporteEntities/EstadoReporte';
+import { EstadoReporte } from './ReporteEntities/EstadoReporte.Entity';
 import { Reporte } from './ReporteEntities/Reportes.Entity';
 import { AuditoriaService } from '../Auditoria/auditoria.service';
 import { UsuariosService } from '../Usuarios/Services/usuarios.service';
