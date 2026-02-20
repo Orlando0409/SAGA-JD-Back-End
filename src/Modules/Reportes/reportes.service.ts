@@ -5,11 +5,11 @@ import { DropboxFilesService } from 'src/Dropbox/Files/DropboxFiles.service';
 import { EmailService } from '../Emails/email.service';
 import { CreateReporteDto } from './ReporteDTO\'s/CreateReporte.dto';
 import { ResponderReporteDto } from './ReporteDTO\'s/ResponderReporte.dto';
-import { EstadoReporte } from './ReporteEntities/EstadoReporte.Entity';
 import { Reporte } from './ReporteEntities/Reportes.Entity';
 import { AuditoriaService } from '../Auditoria/auditoria.service';
 import { UsuariosService } from '../Usuarios/Services/usuarios.service';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
+import { EstadoReporte } from './ReporteEntities/EstadoReporte.Entity';
 
 interface ReporteFiles {
   Adjunto?: Express.Multer.File[];
@@ -150,13 +150,13 @@ export class ReportesService {
       setImmediate(async () => {
         try {
           await this.emailService.enviarEmailRespuestaReporte({
-            Nombre: repo.Nombre,
-            Primer_Apellido: repo.Primer_Apellido,
-            Segundo_Apellido: repo.Segundo_Apellido,
+            name: repo.Nombre,
+            Papellido: repo.Primer_Apellido,
+            Sapellido: repo.Segundo_Apellido,
             Correo: correoDestino,
-            Ubicacion: repo.Ubicacion,
-            Descripcion: repo.Descripcion,
-            Respuesta: dto.Respuesta,
+            ubicacion: repo.Ubicacion,
+            descripcion: repo.Descripcion,
+            respuesta: dto.Respuesta,
           });
         } catch (error) {
           this.logger.error('Error al enviar email de respuesta de reporte:', error);

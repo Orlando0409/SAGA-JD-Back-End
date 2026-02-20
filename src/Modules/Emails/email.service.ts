@@ -1,12 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import * as SendGrid from '@sendgrid/mail';
+import { MailerService } from '@nestjs-modules/mailer';
 import * as fs from 'fs';
 import * as path from 'path';
+
+// DTOs
 import { createEmailDTO } from './DTO/createEmailDTO';
 import { EstadoSolicitudEmailDTO } from './DTO/EstadoSolicitudEmail.dto';
+
+// Templates
 import { RecoverPasswordMail } from './Template/RecoverPasswordMail';
-import { SolicitudCreadaExitosamenteMail, EstadoSolicitudMail } from './Template/SolicitudMail';
+import {
+  SolicitudCreadaExitosamenteMail,
+  EstadoSolicitudMail,
+} from './Template/SolicitudMail';
 import { ReporteMail } from './Template/PlantillaReporte';
 import { ReporteRespondidoMail } from './Template/ReporteRespondidoMail';
 import { QuejaMail } from './Template/QuejaMail';
@@ -14,23 +20,17 @@ import { QuejaRespondidaMail } from './Template/QuejaRespondidaMail';
 import { SugerenciaMail } from './Template/SugerenciaMail';
 import { SugerenciaRespondidaMail } from './Template/SugerenciaRespondidaMail';
 
-
 @Injectable()
 export class EmailService {
   private logoBase64: string;
 
-  constructor(
-    private readonly configService: ConfigService,
-  ) {
-    const apiKey = this.configService.get<string>('SENDGRID_API_KEY');
-    if (!apiKey) {
-      throw new Error('SENDGRID_API_KEY no está configurado en las variables de entorno');
-    }
-    SendGrid.setApiKey(apiKey!);
-    
-    // Cargar logo en base64 una sola vez
+  constructor(private readonly mailerService: MailerService) {
+    // Cargar logo una sola vez
     try {
-      const logoPath = path.join(process.cwd(), 'src/Modules/Emails/Logo/logo.jpeg');
+      const logoPath = path.join(
+        process.cwd(),
+        'src/Modules/Emails/Logo/logo.jpeg',
+      );
       const logoBuffer = fs.readFileSync(logoPath);
       this.logoBase64 = logoBuffer.toString('base64');
     } catch (error) {
@@ -41,128 +41,107 @@ export class EmailService {
 
   private getLogoAttachment() {
     if (!this.logoBase64) return [];
-    
-    return [{
-      content: this.logoBase64,
-      filename: 'logo.jpeg',
-      type: 'image/jpeg',
-      disposition: 'inline',
-      content_id: 'logo'
-    }];
+
+    return [
+      {
+        filename: 'logo.jpeg',
+        content: this.logoBase64,
+        cid: 'logo', // para usar <img src="cid:logo" />
+        encoding: 'base64',
+      },
+    ];
   }
 
-  // Enviar email cuando el admin responde al reporte
-  async enviarEmailRespuestaReporte(reporteData: {
-    Nombre?: string;
-    Primer_Apellido?: string;
-    Segundo_Apellido?: string;
-    Correo?: string;
-    Ubicacion?: string;
-    Descripcion?: string;
-    Respuesta?: string;
-  }) {
+  // RECUPERAR CONTRASEÑA
+  async sendRecoverPasswordMail(data: createEmailDTO) {
     try {
-      const to = reporteData.Correo;
-      if (!to) {
-        throw new Error('Correo destinatario no proporcionado');
-      }
-
-      await SendGrid.send({
-        to,
-        from: this.configService.get<string>('MAIL_FROM')!,
-        subject: 'Respuesta a tu reporte',
-        html: ReporteRespondidoMail(reporteData),
+      await this.mailerService.sendMail({
+        to: data.to,
+        subject: data.subject,
+        html: RecoverPasswordMail(data.RecoverPasswordURL),
         attachments: this.getLogoAttachment(),
       });
-      console.log('Email de respuesta de reporte enviado a', to);
     } catch (error) {
-      console.error('Error al enviar el correo electrónico:', error);
+      console.error('Error enviando correo de recuperación:', error);
       throw error;
     }
   }
 
-  async sendRecoverPasswordMail(createEmailDTO: createEmailDTO) {
-    try {
-      await SendGrid.send({
-        to: createEmailDTO.to,
-        from: this.configService.get<string>('MAIL_FROM')!,
-        subject: createEmailDTO.subject,
-        html: RecoverPasswordMail(createEmailDTO.RecoverPasswordURL),
-        attachments: this.getLogoAttachment(),
-      });
-    } catch (error) {
-      console.error('Error al enviar el correo electrónico:', error);
-    }
-  }
-
-  // Método para enviar email cuando se crea una solicitud exitosamente
+  // SOLICITUD CREADA
   async enviarEmailSolicitudCreada(
     emailDestino: string,
     tipoSolicitud: string,
-    nombreApellidos?: string
+    nombreApellidos?: string,
   ) {
     try {
-      await SendGrid.send({
+      await this.mailerService.sendMail({
         to: emailDestino,
-        from: this.configService.get<string>('MAIL_FROM')!,
         subject: `Solicitud de ${tipoSolicitud} - Recibida Exitosamente`,
-        html: SolicitudCreadaExitosamenteMail(tipoSolicitud, nombreApellidos),
+        html: SolicitudCreadaExitosamenteMail(
+          tipoSolicitud,
+          nombreApellidos,
+        ),
         attachments: this.getLogoAttachment(),
       });
-      console.log('Email de solicitud creada enviado exitosamente');
     } catch (error) {
-      console.error('Error al enviar el email de solicitud creada:', error);
+      console.error('Error enviando email de solicitud creada:', error);
       throw error;
     }
   }
 
-  // Método para enviar email cuando cambia el estado de una solicitud
-  async enviarEmailCambioEstadoSolicitud(emailData: EstadoSolicitudEmailDTO) {
-    try {
-      // Extraer tipo de solicitud del subject si viene incluido
-      const tipoSolicitud = emailData.subject.replace(/^(Actualización:|Estado de|Solicitud de)/i, '').trim();
 
-      await SendGrid.send({
+  // CAMBIO DE ESTADO 
+  async enviarEmailCambioEstadoSolicitud(
+    emailData: EstadoSolicitudEmailDTO,
+  ) {
+    try {
+      const tipoSolicitud = emailData.subject
+        .replace(/^(Actualización:|Estado de|Solicitud de)/i, '')
+        .trim();
+
+      await this.mailerService.sendMail({
         to: emailData.to,
-        from: this.configService.get<string>('MAIL_FROM')!,
         subject: emailData.subject,
         html: EstadoSolicitudMail(
           tipoSolicitud,
           emailData.estadoSolicitud,
-          emailData.message // Usando message como nombreApellidos
+          emailData.message,
         ),
         attachments: this.getLogoAttachment(),
       });
-      console.log('Email de cambio de estado de solicitud enviado exitosamente');
     } catch (error) {
-      console.error('Error al enviar el email de cambio de estado:', error);
+      console.error('Error enviando cambio de estado:', error);
       throw error;
     }
   }
 
-  // Método más específico para cambio de estado con parámetros individuales
+
+  // ACTUALIZACIÓN DE ESTADO 
   async enviarEmailActualizacionEstado(
     emailDestino: string,
     tipoSolicitud: string,
     estadoSolicitud: string,
-    nombreApellidos?: string
+    nombreApellidos?: string,
   ) {
     try {
-      await SendGrid.send({
+      await this.mailerService.sendMail({
         to: emailDestino,
-        from: this.configService.get<string>('MAIL_FROM')!,
         subject: `Actualización de ${tipoSolicitud} - Estado: ${estadoSolicitud}`,
-        html: EstadoSolicitudMail(tipoSolicitud, estadoSolicitud, nombreApellidos),
+        html: EstadoSolicitudMail(
+          tipoSolicitud,
+          estadoSolicitud,
+          nombreApellidos,
+        ),
         attachments: this.getLogoAttachment(),
       });
-      console.log('Email de actualización de estado enviado exitosamente');
     } catch (error) {
-      console.error('Error al enviar el email de actualización de estado:', error);
+      console.error('Error enviando actualización de estado:', error);
       throw error;
     }
   }
 
-  // Enviar email al crear un reporte
+
+  // REPORTES
   async enviarEmailReporte(reporteData: {
     name?: string;
     Papellido?: string;
@@ -172,27 +151,51 @@ export class EmailService {
     descripcion?: string;
     adjuntos?: string[];
   }) {
-    try {
-      const to = reporteData.Correo;
-      if (!to) {
-        throw new Error('Correo destinatario no proporcionado');
-      }
+    if (!reporteData.Correo) {
+      throw new Error('Correo destinatario no proporcionado');
+    }
 
-      await SendGrid.send({
-        to,
-        from: this.configService.get<string>('MAIL_FROM')!,
+    try {
+      await this.mailerService.sendMail({
+        to: reporteData.Correo,
         subject: 'Confirmación de recepción de tu reporte',
         html: ReporteMail(reporteData),
         attachments: this.getLogoAttachment(),
       });
-      console.log('Email de reporte enviado a', to);
     } catch (error) {
-      console.error('Error al enviar email de reporte:', error);
+      console.error('Error enviando reporte:', error);
       throw error;
     }
   }
 
-  // Enviar email al crear una queja
+  async enviarEmailRespuestaReporte(reporteData: {
+    name?: string;
+    Papellido?: string;
+    Sapellido?: string;
+    Correo?: string;
+    ubicacion?: string;
+    descripcion?: string;
+    respuesta?: string;
+  }) {
+    if (!reporteData.Correo) {
+      throw new Error('Correo destinatario no proporcionado');
+    }
+
+    try {
+      await this.mailerService.sendMail({
+        to: reporteData.Correo,
+        subject: 'Respuesta a tu reporte',
+        html: ReporteRespondidoMail(reporteData),
+        attachments: this.getLogoAttachment(),
+      });
+    } catch (error) {
+      console.error('Error enviando respuesta de reporte:', error);
+      throw error;
+    }
+  }
+
+  
+  // QUEJAS
   async enviarEmailQueja(quejaData: {
     name?: string;
     Papellido?: string;
@@ -201,27 +204,23 @@ export class EmailService {
     descripcion?: string;
     adjuntos?: string[];
   }) {
-    try {
-      const to = quejaData.Correo;
-      if (!to) {
-        throw new Error('Correo destinatario no proporcionado');
-      }
+    if (!quejaData.Correo) {
+      throw new Error('Correo destinatario no proporcionado');
+    }
 
-      await SendGrid.send({
-        to,
-        from: this.configService.get<string>('MAIL_FROM')!,
+    try {
+      await this.mailerService.sendMail({
+        to: quejaData.Correo,
         subject: 'Confirmación de recepción de tu queja',
         html: QuejaMail(quejaData),
         attachments: this.getLogoAttachment(),
       });
-      console.log('Email de queja enviado a', to);
     } catch (error) {
-      console.error('Error al enviar email de queja:', error);
+      console.error('Error enviando queja:', error);
       throw error;
     }
   }
 
-  // Enviar email cuando el admin responde a la queja
   async enviarEmailRespuestaQueja(quejaData: {
     name?: string;
     Papellido?: string;
@@ -230,74 +229,65 @@ export class EmailService {
     descripcion?: string;
     respuesta?: string;
   }) {
-    try {
-      const to = quejaData.Correo;
-      if (!to) {
-        throw new Error('Correo destinatario no proporcionado');
-      }
+    if (!quejaData.Correo) {
+      throw new Error('Correo destinatario no proporcionado');
+    }
 
-      await SendGrid.send({
-        to,
-        from: this.configService.get<string>('MAIL_FROM')!,
+    try {
+      await this.mailerService.sendMail({
+        to: quejaData.Correo,
         subject: 'Respuesta a tu queja',
         html: QuejaRespondidaMail(quejaData),
         attachments: this.getLogoAttachment(),
       });
-      console.log('Email de respuesta de queja enviado a', to);
     } catch (error) {
-      console.error('Error al enviar email de respuesta de queja:', error);
+      console.error('Error enviando respuesta de queja:', error);
       throw error;
     }
   }
 
-  // Enviar email al crear una sugerencia
+
+  // SUGERENCIAS
   async enviarEmailSugerencia(sugerenciaData: {
     Correo?: string;
     Mensaje?: string;
     adjuntos?: string[];
   }) {
-    try {
-      const to = sugerenciaData.Correo;
-      if (!to) {
-        throw new Error('Correo destinatario no proporcionado');
-      }
+    if (!sugerenciaData.Correo) {
+      throw new Error('Correo destinatario no proporcionado');
+    }
 
-      await SendGrid.send({
-        to,
-        from: this.configService.get<string>('MAIL_FROM')!,
+    try {
+      await this.mailerService.sendMail({
+        to: sugerenciaData.Correo,
         subject: 'Confirmación de recepción de tu sugerencia',
         html: SugerenciaMail(sugerenciaData),
         attachments: this.getLogoAttachment(),
       });
-      console.log('Email de sugerencia enviado a', to);
     } catch (error) {
-      console.error('Error al enviar email de sugerencia:', error);
+      console.error('Error enviando sugerencia:', error);
       throw error;
     }
   }
 
-  // Enviar email cuando el admin responde a la sugerencia
   async enviarEmailRespuestaSugerencia(sugerenciaData: {
     Correo?: string;
     Mensaje?: string;
     respuesta?: string;
   }) {
-    try {
-      const to = sugerenciaData.Correo;
-      if (!to) {
-        throw new Error('Correo destinatario no proporcionado');
-      }
+    if (!sugerenciaData.Correo) {
+      throw new Error('Correo destinatario no proporcionado');
+    }
 
-      await SendGrid.send({
-        to,
-        from: this.configService.get<string>('MAIL_FROM')!,
+    try {
+      await this.mailerService.sendMail({
+        to: sugerenciaData.Correo,
         subject: 'Respuesta a tu sugerencia',
         html: SugerenciaRespondidaMail(sugerenciaData),
         attachments: this.getLogoAttachment(),
       });
-      console.log('Email de respuesta de sugerencia enviado a', to);
     } catch (error) {
-      console.error('Error al enviar email de respuesta de sugerencia:', error);
+      console.error('Error enviando respuesta de sugerencia:', error);
       throw error;
     }
   }
