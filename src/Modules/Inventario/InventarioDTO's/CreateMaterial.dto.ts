@@ -22,6 +22,7 @@ export class CreateMaterialDto {
 
     @ApiProperty({ example: 1 })
     @IsDefined({ message: 'El número de estantería no puede estar vacio' })
+    @Max(50, { message: 'El número de estantería no puede ser mayor a 50' })
     @IsInt({ message: 'El número de estantería debe ser un número entero' })
     Numero_Estanteria: number;
 
