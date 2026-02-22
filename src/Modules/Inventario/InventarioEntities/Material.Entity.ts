@@ -24,6 +24,9 @@ export class Material {
     @Column({ nullable: false })
     Precio_Unitario: number;
 
+    @Column({ nullable: false })
+    Numero_Estanteria: number;
+
     @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Entrada: Date;
 

@@ -21,6 +21,11 @@ export class CreateMaterialDto {
     Descripcion?: string;
 
     @ApiProperty({ example: 1 })
+    @IsDefined({ message: 'El número de estantería no puede estar vacio' })
+    @IsInt({ message: 'El número de estantería debe ser un número entero' })
+    Numero_Estanteria: number;
+
+    @ApiProperty({ example: 1 })
     @IsInt({ message: 'El estado debe ser un número entero' })
     @IsOptional()
     Id_Tipo_Proveedor?: number;
