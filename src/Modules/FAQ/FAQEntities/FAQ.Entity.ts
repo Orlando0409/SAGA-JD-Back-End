@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Usuario } from "../../Usuarios/UsuarioEntities/Usuario.Entity";
 
-@Entity("FAQ")
+@Entity("faq")
 export class FAQEntity {
     @PrimaryGeneratedColumn()
     Id_FAQ: number;

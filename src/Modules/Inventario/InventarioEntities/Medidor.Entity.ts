@@ -5,7 +5,7 @@ import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 import { Expose } from "class-transformer";
 import { Lectura } from "src/Modules/Lecturas/LecturaEntities/Lectura.Entity";
 
-@Entity('Medidor')
+@Entity('medidor')
 export class Medidor {
     @PrimaryGeneratedColumn()
     Id_Medidor: number;

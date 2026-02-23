@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "t
 import { TipoTarifaLectura } from "./TipoTarifaLectura.Entity";
 
 // Tabla para almacenar los cargos fijos mensuales por servicios según tipo de tarifa y rango de afiliados
-@Entity('Tipo_Tarifa_Servicios_Fijos')
+@Entity('tipo_tarifa_servicios_fijos')
 export class TipoTarifaServiciosFijos {
     @PrimaryGeneratedColumn()
     Id_Tipo_Tarifa_Servicios_Fijos: number;

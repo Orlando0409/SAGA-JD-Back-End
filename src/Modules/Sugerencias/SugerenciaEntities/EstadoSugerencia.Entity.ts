@@ -1,7 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Sugerencia } from "./Sugerencia.Entity";
 
-@Entity('Estado_Sugerencia')
+@Entity('estado_sugerencia')
 export class EstadoSugerencia{
     @PrimaryGeneratedColumn()
     Id_Estado_Sugerencia: number;    

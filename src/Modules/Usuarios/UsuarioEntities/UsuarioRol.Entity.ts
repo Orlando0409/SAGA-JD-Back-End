@@ -2,7 +2,7 @@ import { Column, PrimaryGeneratedColumn, Entity, OneToMany, ManyToMany, JoinTabl
 import { Usuario } from './Usuario.Entity';
 import { Permiso } from './Permiso.Entity';
 
-@Entity('Usuario_Rol')
+@Entity('usuario_rol')
 export class UsuarioRol {
   @PrimaryGeneratedColumn()
   Id_Rol: number;
@@ -19,7 +19,7 @@ export class UsuarioRol {
   @ManyToMany(() => Permiso, permiso => permiso.Roles)
   @JoinTable(
     {
-      name: 'Rol_Permiso',
+      name: 'rol_permiso',
       joinColumn: { name: 'Id_Rol', referencedColumnName: 'Id_Rol' },
       inverseJoinColumn: { name: 'Id_Permiso', referencedColumnName: 'Id' },
     }

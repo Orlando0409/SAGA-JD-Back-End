@@ -3,7 +3,7 @@ import { MaterialCategoria } from "./MaterialCategoria.Entity";
 import { EstadoCategoria } from "./EstadoCategoria.Entity";
 import { Usuario } from "../../Usuarios/UsuarioEntities/Usuario.Entity";
 
-@Entity('Categoria')
+@Entity('categoria')
 export class Categoria {
     @PrimaryGeneratedColumn()
     Id_Categoria: number;

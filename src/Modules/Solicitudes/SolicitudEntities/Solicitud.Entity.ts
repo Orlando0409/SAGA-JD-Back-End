@@ -4,7 +4,7 @@ import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
 
-@Entity('Solicitud')
+@Entity('solicitud')
 export abstract class Solicitud {
     @PrimaryGeneratedColumn()
     Id_Solicitud: number;
@@ -54,7 +54,7 @@ export abstract class Solicitud {
     }
 }
 
-@Entity('Solicitud_Fisica')
+@Entity('solicitud_fisica')
 export abstract class SolicitudFisica extends Solicitud {
     @Column({ type: 'enum', enum: TipoIdentificacion, nullable: false })
     Tipo_Identificacion: TipoIdentificacion;
@@ -94,7 +94,7 @@ export abstract class SolicitudFisica extends Solicitud {
     }
 }
 
-@Entity('Solicitud_Juridica')
+@Entity('solicitud_juridica')
 export class SolicitudJuridica extends Solicitud {
     @Column({ type: 'varchar', length: 20, nullable: false })
     Cedula_Juridica: string;
@@ -117,7 +117,7 @@ export class SolicitudJuridica extends Solicitud {
     }
 }
 
-@Entity('Solicitud_Afiliacion_Fisica')
+@Entity('solicitud_afiliacion_fisica')
 export class SolicitudAfiliacionFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Direccion_Exacta: string;
@@ -158,7 +158,7 @@ export class SolicitudAfiliacionFisica extends SolicitudFisica {
     }
 }
 
-@Entity('Solicitud_Desconexion_Fisica')
+@Entity('solicitud_desconexion_fisica')
 export class SolicitudDesconexionFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Direccion_Exacta: string;
@@ -199,7 +199,7 @@ export class SolicitudDesconexionFisica extends SolicitudFisica {
     }
 }
 
-@Entity('Solicitud_Cambio_Medidor_Fisica')
+@Entity('solicitud_cambio_medidor_fisica')
 export class SolicitudCambioMedidorFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Direccion_Exacta: string;
@@ -237,7 +237,7 @@ export class SolicitudCambioMedidorFisica extends SolicitudFisica {
     }
 }
 
-@Entity('Solicitud_Asociado_Fisica')
+@Entity('solicitud_asociado_fisica')
 export class SolicitudAsociadoFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Motivo_Solicitud: string;
@@ -269,7 +269,7 @@ export class SolicitudAsociadoFisica extends SolicitudFisica {
     }
 }
 
-@Entity('Solicitud_Afiliacion_Juridica')
+@Entity('solicitud_afiliacion_juridica')
 export class SolicitudAfiliacionJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Direccion_Exacta: string;
@@ -306,7 +306,7 @@ export class SolicitudAfiliacionJuridica extends SolicitudJuridica {
     }
 }
 
-@Entity('Solicitud_Desconexion_Juridica')
+@Entity('solicitud_desconexion_juridica')
 export class SolicitudDesconexionJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Direccion_Exacta: string;
@@ -346,7 +346,7 @@ export class SolicitudDesconexionJuridica extends SolicitudJuridica {
     }
 }
 
-@Entity('Solicitud_Cambio_Medidor_Juridica')
+@Entity('solicitud_cambio_medidor_juridica')
 export class SolicitudCambioMedidorJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Direccion_Exacta: string;
@@ -383,7 +383,7 @@ export class SolicitudCambioMedidorJuridica extends SolicitudJuridica {
     }
 }
 
-@Entity('Solicitud_Asociado_Juridica')
+@Entity('solicitud_asociado_juridica')
 export class SolicitudAsociadoJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Motivo_Solicitud: string;

@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "t
 import { TipoTarifaLectura } from "./TipoTarifaLectura.Entity";
 
 // Tabla para definir rangos de afiliados con sus costos base directos
-@Entity('Rango_Afiliados')
+@Entity('rango_afiliados')
 export class RangoAfiliados {
     @PrimaryGeneratedColumn()
     Id_Rango_Afiliados: number;

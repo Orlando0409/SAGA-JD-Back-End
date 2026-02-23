@@ -1,7 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Afiliado } from "./Afiliado.Entity";
 
-@Entity('Tipo_Afiliado')
+@Entity('tipo_afiliado')
 export class TipoAfiliado {
     @PrimaryGeneratedColumn()
     Id_Tipo_Afiliado: number;

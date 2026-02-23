@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "t
 import { Material } from "./Material.Entity";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 
-@Entity('Movimiento')
+@Entity('movimiento')
 export class MovimientoInventario {
     @PrimaryGeneratedColumn()
     Id_Movimiento: number;

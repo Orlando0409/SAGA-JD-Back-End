@@ -6,7 +6,7 @@ import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
 import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
 
-@Entity('Afiliado')
+@Entity('afiliado')
 export abstract class Afiliado {
     @PrimaryGeneratedColumn()
     Id_Afiliado: number;
@@ -63,7 +63,7 @@ export abstract class Afiliado {
     }
 }
 
-@Entity('Afiliado_Fisico')
+@Entity('afiliado_fisico')
 export class AfiliadoFisico extends Afiliado {
     @Column({ type: 'enum', enum: TipoIdentificacion, nullable: false })
     Tipo_Identificacion: TipoIdentificacion;
@@ -105,7 +105,7 @@ export class AfiliadoFisico extends Afiliado {
     }
 }
 
-@Entity('Afiliado_Juridico')
+@Entity('afiliado_juridico')
 export class AfiliadoJuridico extends Afiliado {
     @Column({ type: 'varchar', length: 20, nullable: false })
     Cedula_Juridica: string;

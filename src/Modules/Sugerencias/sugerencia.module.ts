@@ -5,10 +5,11 @@ import { SugerenciaService } from './sugerencia.service';
 import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
 import { EmailModule } from '../Emails/email.module';
 import { Sugerencia } from './SugerenciaEntities/Sugerencia.Entity';
-import { EstadoSugerencia } from './SugerenciaEntities/EstadoSugerencia';
+
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 import { AuditoriaModule } from '../Auditoria/auditoria.module';
 import { UsuariosModule } from '../Usuarios/Modules/usuarios.module';
+import { EstadoSugerencia } from './SugerenciaEntities/EstadoSugerencia.Entity';
 
 @Module({
   imports: [

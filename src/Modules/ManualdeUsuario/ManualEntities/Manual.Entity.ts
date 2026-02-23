@@ -1,7 +1,7 @@
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 import { Column, PrimaryGeneratedColumn, Entity, ManyToOne, JoinColumn } from "typeorm"
 
-@Entity('Manuales')
+@Entity('manuales')
 export class ManualEntity {
     @PrimaryGeneratedColumn()
     Id_Manual: number;

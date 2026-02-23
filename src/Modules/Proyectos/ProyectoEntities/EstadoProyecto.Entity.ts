@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Proyecto } from './Proyecto.Entity';
 
-@Entity('Estado_Proyecto')
+@Entity('estado_proyecto')
 export class EstadoProyecto
 {
   @PrimaryGeneratedColumn()

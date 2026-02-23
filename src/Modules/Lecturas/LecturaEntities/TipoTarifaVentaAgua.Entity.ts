@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 // Tabla para almacenar los factores operativos (Conducción, Potabilización, Distribución)
-@Entity('Tipo_Tarifa_Venta_Agua')
+@Entity('tipo_tarifa_venta_agua')
 export class TipoTarifaVentaAgua {
     @PrimaryGeneratedColumn()
     Id_Tipo_Tarifa_Venta_Agua: number;

@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
-import { EstadoSugerencia } from './EstadoSugerencia';
+import { EstadoSugerencia } from './EstadoSugerencia.Entity';
 
-@Entity('Sugerencias')
+@Entity('sugerencias')
 export class Sugerencia {
     @PrimaryGeneratedColumn()
     Id_Sugerencia: number;
