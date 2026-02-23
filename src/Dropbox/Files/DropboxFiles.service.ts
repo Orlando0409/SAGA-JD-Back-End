@@ -286,4 +286,23 @@ export class DropboxFilesService {
   async uploadFileWithPreview(file: Express.Multer.File, carpetaPrincipal: string, carpetaSecundaria?: string, Identificacion?: string, Nombre?: string) {
     return this.uploadFile(file, carpetaPrincipal, carpetaSecundaria, Identificacion, Nombre, true);
   }
+
+  async deleteFile(path: string) {
+    const dbx = await this.getDropboxInstance();
+
+    try {
+      await dbx.filesDeleteV2({ path });
+      return { deleted: true, path };
+
+    } 
+    catch (error: any) {
+      const errString = JSON.stringify(error || {});
+      if (errString.includes('El archivo no existe') || errString.includes('path')){
+        return { deleted: false, path, reason: 'El archivo no existe' };
+      }
+      console.error('Error eliminando archivo en Dropbox:', error);
+      throw error;
+    }
+    
+  }
 }

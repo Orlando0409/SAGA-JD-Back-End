@@ -3,6 +3,7 @@ import { ActasService } from "./actas.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { CreateActaDto } from "./ActaDTO's/CreateActa.dto";
+import { UpdateActaDto } from "./ActaDTO's/UpdateActa.dto";
 import { JwtAuthGuard } from "../auth/Guard/JwtGuard";
 import { GetUser } from "../auth/Decorator/GetUser.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
@@ -37,10 +38,20 @@ export class ActaController {
     ]),)
     updateActa(
         @Param('idActa') id: number,
-        @Body() dto: CreateActaDto,
+        @Body() dto: UpdateActaDto,
         @GetUser() usuario: Usuario,
         @UploadedFiles() files: { Archivo?: Express.Multer.File[]; }) {
         return this.actasService.UpdateActa(id, dto, usuario.Id_Usuario, files.Archivo || []);
+    }
+
+    @Delete('/:idActa/archivo/:idArchivo')
+    @ApiOperation({ summary: 'Eliminar un archivo individual de un acta' })
+    deleteArchivoDeActa(
+        @Param('idActa') idActa: number,
+        @Param('idArchivo') idArchivo: number,
+        @GetUser() usuario: Usuario
+    ) {
+        return this.actasService.eliminarArchivoDeActa(idActa, idArchivo, usuario.Id_Usuario);
     }
 
     @Delete('/delete/:idActa')
