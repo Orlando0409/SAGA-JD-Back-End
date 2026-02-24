@@ -106,7 +106,7 @@ import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
           ImagenEntity,
           ManualEntity, RangoAfiliados, RangoConsumo
         ],
-        synchronize: true,
+        synchronize: false,
         dropSchema: false,
       })
     }),
