@@ -12,6 +12,7 @@ import { RecoverPasswordMail } from './Template/RecoverPasswordMail';
 import {
   SolicitudCreadaExitosamenteMail,
   EstadoSolicitudMail,
+  SolicitudRechazadaMail,
 } from './Template/SolicitudMail';
 import { ReporteMail } from './Template/PlantillaReporte';
 import { ReporteRespondidoMail } from './Template/ReporteRespondidoMail';
@@ -141,6 +142,34 @@ export class EmailService {
   }
 
 
+  // SOLICITUD RECHAZADA
+  async enviarEmailSolicitudRechazada(
+    emailDestino: string,
+    nombreSolicitante: string,
+    tipoSolicitud: string,
+    numeroSolicitud: string,
+    motivoRechazo: string,
+  ) {
+    try {
+      await this.mailerService.sendMail({
+        to: emailDestino,
+        subject: `Solicitud de ${tipoSolicitud} Rechazada - ASADA Juan Díaz`,
+        html: SolicitudRechazadaMail(
+          nombreSolicitante,
+          tipoSolicitud,
+          numeroSolicitud,
+          motivoRechazo,
+        ),
+        attachments: this.getLogoAttachment(),
+      });
+      console.log(`Correo de rechazo enviado a ${emailDestino}`);
+    } catch (error) {
+      console.error('Error enviando correo de rechazo de solicitud:', error);
+      throw error;
+    }
+  }
+
+
   // REPORTES
   async enviarEmailReporte(reporteData: {
     name?: string;
@@ -194,7 +223,7 @@ export class EmailService {
     }
   }
 
-  
+
   // QUEJAS
   async enviarEmailQueja(quejaData: {
     name?: string;

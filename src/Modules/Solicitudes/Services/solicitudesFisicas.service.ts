@@ -578,8 +578,13 @@ export class SolicitudesFisicasService {
 
 
     // MÉTODOS PARA CAMBIO DE ESTADO DE SOLICITUDES FÍSICAS
-    async updateEstadoSolicitudAfiliacion(idSolicitud: number, idNuevoEstado: number, idUsuario: number) {
+    async updateEstadoSolicitudAfiliacion(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de afiliación.');
+
+        //prueba 
+        if (idNuevoEstado === 5 && !motivoRechazo) {
+            throw new BadRequestException('Debe proporcionar un motivo de rechazo');
+        }//
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
@@ -615,7 +620,16 @@ export class SolicitudesFisicasService {
         }
 
         // Estado 5 = Rechazada
-        if (idNuevoEstado === 5) console.log(`Estado de solicitud de afiliación ${idSolicitud} cambiado a 'Rechazada'`);
+        if (idNuevoEstado === 5) {
+            await this.emailService.enviarEmailSolicitudRechazada(
+                solicitudAfiliacion.Correo,
+                nombre,
+                'Afiliación',
+                idSolicitud.toString(),
+                motivoRechazo!
+            );
+            console.log(`Estado de solicitud de afiliación ${idSolicitud} cambiado a 'Rechazada'`);
+        }
 
         solicitudAfiliacion.Estado = nuevoEstado;
         const resultado = await this.solicitudAfiliacionFisicaRepository.save(solicitudAfiliacion);
@@ -625,7 +639,8 @@ export class SolicitudesFisicasService {
                 Tipo_Identificacion: solicitudAfiliacion.Tipo_Identificacion,
                 Identificacion: solicitudAfiliacion.Identificacion,
                 Nombre_Solicitante: nombre,
-                Estado_Nuevo: nuevoEstado.Nombre_Estado
+                Estado_Nuevo: nuevoEstado.Nombre_Estado,
+                ...(motivoRechazo && { Motivo_Rechazo: motivoRechazo })
             });
         } catch (error) {
             console.error('Error al actualizar estado de solicitud de afiliación:', error);
@@ -637,8 +652,13 @@ export class SolicitudesFisicasService {
         };
     }
 
-    async updateEstadoSolicitudDesconexion(idSolicitud: number, idNuevoEstado: number, idUsuario: number) {
+    async updateEstadoSolicitudDesconexion(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de desconexión.');
+
+        // Validar que si el estado es rechazado (5), se proporcione el motivo
+        if (idNuevoEstado === 5 && !motivoRechazo) {
+            throw new BadRequestException('Debe proporcionar un motivo de rechazo');
+        }
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
@@ -684,7 +704,16 @@ export class SolicitudesFisicasService {
         }
 
         // Estado 5 = Rechazada
-        if (idNuevoEstado === 5) await this.emailService.enviarEmailActualizacionEstado(solicitudDesconexion.Correo, 'Desconexión', 'Rechazada', nombre);
+        if (idNuevoEstado === 5) {
+            await this.emailService.enviarEmailSolicitudRechazada(
+                solicitudDesconexion.Correo,
+                nombre,
+                'Desconexión',
+                idSolicitud.toString(),
+                motivoRechazo!
+            );
+            console.log(`Estado de solicitud de desconexión ${idSolicitud} cambiado a 'Rechazada'`);
+        }
 
         solicitudDesconexion.Estado = nuevoEstado;
         const resultado = await this.solicitudDesconexionFisicaRepository.save(solicitudDesconexion);
@@ -694,7 +723,8 @@ export class SolicitudesFisicasService {
                 Tipo_Identificacion: solicitudDesconexion.Tipo_Identificacion,
                 Identificacion: solicitudDesconexion.Identificacion,
                 Nombre_Solicitante: nombre,
-                Estado_Nuevo: nuevoEstado.Nombre_Estado
+                Estado_Nuevo: nuevoEstado.Nombre_Estado,
+                ...(motivoRechazo && { Motivo_Rechazo: motivoRechazo })
             });
         } catch (error) {
             console.error(`Error al actualizar estado de solicitud de desconexión ${idSolicitud}:`, error);
@@ -706,16 +736,21 @@ export class SolicitudesFisicasService {
         };
     }
 
-    async updateEstadoSolicitudCambioMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number) {
+    async updateEstadoSolicitudCambioMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de cambio de medidor.');
+
+        // Validar que si el estado es rechazado (5), se proporcione el motivo
+        if (idNuevoEstado === 5 && !motivoRechazo) {
+            throw new BadRequestException('Debe proporcionar un motivo de rechazo');
+        }
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
 
-        const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({where: { Id_Solicitud: idSolicitud }, relations: ['Estado']});
+        const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({ where: { Id_Solicitud: idSolicitud }, relations: ['Estado'] });
         if (!solicitudCambioMedidor) throw new BadRequestException(`Solicitud de cambio de medidor con id ${idSolicitud} no encontrada`);
 
-        const nuevoEstado = await this.estadoSolicitudRepository.findOne({where: { Id_Estado_Solicitud: idNuevoEstado }});
+        const nuevoEstado = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: idNuevoEstado } });
         if (!nuevoEstado) throw new BadRequestException(`Estado con id ${idNuevoEstado} no encontrado`);
 
         const nombre = `${solicitudCambioMedidor.Nombre} ${solicitudCambioMedidor.Apellido1 ?? ''} ${solicitudCambioMedidor.Apellido2 ?? ''}`.trim();
@@ -738,7 +773,16 @@ export class SolicitudesFisicasService {
         if (idNuevoEstado === 4) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Completada', nombre);
 
         // Estado 5 = Rechazada
-        if (idNuevoEstado === 5) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Rechazada', nombre);
+        if (idNuevoEstado === 5) {
+            await this.emailService.enviarEmailSolicitudRechazada(
+                solicitudCambioMedidor.Correo,
+                nombre,
+                'Cambio de Medidor',
+                idSolicitud.toString(),
+                motivoRechazo!
+            );
+            console.log(`Estado de solicitud de cambio de medidor ${idSolicitud} cambiado a 'Rechazada'`);
+        }
 
         solicitudCambioMedidor.Estado = nuevoEstado;
         const resultado = await this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
@@ -748,7 +792,8 @@ export class SolicitudesFisicasService {
                 Tipo_Identificacion: solicitudCambioMedidor.Tipo_Identificacion,
                 Identificacion: solicitudCambioMedidor.Identificacion,
                 Nombre_Solicitante: nombre,
-                Estado_Nuevo: nuevoEstado.Nombre_Estado
+                Estado_Nuevo: nuevoEstado.Nombre_Estado,
+                ...(motivoRechazo && { Motivo_Rechazo: motivoRechazo })
             });
         } catch (error) {
             console.error('Error al actualizar estado de solicitud de cambio de medidor:', error);
@@ -760,8 +805,13 @@ export class SolicitudesFisicasService {
         };
     }
 
-    async updateEstadoSolicitudAsociado(idSolicitud: number, idNuevoEstado: number, idUsuario: number) {
+    async updateEstadoSolicitudAsociado(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de asociado.');
+
+        // Validar que si el estado es rechazado (5), se proporcione el motivo
+        if (idNuevoEstado === 5 && !motivoRechazo) {
+            throw new BadRequestException('Debe proporcionar un motivo de rechazo');
+        }
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
@@ -797,7 +847,16 @@ export class SolicitudesFisicasService {
         }
 
         // Estado 5 = Rechazada
-        if (idNuevoEstado === 5) await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociado', 'Rechazada', nombre);
+        if (idNuevoEstado === 5) {
+            await this.emailService.enviarEmailSolicitudRechazada(
+                solicitudAsociado.Correo,
+                nombre,
+                'Asociado',
+                idSolicitud.toString(),
+                motivoRechazo!
+            );
+            console.log(`Estado de solicitud de asociado ${idSolicitud} cambiado a 'Rechazada'`);
+        }
 
         solicitudAsociado.Estado = nuevoEstado;
         const resultado = await this.solicitudAsociadoFisicaRepository.save(solicitudAsociado);
@@ -807,7 +866,8 @@ export class SolicitudesFisicasService {
                 Tipo_Identificacion: solicitudAsociado.Tipo_Identificacion,
                 Identificacion: solicitudAsociado.Identificacion,
                 Nombre_Solicitante: nombre,
-                Estado_Nuevo: nuevoEstado.Nombre_Estado
+                Estado_Nuevo: nuevoEstado.Nombre_Estado,
+                ...(motivoRechazo && { Motivo_Rechazo: motivoRechazo })
             });
         } catch (error) {
             console.error('Error al actualizar estado de solicitud de asociado:', error);
