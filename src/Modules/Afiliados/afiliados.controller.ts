@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Put, UploadedFiles, UseInterceptors, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, UploadedFiles, UseInterceptors, UseGuards } from "@nestjs/common";
 import { AfiliadosService } from "./afiliados.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { CreateAfiliadoFisicoDto, CreateAfiliadoJuridicoDto } from "./AfiliadoDTO's/CreateAfiliado.dto";
@@ -29,6 +29,22 @@ export class AfiliadosController {
     @ApiOperation({ summary: 'Obtener todos los afiliados jurídicos' })
     findAllJuridicos() {
         return this.afiliadosService.getAfiliadosJuridicos();
+    }
+
+    @Get('/fisico/detail/:id')
+    @ApiOperation({ summary: 'Obtener detalle completo de un afiliado físico incluyendo todos sus medidores' })
+    getDetalleAfiliadoFisico(
+        @Param('id', ParseIntPipe) id: number
+    ) {
+        return this.afiliadosService.getDetalleAfiliadoFisico(id);
+    }
+
+    @Get('/juridico/detail/:id')
+    @ApiOperation({ summary: 'Obtener detalle completo de un afiliado jurídico incluyendo todos sus medidores' })
+    getDetalleAfiliadoJuridico(
+        @Param('id', ParseIntPipe) id: number
+    ) {
+        return this.afiliadosService.getDetalleAfiliadoJuridico(id);
     }
 
     @Post('/fisico/create')

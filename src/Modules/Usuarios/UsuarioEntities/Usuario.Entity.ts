@@ -15,7 +15,7 @@ export class Usuario {
     @Column({ nullable: false })
     Correo_Electronico: string;
 
-    @Column({ nullable: true })
+    @Column({ nullable: true, type: 'text' })
     Refresh_Token: string;
 
     @DeleteDateColumn({ name: 'Fecha_Eliminacion', nullable: true })

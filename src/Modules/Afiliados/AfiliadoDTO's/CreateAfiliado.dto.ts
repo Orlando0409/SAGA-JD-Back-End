@@ -16,6 +16,13 @@ const capitalizarCadaPalabra = (value: string): string => {
     .join(' ');
 };
 
+//Proximamente lo guardare en la carpeta de los enums 
+export enum OpcionMedidor {
+  SinMedidor = 'sin_medidor',
+  Asignar = 'asignar',
+  Agregar = 'agregar',
+}
+
 export abstract class CreateAfiliadoDto {
   @ApiProperty({ example: 'ejemplo@gmail.com' })
   @Transform(({ value }) => value?.trim())
@@ -43,6 +50,35 @@ export abstract class CreateAfiliadoDto {
   @MaxLength(255, { message: 'La dirección no puede tener más de 255 caracteres' })
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#-]+$/, { message: 'La dirección solo puede contener letras, números, espacios y los caracteres .,-#' })
   Direccion_Exacta: string;
+
+  // ───MEDIDOR───────────────────────────────────────────────────────
+  @ApiProperty({
+    example: 'sin_medidor',
+    enum: OpcionMedidor,
+    required: false,
+    default: OpcionMedidor.SinMedidor,
+  })
+  @IsOptional()
+  @IsEnum(OpcionMedidor, { message: 'Opcion_Medidor debe ser "sin_medidor", "asignar" o "agregar"' })
+  Opcion_Medidor?: OpcionMedidor;
+
+  @ApiProperty({
+    example: 3,
+    required: false,
+  })
+  @IsOptional()
+  @Transform(({ value }) => (value !== undefined && value !== null && value !== '' ? Number(value) : undefined))
+  @IsNumber({}, { message: 'Id_Medidor debe ser un número entero' })
+  Id_Medidor?: number;
+
+  @ApiProperty({
+    example: 123456,
+    description: 'Requerido cuando Opcion_Medidor = "agregar". Número del nuevo medidor a crear.',
+    required: false,
+  })
+  @IsOptional()
+  @Transform(({ value }) => (value !== undefined && value !== null && value !== '' ? Number(value) : undefined))
+  Numero_Medidor?: number;
 }
 
 export class CreateAfiliadoFisicoDto extends CreateAfiliadoDto {
