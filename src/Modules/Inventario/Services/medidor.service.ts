@@ -7,6 +7,7 @@ import { CreateMedidorDTO } from "../InventarioDTO's/CreateMedidor.dto";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { AsignarMedidorDTO } from "../InventarioDTO's/AsignarMedidor.dto";
+import { AsignarMedidorExistenteAAfiliado } from "../InventarioDTO's/AsignarMedidorExistenteAAfiliado.dto";
 import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
 import { AuditoriaService } from "src/Modules/Auditoria/auditoria.service";
 import { UsuariosService } from "src/Modules/Usuarios/Services/usuarios.service";
@@ -176,6 +177,77 @@ export class MedidorService {
         );
 
         return medidoresConAfiliados;
+    }
+
+    async getMedidoresDisponibles() {
+        
+        const medidores = await this.medidorRepository.createQueryBuilder('medidor')
+            .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('estado.Id_Estado_Medidor = :estado', { estado: 1 })
+            .andWhere('medidor.Id_Afiliado IS NULL')
+            .getMany();
+
+        return medidores.map(m => ({
+            ...m,
+            Usuario: m.Usuario ? { Id_Usuario: m.Usuario.Id_Usuario, Nombre_Usuario: (m.Usuario as any).Nombre_Usuario ?? null } : null
+        }));
+    }
+
+    async asignarMedidorExistenteAAfiliado(dto: AsignarMedidorExistenteAAfiliado, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+       
+        const medidor = await this.medidorRepository.findOne({
+            where: { Id_Medidor: dto.Id_Medidor },
+            relations: ['Estado_Medidor', 'Afiliado']
+        });
+        if (!medidor) throw new BadRequestException(`Medidor con ID ${dto.Id_Medidor} no encontrado`);
+        if (medidor.Estado_Medidor.Id_Estado_Medidor === 3) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} está averiado y no puede ser asignado`);
+        if (medidor.Afiliado) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} ya está asignado al afiliado con ID ${medidor.Afiliado.Id_Afiliado}`);
+
+        const afiliado = await this.afiliadoRepository.findOne({ where: { Id_Afiliado: dto.Id_Afiliado } });
+        if (!afiliado) throw new BadRequestException(`Afiliado con ID ${dto.Id_Afiliado} no encontrado`);
+
+        const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
+        if (!estadoInstalado) throw new BadRequestException('Estado "Instalado" no encontrado en la base de datos');
+
+        const datosAnteriores = {
+            Numero_Medidor: medidor.Numero_Medidor,
+            Estado_Anterior: medidor.Estado_Medidor.Nombre_Estado_Medidor,
+            Afiliado_Anterior: null
+        };
+
+        medidor.Afiliado = afiliado;
+        medidor.Estado_Medidor = estadoInstalado;
+        await this.medidorRepository.save(medidor);
+
+        try {
+            await this.auditoriaService.logActualizacion('Medidores', idUsuario, dto.Id_Medidor, datosAnteriores, {
+                Numero_Medidor: medidor.Numero_Medidor,
+                Estado_Nuevo: 'Instalado',
+                Afiliado_Asignado: dto.Id_Afiliado
+            });
+        } catch (error) {
+            console.error('Error al registrar auditoría de asignación de medidor a afiliado:', error);
+        }
+
+        const medidorActualizado = await this.medidorRepository.createQueryBuilder('medidor')
+            .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('medidor.Id_Medidor = :id', { id: dto.Id_Medidor })
+            .getOne();
+
+        if (!medidorActualizado) throw new BadRequestException('Error al recuperar el medidor actualizado');
+
+        return {
+            ...medidorActualizado,
+            Afiliado: await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidorActualizado.Afiliado),
+            Usuario: medidorActualizado.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidorActualizado.Usuario) : null
+        };
     }
 
     async createMedidor(dto: CreateMedidorDTO, idUsuario: number) {

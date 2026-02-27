@@ -1,4 +1,4 @@
-import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, Table, TableInheritance, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, ManyToOne, JoinColumn, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { EstadoAfiliado } from "./EstadoAfiliado.Entity";
 import { TipoAfiliado } from "./TipoAfiliado.Entity";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
@@ -44,7 +44,6 @@ export abstract class Afiliado {
     Tipo_Afiliado: TipoAfiliado;
 
     @OneToMany(() => Medidor, (medidor) => medidor.Afiliado)
-    @JoinColumn({ name: 'Id_Medidor' })
     Medidores: Medidor[];
 
     @BeforeInsert()
