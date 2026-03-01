@@ -83,6 +83,14 @@ export class CreateSolicitudDesconexionJuridicaDto extends CreateSolicitudJuridi
   @MaxLength(500, { message: 'El motivo de la solicitud no puede tener más de 500 caracteres' })
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,!?¿¡()-]+$/, { message: 'El motivo de la solicitud solo puede contener letras, números, espacios y los caracteres .,!?¿¡()-' })
   Motivo_Solicitud: string;
+
+  @ApiProperty({ example: 1 })
+  @IsInt({ message: 'El Id del medidor debe ser un número entero' })
+  @IsDefined({ message: 'El Id del medidor no puede estar vacío' })
+  @IsNotEmpty({ message: 'El Id del medidor no puede estar vacío' })
+  @IsPositive({ message: 'El Id del medidor debe ser positivo' })
+  @Min(1, { message: 'El Id del medidor debe ser mayor a 0' })
+  Id_Medidor: number;
 }
 
 export class CreateSolicitudCambioMedidorJuridicaDto extends CreateSolicitudJuridicaDto {
@@ -106,14 +114,13 @@ export class CreateSolicitudCambioMedidorJuridicaDto extends CreateSolicitudJuri
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,!?¿¡()-]+$/, { message: 'El motivo de la solicitud solo puede contener letras, números, espacios y los caracteres .,!?¿¡()-' })
   Motivo_Solicitud: string;
 
-  @ApiProperty({ example: 456789 })
-  @IsInt({ message: 'El número de medidor anterior debe ser un número entero' })
-  @IsDefined({ message: 'El número de medidor anterior no puede estar vacío' })
-  @IsNotEmpty({ message: 'El número de medidor anterior no puede estar vacío' })
-  @IsPositive({ message: 'El número de medidor anterior debe ser positivo' })
-  @Min(1, { message: 'El número de medidor anterior debe ser mayor a 0' })
-  @Max(9999999, { message: 'El número de medidor anterior no puede ser mayor a 9,999,999' })
-  Numero_Medidor_Anterior: number;
+  @ApiProperty({ example: 1 })
+  @IsInt({ message: 'El Id del medidor debe ser un número entero' })
+  @IsDefined({ message: 'El Id del medidor no puede estar vacío' })
+  @IsNotEmpty({ message: 'El Id del medidor no puede estar vacío' })
+  @IsPositive({ message: 'El Id del medidor debe ser positivo' })
+  @Min(1, { message: 'El Id del medidor debe ser mayor a 0' })
+  Id_Medidor: number;
 }
 
 export class CreateSolicitudAsociadoJuridicaDto extends CreateSolicitudJuridicaDto {

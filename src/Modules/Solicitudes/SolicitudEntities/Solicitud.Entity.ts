@@ -172,6 +172,9 @@ export class SolicitudDesconexionFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Escritura_Terreno: string;
 
+    @Column({ nullable: false })
+    Id_Medidor: number;
+
     @BeforeInsert()
     @BeforeUpdate()
     setNormalizarCampos() {
@@ -208,7 +211,7 @@ export class SolicitudCambioMedidorFisica extends SolicitudFisica {
     Motivo_Solicitud: string;
 
     @Column({ nullable: false })
-    Numero_Medidor_Anterior: number;
+    Id_Medidor: number;
 
     @BeforeInsert()
     @BeforeUpdate()
@@ -320,6 +323,9 @@ export class SolicitudDesconexionJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Escritura_Terreno: string;
 
+    @Column({ nullable: false })
+    Id_Medidor: number;
+
     @BeforeInsert()
     @BeforeUpdate()
     setNormalizarCampos() {
@@ -355,7 +361,7 @@ export class SolicitudCambioMedidorJuridica extends SolicitudJuridica {
     Motivo_Solicitud: string;
 
     @Column({ nullable: false })
-    Numero_Medidor_Anterior: number;
+    Id_Medidor: number;
 
     @BeforeInsert()
     @BeforeUpdate()

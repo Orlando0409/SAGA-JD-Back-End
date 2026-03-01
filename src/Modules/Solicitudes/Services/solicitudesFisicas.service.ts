@@ -207,6 +207,7 @@ export class SolicitudesFisicasService {
             Motivo_Solicitud: dto.Motivo_Solicitud,
             Planos_Terreno: planoRes?.url || '',
             Escritura_Terreno: escrituraRes?.url || '',
+            Id_Medidor: dto.Id_Medidor,
         });
         const solicitudFinal = await this.solicitudDesconexionFisicaRepository.save(solicitudDesconexion);
 
@@ -262,7 +263,7 @@ export class SolicitudesFisicasService {
             Apellido2: dto.Apellido2,
             Direccion_Exacta: dto.Direccion_Exacta,
             Motivo_Solicitud: dto.Motivo_Solicitud,
-            Numero_Medidor_Anterior: dto.Numero_Medidor_Anterior,
+            Id_Medidor: dto.Id_Medidor,
         });
         const solicitudFinal = await this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
 
@@ -415,7 +416,8 @@ export class SolicitudesFisicasService {
             Numero_Telefono: solicitudDesconexion.Numero_Telefono,
             Correo: solicitudDesconexion.Correo,
             Direccion_Exacta: solicitudDesconexion.Direccion_Exacta,
-            Motivo_Solicitud: solicitudDesconexion.Motivo_Solicitud
+            Motivo_Solicitud: solicitudDesconexion.Motivo_Solicitud,
+            Id_Medidor: solicitudDesconexion.Id_Medidor
         };
 
         // 4. Actualizar campos específicos de SolicitudDesconexionFisica
@@ -426,6 +428,7 @@ export class SolicitudesFisicasService {
         solicitudDesconexion.Correo = dto.Correo ?? solicitudDesconexion.Correo;
         solicitudDesconexion.Direccion_Exacta = dto.Direccion_Exacta ?? solicitudDesconexion.Direccion_Exacta;
         solicitudDesconexion.Motivo_Solicitud = dto.Motivo_Solicitud ?? solicitudDesconexion.Motivo_Solicitud;
+        solicitudDesconexion.Id_Medidor = dto.Id_Medidor ?? solicitudDesconexion.Id_Medidor;
 
         // 5. Guardar cambios
         const resultado = await this.solicitudDesconexionFisicaRepository.save(solicitudDesconexion);
@@ -439,7 +442,8 @@ export class SolicitudesFisicasService {
                 Numero_Telefono: solicitudDesconexion.Numero_Telefono,
                 Correo: solicitudDesconexion.Correo,
                 Direccion_Exacta: solicitudDesconexion.Direccion_Exacta,
-                Motivo_Solicitud: solicitudDesconexion.Motivo_Solicitud
+                Motivo_Solicitud: solicitudDesconexion.Motivo_Solicitud,
+                Id_Medidor: solicitudDesconexion.Id_Medidor
             });
         } catch (error) {
             console.error('Error al registrar actualización de solicitud de desconexión en auditoría:', error);
@@ -478,7 +482,7 @@ export class SolicitudesFisicasService {
             Correo: solicitudCambioMedidor.Correo,
             Direccion_Exacta: solicitudCambioMedidor.Direccion_Exacta,
             Motivo_Solicitud: solicitudCambioMedidor.Motivo_Solicitud,
-            Numero_Medidor_Anterior: solicitudCambioMedidor.Numero_Medidor_Anterior
+            Id_Medidor: solicitudCambioMedidor.Id_Medidor
         };
 
         // 4. Actualizar campos específicos de SolicitudCambioMedidorFisica
@@ -489,7 +493,7 @@ export class SolicitudesFisicasService {
         solicitudCambioMedidor.Correo = dto.Correo ?? solicitudCambioMedidor.Correo;
         solicitudCambioMedidor.Direccion_Exacta = dto.Direccion_Exacta ?? solicitudCambioMedidor.Direccion_Exacta;
         solicitudCambioMedidor.Motivo_Solicitud = dto.Motivo_Solicitud ?? solicitudCambioMedidor.Motivo_Solicitud;
-        solicitudCambioMedidor.Numero_Medidor_Anterior = dto.Numero_Medidor_Anterior ?? solicitudCambioMedidor.Numero_Medidor_Anterior;
+        solicitudCambioMedidor.Id_Medidor = dto.Id_Medidor ?? solicitudCambioMedidor.Id_Medidor;
 
         // 5. Guardar cambios
         const resultado = await this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
@@ -504,7 +508,7 @@ export class SolicitudesFisicasService {
                 Correo: solicitudCambioMedidor.Correo,
                 Direccion_Exacta: solicitudCambioMedidor.Direccion_Exacta,
                 Motivo_Solicitud: solicitudCambioMedidor.Motivo_Solicitud,
-                Numero_Medidor_Anterior: solicitudCambioMedidor.Numero_Medidor_Anterior
+                Id_Medidor: solicitudCambioMedidor.Id_Medidor
             });
         } catch (error) {
             console.error('Error al registrar actualización de solicitud de cambio de medidor en auditoría:', error);
