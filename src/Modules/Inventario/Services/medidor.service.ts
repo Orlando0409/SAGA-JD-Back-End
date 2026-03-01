@@ -45,6 +45,16 @@ export class MedidorService {
         private readonly usuariosService: UsuariosService
     ) { }
 
+    private async formatearMedidoresConRelaciones(medidores: Medidor[]) {
+        return Promise.all(
+            medidores.map(async (medidor) => ({
+                ...medidor,
+                Afiliado: medidor.Afiliado ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado) : null,
+                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
+            }))
+        );
+    }
+
     async getAllMedidores() {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
@@ -53,16 +63,7 @@ export class MedidorService {
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .getMany();
 
-        // Mapear cada medidor y obtener info completa del afiliado
-        const medidoresConAfiliados = await Promise.all(
-            medidores.map(async (medidor) => ({
-                ...medidor,
-                Afiliado: medidor.Afiliado ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado) : null,
-                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
-            }))
-        );
-
-        return medidoresConAfiliados;
+        return this.formatearMedidoresConRelaciones(medidores);
     }
 
     async getMedidoresNoInstalados() {
@@ -74,15 +75,7 @@ export class MedidorService {
             .where('estado.Id_Estado_Medidor = :estado', { estado: 1 }) // 1 = No Instalado
             .getMany();
 
-        const medidoresConAfiliados = await Promise.all(
-            medidores.map(async (medidor) => ({
-                ...medidor,
-                Afiliado: medidor.Afiliado ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado) : null,
-                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
-            }))
-        );
-
-        return medidoresConAfiliados;
+        return this.formatearMedidoresConRelaciones(medidores);
     }
 
     async getMedidoresInstalados() {
@@ -94,15 +87,7 @@ export class MedidorService {
             .where('estado.Id_Estado_Medidor = :estado', { estado: 2 }) // 2 = Instalado
             .getMany();
 
-        const medidoresConAfiliados = await Promise.all(
-            medidores.map(async (medidor) => ({
-                ...medidor,
-                Afiliado: medidor.Afiliado ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado) : null,
-                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
-            }))
-        );
-
-        return medidoresConAfiliados;
+        return this.formatearMedidoresConRelaciones(medidores);
     }
 
     async getMedidoresAveriados() {
@@ -114,15 +99,7 @@ export class MedidorService {
             .where('estado.Id_Estado_Medidor = :estado', { estado: 3 }) // 3 = Averiado
             .getMany();
 
-        const medidoresConAfiliados = await Promise.all(
-            medidores.map(async (medidor) => ({
-                ...medidor,
-                Afiliado: medidor.Afiliado ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado) : null,
-                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
-            }))
-        );
-
-        return medidoresConAfiliados;
+        return this.formatearMedidoresConRelaciones(medidores);
     }
 
     async getMedidoresConAfiliado() {
@@ -131,32 +108,19 @@ export class MedidorService {
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
             .getMany();
 
-        const medidoresConAfiliados = await Promise.all(
-            medidores.map(async (medidor) => ({
-                ...medidor,
-                Afiliado: medidor.Afiliado ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado) : null,
-                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
-            }))
-        );
-
-        return medidoresConAfiliados;
+        return this.formatearMedidoresConRelaciones(medidores);
     }
 
     async getMedidoresSinAfiliado() {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('medidor.Afiliado IS NULL')
             .getMany();
 
-        const medidoresConAfiliados = await Promise.all(
-            medidores.map(async (medidor) => ({
-                ...medidor,
-                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
-            }))
-        );
-
-        return medidoresConAfiliados;
+        return this.formatearMedidoresConRelaciones(medidores);
     }
 
     async getMedidoresByAfiliado(idAfiliado: number) {
@@ -168,37 +132,27 @@ export class MedidorService {
             .where('medidor.Afiliado.Id_Afiliado = :idAfiliado', { idAfiliado })
             .getMany();
 
-        const medidoresConAfiliados = await Promise.all(
-            medidores.map(async (medidor) => ({
-                ...medidor,
-                Afiliado: medidor.Afiliado ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado) : null,
-                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
-            }))
-        );
-
-        return medidoresConAfiliados;
+        return this.formatearMedidoresConRelaciones(medidores);
     }
 
     async getMedidoresDisponibles() {
-        
+
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
             .leftJoinAndSelect('medidor.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('estado.Id_Estado_Medidor = :estado', { estado: 1 })
             .andWhere('medidor.Id_Afiliado IS NULL')
             .getMany();
 
-        return medidores.map(m => ({
-            ...m,
-            Usuario: m.Usuario ? { Id_Usuario: m.Usuario.Id_Usuario, Nombre_Usuario: (m.Usuario as any).Nombre_Usuario ?? null } : null
-        }));
+        return this.formatearMedidoresConRelaciones(medidores);
     }
 
     async asignarMedidorExistenteAAfiliado(dto: AsignarMedidorExistenteAAfiliado, idUsuario: number) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
-       
+
         const medidor = await this.medidorRepository.findOne({
             where: { Id_Medidor: dto.Id_Medidor },
             relations: ['Estado_Medidor', 'Afiliado']
@@ -364,7 +318,7 @@ export class MedidorService {
                 Id_Solicitud: dto.Id_Solicitud,
                 Tipo_Entidad: dto.Id_Tipo_Entidad === TipoEntidad.Física ? 'Física' : 'Jurídica'
             },
-            Afiliado: medidorActualizado.Afiliado 
+            Afiliado: medidorActualizado.Afiliado
                 ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidorActualizado.Afiliado) : null,
             Usuario: await this.usuariosService.FormatearUsuarioResponse(medidorActualizado.Usuario)
         };

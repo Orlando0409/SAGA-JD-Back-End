@@ -3,6 +3,7 @@ import { EstadoSolicitud } from "./EstadoSolicitud.Entity";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
+import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
 
 @Entity('solicitud')
 export abstract class Solicitud {
@@ -213,6 +214,10 @@ export class SolicitudCambioMedidorFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Id_Medidor: number;
 
+    @ManyToOne(() => Medidor, { nullable: true })
+    @JoinColumn({ name: 'Id_Medidor' })
+    Medidor: Medidor;
+
     @BeforeInsert()
     @BeforeUpdate()
     setNormalizarCampos() {
@@ -362,6 +367,10 @@ export class SolicitudCambioMedidorJuridica extends SolicitudJuridica {
 
     @Column({ nullable: false })
     Id_Medidor: number;
+
+    @ManyToOne(() => Medidor, { nullable: true })
+    @JoinColumn({ name: 'Id_Medidor' })
+    Medidor: Medidor;
 
     @BeforeInsert()
     @BeforeUpdate()

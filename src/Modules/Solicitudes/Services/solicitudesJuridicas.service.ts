@@ -49,7 +49,7 @@ export class SolicitudesJuridicasService {
         private readonly estadoAfiliadoRepository: Repository<EstadoAfiliado>,
 
         private readonly dropboxFilesService: DropboxFilesService,
-        
+
         private readonly validationsService: ValidationsService,
 
         private readonly afiliadosService: AfiliadosService,
@@ -80,7 +80,20 @@ export class SolicitudesJuridicasService {
     }
 
     async getAllSolicitudesCambioMedidor() {
-        return this.solicitudCambioMedidorRepository.find({ relations: ['Estado'] });
+        const solicitudes = await this.solicitudCambioMedidorRepository.find({
+            relations: ['Estado', 'Medidor', 'Medidor.Estado_Medidor']
+        });
+
+        return solicitudes.map(item => ({
+            ...item,
+            Numero_Medidor: item.Medidor?.Numero_Medidor ?? null,
+            // Campo adicional para claridad en frontend
+            Medidor_Info: item.Medidor ? {
+                Id_Medidor: item.Medidor.Id_Medidor,
+                Numero_Medidor: item.Medidor.Numero_Medidor,
+                Estado: item.Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+            } : null
+        }));
     }
 
     async getAllSolicitudesAsociado() {
@@ -675,10 +688,13 @@ export class SolicitudesJuridicasService {
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
 
-        const solicitudCambioMedidor = await this.solicitudCambioMedidorRepository.findOne({where: { Id_Solicitud: idSolicitud }, relations: ['Estado']});
+        const solicitudCambioMedidor = await this.solicitudCambioMedidorRepository.findOne({
+            where: { Id_Solicitud: idSolicitud },
+            relations: ['Estado', 'Medidor', 'Medidor.Estado_Medidor']
+        });
         if (!solicitudCambioMedidor) throw new BadRequestException(`Solicitud de cambio de medidor con id ${idSolicitud} no encontrada`);
 
-        const nuevoEstado = await this.estadoSolicitudRepo.findOne({where: { Id_Estado_Solicitud: idNuevoEstado }});
+        const nuevoEstado = await this.estadoSolicitudRepo.findOne({ where: { Id_Estado_Solicitud: idNuevoEstado } });
         if (!nuevoEstado) throw new BadRequestException(`Estado con id ${idNuevoEstado} no encontrado`);
 
         const razonSocial = solicitudCambioMedidor.Razon_Social;
@@ -716,7 +732,15 @@ export class SolicitudesJuridicasService {
         }
 
         return {
-            Solicitud: resultado,
+            Solicitud: {
+                ...resultado,
+                Numero_Medidor: resultado.Medidor?.Numero_Medidor ?? null,
+                Medidor_Info: resultado.Medidor ? {
+                    Id_Medidor: resultado.Medidor.Id_Medidor,
+                    Numero_Medidor: resultado.Medidor.Numero_Medidor,
+                    Estado: resultado.Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+                } : null
+            },
             Mensaje: `Estado de solicitud de cambio de medidor cambiado a '${nuevoEstado.Nombre_Estado}' exitosamente`
         };
     }
