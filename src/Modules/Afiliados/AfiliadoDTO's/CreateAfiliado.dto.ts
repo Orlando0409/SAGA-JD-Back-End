@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEmail, IsNumber, IsOptional, IsDefined, IsNotEmpty, MinLength, MaxLength, Matches, Min, Max, IsEnum, } from 'class-validator';
+import { IsString, IsEmail, IsNumber, IsOptional, IsDefined, IsNotEmpty, MinLength, MaxLength, Matches, Min, Max, IsEnum, IsIn, } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { TipoIdentificacion } from 'src/Common/Enums/TipoIdentificacion.enum';
 import { IsIdentificacionValida } from 'src/Validations/DTO Validators/Identificacion.validator';
@@ -82,14 +82,16 @@ export abstract class CreateAfiliadoDto {
 }
 
 export class CreateAfiliadoFisicoDto extends CreateAfiliadoDto {
-  @ApiProperty({ example: 'Cedula' })
+  @ApiProperty({ example: 'Cedula', enum: [TipoIdentificacion.CEDULA, TipoIdentificacion.DIMEX, TipoIdentificacion.PASAPORTE] })
   @Transform(({ value }) => value?.trim())
-  @IsEnum(TipoIdentificacion, { message: `El tipo de identificación debe ser uno de los siguientes: ${Object.values(TipoIdentificacion).join(', ')}` })
+  @IsEnum(TipoIdentificacion, { message: `El tipo de identificación debe ser válido` })
+  @IsIn([TipoIdentificacion.CEDULA, TipoIdentificacion.DIMEX, TipoIdentificacion.PASAPORTE],
+    { message: 'Para afiliados físicos solo se permiten: Cedula Nacional, Dimex, Pasaporte' })
   @IsDefined({ message: 'El tipo de identificación no puede estar vacío' })
   Tipo_Identificacion: TipoIdentificacion;
 
-  @ApiProperty({ example: '123456789' })
-  @Transform(({ value }) => value?.trim().toUpperCase())
+  @ApiProperty({ example: '123456789 o 1-2345-6789 o 1 2345 6789' })
+  @Transform(({ value }) => value?.trim().replace(/[\s\-]+/g, '').toUpperCase())
   @IsDefined({ message: 'La identificación no puede estar vacía' })
   @IsNotEmpty({ message: 'La identificación no puede estar vacía' })
   @IsString({ message: 'La identificación debe ser un string' })
