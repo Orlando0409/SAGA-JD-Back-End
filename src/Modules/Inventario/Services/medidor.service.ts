@@ -152,11 +152,11 @@ export class MedidorService {
     async asignarMedidorExistenteAAfiliado(dto: AsignarMedidorExistenteAAfiliado, idUsuario: number) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
-
         const medidor = await this.medidorRepository.findOne({
             where: { Id_Medidor: dto.Id_Medidor },
             relations: ['Estado_Medidor', 'Afiliado']
         });
+
         if (!medidor) throw new BadRequestException(`Medidor con ID ${dto.Id_Medidor} no encontrado`);
         if (medidor.Estado_Medidor.Id_Estado_Medidor === 3) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} está averiado y no puede ser asignado`);
         if (medidor.Afiliado) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} ya está asignado al afiliado con ID ${medidor.Afiliado.Id_Afiliado}`);
@@ -321,6 +321,86 @@ export class MedidorService {
             Afiliado: medidorActualizado.Afiliado
                 ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidorActualizado.Afiliado) : null,
             Usuario: await this.usuariosService.FormatearUsuarioResponse(medidorActualizado.Usuario)
+        };
+    }
+
+    async desasignarMedidorDeAfiliado(idMedidor: number, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const medidor = await this.medidorRepository.findOne({ 
+            where: { Id_Medidor: idMedidor }, 
+            relations: ['Estado_Medidor', 'Afiliado', 'Usuario', 'Usuario.Rol'] 
+        });
+        if (!medidor) throw new BadRequestException(`Medidor con ID ${idMedidor} no encontrado`);
+
+        // Validar que el medidor tenga un afiliado asignado
+        if (!medidor.Afiliado) {
+            throw new BadRequestException(`El medidor con ID ${idMedidor} no tiene un afiliado asignado`);
+        }
+
+        // Obtener el estado "No Instalado" (1)
+        const estadoNoInstalado = await this.estadoMedidorRepository.findOne({ 
+            where: { Id_Estado_Medidor: 1 } 
+        });
+        if (!estadoNoInstalado) {
+            throw new BadRequestException('Estado "No Instalado" no encontrado en el sistema');
+        }
+
+        // Guardar datos anteriores para auditoría
+        const datosAnteriores = {
+            Numero_Medidor: medidor.Numero_Medidor,
+            Estado_Anterior: medidor.Estado_Medidor.Nombre_Estado_Medidor,
+            Afiliado_Anterior: {
+                Id_Afiliado: medidor.Afiliado.Id_Afiliado,
+                Tipo_Entidad: medidor.Afiliado.Tipo_Entidad
+            }
+        };
+
+        // Desasignar el medidor del afiliado
+        medidor.Afiliado = null as any;
+        medidor.Estado_Medidor = estadoNoInstalado;
+        medidor.Id_Solicitud = null as any; // Limpiar también la solicitud
+        
+        await this.medidorRepository.save(medidor);
+
+        // Registrar en auditoría
+        try {
+            await this.auditoriaService.logActualizacion(
+                'Medidores',
+                idUsuario,
+                idMedidor,
+                datosAnteriores,
+                {
+                    Numero_Medidor: medidor.Numero_Medidor,
+                    Estado_Nuevo: estadoNoInstalado.Nombre_Estado_Medidor,
+                    Afiliado_Actual: null
+                }
+            );
+        } catch (error) {
+            console.error('Error al registrar desasignación de medidor en auditoría:', error);
+        }
+
+        // Obtener el medidor actualizado con todas sus relaciones
+        const medidorActualizado = await this.medidorRepository.createQueryBuilder('medidor')
+            .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+            .where('medidor.Id_Medidor = :id', { id: idMedidor })
+            .getOne();
+
+        if (!medidorActualizado) {
+            throw new BadRequestException('Error al obtener el medidor actualizado');
+        }
+
+        return {
+            ...medidorActualizado,
+            Afiliado: medidorActualizado.Afiliado 
+                ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidorActualizado.Afiliado) 
+                : null,
+            Usuario: medidorActualizado.Usuario 
+                ? await this.usuariosService.FormatearUsuarioResponse(medidorActualizado.Usuario) 
+                : null
         };
     }
 

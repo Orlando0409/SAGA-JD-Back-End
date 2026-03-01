@@ -61,7 +61,7 @@ export class AfiliadosService {
 
 
     //METODOS PUBLICOS PARA LOS MEDIDORES EN SOLICITUDES 
-    
+
     //FISICOS
     async getMedidoresbyIdentificacion(identificacion: string) {
         const afiliado = await this.afiliadoFisicoRepository.findOne({
@@ -70,7 +70,7 @@ export class AfiliadosService {
         });
 
         if (!afiliado) throw new BadRequestException(`Afiliado físico con identificación ${identificacion} no encontrado`);
-       
+
         return {
             Nombre: `${afiliado.Nombre} ${afiliado.Apellido1} ${afiliado.Apellido2}`.trim(),
             Identificación: afiliado.Identificacion,
@@ -79,7 +79,7 @@ export class AfiliadosService {
                 Numero_Medidor: m.Numero_Medidor,
                 Estado: m.Estado_Medidor?.Nombre_Estado_Medidor ?? 'Sin estado'
             })) ?? []
-                
+
         }
     }
 
@@ -92,7 +92,7 @@ export class AfiliadosService {
         });
 
         if (!afiliado) throw new BadRequestException(`Afiliado jurídico con cédula ${cedulaJuridica} no encontrado`);
-       
+
         return {
             Razon_Social: afiliado.Razon_Social,
             Cédula_Jurídica: afiliado.Cedula_Juridica,
@@ -101,7 +101,7 @@ export class AfiliadosService {
                 Numero_Medidor: m.Numero_Medidor,
                 Estado: m.Estado_Medidor?.Nombre_Estado_Medidor ?? 'Sin estado'
             })) ?? []
-                
+
         }
     }
 
@@ -777,7 +777,7 @@ export class AfiliadosService {
             Razon_Social: afiliadoJuridico.Razon_Social,
         };
     }
-      async FormatearAfiliadoParaResponseSimple(afiliado: any) {
+    async FormatearAfiliadoParaResponseSimple(afiliado: any) {
         if (!afiliado) return null;
 
         const afiliadoFormateado = {
@@ -813,5 +813,5 @@ export class AfiliadosService {
         }
 
         return afiliadoFormateado;
-      }
+    }
 }

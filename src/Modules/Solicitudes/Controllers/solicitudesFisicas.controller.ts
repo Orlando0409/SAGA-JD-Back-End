@@ -163,7 +163,7 @@ export class SolicitudesFisicasController {
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesFisicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
+        return this.solicitudesFisicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo, dto.Id_Nuevo_Medidor);
     }
 
     @Patch('/update/estado/asociado/:idSolicitud/:idNuevoEstado')
