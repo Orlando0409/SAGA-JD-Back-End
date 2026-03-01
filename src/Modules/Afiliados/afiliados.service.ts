@@ -58,6 +58,56 @@ export class AfiliadosService {
         private readonly dropboxFilesService: DropboxFilesService,
     ) { }
 
+
+
+    //METODOS PUBLICOS PARA LOS MEDIDORES EN SOLICITUDES 
+    
+    //FISICOS
+    async getMedidoresbyIdentificacion(identificacion: string) {
+        const afiliado = await this.afiliadoFisicoRepository.findOne({
+            where: { Identificacion: identificacion },
+            relations: ['Medidores', 'Medidores.Estado_Medidor']
+        });
+
+        if (!afiliado) throw new BadRequestException(`Afiliado físico con identificación ${identificacion} no encontrado`);
+       
+        return {
+            Nombre: `${afiliado.Nombre} ${afiliado.Apellido1} ${afiliado.Apellido2}`.trim(),
+            Identificación: afiliado.Identificacion,
+            Medidores: afiliado.Medidores?.map(m => ({
+                Id_Medidor: m.Id_Medidor,
+                Numero_Medidor: m.Numero_Medidor,
+                Estado: m.Estado_Medidor?.Nombre_Estado_Medidor ?? 'Sin estado'
+            })) ?? []
+                
+        }
+    }
+
+    //Juridicos 
+
+    async getMedidoresbyCedulaJuridica(cedulaJuridica: string) {
+        const afiliado = await this.afiliadoJuridicoRepository.findOne({
+            where: { Cedula_Juridica: cedulaJuridica },
+            relations: ['Medidores', 'Medidores.Estado_Medidor']
+        });
+
+        if (!afiliado) throw new BadRequestException(`Afiliado jurídico con cédula ${cedulaJuridica} no encontrado`);
+       
+        return {
+            Razon_Social: afiliado.Razon_Social,
+            Cédula_Jurídica: afiliado.Cedula_Juridica,
+            Medidores: afiliado.Medidores?.map(m => ({
+                Id_Medidor: m.Id_Medidor,
+                Numero_Medidor: m.Numero_Medidor,
+                Estado: m.Estado_Medidor?.Nombre_Estado_Medidor ?? 'Sin estado'
+            })) ?? []
+                
+        }
+    }
+
+
+
+
     async getAfiliados() {
         const afiliados = await this.afiliadoRepository.createQueryBuilder('afiliado')
             .leftJoinAndSelect('afiliado.Estado', 'estado')
