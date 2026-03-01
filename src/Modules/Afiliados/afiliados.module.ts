@@ -12,9 +12,10 @@ import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { UsuariosModule } from "../Usuarios/Modules/usuarios.module";
 import { AuditoriaModule } from "../Auditoria/auditoria.module";
 import { Medidor } from "../Inventario/InventarioEntities/Medidor.Entity";
+import { EstadoMedidor } from "../Inventario/InventarioEntities/EstadoMedidor.Entity";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, Usuario, Medidor]), ValidationsModule, DropboxModule, UsuariosModule, AuditoriaModule],
+  imports: [TypeOrmModule.forFeature([Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, Usuario, Medidor, EstadoMedidor]), ValidationsModule, DropboxModule, UsuariosModule, AuditoriaModule],
   controllers: [AfiliadosController],
   providers: [AfiliadosService],
   exports: [AfiliadosService],

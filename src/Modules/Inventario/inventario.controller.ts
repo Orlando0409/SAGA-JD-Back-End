@@ -14,6 +14,7 @@ import { MovimientosService } from './Services/movimientos.service';
 import { MedidorService } from './Services/medidor.service';
 import { CreateMedidorDTO } from './InventarioDTO\'s/CreateMedidor.dto';
 import { AsignarMedidorDTO } from './InventarioDTO\'s/AsignarMedidor.dto';
+import { AsignarMedidorExistenteAAfiliado } from './InventarioDTO\'s/AsignarMedidorExistenteAAfiliado.dto';
 import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
 import { GetUser } from '../auth/Decorator/GetUser.decorator';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
@@ -311,6 +312,12 @@ export class InventarioController {
     return this.medidorService.getMedidoresAveriados();
   }
 
+  @Get('/medidores/disponibles')
+  @ApiOperation({ summary: 'Obtiene medidores sin dueño y sin averías (disponibles para asignar a un afiliado).' })
+  async getMedidoresDisponibles() {
+    return this.medidorService.getMedidoresDisponibles();
+  }
+
   @Get('/medidores/afiliado/:idAfiliado')
   @ApiOperation({ summary: 'Obtiene todos los medidores asociados a un afiliado específico.' })
   async getMedidoresAfiliado(
@@ -320,7 +327,7 @@ export class InventarioController {
   }
 
   @Post('/create/medidor')
-  @ApiOperation({ summary: 'Crea un nuevo medidor en el sistema.' })
+  @ApiOperation({ summary: 'Crea un nuevo medidor en el sistema (sin asignar a ningún afiliado).' })
   async createMedidor(
     @Body() dto: CreateMedidorDTO,
     @GetUser() usuario: Usuario
@@ -329,12 +336,21 @@ export class InventarioController {
   }
 
   @Post('/asignar/medidor')
-  @ApiOperation({ summary: 'Asigna un medidor a un afiliado específico.' })
+  @ApiOperation({ summary: 'Asigna un medidor a una solicitud (flujo de aprobación de solicitudes).' })
   async asignarMedidor(
     @Body() dto: AsignarMedidorDTO,
     @GetUser() usuario: Usuario
   ) {
     return this.medidorService.asignarMedidorAAfiliado(dto, usuario.Id_Usuario);
+  }
+
+  @Post('/asignar/medidor/afiliado')
+  @ApiOperation({ summary: 'Asigna un medidor ya existente y disponible directamente a un afiliado.' })
+  async asignarMedidorExistenteAAfiliado(
+    @Body() dto: AsignarMedidorExistenteAAfiliado,
+    @GetUser() usuario: Usuario
+  ) {
+    return this.medidorService.asignarMedidorExistenteAAfiliado(dto, usuario.Id_Usuario);
   }
 
   @Patch('/update/estado/medidor/:idMedidor/:nuevoEstadoId')
