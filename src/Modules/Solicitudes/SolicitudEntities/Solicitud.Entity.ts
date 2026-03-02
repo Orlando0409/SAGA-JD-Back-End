@@ -218,6 +218,13 @@ export class SolicitudCambioMedidorFisica extends SolicitudFisica {
     @JoinColumn({ name: 'Id_Medidor' })
     Medidor: Medidor;
 
+    @Column({ nullable: true, default: null })
+    Id_Nuevo_Medidor: number;
+
+    @ManyToOne(() => Medidor, { nullable: true, eager: false })
+    @JoinColumn({ name: 'Id_Nuevo_Medidor' })
+    Nuevo_Medidor: Medidor;
+
     @BeforeInsert()
     @BeforeUpdate()
     setNormalizarCampos() {
@@ -371,6 +378,13 @@ export class SolicitudCambioMedidorJuridica extends SolicitudJuridica {
     @ManyToOne(() => Medidor, { nullable: true })
     @JoinColumn({ name: 'Id_Medidor' })
     Medidor: Medidor;
+
+    @Column({ nullable: true, default: null })
+    Id_Nuevo_Medidor: number;
+
+    @ManyToOne(() => Medidor, { nullable: true, eager: false })
+    @JoinColumn({ name: 'Id_Nuevo_Medidor' })
+    Nuevo_Medidor: Medidor;
 
     @BeforeInsert()
     @BeforeUpdate()
