@@ -36,6 +36,12 @@ export class SolicitudesJuridicasController {
         return this.solicitudesJuridicasService.getAllSolicitudesCambioMedidor();
     }
 
+    @Get('/cambio-medidor/:id')
+    @ApiOperation({ summary: 'Obtener el detalle de una solicitud de cambio de medidor jurídica por ID' })
+    getSolicitudCambioMedidorById(@Param('id') id: number) {
+        return this.solicitudesJuridicasService.getSolicitudCambioMedidorById(id);
+    }
+
     @Get('/asociado')
     @ApiOperation({ summary: 'Obtener todas las solicitudes de asociado jurídica' })
     getAllSolicitudesAsociado() {

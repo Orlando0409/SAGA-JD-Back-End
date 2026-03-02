@@ -14,6 +14,8 @@ import { UpdateSolicitudAfiliacionJuridicaDto, UpdateSolicitudAsociadoJuridicaDt
 import { CreateSolicitudAfiliacionJuridicaDto, CreateSolicitudAsociadoJuridicaDto, CreateSolicitudCambioMedidorJuridicaDto, CreateSolicitudDesconexionJuridicaDto } from "../SolicitudDTO's/CreateSolicitudJuridica.dto";
 import { AfiliadoJuridico } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { EstadoAfiliado } from "src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
+import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
+import { EstadoMedidor } from "src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity";
 
 @Injectable()
 export class SolicitudesJuridicasService {
@@ -48,6 +50,12 @@ export class SolicitudesJuridicasService {
         @InjectRepository(EstadoAfiliado)
         private readonly estadoAfiliadoRepository: Repository<EstadoAfiliado>,
 
+        @InjectRepository(Medidor)
+        private readonly medidorRepository: Repository<Medidor>,
+
+        @InjectRepository(EstadoMedidor)
+        private readonly estadoMedidorRepository: Repository<EstadoMedidor>,
+
         private readonly dropboxFilesService: DropboxFilesService,
 
         private readonly validationsService: ValidationsService,
@@ -81,19 +89,45 @@ export class SolicitudesJuridicasService {
 
     async getAllSolicitudesCambioMedidor() {
         const solicitudes = await this.solicitudCambioMedidorRepository.find({
-            relations: ['Estado', 'Medidor', 'Medidor.Estado_Medidor']
+            relations: ['Estado', 'Medidor', 'Medidor.Estado_Medidor', 'Nuevo_Medidor', 'Nuevo_Medidor.Estado_Medidor']
         });
 
         return solicitudes.map(item => ({
             ...item,
             Numero_Medidor: item.Medidor?.Numero_Medidor ?? null,
-            // Campo adicional para claridad en frontend
             Medidor_Info: item.Medidor ? {
                 Id_Medidor: item.Medidor.Id_Medidor,
                 Numero_Medidor: item.Medidor.Numero_Medidor,
                 Estado: item.Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+            } : null,
+            Nuevo_Medidor_Info: item.Nuevo_Medidor ? {
+                Id_Medidor: item.Nuevo_Medidor.Id_Medidor,
+                Numero_Medidor: item.Nuevo_Medidor.Numero_Medidor,
+                Estado: item.Nuevo_Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
             } : null
         }));
+    }
+
+    async getSolicitudCambioMedidorById(idSolicitud: number) {
+        const solicitud = await this.solicitudCambioMedidorRepository.findOne({
+            where: { Id_Solicitud: idSolicitud },
+            relations: ['Estado', 'Medidor', 'Medidor.Estado_Medidor', 'Nuevo_Medidor', 'Nuevo_Medidor.Estado_Medidor']
+        });
+        if (!solicitud) throw new BadRequestException(`Solicitud de cambio de medidor jurídica con id ${idSolicitud} no encontrada`);
+        return {
+            ...solicitud,
+            Numero_Medidor: solicitud.Medidor?.Numero_Medidor ?? null,
+            Medidor_Info: solicitud.Medidor ? {
+                Id_Medidor: solicitud.Medidor.Id_Medidor,
+                Numero_Medidor: solicitud.Medidor.Numero_Medidor,
+                Estado: solicitud.Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+            } : null,
+            Nuevo_Medidor_Info: solicitud.Nuevo_Medidor ? {
+                Id_Medidor: solicitud.Nuevo_Medidor.Id_Medidor,
+                Numero_Medidor: solicitud.Nuevo_Medidor.Numero_Medidor,
+                Estado: solicitud.Nuevo_Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+            } : null
+        };
     }
 
     async getAllSolicitudesAsociado() {
@@ -455,7 +489,10 @@ export class SolicitudesJuridicasService {
         }
 
         // 3. Buscar la solicitud de cambio de medidor jurídica específica
-        const solicitudCambioMedidor = await this.solicitudCambioMedidorRepository.findOne({ where: { Id_Solicitud: idSolicitud } });
+        const solicitudCambioMedidor = await this.solicitudCambioMedidorRepository.findOne({
+            where: { Id_Solicitud: idSolicitud },
+            relations: ['Medidor', 'Medidor.Estado_Medidor']
+        });
         if (!solicitudCambioMedidor) throw new BadRequestException(`Solicitud de cambio de medidor jurídica con id ${idSolicitud} no encontrada`);
 
         // Guardar datos anteriores para auditoría
@@ -475,6 +512,7 @@ export class SolicitudesJuridicasService {
         solicitudCambioMedidor.Direccion_Exacta = dto.Direccion_Exacta ?? solicitudCambioMedidor.Direccion_Exacta;
         solicitudCambioMedidor.Motivo_Solicitud = dto.Motivo_Solicitud ?? solicitudCambioMedidor.Motivo_Solicitud;
         solicitudCambioMedidor.Id_Medidor = dto.Id_Medidor ?? solicitudCambioMedidor.Id_Medidor;
+        solicitudCambioMedidor.Id_Nuevo_Medidor = dto.Id_Nuevo_Medidor ?? solicitudCambioMedidor.Id_Nuevo_Medidor;
 
         // 5. Guardar cambios
         const resultado = await this.solicitudCambioMedidorRepository.save(solicitudCambioMedidor);
@@ -495,6 +533,12 @@ export class SolicitudesJuridicasService {
 
         return {
             ...resultado,
+            Numero_Medidor: resultado.Medidor?.Numero_Medidor ?? null,
+            Medidor_Info: resultado.Medidor ? {
+                Id_Medidor: resultado.Medidor.Id_Medidor,
+                Numero_Medidor: resultado.Medidor.Numero_Medidor,
+                Estado: resultado.Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+            } : null,
             Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario)
         };
     }
@@ -713,7 +757,46 @@ export class SolicitudesJuridicasService {
         if (idNuevoEstado === 3) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Aprobada y en espera', razonSocial);
 
         // Estado 4 = Completada
-        if (idNuevoEstado === 4) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Completada', razonSocial);
+        if (idNuevoEstado === 4) {
+            await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Completada', razonSocial);
+
+            // Cambiar estado del medidor ANTIGUO a Averiado (3)
+            if (solicitudCambioMedidor.Id_Medidor) {
+                const medidorAntiguo = await this.medidorRepository.findOne({ where: { Id_Medidor: solicitudCambioMedidor.Id_Medidor } });
+                if (medidorAntiguo) {
+                    const estadoAveriado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 3 } }); // 3 = Averiado
+                    if (estadoAveriado) {
+                        medidorAntiguo.Estado_Medidor = estadoAveriado;
+                        await this.medidorRepository.save(medidorAntiguo);
+                        console.log(`Medidor antiguo ${medidorAntiguo.Numero_Medidor} cambiado a estado 'Averiado'`);
+                    }
+                } else {
+                    console.warn(`Medidor antiguo con id ${solicitudCambioMedidor.Id_Medidor} no encontrado.`);
+                }
+            }
+
+            // Asignar el NUEVO medidor al afiliado (acumulativo, no reemplaza los existentes)
+            if (solicitudCambioMedidor.Id_Nuevo_Medidor) {
+                const nuevoMedidor = await this.medidorRepository.findOne({
+                    where: { Id_Medidor: solicitudCambioMedidor.Id_Nuevo_Medidor },
+                    relations: ['Estado_Medidor']
+                });
+                if (nuevoMedidor) {
+                    const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: solicitudCambioMedidor.Cedula_Juridica } });
+                    if (afiliado) {
+                        const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } }); // 2 = Instalado
+                        nuevoMedidor.Afiliado = afiliado;
+                        if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
+                        await this.medidorRepository.save(nuevoMedidor);
+                        console.log(`Nuevo medidor ${nuevoMedidor.Numero_Medidor} asignado al afiliado ${afiliado.Cedula_Juridica} y marcado como 'Instalado'`);
+                    } else {
+                        console.warn(`Afiliado jurídico con cédula ${solicitudCambioMedidor.Cedula_Juridica} no encontrado para asignar nuevo medidor.`);
+                    }
+                } else {
+                    console.warn(`Nuevo medidor con id ${solicitudCambioMedidor.Id_Nuevo_Medidor} no encontrado.`);
+                }
+            }
+        }
 
         // Estado 5 = Rechazada
         if (idNuevoEstado === 5) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Rechazada', razonSocial);

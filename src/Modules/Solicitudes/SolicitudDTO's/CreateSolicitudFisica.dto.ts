@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive, IsEnum, IsOptional } from "class-validator";
+import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive, IsEnum, IsOptional, IsNumber } from "class-validator";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { IsIdentificacionValida } from "src/Validations/DTO Validators/Identificacion.validator";
 import { IsTelefonoValido } from "src/Validations/DTO Validators/NumeroTelefono.validator";
@@ -153,6 +153,13 @@ export class CreateSolicitudCambioMedidorFisicaDto extends CreateSolicitudFisica
   @IsPositive({ message: 'El Id del medidor debe ser positivo' })
   @Min(1, { message: 'El Id del medidor debe ser mayor a 0' })
   Id_Medidor: number;
+
+  @ApiProperty({ example: 3, required: false, description: 'ID del nuevo medidor que se asignará al afiliado al aprobar la solicitud' })
+  @IsOptional()
+  @IsInt({ message: 'El Id del nuevo medidor debe ser un número entero' })
+  @IsPositive({ message: 'El Id del nuevo medidor debe ser positivo' })
+  @Min(1, { message: 'El Id del nuevo medidor debe ser mayor a 0' })
+  Id_Nuevo_Medidor?: number;
 }
 
 export class CreateSolicitudAsociadoFisicaDto extends CreateSolicitudFisicaDto {
