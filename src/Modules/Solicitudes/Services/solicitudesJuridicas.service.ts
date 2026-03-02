@@ -14,7 +14,6 @@ import { UpdateSolicitudAfiliacionJuridicaDto, UpdateSolicitudAsociadoJuridicaDt
 import { CreateSolicitudAfiliacionJuridicaDto, CreateSolicitudAsociadoJuridicaDto, CreateSolicitudCambioMedidorJuridicaDto, CreateSolicitudDesconexionJuridicaDto } from "../SolicitudDTO's/CreateSolicitudJuridica.dto";
 import { AfiliadoJuridico } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { EstadoAfiliado } from "src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
-import { MedidorService } from "src/Modules/Inventario/Services/medidor.service";
 
 @Injectable()
 export class SolicitudesJuridicasService {
@@ -60,8 +59,6 @@ export class SolicitudesJuridicasService {
         private readonly usuariosService: UsuariosService,
 
         private readonly auditoriaService: AuditoriaService,
-
-        private readonly medidorService: MedidorService,
     ) { }
 
     // MÉTODOS PARA OBTENER SOLICITUDES JURÍDICAS
@@ -685,25 +682,15 @@ export class SolicitudesJuridicasService {
         };
     }
 
-    async updateEstadoSolicitudCambioMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string, idNuevoMedidor?: number) {
+    async updateEstadoSolicitudCambioMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de cambio de medidor.');
-
-        // Validar que si el estado es rechazado (5), se proporcione el motivo
-        if (idNuevoEstado === 5 && !motivoRechazo) {
-            throw new BadRequestException('Debe proporcionar un motivo de rechazo');
-        }
-
-        // Validar que si el estado es completada (4), se proporcione el ID del nuevo medidor
-        if (idNuevoEstado === 4 && !idNuevoMedidor) {
-            throw new BadRequestException('Debe proporcionar el ID del nuevo medidor para completar la solicitud');
-        }
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
 
         const solicitudCambioMedidor = await this.solicitudCambioMedidorRepository.findOne({
             where: { Id_Solicitud: idSolicitud },
-            relations: ['Estado', 'Medidor', 'Medidor.Estado_Medidor', 'Medidor.Afiliado']
+            relations: ['Estado', 'Medidor', 'Medidor.Estado_Medidor']
         });
         if (!solicitudCambioMedidor) throw new BadRequestException(`Solicitud de cambio de medidor con id ${idSolicitud} no encontrada`);
 
@@ -716,11 +703,7 @@ export class SolicitudesJuridicasService {
         const datosAnteriores = {
             Cedula_Juridica: solicitudCambioMedidor.Cedula_Juridica,
             Razon_Social: razonSocial,
-            Estado_Anterior: solicitudCambioMedidor.Estado,
-            Medidor_Anterior: solicitudCambioMedidor.Medidor ? {
-                Id_Medidor: solicitudCambioMedidor.Medidor.Id_Medidor,
-                Numero_Medidor: solicitudCambioMedidor.Medidor.Numero_Medidor
-            } : null
+            Estado_Anterior: solicitudCambioMedidor.Estado
         }
 
         // Estado 2 = En revisión
@@ -730,44 +713,10 @@ export class SolicitudesJuridicasService {
         if (idNuevoEstado === 3) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Aprobada y en espera', razonSocial);
 
         // Estado 4 = Completada
-        if (idNuevoEstado === 4) {
-            await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Completada', razonSocial);
-
-            // Obtener el afiliado jurídico basado en la cédula jurídica de la solicitud
-            const afiliado = await this.afiliadoJuridicoRepository.findOne({
-                where: { Cedula_Juridica: solicitudCambioMedidor.Cedula_Juridica }
-            });
-
-            if (!afiliado) {
-                throw new BadRequestException(`No se encontró un afiliado con la cédula jurídica ${solicitudCambioMedidor.Cedula_Juridica}`);
-            }
-
-            // 1. Desasignar el medidor anterior del afiliado
-            if (solicitudCambioMedidor.Medidor) {
-                await this.medidorService.desasignarMedidorDeAfiliado(solicitudCambioMedidor.Medidor.Id_Medidor, idUsuario);
-                console.log(`Medidor anterior ${solicitudCambioMedidor.Medidor.Numero_Medidor} desasignado correctamente`);
-            }
-
-            // 2. Asignar el nuevo medidor al afiliado
-            await this.medidorService.asignarMedidorExistenteAAfiliado({
-                Id_Medidor: idNuevoMedidor!,
-                Id_Afiliado: afiliado.Id_Afiliado
-            }, idUsuario);
-
-            console.log(`Nuevo medidor ${idNuevoMedidor} asignado al afiliado ${afiliado.Id_Afiliado} correctamente`);
-        }
+        if (idNuevoEstado === 4) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Completada', razonSocial);
 
         // Estado 5 = Rechazada
-        if (idNuevoEstado === 5) {
-            await this.emailService.enviarEmailSolicitudRechazada(
-                solicitudCambioMedidor.Correo,
-                razonSocial,
-                'Cambio de Medidor',
-                idSolicitud.toString(),
-                motivoRechazo!
-            );
-            console.log(`Estado de solicitud de cambio de medidor ${idSolicitud} cambiado a 'Rechazada'`);
-        }
+        if (idNuevoEstado === 5) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Rechazada', razonSocial);
 
         solicitudCambioMedidor.Estado = nuevoEstado;
         const resultado = await this.solicitudCambioMedidorRepository.save(solicitudCambioMedidor);
@@ -776,9 +725,7 @@ export class SolicitudesJuridicasService {
             await this.auditoriaService.logActualizacion('Solicitudes', idUsuario, idSolicitud, datosAnteriores, {
                 Cedula_Juridica: solicitudCambioMedidor.Cedula_Juridica,
                 Razon_Social: razonSocial,
-                Estado_Nuevo: nuevoEstado.Nombre_Estado,
-                ...(motivoRechazo && { Motivo_Rechazo: motivoRechazo }),
-                ...(idNuevoMedidor && { Id_Nuevo_Medidor: idNuevoMedidor })
+                Estado_Nuevo: nuevoEstado.Nombre_Estado
             });
         } catch (error) {
             console.error('Error al actualizar estado de solicitud de cambio de medidor:', error);
@@ -792,8 +739,7 @@ export class SolicitudesJuridicasService {
                     Id_Medidor: resultado.Medidor.Id_Medidor,
                     Numero_Medidor: resultado.Medidor.Numero_Medidor,
                     Estado: resultado.Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
-                } : null,
-                ...(idNuevoMedidor && { Nuevo_Medidor_Id: idNuevoMedidor })
+                } : null
             },
             Mensaje: `Estado de solicitud de cambio de medidor cambiado a '${nuevoEstado.Nombre_Estado}' exitosamente`
         };

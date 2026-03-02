@@ -1,4 +1,3 @@
-import { MedidorService } from './../../Inventario/Services/medidor.service';
 import { UpdateSolicitudAfiliacionFisicaDto, UpdateSolicitudAsociadoFisicaDto, UpdateSolicitudCambioMedidorFisicaDto, UpdateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/UpdateSolicitudFisica.dto";
 import { Solicitud, SolicitudAfiliacionFisica, SolicitudAsociadoFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudFisica } from "../SolicitudEntities/Solicitud.Entity";
 import { CreateSolicitudAfiliacionFisicaDto, CreateSolicitudAsociadoFisicaDto, CreateSolicitudCambioMedidorFisicaDto, CreateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/CreateSolicitudFisica.dto";
@@ -15,7 +14,6 @@ import { UsuariosService } from 'src/Modules/Usuarios/Services/usuarios.service'
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { Medidor } from 'src/Modules/Inventario/InventarioEntities/Medidor.Entity';
 
 @Injectable()
 export class SolicitudesFisicasService {
@@ -55,8 +53,6 @@ export class SolicitudesFisicasService {
         private readonly validationsService: ValidationsService,
 
         private readonly afiliadosService: AfiliadosService,
-        
-        private readonly medidorService: MedidorService,
 
         private readonly emailService: EmailService,
 
@@ -757,7 +753,7 @@ export class SolicitudesFisicasService {
         };
     }
 
-    async updateEstadoSolicitudCambioMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string, idNuevoMedidor?: number) {
+    async updateEstadoSolicitudCambioMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de cambio de medidor.');
 
         // Validar que si el estado es rechazado (5), se proporcione el motivo
@@ -765,17 +761,12 @@ export class SolicitudesFisicasService {
             throw new BadRequestException('Debe proporcionar un motivo de rechazo');
         }
 
-        // Validar que si el estado es completada (4), se proporcione el ID del nuevo medidor
-        if (idNuevoEstado === 4 && !idNuevoMedidor) {
-            throw new BadRequestException('Debe proporcionar el ID del nuevo medidor para completar la solicitud');
-        }
-
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
 
         const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({
             where: { Id_Solicitud: idSolicitud },
-            relations: ['Estado', 'Medidor', 'Medidor.Estado_Medidor', 'Medidor.Afiliado']
+            relations: ['Estado', 'Medidor', 'Medidor.Estado_Medidor']
         });
         if (!solicitudCambioMedidor) throw new BadRequestException(`Solicitud de cambio de medidor con id ${idSolicitud} no encontrada`);
 
@@ -789,11 +780,7 @@ export class SolicitudesFisicasService {
             Tipo_Identificacion: solicitudCambioMedidor.Tipo_Identificacion,
             Identificacion: solicitudCambioMedidor.Identificacion,
             Nombre_Solicitante: nombre,
-            Estado_Anterior: solicitudCambioMedidor.Estado,
-            Medidor_Anterior: solicitudCambioMedidor.Medidor ? {
-                Id_Medidor: solicitudCambioMedidor.Medidor.Id_Medidor,
-                Numero_Medidor: solicitudCambioMedidor.Medidor.Numero_Medidor
-            } : null
+            Estado_Anterior: solicitudCambioMedidor.Estado
         }
 
         // Estado 2 = En revisión
@@ -803,32 +790,7 @@ export class SolicitudesFisicasService {
         if (idNuevoEstado === 3) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Aprobada y en espera', nombre);
 
         // Estado 4 = Completada
-        if (idNuevoEstado === 4) {
-            await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Completada', nombre);
-
-            // Obtener el afiliado físico basado en la identificación de la solicitud
-            const afiliado = await this.afiliadoFisicoRepository.findOne({
-                where: { Identificacion: solicitudCambioMedidor.Identificacion }
-            });
-
-            if (!afiliado) {
-                throw new BadRequestException(`No se encontró un afiliado con la identificación ${solicitudCambioMedidor.Identificacion}`);
-            }
-
-            // 1. Desasignar el medidor anterior del afiliado
-            if (solicitudCambioMedidor.Medidor) {
-                await this.medidorService.desasignarMedidorDeAfiliado(solicitudCambioMedidor.Medidor.Id_Medidor, idUsuario);
-                console.log(`Medidor anterior ${solicitudCambioMedidor.Medidor.Numero_Medidor} desasignado correctamente`);
-            }
-
-            // 2. Asignar el nuevo medidor al afiliado
-            await this.medidorService.asignarMedidorExistenteAAfiliado({
-                Id_Medidor: idNuevoMedidor!,
-                Id_Afiliado: afiliado.Id_Afiliado
-            }, idUsuario);
-
-            console.log(`Nuevo medidor ${idNuevoMedidor} asignado al afiliado ${afiliado.Id_Afiliado} correctamente`);
-        } 
+        if (idNuevoEstado === 4) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Completada', nombre);
 
         // Estado 5 = Rechazada
         if (idNuevoEstado === 5) {
@@ -851,8 +813,7 @@ export class SolicitudesFisicasService {
                 Identificacion: solicitudCambioMedidor.Identificacion,
                 Nombre_Solicitante: nombre,
                 Estado_Nuevo: nuevoEstado.Nombre_Estado,
-                ...(motivoRechazo && { Motivo_Rechazo: motivoRechazo }),
-                ...(idNuevoMedidor && { Id_Nuevo_Medidor: idNuevoMedidor })
+                ...(motivoRechazo && { Motivo_Rechazo: motivoRechazo })
             });
         } catch (error) {
             console.error('Error al actualizar estado de solicitud de cambio de medidor:', error);
@@ -866,8 +827,7 @@ export class SolicitudesFisicasService {
                     Id_Medidor: resultado.Medidor.Id_Medidor,
                     Numero_Medidor: resultado.Medidor.Numero_Medidor,
                     Estado: resultado.Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
-                } : null,
-                ...(idNuevoMedidor && { Nuevo_Medidor_Id: idNuevoMedidor })
+                } : null
             },
             Mensaje: `Estado de solicitud de cambio de medidor cambiado a '${nuevoEstado.Nombre_Estado}' exitosamente`
         };
