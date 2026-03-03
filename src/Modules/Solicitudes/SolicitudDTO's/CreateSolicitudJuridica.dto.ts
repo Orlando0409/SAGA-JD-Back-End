@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive } from "class-validator";
+import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive, IsOptional } from "class-validator";
 import { IsCedulaJuridicaValida } from "src/Validations/DTO Validators/CedulaJuridica.validator";
 import { IsTelefonoValido } from "src/Validations/DTO Validators/NumeroTelefono.validator";
 
@@ -83,6 +83,14 @@ export class CreateSolicitudDesconexionJuridicaDto extends CreateSolicitudJuridi
   @MaxLength(500, { message: 'El motivo de la solicitud no puede tener más de 500 caracteres' })
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,!?¿¡()-]+$/, { message: 'El motivo de la solicitud solo puede contener letras, números, espacios y los caracteres .,!?¿¡()-' })
   Motivo_Solicitud: string;
+
+  @ApiProperty({ example: 1 })
+  @IsInt({ message: 'El Id del medidor debe ser un número entero' })
+  @IsDefined({ message: 'El Id del medidor no puede estar vacío' })
+  @IsNotEmpty({ message: 'El Id del medidor no puede estar vacío' })
+  @IsPositive({ message: 'El Id del medidor debe ser positivo' })
+  @Min(1, { message: 'El Id del medidor debe ser mayor a 0' })
+  Id_Medidor: number;
 }
 
 export class CreateSolicitudCambioMedidorJuridicaDto extends CreateSolicitudJuridicaDto {
@@ -106,14 +114,20 @@ export class CreateSolicitudCambioMedidorJuridicaDto extends CreateSolicitudJuri
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,!?¿¡()-]+$/, { message: 'El motivo de la solicitud solo puede contener letras, números, espacios y los caracteres .,!?¿¡()-' })
   Motivo_Solicitud: string;
 
-  @ApiProperty({ example: 456789 })
-  @IsInt({ message: 'El número de medidor anterior debe ser un número entero' })
-  @IsDefined({ message: 'El número de medidor anterior no puede estar vacío' })
-  @IsNotEmpty({ message: 'El número de medidor anterior no puede estar vacío' })
-  @IsPositive({ message: 'El número de medidor anterior debe ser positivo' })
-  @Min(1, { message: 'El número de medidor anterior debe ser mayor a 0' })
-  @Max(9999999, { message: 'El número de medidor anterior no puede ser mayor a 9,999,999' })
-  Numero_Medidor_Anterior: number;
+  @ApiProperty({ example: 1 })
+  @IsInt({ message: 'El Id del medidor debe ser un número entero' })
+  @IsDefined({ message: 'El Id del medidor no puede estar vacío' })
+  @IsNotEmpty({ message: 'El Id del medidor no puede estar vacío' })
+  @IsPositive({ message: 'El Id del medidor debe ser positivo' })
+  @Min(1, { message: 'El Id del medidor debe ser mayor a 0' })
+  Id_Medidor: number;
+
+  @ApiProperty({ example: 3, required: false, description: 'ID del nuevo medidor que se asignará al afiliado al aprobar la solicitud' })
+  @IsOptional()
+  @IsInt({ message: 'El Id del nuevo medidor debe ser un número entero' })
+  @IsPositive({ message: 'El Id del nuevo medidor debe ser positivo' })
+  @Min(1, { message: 'El Id del nuevo medidor debe ser mayor a 0' })
+  Id_Nuevo_Medidor?: number;
 }
 
 export class CreateSolicitudAsociadoJuridicaDto extends CreateSolicitudJuridicaDto {

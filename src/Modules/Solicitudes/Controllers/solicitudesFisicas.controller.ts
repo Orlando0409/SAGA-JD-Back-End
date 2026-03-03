@@ -36,6 +36,12 @@ export class SolicitudesFisicasController {
         return this.solicitudesFisicasService.getAllSolicitudesCambioMedidor();
     }
 
+    @Get('/cambio-medidor/:id')
+    @ApiOperation({ summary: 'Obtener el detalle de una solicitud de cambio de medidor física por ID' })
+    getSolicitudCambioMedidorById(@Param('id') id: number) {
+        return this.solicitudesFisicasService.getSolicitudCambioMedidorById(id);
+    }
+
     @Get('/asociado')
     @ApiOperation({ summary: 'Obtener todas las solicitudes de asociado' })
     getAllSolicitudesAsociado() {

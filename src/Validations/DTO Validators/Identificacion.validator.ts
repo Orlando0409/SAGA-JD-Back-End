@@ -13,16 +13,17 @@ export function IsIdentificacionValida(validationOptions?: ValidationOptions) {
             const tipo = (args.object as any).Tipo_Identificacion; // <-- accede al otro campo del DTO
                 if (!value || !tipo) return false;
 
+                const limpio = value.replace(/[\s\-]+/g, '');
+
                 switch (tipo) {
                     case TipoIdentificacion.CEDULA:
-                        return /^[1-7]\d{8}$/.test(value); // 7 dígitos CR
+                        return /^[1-7]\d{8}$/.test(limpio); // 9 dígitos CR
                     case TipoIdentificacion.DIMEX:
-                        return /^(12|13|18)\d{9,10}$/.test(value); // 11 - 12 dígitos Dimex
+                        return /^(12|13|18)\d{9,10}$/.test(limpio); // 11 - 12 dígitos Dimex
                     case TipoIdentificacion.PASAPORTE:
-                        return /^(?=.*[A-Z])(?=([A-Z]*[0-9]*){6,12}$)(?!.*[A-Z].*[A-Z].*[A-Z].*[A-Z])[A-Z0-9]{6,12}$/.test(value); // 6-12 caracteres alfanuméricos, al menos 1 letra, máximo 3 letras
+                        return /^(?=.*[A-Z])(?=([A-Z]*[0-9]*){6,12}$)(?!.*[A-Z].*[A-Z].*[A-Z].*[A-Z])[A-Z0-9]{6,12}$/.test(limpio); // 6-12 caracteres alfanuméricos, al menos 1 letra, máximo 3 letras
                     case TipoIdentificacion.CEDULA_JURIDICA:
-                        const cedulaLimpia = value.replace(/[\s\-]+/g, '');
-                        return /^[34]\d{9}$/.test(cedulaLimpia);
+                        return /^[34]\d{9}$/.test(limpio);
                     default:
                         return false;
                 }

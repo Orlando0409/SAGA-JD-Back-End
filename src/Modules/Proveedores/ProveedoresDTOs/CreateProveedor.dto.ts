@@ -67,7 +67,7 @@ export class CreateProveedorJuridicoDto {
   @ApiProperty({ example: "Empresa S.A" })
   @IsString({ message: "La razón social debe ser un texto" })
   @IsNotEmpty({ message: "La razón social no puede estar vacía" })
-  @MaxLength(50, { message: "La razón social no debe superar los 50 caracteres" })
+  @MaxLength(150, { message: "La razón social no debe superar los 150 caracteres" })
   @Matches(/\S/, { message: "La razon social no puede contener solo espacios" })
   Razon_Social: string;
 

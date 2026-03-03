@@ -14,6 +14,8 @@ import { UsuariosService } from 'src/Modules/Usuarios/Services/usuarios.service'
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
+import { EstadoMedidor } from "src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity";
 
 @Injectable()
 export class SolicitudesFisicasService {
@@ -48,6 +50,12 @@ export class SolicitudesFisicasService {
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
 
+        @InjectRepository(Medidor)
+        private readonly medidorRepository: Repository<Medidor>,
+
+        @InjectRepository(EstadoMedidor)
+        private readonly estadoMedidorRepository: Repository<EstadoMedidor>,
+
         private readonly dropboxFilesService: DropboxFilesService,
 
         private readonly validationsService: ValidationsService,
@@ -80,7 +88,46 @@ export class SolicitudesFisicasService {
     }
 
     async getAllSolicitudesCambioMedidor() {
-        return this.solicitudCambioMedidorFisicaRepository.find({ relations: ['Estado'] });
+        const solicitudes = await this.solicitudCambioMedidorFisicaRepository.find({
+            relations: ['Estado', 'Medidor', 'Medidor.Estado_Medidor', 'Nuevo_Medidor', 'Nuevo_Medidor.Estado_Medidor']
+        });
+
+        return solicitudes.map(item => ({
+            ...item,
+            Numero_Medidor: item.Medidor?.Numero_Medidor ?? null,
+            Medidor_Info: item.Medidor ? {
+                Id_Medidor: item.Medidor.Id_Medidor,
+                Numero_Medidor: item.Medidor.Numero_Medidor,
+                Estado: item.Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+            } : null,
+            Nuevo_Medidor_Info: item.Nuevo_Medidor ? {
+                Id_Medidor: item.Nuevo_Medidor.Id_Medidor,
+                Numero_Medidor: item.Nuevo_Medidor.Numero_Medidor,
+                Estado: item.Nuevo_Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+            } : null
+        }));
+    }
+
+    async getSolicitudCambioMedidorById(idSolicitud: number) {
+        const solicitud = await this.solicitudCambioMedidorFisicaRepository.findOne({
+            where: { Id_Solicitud: idSolicitud },
+            relations: ['Estado', 'Medidor', 'Medidor.Estado_Medidor', 'Nuevo_Medidor', 'Nuevo_Medidor.Estado_Medidor']
+        });
+        if (!solicitud) throw new BadRequestException(`Solicitud de cambio de medidor física con id ${idSolicitud} no encontrada`);
+        return {
+            ...solicitud,
+            Numero_Medidor: solicitud.Medidor?.Numero_Medidor ?? null,
+            Medidor_Info: solicitud.Medidor ? {
+                Id_Medidor: solicitud.Medidor.Id_Medidor,
+                Numero_Medidor: solicitud.Medidor.Numero_Medidor,
+                Estado: solicitud.Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+            } : null,
+            Nuevo_Medidor_Info: solicitud.Nuevo_Medidor ? {
+                Id_Medidor: solicitud.Nuevo_Medidor.Id_Medidor,
+                Numero_Medidor: solicitud.Nuevo_Medidor.Numero_Medidor,
+                Estado: solicitud.Nuevo_Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+            } : null
+        };
     }
 
     async getAllSolicitudesAsociado() {
@@ -207,6 +254,7 @@ export class SolicitudesFisicasService {
             Motivo_Solicitud: dto.Motivo_Solicitud,
             Planos_Terreno: planoRes?.url || '',
             Escritura_Terreno: escrituraRes?.url || '',
+            Id_Medidor: dto.Id_Medidor,
         });
         const solicitudFinal = await this.solicitudDesconexionFisicaRepository.save(solicitudDesconexion);
 
@@ -262,7 +310,7 @@ export class SolicitudesFisicasService {
             Apellido2: dto.Apellido2,
             Direccion_Exacta: dto.Direccion_Exacta,
             Motivo_Solicitud: dto.Motivo_Solicitud,
-            Numero_Medidor_Anterior: dto.Numero_Medidor_Anterior,
+            Id_Medidor: dto.Id_Medidor,
         });
         const solicitudFinal = await this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
 
@@ -415,7 +463,8 @@ export class SolicitudesFisicasService {
             Numero_Telefono: solicitudDesconexion.Numero_Telefono,
             Correo: solicitudDesconexion.Correo,
             Direccion_Exacta: solicitudDesconexion.Direccion_Exacta,
-            Motivo_Solicitud: solicitudDesconexion.Motivo_Solicitud
+            Motivo_Solicitud: solicitudDesconexion.Motivo_Solicitud,
+            Id_Medidor: solicitudDesconexion.Id_Medidor
         };
 
         // 4. Actualizar campos específicos de SolicitudDesconexionFisica
@@ -426,6 +475,7 @@ export class SolicitudesFisicasService {
         solicitudDesconexion.Correo = dto.Correo ?? solicitudDesconexion.Correo;
         solicitudDesconexion.Direccion_Exacta = dto.Direccion_Exacta ?? solicitudDesconexion.Direccion_Exacta;
         solicitudDesconexion.Motivo_Solicitud = dto.Motivo_Solicitud ?? solicitudDesconexion.Motivo_Solicitud;
+        solicitudDesconexion.Id_Medidor = dto.Id_Medidor ?? solicitudDesconexion.Id_Medidor;
 
         // 5. Guardar cambios
         const resultado = await this.solicitudDesconexionFisicaRepository.save(solicitudDesconexion);
@@ -439,7 +489,8 @@ export class SolicitudesFisicasService {
                 Numero_Telefono: solicitudDesconexion.Numero_Telefono,
                 Correo: solicitudDesconexion.Correo,
                 Direccion_Exacta: solicitudDesconexion.Direccion_Exacta,
-                Motivo_Solicitud: solicitudDesconexion.Motivo_Solicitud
+                Motivo_Solicitud: solicitudDesconexion.Motivo_Solicitud,
+                Id_Medidor: solicitudDesconexion.Id_Medidor
             });
         } catch (error) {
             console.error('Error al registrar actualización de solicitud de desconexión en auditoría:', error);
@@ -466,7 +517,10 @@ export class SolicitudesFisicasService {
         if (solicitudBase.Tipo_Entidad !== 1) throw new BadRequestException(`La solicitud con id ${idSolicitud} no es una solicitud física`);
 
         // 3. Buscar la solicitud de cambio de medidor física específica
-        const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({ where: { Id_Solicitud: idSolicitud } });
+        const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({
+            where: { Id_Solicitud: idSolicitud },
+            relations: ['Medidor', 'Medidor.Estado_Medidor']
+        });
         if (!solicitudCambioMedidor) throw new BadRequestException(`Solicitud de cambio de medidor física con id ${idSolicitud} no encontrada`);
 
         // Guardar datos anteriores para auditoría
@@ -478,7 +532,7 @@ export class SolicitudesFisicasService {
             Correo: solicitudCambioMedidor.Correo,
             Direccion_Exacta: solicitudCambioMedidor.Direccion_Exacta,
             Motivo_Solicitud: solicitudCambioMedidor.Motivo_Solicitud,
-            Numero_Medidor_Anterior: solicitudCambioMedidor.Numero_Medidor_Anterior
+            Id_Medidor: solicitudCambioMedidor.Id_Medidor
         };
 
         // 4. Actualizar campos específicos de SolicitudCambioMedidorFisica
@@ -489,7 +543,8 @@ export class SolicitudesFisicasService {
         solicitudCambioMedidor.Correo = dto.Correo ?? solicitudCambioMedidor.Correo;
         solicitudCambioMedidor.Direccion_Exacta = dto.Direccion_Exacta ?? solicitudCambioMedidor.Direccion_Exacta;
         solicitudCambioMedidor.Motivo_Solicitud = dto.Motivo_Solicitud ?? solicitudCambioMedidor.Motivo_Solicitud;
-        solicitudCambioMedidor.Numero_Medidor_Anterior = dto.Numero_Medidor_Anterior ?? solicitudCambioMedidor.Numero_Medidor_Anterior;
+        solicitudCambioMedidor.Id_Medidor = dto.Id_Medidor ?? solicitudCambioMedidor.Id_Medidor;
+        solicitudCambioMedidor.Id_Nuevo_Medidor = dto.Id_Nuevo_Medidor ?? solicitudCambioMedidor.Id_Nuevo_Medidor;
 
         // 5. Guardar cambios
         const resultado = await this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
@@ -504,7 +559,7 @@ export class SolicitudesFisicasService {
                 Correo: solicitudCambioMedidor.Correo,
                 Direccion_Exacta: solicitudCambioMedidor.Direccion_Exacta,
                 Motivo_Solicitud: solicitudCambioMedidor.Motivo_Solicitud,
-                Numero_Medidor_Anterior: solicitudCambioMedidor.Numero_Medidor_Anterior
+                Id_Medidor: solicitudCambioMedidor.Id_Medidor
             });
         } catch (error) {
             console.error('Error al registrar actualización de solicitud de cambio de medidor en auditoría:', error);
@@ -512,6 +567,12 @@ export class SolicitudesFisicasService {
 
         return {
             ...resultado,
+            Numero_Medidor: resultado.Medidor?.Numero_Medidor ?? null,
+            Medidor_Info: resultado.Medidor ? {
+                Id_Medidor: resultado.Medidor.Id_Medidor,
+                Numero_Medidor: resultado.Medidor.Numero_Medidor,
+                Estado: resultado.Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+            } : null,
             Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario)
         };
     }
@@ -747,7 +808,10 @@ export class SolicitudesFisicasService {
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
 
-        const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({ where: { Id_Solicitud: idSolicitud }, relations: ['Estado'] });
+        const solicitudCambioMedidor = await this.solicitudCambioMedidorFisicaRepository.findOne({
+            where: { Id_Solicitud: idSolicitud },
+            relations: ['Estado', 'Medidor', 'Medidor.Estado_Medidor']
+        });
         if (!solicitudCambioMedidor) throw new BadRequestException(`Solicitud de cambio de medidor con id ${idSolicitud} no encontrada`);
 
         const nuevoEstado = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: idNuevoEstado } });
@@ -770,7 +834,46 @@ export class SolicitudesFisicasService {
         if (idNuevoEstado === 3) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Aprobada y en espera', nombre);
 
         // Estado 4 = Completada
-        if (idNuevoEstado === 4) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Completada', nombre);
+        if (idNuevoEstado === 4) {
+            await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Completada', nombre);
+
+            // Cambiar estado del medidor ANTIGUO a Averiado (3)
+            if (solicitudCambioMedidor.Id_Medidor) {
+                const medidorAntiguo = await this.medidorRepository.findOne({ where: { Id_Medidor: solicitudCambioMedidor.Id_Medidor } });
+                if (medidorAntiguo) {
+                    const estadoAveriado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 3 } }); // 3 = Averiado
+                    if (estadoAveriado) {
+                        medidorAntiguo.Estado_Medidor = estadoAveriado;
+                        await this.medidorRepository.save(medidorAntiguo);
+                        console.log(`Medidor antiguo ${medidorAntiguo.Numero_Medidor} cambiado a estado 'Averiado'`);
+                    }
+                } else {
+                    console.warn(`Medidor antiguo con id ${solicitudCambioMedidor.Id_Medidor} no encontrado.`);
+                }
+            }
+
+            // Asignar el NUEVO medidor al afiliado (acumulativo, no reemplaza los existentes)
+            if (solicitudCambioMedidor.Id_Nuevo_Medidor) {
+                const nuevoMedidor = await this.medidorRepository.findOne({
+                    where: { Id_Medidor: solicitudCambioMedidor.Id_Nuevo_Medidor },
+                    relations: ['Estado_Medidor']
+                });
+                if (nuevoMedidor) {
+                    const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitudCambioMedidor.Identificacion } });
+                    if (afiliado) {
+                        const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } }); // 2 = Instalado
+                        nuevoMedidor.Afiliado = afiliado;
+                        if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
+                        await this.medidorRepository.save(nuevoMedidor);
+                        console.log(`Nuevo medidor ${nuevoMedidor.Numero_Medidor} asignado al afiliado ${afiliado.Identificacion} y marcado como 'Instalado'`);
+                    } else {
+                        console.warn(`Afiliado físico con identificación ${solicitudCambioMedidor.Identificacion} no encontrado para asignar nuevo medidor.`);
+                    }
+                } else {
+                    console.warn(`Nuevo medidor con id ${solicitudCambioMedidor.Id_Nuevo_Medidor} no encontrado.`);
+                }
+            }
+        }
 
         // Estado 5 = Rechazada
         if (idNuevoEstado === 5) {
@@ -800,7 +903,15 @@ export class SolicitudesFisicasService {
         }
 
         return {
-            Solicitud: resultado,
+            Solicitud: {
+                ...resultado,
+                Numero_Medidor: resultado.Medidor?.Numero_Medidor ?? null,
+                Medidor_Info: resultado.Medidor ? {
+                    Id_Medidor: resultado.Medidor.Id_Medidor,
+                    Numero_Medidor: resultado.Medidor.Numero_Medidor,
+                    Estado: resultado.Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+                } : null
+            },
             Mensaje: `Estado de solicitud de cambio de medidor cambiado a '${nuevoEstado.Nombre_Estado}' exitosamente`
         };
     }
@@ -879,3 +990,6 @@ export class SolicitudesFisicasService {
         };
     }
 }
+
+
+

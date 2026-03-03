@@ -7,11 +7,27 @@ import { FileFieldsInterceptor } from "@nestjs/platform-express/multer";
 import { JwtAuthGuard } from "../auth/Guard/JwtGuard";
 import { GetUser } from "../auth/Decorator/GetUser.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
+import { Public } from "../auth/Decorator/Public.decorator";
 
 @Controller('afiliados')
 @UseGuards(JwtAuthGuard)
 export class AfiliadosController {
     constructor(private readonly afiliadosService: AfiliadosService) { }
+
+    @Public()
+    @Get('/fisico/medidores/:identificacion')
+    @ApiOperation({ summary: 'Obtener medidores de un afiliado físico por su identificación' })
+    getMedidoresByIdentificacion(@Param('identificacion') identificacion: string) {
+        return this.afiliadosService.getMedidoresbyIdentificacion(identificacion);
+    }
+
+    @Public()
+    @Get('/juridico/medidores/:cedulaJuridica')
+    @ApiOperation({ summary: 'Obtener medidores de un afiliado jurídico por su cédula jurídica' })
+    getMedidoresByCedulaJuridica(@Param('cedulaJuridica') cedulaJuridica: string) {
+        return this.afiliadosService.getMedidoresbyCedulaJuridica(cedulaJuridica);
+    }
+
 
     @Get('/all')
     @ApiOperation({ summary: 'Obtener todos los afiliados' })

@@ -3,6 +3,7 @@ import { EstadoSolicitud } from "./EstadoSolicitud.Entity";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
+import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
 
 @Entity('solicitud')
 export abstract class Solicitud {
@@ -172,6 +173,9 @@ export class SolicitudDesconexionFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Escritura_Terreno: string;
 
+    @Column({ nullable: false })
+    Id_Medidor: number;
+
     @BeforeInsert()
     @BeforeUpdate()
     setNormalizarCampos() {
@@ -208,7 +212,18 @@ export class SolicitudCambioMedidorFisica extends SolicitudFisica {
     Motivo_Solicitud: string;
 
     @Column({ nullable: false })
-    Numero_Medidor_Anterior: number;
+    Id_Medidor: number;
+
+    @ManyToOne(() => Medidor, { nullable: true })
+    @JoinColumn({ name: 'Id_Medidor' })
+    Medidor: Medidor;
+
+    @Column({ nullable: true, default: null })
+    Id_Nuevo_Medidor: number;
+
+    @ManyToOne(() => Medidor, { nullable: true, eager: false })
+    @JoinColumn({ name: 'Id_Nuevo_Medidor' })
+    Nuevo_Medidor: Medidor;
 
     @BeforeInsert()
     @BeforeUpdate()
@@ -320,6 +335,9 @@ export class SolicitudDesconexionJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Escritura_Terreno: string;
 
+    @Column({ nullable: false })
+    Id_Medidor: number;
+
     @BeforeInsert()
     @BeforeUpdate()
     setNormalizarCampos() {
@@ -355,7 +373,18 @@ export class SolicitudCambioMedidorJuridica extends SolicitudJuridica {
     Motivo_Solicitud: string;
 
     @Column({ nullable: false })
-    Numero_Medidor_Anterior: number;
+    Id_Medidor: number;
+
+    @ManyToOne(() => Medidor, { nullable: true })
+    @JoinColumn({ name: 'Id_Medidor' })
+    Medidor: Medidor;
+
+    @Column({ nullable: true, default: null })
+    Id_Nuevo_Medidor: number;
+
+    @ManyToOne(() => Medidor, { nullable: true, eager: false })
+    @JoinColumn({ name: 'Id_Nuevo_Medidor' })
+    Nuevo_Medidor: Medidor;
 
     @BeforeInsert()
     @BeforeUpdate()
