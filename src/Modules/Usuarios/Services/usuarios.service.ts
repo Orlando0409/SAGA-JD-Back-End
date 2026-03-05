@@ -197,6 +197,8 @@ export class UsuariosService {
 
         if (user.Fecha_Eliminacion != null) throw new BadRequestException('El usuario ya está inactivo.');
 
+        if (user.Id_Usuario === 1) throw new BadRequestException('El usuario administrador no puede ser desactivado.');
+
         // Guardar datos anteriores para auditoría
         const datosAnteriores = {
             Id_Usuario: user.Id_Usuario,
