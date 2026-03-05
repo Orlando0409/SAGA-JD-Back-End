@@ -174,6 +174,35 @@ export class CreateSolicitudAsociadoFisicaDto extends CreateSolicitudFisicaDto {
   Motivo_Solicitud: string;
 }
 
+export class CreateSolicitudAgregarMedidorFisicaDto extends CreateSolicitudFisicaDto {
+  @ApiProperty({ example: '200 metros del perro echado' })
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
+  @IsString({ message: 'La dirección debe ser un string' })
+  @IsDefined({ message: 'La dirección no puede estar vacía' })
+  @IsNotEmpty({ message: 'La dirección no puede estar vacía' })
+  @MinLength(10, { message: 'La dirección debe tener al menos 10 caracteres' })
+  @MaxLength(255, { message: 'La dirección no puede tener más de 255 caracteres' })
+  @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#-]+$/, { message: 'La dirección solo puede contener letras, números, espacios y los caracteres .,-#' })
+  Direccion_Exacta: string;
+
+  @ApiProperty({ example: 'Propiedad adicional que necesita medidor independiente' })
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
+  @IsString({ message: 'El motivo de la solicitud debe ser un string' })
+  @IsDefined({ message: 'El motivo de la solicitud no puede estar vacío' })
+  @IsNotEmpty({ message: 'El motivo de la solicitud no puede estar vacío' })
+  @MinLength(10, { message: 'El motivo de la solicitud debe tener al menos 10 caracteres' })
+  @MaxLength(500, { message: 'El motivo de la solicitud no puede tener más de 500 caracteres' })
+  @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,!?¿¡()-]+$/, { message: 'El motivo de la solicitud solo puede contener letras, números, espacios y los caracteres .,!?¿¡()-' })
+  Motivo_Solicitud: string;
+
+  @ApiProperty({ example: 3, required: false, description: 'ID del nuevo medidor que se asignará al afiliado al completar la solicitud' })
+  @IsOptional()
+  @IsInt({ message: 'El Id del nuevo medidor debe ser un número entero' })
+  @IsPositive({ message: 'El Id del nuevo medidor debe ser positivo' })
+  @Min(1, { message: 'El Id del nuevo medidor debe ser mayor a 0' })
+  Id_Nuevo_Medidor?: number;
+}
+
 export class CreateAfiliacionFisicaDto extends CreateSolicitudAfiliacionFisicaDto {}
 
 export class CreateDesconexionFisicaDto extends CreateSolicitudDesconexionFisicaDto {}
@@ -181,3 +210,5 @@ export class CreateDesconexionFisicaDto extends CreateSolicitudDesconexionFisica
 export class CreateCambioMedidorFisicaDto extends CreateSolicitudCambioMedidorFisicaDto {}
 
 export class CreateAsociadoFisicaDto extends CreateSolicitudAsociadoFisicaDto {}
+
+export class CreateAgregarMedidorFisicaDto extends CreateSolicitudAgregarMedidorFisicaDto {}

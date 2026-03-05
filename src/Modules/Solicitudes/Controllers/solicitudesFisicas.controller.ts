@@ -1,9 +1,9 @@
-import { CreateSolicitudAfiliacionFisicaDto, CreateSolicitudAsociadoFisicaDto, CreateSolicitudCambioMedidorFisicaDto, CreateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/CreateSolicitudFisica.dto"; import { Body, Controller, Get, Param, Patch, Post, UploadedFiles, UseInterceptors, Request, Put } from "@nestjs/common";
+import { CreateSolicitudAfiliacionFisicaDto, CreateSolicitudAgregarMedidorFisicaDto, CreateSolicitudAsociadoFisicaDto, CreateSolicitudCambioMedidorFisicaDto, CreateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/CreateSolicitudFisica.dto"; import { Body, Controller, Get, Param, Patch, Post, UploadedFiles, UseInterceptors, Request, Put } from "@nestjs/common";
 import { SolicitudesFisicasService } from "../Services/solicitudesFisicas.service";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { ApiOperation } from "@nestjs/swagger";
-import { UpdateSolicitudAfiliacionFisicaDto, UpdateSolicitudAsociadoFisicaDto, UpdateSolicitudCambioMedidorFisicaDto, UpdateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/UpdateSolicitudFisica.dto";
+import { UpdateSolicitudAfiliacionFisicaDto, UpdateSolicitudAgregarMedidorFisicaDto, UpdateSolicitudAsociadoFisicaDto, UpdateSolicitudCambioMedidorFisicaDto, UpdateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/UpdateSolicitudFisica.dto";
 import { RechazarSolicitudDto } from "../SolicitudDTO's/RechazarSolicitud.dto";
 
 @Controller('solicitudes-fisicas')
@@ -182,5 +182,51 @@ export class SolicitudesFisicasController {
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
         return this.solicitudesFisicasService.updateEstadoSolicitudAsociado(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
+    }
+
+    // ─── AGREGAR MEDIDOR ──────────────────────────────────────────────────────────
+
+    @Get('/agregar-medidor')
+    @ApiOperation({ summary: 'Obtener todas las solicitudes de agregar medidor fisicas' })
+    getAllSolicitudesAgregarMedidor() {
+        return this.solicitudesFisicasService.getAllSolicitudesAgregarMedidor();
+    }
+
+    @Get('/agregar-medidor/:id')
+    @ApiOperation({ summary: 'Obtener el detalle de una solicitud de agregar medidor fisica por ID' })
+    getSolicitudAgregarMedidorById(@Param('id') id: number) {
+        return this.solicitudesFisicasService.getSolicitudAgregarMedidorById(id);
+    }
+
+    @Public()
+    @Post('/create/agregar-medidor')
+    @ApiOperation({ summary: 'Crear una nueva solicitud de agregar medidor fisica' })
+    async createSolicitudAgregarMedidor(
+        @Body() solicitudAgregarMedidor: CreateSolicitudAgregarMedidorFisicaDto,
+    ) {
+        return this.solicitudesFisicasService.createSolicitudAgregarMedidor(solicitudAgregarMedidor);
+    }
+
+    @Put('/update/agregar-medidor/:id')
+    @ApiOperation({ summary: 'Actualizar una solicitud de agregar medidor fisica' })
+    async updateSolicitudAgregarMedidor(
+        @Param('id') id: number,
+        @Body() solicitudAgregarMedidor: UpdateSolicitudAgregarMedidorFisicaDto,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.solicitudesFisicasService.updateSolicitudAgregarMedidor(id, solicitudAgregarMedidor, idUsuario);
+    }
+
+    @Patch('/update/estado/agregar-medidor/:idSolicitud/:idNuevoEstado')
+    @ApiOperation({ summary: 'Actualizar el estado de una solicitud de agregar medidor fisica' })
+    async updateEstadoSolicitudAgregarMedidor(
+        @Param('idSolicitud') idSolicitud: number,
+        @Param('idNuevoEstado') idNuevoEstado: number,
+        @Body() dto: RechazarSolicitudDto,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.solicitudesFisicasService.updateEstadoSolicitudAgregarMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
     }
 }

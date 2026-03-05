@@ -23,7 +23,10 @@ import { CalidadAguaModule } from './Modules/CalidadAgua/calidadAgua.module';
 import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity';
 import { SugerenciaModule } from './Modules/Sugerencias/sugerencia.module';
 import { EstadoAfiliado } from './Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
-import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica, SolicitudFisica, SolicitudJuridica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
+import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAgregarMedidorFisica, 
+  SolicitudAgregarMedidorJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, 
+  SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, 
+  SolicitudDesconexionJuridica, SolicitudFisica, SolicitudJuridica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { TipoAfiliado } from './Modules/Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
 import { AfiliadosModule } from './Modules/Afiliados/afiliados.module';
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from './Modules/Afiliados/AfiliadoEntities/Afiliado.Entity';
@@ -90,8 +93,8 @@ import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
         entities: [
           Usuario, UsuarioRol, Permiso,
           Solicitud, SolicitudFisica, SolicitudJuridica, EstadoSolicitud,
-          SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudAsociadoFisica,
-          SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
+          SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudAsociadoFisica, SolicitudAgregarMedidorFisica,
+          SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica, SolicitudAgregarMedidorJuridica,
           Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
           Proveedor, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
           Proyecto, EstadoProyecto,
