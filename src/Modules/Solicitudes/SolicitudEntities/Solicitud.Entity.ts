@@ -442,3 +442,86 @@ export class SolicitudAsociadoJuridica extends SolicitudJuridica {
         }
     }
 }
+
+@Entity('solicitud_agregar_medidor_fisica')
+export class SolicitudAgregarMedidorFisica extends SolicitudFisica {
+    @Column({ nullable: false })
+    Direccion_Exacta: string;
+
+    @Column({ nullable: false })
+    Motivo_Solicitud: string;
+
+    @Column({ nullable: true, default: null })
+    Id_Nuevo_Medidor: number;
+
+    @ManyToOne(() => Medidor, { nullable: true, eager: false })
+    @JoinColumn({ name: 'Id_Nuevo_Medidor' })
+    Nuevo_Medidor: Medidor;
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    setNormalizarCampos() {
+        this.normalizarTelefono();
+        this.normalizarApellido2();
+    }
+
+    @BeforeInsert()
+    setDefaultEstados() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Solicitud: 1 } as EstadoSolicitud;
+        }
+
+        if (!this.Id_Tipo_Solicitud) {
+            this.Id_Tipo_Solicitud = 5;
+        }
+    }
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    setDefaultTipoEntidad() {
+        if (!this.Tipo_Entidad) {
+            this.Tipo_Entidad = TipoEntidad.Física;
+        }
+    }
+}
+
+@Entity('solicitud_agregar_medidor_juridica')
+export class SolicitudAgregarMedidorJuridica extends SolicitudJuridica {
+    @Column({ nullable: false })
+    Direccion_Exacta: string;
+
+    @Column({ nullable: false })
+    Motivo_Solicitud: string;
+
+    @Column({ nullable: true, default: null })
+    Id_Nuevo_Medidor: number;
+
+    @ManyToOne(() => Medidor, { nullable: true, eager: false })
+    @JoinColumn({ name: 'Id_Nuevo_Medidor' })
+    Nuevo_Medidor: Medidor;
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    setNormalizarCampos() {
+        this.normalizarTelefono();
+    }
+
+    @BeforeInsert()
+    setDefaultEstados() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Solicitud: 1 } as EstadoSolicitud;
+        }
+
+        if (!this.Id_Tipo_Solicitud) {
+            this.Id_Tipo_Solicitud = 5;
+        }
+    }
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    setDefaultTipoEntidad() {
+        if (!this.Tipo_Entidad) {
+            this.Tipo_Entidad = TipoEntidad.Jurídica;
+        }
+    }
+}

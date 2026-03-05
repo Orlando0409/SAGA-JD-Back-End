@@ -3,8 +3,9 @@ import { SolicitudesJuridicasService } from "../Services/solicitudesJuridicas.se
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { ApiOperation } from "@nestjs/swagger";
-import { CreateSolicitudAfiliacionJuridicaDto, CreateSolicitudAsociadoJuridicaDto, CreateSolicitudCambioMedidorJuridicaDto, CreateSolicitudDesconexionJuridicaDto } from "../SolicitudDTO's/CreateSolicitudJuridica.dto";
-import { UpdateSolicitudAfiliacionJuridicaDto, UpdateSolicitudAsociadoJuridicaDto, UpdateSolicitudCambioMedidorJuridicaDto, UpdateSolicitudDesconexionJuridicaDto } from "../SolicitudDTO's/UpdateSolicitudJuridica.dto";
+import { CreateSolicitudAfiliacionJuridicaDto, CreateSolicitudAgregarMedidorJuridicaDto, CreateSolicitudAsociadoJuridicaDto, CreateSolicitudCambioMedidorJuridicaDto, CreateSolicitudDesconexionJuridicaDto } from "../SolicitudDTO's/CreateSolicitudJuridica.dto";
+import { UpdateSolicitudAfiliacionJuridicaDto, UpdateSolicitudAgregarMedidorJuridicaDto, UpdateSolicitudAsociadoJuridicaDto, UpdateSolicitudCambioMedidorJuridicaDto, UpdateSolicitudDesconexionJuridicaDto } from "../SolicitudDTO's/UpdateSolicitudJuridica.dto";
+import { RechazarSolicitudDto } from "../SolicitudDTO's/RechazarSolicitud.dto";
 
 @Controller('solicitudes-juridicas')
 export class SolicitudesJuridicasController {
@@ -178,5 +179,51 @@ export class SolicitudesJuridicasController {
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
         return this.solicitudesJuridicasService.updateEstadoSolicitudAsociado(idSolicitud, idNuevoEstado, idUsuario);
+    }
+
+    // ─── AGREGAR MEDIDOR ───────────────────────────────────────────────────────────────────
+
+    @Get('/agregar-medidor')
+    @ApiOperation({ summary: 'Obtener todas las solicitudes de agregar medidor jurídicas' })
+    getAllSolicitudesAgregarMedidor() {
+        return this.solicitudesJuridicasService.getAllSolicitudesAgregarMedidor();
+    }
+
+    @Get('/agregar-medidor/:id')
+    @ApiOperation({ summary: 'Obtener el detalle de una solicitud de agregar medidor jurídica por ID' })
+    getSolicitudAgregarMedidorById(@Param('id') id: number) {
+        return this.solicitudesJuridicasService.getSolicitudAgregarMedidorById(id);
+    }
+
+    @Public()
+    @Post('/create/agregar-medidor')
+    @ApiOperation({ summary: 'Crear una nueva solicitud de agregar medidor jurídica' })
+    async createSolicitudAgregarMedidor(
+        @Body() solicitudAgregarMedidor: CreateSolicitudAgregarMedidorJuridicaDto,
+    ) {
+        return this.solicitudesJuridicasService.createSolicitudAgregarMedidor(solicitudAgregarMedidor);
+    }
+
+    @Put('/update/agregar-medidor/:id')
+    @ApiOperation({ summary: 'Actualizar una solicitud de agregar medidor jurídica' })
+    async updateSolicitudAgregarMedidor(
+        @Param('id') id: number,
+        @Body() solicitudAgregarMedidor: UpdateSolicitudAgregarMedidorJuridicaDto,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.solicitudesJuridicasService.updateSolicitudAgregarMedidor(id, solicitudAgregarMedidor, idUsuario);
+    }
+
+    @Patch('/update/estado/agregar-medidor/:idSolicitud/:idNuevoEstado')
+    @ApiOperation({ summary: 'Actualizar el estado de una solicitud de agregar medidor jurídica' })
+    async updateEstadoSolicitudAgregarMedidor(
+        @Param('idSolicitud') idSolicitud: number,
+        @Param('idNuevoEstado') idNuevoEstado: number,
+        @Body() dto: RechazarSolicitudDto,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.solicitudesJuridicasService.updateEstadoSolicitudAgregarMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
     }
 }

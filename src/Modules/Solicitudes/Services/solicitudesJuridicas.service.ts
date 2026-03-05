@@ -1,4 +1,4 @@
-import { Solicitud, SolicitudAfiliacionJuridica, SolicitudAsociadoJuridica, SolicitudCambioMedidorJuridica, SolicitudDesconexionJuridica, SolicitudJuridica } from "../SolicitudEntities/Solicitud.Entity";
+import { Solicitud, SolicitudAfiliacionJuridica, SolicitudAgregarMedidorJuridica, SolicitudAsociadoJuridica, SolicitudCambioMedidorJuridica, SolicitudDesconexionJuridica, SolicitudJuridica } from "../SolicitudEntities/Solicitud.Entity";
 import { Repository } from "typeorm";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -10,8 +10,8 @@ import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { UsuariosService } from "src/Modules/Usuarios/Services/usuarios.service";
 import { AuditoriaService } from "src/Modules/Auditoria/auditoria.service";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
-import { UpdateSolicitudAfiliacionJuridicaDto, UpdateSolicitudAsociadoJuridicaDto, UpdateSolicitudCambioMedidorJuridicaDto, UpdateSolicitudDesconexionJuridicaDto } from "../SolicitudDTO's/UpdateSolicitudJuridica.dto";
-import { CreateSolicitudAfiliacionJuridicaDto, CreateSolicitudAsociadoJuridicaDto, CreateSolicitudCambioMedidorJuridicaDto, CreateSolicitudDesconexionJuridicaDto } from "../SolicitudDTO's/CreateSolicitudJuridica.dto";
+import { UpdateSolicitudAfiliacionJuridicaDto, UpdateSolicitudAgregarMedidorJuridicaDto, UpdateSolicitudAsociadoJuridicaDto, UpdateSolicitudCambioMedidorJuridicaDto, UpdateSolicitudDesconexionJuridicaDto } from "../SolicitudDTO's/UpdateSolicitudJuridica.dto";
+import { CreateSolicitudAfiliacionJuridicaDto, CreateSolicitudAgregarMedidorJuridicaDto, CreateSolicitudAsociadoJuridicaDto, CreateSolicitudCambioMedidorJuridicaDto, CreateSolicitudDesconexionJuridicaDto } from "../SolicitudDTO's/CreateSolicitudJuridica.dto";
 import { AfiliadoJuridico } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { EstadoAfiliado } from "src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
 import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
@@ -37,6 +37,9 @@ export class SolicitudesJuridicasService {
 
         @InjectRepository(SolicitudAsociadoJuridica)
         private readonly solicitudAsociadoRepository: Repository<SolicitudAsociadoJuridica>,
+
+        @InjectRepository(SolicitudAgregarMedidorJuridica)
+        private readonly solicitudAgregarMedidorRepository: Repository<SolicitudAgregarMedidorJuridica>,
 
         @InjectRepository(EstadoSolicitud)
         private readonly estadoSolicitudRepo: Repository<EstadoSolicitud>,
@@ -76,6 +79,7 @@ export class SolicitudesJuridicasService {
             "Desconexion": await this.getAllSolicitudesDesconexion(),
             "Cambio De Medidor": await this.getAllSolicitudesCambioMedidor(),
             "Asociado": await this.getAllSolicitudesAsociado(),
+            "Agregar Medidor": await this.getAllSolicitudesAgregarMedidor(),
         };
     }
 
@@ -882,6 +886,243 @@ export class SolicitudesJuridicasService {
         return {
             Solicitud: resultado,
             Mensaje: `Estado de solicitud de asociado cambiado a '${nuevoEstado.Nombre_Estado}' exitosamente`
+        };
+    }
+
+    async getAllSolicitudesAgregarMedidor() {
+        const solicitudes = await this.solicitudAgregarMedidorRepository.find({
+            relations: ['Estado', 'Nuevo_Medidor', 'Nuevo_Medidor.Estado_Medidor']
+        });
+
+        return solicitudes.map(item => ({
+            ...item,
+            Nuevo_Medidor_Info: item.Nuevo_Medidor ? {
+                Id_Medidor: item.Nuevo_Medidor.Id_Medidor,
+                Numero_Medidor: item.Nuevo_Medidor.Numero_Medidor,
+                Estado: item.Nuevo_Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+            } : null
+        }));
+    }
+
+    async getSolicitudAgregarMedidorById(idSolicitud: number) {
+        const solicitud = await this.solicitudAgregarMedidorRepository.findOne({
+            where: { Id_Solicitud: idSolicitud },
+            relations: ['Estado', 'Nuevo_Medidor', 'Nuevo_Medidor.Estado_Medidor']
+        });
+        if (!solicitud) throw new BadRequestException(`Solicitud de agregar medidor jurídica con id ${idSolicitud} no encontrada`);
+
+        return {
+            ...solicitud,
+            Nuevo_Medidor_Info: solicitud.Nuevo_Medidor ? {
+                Id_Medidor: solicitud.Nuevo_Medidor.Id_Medidor,
+                Numero_Medidor: solicitud.Nuevo_Medidor.Numero_Medidor,
+                Estado: solicitud.Nuevo_Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+            } : null
+        };
+    }
+
+    async createSolicitudAgregarMedidor(dto: CreateSolicitudAgregarMedidorJuridicaDto) {
+        const solicitudActiva = await this.validationsService.validarSolicitudesJuridicasActivas(dto.Cedula_Juridica);
+        if (solicitudActiva) throw new BadRequestException(solicitudActiva);
+
+        const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(dto.Cedula_Juridica);
+        if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}`);
+
+        const razonSocial = dto.Razon_Social;
+
+        const solicitudBase = this.solicitudRepository.create({
+            Tipo_Entidad: 2, 
+            Correo: dto.Correo,
+            Numero_Telefono: dto.Numero_Telefono,
+            Id_Tipo_Solicitud: 5, 
+        });
+        const solicitudGuardada = await this.solicitudRepository.save(solicitudBase);
+
+        const solicitudJuridica = this.solicitudJuridicaRepository.create({
+            Id_Solicitud: solicitudGuardada.Id_Solicitud,
+            Tipo_Entidad: 2,
+            Correo: dto.Correo,
+            Numero_Telefono: dto.Numero_Telefono,
+            Id_Tipo_Solicitud: 5,
+            Cedula_Juridica: dto.Cedula_Juridica,
+            Razon_Social: dto.Razon_Social,
+        });
+        await this.solicitudJuridicaRepository.save(solicitudJuridica);
+
+        const solicitudAgregarMedidor = this.solicitudAgregarMedidorRepository.create({
+            Id_Solicitud: solicitudGuardada.Id_Solicitud,
+            Tipo_Entidad: 2,
+            Correo: dto.Correo,
+            Numero_Telefono: dto.Numero_Telefono,
+            Id_Tipo_Solicitud: 5,
+            Cedula_Juridica: dto.Cedula_Juridica,
+            Razon_Social: dto.Razon_Social,
+            Direccion_Exacta: dto.Direccion_Exacta,
+            Motivo_Solicitud: dto.Motivo_Solicitud,
+            ...(dto.Id_Nuevo_Medidor && { Id_Nuevo_Medidor: dto.Id_Nuevo_Medidor }),
+        });
+        const solicitudFinal = await this.solicitudAgregarMedidorRepository.save(solicitudAgregarMedidor);
+
+        await this.emailService.enviarEmailSolicitudCreada(dto.Correo, 'Agregar Medidor', razonSocial);
+        return solicitudFinal;
+    }
+
+    async updateSolicitudAgregarMedidor(idSolicitud: number, dto: UpdateSolicitudAgregarMedidorJuridicaDto, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar la solicitud.');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
+
+        const solicitudBase = await this.solicitudRepository.findOne({ where: { Id_Solicitud: idSolicitud } });
+        if (!solicitudBase) throw new BadRequestException(`Solicitud con id ${idSolicitud} no encontrada`);
+
+        if (solicitudBase.Id_Tipo_Solicitud !== 5) throw new BadRequestException(`La solicitud con id ${idSolicitud} no es una solicitud de agregar medidor`);
+        if (solicitudBase.Tipo_Entidad !== 2) throw new BadRequestException(`La solicitud con id ${idSolicitud} no es una solicitud jurídica`);
+
+        const solicitudAgregarMedidor = await this.solicitudAgregarMedidorRepository.findOne({
+            where: { Id_Solicitud: idSolicitud },
+            relations: ['Nuevo_Medidor', 'Nuevo_Medidor.Estado_Medidor']
+        });
+        if (!solicitudAgregarMedidor) throw new BadRequestException(`Solicitud de agregar medidor jurídica con id ${idSolicitud} no encontrada`);
+
+        const datosAnteriores = {
+            Cedula_Juridica: solicitudAgregarMedidor.Cedula_Juridica,
+            Razon_Social: solicitudAgregarMedidor.Razon_Social,
+            Numero_Telefono: solicitudAgregarMedidor.Numero_Telefono,
+            Correo: solicitudAgregarMedidor.Correo,
+            Direccion_Exacta: solicitudAgregarMedidor.Direccion_Exacta,
+            Motivo_Solicitud: solicitudAgregarMedidor.Motivo_Solicitud,
+            Id_Nuevo_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor
+        };
+
+        solicitudAgregarMedidor.Razon_Social = dto.Razon_Social ?? solicitudAgregarMedidor.Razon_Social;
+        solicitudAgregarMedidor.Numero_Telefono = dto.Numero_Telefono ?? solicitudAgregarMedidor.Numero_Telefono;
+        solicitudAgregarMedidor.Correo = dto.Correo ?? solicitudAgregarMedidor.Correo;
+        solicitudAgregarMedidor.Direccion_Exacta = dto.Direccion_Exacta ?? solicitudAgregarMedidor.Direccion_Exacta;
+        solicitudAgregarMedidor.Motivo_Solicitud = dto.Motivo_Solicitud ?? solicitudAgregarMedidor.Motivo_Solicitud;
+        solicitudAgregarMedidor.Id_Nuevo_Medidor = dto.Id_Nuevo_Medidor ?? solicitudAgregarMedidor.Id_Nuevo_Medidor;
+
+        const resultado = await this.solicitudAgregarMedidorRepository.save(solicitudAgregarMedidor);
+
+        try {
+            await this.auditoriaService.logActualizacion('Solicitudes', idUsuario, idSolicitud, datosAnteriores, {
+                Cedula_Juridica: solicitudAgregarMedidor.Cedula_Juridica,
+                Razon_Social: solicitudAgregarMedidor.Razon_Social,
+                Numero_Telefono: solicitudAgregarMedidor.Numero_Telefono,
+                Correo: solicitudAgregarMedidor.Correo,
+                Direccion_Exacta: solicitudAgregarMedidor.Direccion_Exacta,
+                Motivo_Solicitud: solicitudAgregarMedidor.Motivo_Solicitud,
+                Id_Nuevo_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor
+            });
+        } catch (error) {
+            console.error('Error al registrar actualización de solicitud de agregar medidor jurídica en auditoría:', error);
+        }
+
+        return {
+            ...resultado,
+            Nuevo_Medidor_Info: resultado.Nuevo_Medidor ? {
+                Id_Medidor: resultado.Nuevo_Medidor.Id_Medidor,
+                Numero_Medidor: resultado.Nuevo_Medidor.Numero_Medidor,
+                Estado: resultado.Nuevo_Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+            } : null,
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario)
+        };
+    }
+
+    async updateEstadoSolicitudAgregarMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string) {
+        if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de agregar medidor.');
+
+        if (idNuevoEstado === 5 && !motivoRechazo) {
+            throw new BadRequestException('Debe proporcionar un motivo de rechazo');
+        }
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
+
+        const solicitudAgregarMedidor = await this.solicitudAgregarMedidorRepository.findOne({
+            where: { Id_Solicitud: idSolicitud },
+            relations: ['Estado', 'Nuevo_Medidor', 'Nuevo_Medidor.Estado_Medidor']
+        });
+        if (!solicitudAgregarMedidor) throw new BadRequestException(`Solicitud de agregar medidor con id ${idSolicitud} no encontrada`);
+
+        const nuevoEstado = await this.estadoSolicitudRepo.findOne({ where: { Id_Estado_Solicitud: idNuevoEstado } });
+        if (!nuevoEstado) throw new BadRequestException(`Estado con id ${idNuevoEstado} no encontrado`);
+
+        const razonSocial = solicitudAgregarMedidor.Razon_Social;
+
+        const datosAnteriores = {
+            Cedula_Juridica: solicitudAgregarMedidor.Cedula_Juridica,
+            Razon_Social: razonSocial,
+            Estado_Anterior: solicitudAgregarMedidor.Estado
+        };
+
+        // Estado 2 = En revisión
+        if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'En revisión', razonSocial);
+
+        // Estado 3 = Aprobada y en espera
+        if (idNuevoEstado === 3) await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'Aprobada y en espera', razonSocial);
+
+        // Estado 4 = Completada ,asignar el nuevo medidor al afiliado acumulativo
+        if (idNuevoEstado === 4) {
+            await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'Completada', razonSocial);
+
+            if (solicitudAgregarMedidor.Id_Nuevo_Medidor) {
+                const nuevoMedidor = await this.medidorRepository.findOne({
+                    where: { Id_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor },
+                    relations: ['Estado_Medidor']
+                });
+                if (nuevoMedidor) {
+                    const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: solicitudAgregarMedidor.Cedula_Juridica } });
+                    if (afiliado) {
+                        const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } }); // 2 = Instalado
+                        nuevoMedidor.Afiliado = afiliado;
+                        if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
+                        await this.medidorRepository.save(nuevoMedidor);
+                        console.log(`Nuevo medidor ${nuevoMedidor.Numero_Medidor} agregado al afiliado jurídico ${afiliado.Cedula_Juridica} y marcado como 'Instalado'`);
+                    } else {
+                        console.warn(`Afiliado jurídico con cédula ${solicitudAgregarMedidor.Cedula_Juridica} no encontrado para asignar nuevo medidor.`);
+                    }
+                } else {
+                    console.warn(`Nuevo medidor con id ${solicitudAgregarMedidor.Id_Nuevo_Medidor} no encontrado.`);
+                }
+            }
+        }
+
+        // Estado 5 = Rechazada
+        if (idNuevoEstado === 5) {
+            await this.emailService.enviarEmailSolicitudRechazada(
+                solicitudAgregarMedidor.Correo,
+                razonSocial,
+                'Agregar Medidor',
+                idSolicitud.toString(),
+                motivoRechazo!
+            );
+        }
+
+        solicitudAgregarMedidor.Estado = nuevoEstado;
+        const resultado = await this.solicitudAgregarMedidorRepository.save(solicitudAgregarMedidor);
+
+        try {
+            await this.auditoriaService.logActualizacion('Solicitudes', idUsuario, idSolicitud, datosAnteriores, {
+                Cedula_Juridica: solicitudAgregarMedidor.Cedula_Juridica,
+                Razon_Social: razonSocial,
+                Estado_Nuevo: nuevoEstado.Nombre_Estado,
+                ...(motivoRechazo && { Motivo_Rechazo: motivoRechazo })
+            });
+        } catch (error) {
+            console.error('Error al actualizar estado de solicitud de agregar medidor jurídica:', error);
+        }
+
+        return {
+            Solicitud: {
+                ...resultado,
+                Nuevo_Medidor_Info: resultado.Nuevo_Medidor ? {
+                    Id_Medidor: resultado.Nuevo_Medidor.Id_Medidor,
+                    Numero_Medidor: resultado.Nuevo_Medidor.Numero_Medidor,
+                    Estado: resultado.Nuevo_Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+                } : null
+            },
+            Mensaje: `Estado de solicitud de agregar medidor cambiado a '${nuevoEstado.Nombre_Estado}' exitosamente`
         };
     }
 }

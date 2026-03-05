@@ -1,6 +1,6 @@
-import { UpdateSolicitudAfiliacionFisicaDto, UpdateSolicitudAsociadoFisicaDto, UpdateSolicitudCambioMedidorFisicaDto, UpdateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/UpdateSolicitudFisica.dto";
-import { Solicitud, SolicitudAfiliacionFisica, SolicitudAsociadoFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudFisica } from "../SolicitudEntities/Solicitud.Entity";
-import { CreateSolicitudAfiliacionFisicaDto, CreateSolicitudAsociadoFisicaDto, CreateSolicitudCambioMedidorFisicaDto, CreateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/CreateSolicitudFisica.dto";
+import { UpdateSolicitudAfiliacionFisicaDto, UpdateSolicitudAgregarMedidorFisicaDto, UpdateSolicitudAsociadoFisicaDto, UpdateSolicitudCambioMedidorFisicaDto, UpdateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/UpdateSolicitudFisica.dto";
+import { Solicitud, SolicitudAfiliacionFisica, SolicitudAgregarMedidorFisica, SolicitudAsociadoFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudFisica } from "../SolicitudEntities/Solicitud.Entity";
+import { CreateSolicitudAfiliacionFisicaDto, CreateSolicitudAgregarMedidorFisicaDto, CreateSolicitudAsociadoFisicaDto, CreateSolicitudCambioMedidorFisicaDto, CreateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/CreateSolicitudFisica.dto";
 import { EstadoSolicitud } from "../SolicitudEntities/EstadoSolicitud.Entity";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { ValidationsService } from "src/Validations/Validations.service";
@@ -37,6 +37,9 @@ export class SolicitudesFisicasService {
 
         @InjectRepository(SolicitudAsociadoFisica)
         private readonly solicitudAsociadoFisicaRepository: Repository<SolicitudAsociadoFisica>,
+
+        @InjectRepository(SolicitudAgregarMedidorFisica)
+        private readonly solicitudAgregarMedidorFisicaRepository: Repository<SolicitudAgregarMedidorFisica>,
 
         @InjectRepository(EstadoSolicitud)
         private readonly estadoSolicitudRepository: Repository<EstadoSolicitud>,
@@ -76,6 +79,7 @@ export class SolicitudesFisicasService {
             "Desconexion": await this.getAllSolicitudesDesconexion(),
             "Cambio De Medidor": await this.getAllSolicitudesCambioMedidor(),
             "Asociado": await this.getAllSolicitudesAsociado(),
+            "Agregar Medidor": await this.getAllSolicitudesAgregarMedidor(),
         };
     }
 
@@ -987,6 +991,277 @@ export class SolicitudesFisicasService {
         return {
             Solicitud: resultado,
             Mensaje: `Estado de solicitud de asociado cambiado a '${nuevoEstado.Nombre_Estado}' exitosamente`
+        };
+    }
+
+
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // AGREGAR MEDIDOR FÍSICO
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    async getAllSolicitudesAgregarMedidor() {
+        const solicitudes = await this.solicitudAgregarMedidorFisicaRepository.find({
+            relations: ['Estado', 'Nuevo_Medidor', 'Nuevo_Medidor.Estado_Medidor']
+        });
+
+        return solicitudes.map(item => ({
+            ...item,
+            Nuevo_Medidor_Info: item.Nuevo_Medidor ? {
+                Id_Medidor: item.Nuevo_Medidor.Id_Medidor,
+                Numero_Medidor: item.Nuevo_Medidor.Numero_Medidor,
+                Estado: item.Nuevo_Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+            } : null
+        }));
+    }
+
+    async getSolicitudAgregarMedidorById(idSolicitud: number) {
+        const solicitud = await this.solicitudAgregarMedidorFisicaRepository.findOne({
+            where: { Id_Solicitud: idSolicitud },
+            relations: ['Estado', 'Nuevo_Medidor', 'Nuevo_Medidor.Estado_Medidor']
+        });
+        if (!solicitud) throw new BadRequestException(`Solicitud de agregar medidor física con id ${idSolicitud} no encontrada`);
+
+        return {
+            ...solicitud,
+            Nuevo_Medidor_Info: solicitud.Nuevo_Medidor ? {
+                Id_Medidor: solicitud.Nuevo_Medidor.Id_Medidor,
+                Numero_Medidor: solicitud.Nuevo_Medidor.Numero_Medidor,
+                Estado: solicitud.Nuevo_Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+            } : null
+        };
+    }
+
+    async createSolicitudAgregarMedidor(dto: CreateSolicitudAgregarMedidorFisicaDto) {
+        const solicitudActiva = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
+        if (solicitudActiva) throw new BadRequestException(solicitudActiva);
+
+        // Validación específica: SÍ debe existir un afiliado físico
+        const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
+        if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado físico con la identificación ${dto.Identificacion}`);
+
+        const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
+
+        // 1. Crear registro en tabla padre Solicitud
+        const solicitudBase = this.solicitudRepository.create({
+            Tipo_Entidad: 1, // Física
+            Correo: dto.Correo,
+            Numero_Telefono: dto.Numero_Telefono,
+            Id_Tipo_Solicitud: 5, // Agregar Medidor
+        });
+        const solicitudGuardada = await this.solicitudRepository.save(solicitudBase);
+
+        // 2. Crear registro en tabla intermedia SolicitudFisica
+        const solicitudFisica = this.solicitudFisicaRepository.create({
+            Id_Solicitud: solicitudGuardada.Id_Solicitud,
+            Tipo_Entidad: 1,
+            Correo: dto.Correo,
+            Numero_Telefono: dto.Numero_Telefono,
+            Id_Tipo_Solicitud: 5,
+            Tipo_Identificacion: dto.Tipo_Identificacion,
+            Identificacion: dto.Identificacion,
+            Nombre: dto.Nombre,
+            Apellido1: dto.Apellido1,
+            Apellido2: dto.Apellido2,
+        });
+        await this.solicitudFisicaRepository.save(solicitudFisica);
+
+        // 3. Crear registro en tabla específica SolicitudAgregarMedidorFisica
+        const solicitudAgregarMedidor = this.solicitudAgregarMedidorFisicaRepository.create({
+            Id_Solicitud: solicitudGuardada.Id_Solicitud,
+            Tipo_Entidad: 1,
+            Correo: dto.Correo,
+            Numero_Telefono: dto.Numero_Telefono,
+            Id_Tipo_Solicitud: 5,
+            Tipo_Identificacion: dto.Tipo_Identificacion,
+            Identificacion: dto.Identificacion,
+            Nombre: dto.Nombre,
+            Apellido1: dto.Apellido1,
+            Apellido2: dto.Apellido2,
+            Direccion_Exacta: dto.Direccion_Exacta,
+            Motivo_Solicitud: dto.Motivo_Solicitud,
+            ...(dto.Id_Nuevo_Medidor && { Id_Nuevo_Medidor: dto.Id_Nuevo_Medidor }),
+        });
+        const solicitudFinal = await this.solicitudAgregarMedidorFisicaRepository.save(solicitudAgregarMedidor);
+
+        await this.emailService.enviarEmailSolicitudCreada(dto.Correo, 'Agregar Medidor', nombre);
+        return solicitudFinal;
+    }
+
+    async updateSolicitudAgregarMedidor(idSolicitud: number, dto: UpdateSolicitudAgregarMedidorFisicaDto, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar la solicitud.');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
+
+        const solicitudBase = await this.solicitudRepository.findOne({ where: { Id_Solicitud: idSolicitud } });
+        if (!solicitudBase) throw new BadRequestException(`Solicitud con id ${idSolicitud} no encontrada`);
+
+        if (solicitudBase.Id_Tipo_Solicitud !== 5) throw new BadRequestException(`La solicitud con id ${idSolicitud} no es una solicitud de agregar medidor`);
+        if (solicitudBase.Tipo_Entidad !== 1) throw new BadRequestException(`La solicitud con id ${idSolicitud} no es una solicitud física`);
+
+        const solicitudAgregarMedidor = await this.solicitudAgregarMedidorFisicaRepository.findOne({
+            where: { Id_Solicitud: idSolicitud },
+            relations: ['Nuevo_Medidor', 'Nuevo_Medidor.Estado_Medidor']
+        });
+        if (!solicitudAgregarMedidor) throw new BadRequestException(`Solicitud de agregar medidor física con id ${idSolicitud} no encontrada`);
+
+        const datosAnteriores = {
+            Nombre: solicitudAgregarMedidor.Nombre,
+            Apellido1: solicitudAgregarMedidor.Apellido1,
+            Apellido2: solicitudAgregarMedidor.Apellido2,
+            Numero_Telefono: solicitudAgregarMedidor.Numero_Telefono,
+            Correo: solicitudAgregarMedidor.Correo,
+            Direccion_Exacta: solicitudAgregarMedidor.Direccion_Exacta,
+            Motivo_Solicitud: solicitudAgregarMedidor.Motivo_Solicitud,
+            Id_Nuevo_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor
+        };
+
+        solicitudAgregarMedidor.Nombre = dto.Nombre ?? solicitudAgregarMedidor.Nombre;
+        solicitudAgregarMedidor.Apellido1 = dto.Apellido1 ?? solicitudAgregarMedidor.Apellido1;
+        solicitudAgregarMedidor.Apellido2 = dto.Apellido2 ?? solicitudAgregarMedidor.Apellido2;
+        solicitudAgregarMedidor.Numero_Telefono = dto.Numero_Telefono ?? solicitudAgregarMedidor.Numero_Telefono;
+        solicitudAgregarMedidor.Correo = dto.Correo ?? solicitudAgregarMedidor.Correo;
+        solicitudAgregarMedidor.Direccion_Exacta = dto.Direccion_Exacta ?? solicitudAgregarMedidor.Direccion_Exacta;
+        solicitudAgregarMedidor.Motivo_Solicitud = dto.Motivo_Solicitud ?? solicitudAgregarMedidor.Motivo_Solicitud;
+        solicitudAgregarMedidor.Id_Nuevo_Medidor = dto.Id_Nuevo_Medidor ?? solicitudAgregarMedidor.Id_Nuevo_Medidor;
+
+        await this.solicitudAgregarMedidorFisicaRepository.save(solicitudAgregarMedidor);
+
+        // Recargar con relaciones frescas para devolver datos actualizados
+        const resultado = await this.solicitudAgregarMedidorFisicaRepository.findOne({
+            where: { Id_Solicitud: idSolicitud },
+            relations: ['Estado', 'Nuevo_Medidor', 'Nuevo_Medidor.Estado_Medidor']
+        });
+        if (!resultado) throw new BadRequestException(`Solicitud de agregar medidor física con id ${idSolicitud} no encontrada tras guardar`);
+
+        try {
+            await this.auditoriaService.logActualizacion('Solicitudes', idUsuario, idSolicitud, datosAnteriores, {
+                Nombre: solicitudAgregarMedidor.Nombre,
+                Apellido1: solicitudAgregarMedidor.Apellido1,
+                Apellido2: solicitudAgregarMedidor.Apellido2,
+                Numero_Telefono: solicitudAgregarMedidor.Numero_Telefono,
+                Correo: solicitudAgregarMedidor.Correo,
+                Direccion_Exacta: solicitudAgregarMedidor.Direccion_Exacta,
+                Motivo_Solicitud: solicitudAgregarMedidor.Motivo_Solicitud,
+                Id_Nuevo_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor
+            });
+        } catch (error) {
+            console.error('Error al registrar actualización de solicitud de agregar medidor en auditoría:', error);
+        }
+
+        return {
+            ...resultado,
+            Nuevo_Medidor_Info: resultado.Nuevo_Medidor ? {
+                Id_Medidor: resultado.Nuevo_Medidor.Id_Medidor,
+                Numero_Medidor: resultado.Nuevo_Medidor.Numero_Medidor,
+                Estado: resultado.Nuevo_Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+            } : null,
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario)
+        };
+    }
+
+    async updateEstadoSolicitudAgregarMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string) {
+        if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de agregar medidor.');
+
+        if (idNuevoEstado === 5 && !motivoRechazo) {
+            throw new BadRequestException('Debe proporcionar un motivo de rechazo');
+        }
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
+
+        const solicitudAgregarMedidor = await this.solicitudAgregarMedidorFisicaRepository.findOne({
+            where: { Id_Solicitud: idSolicitud },
+            relations: ['Estado', 'Nuevo_Medidor', 'Nuevo_Medidor.Estado_Medidor']
+        });
+        if (!solicitudAgregarMedidor) throw new BadRequestException(`Solicitud de agregar medidor con id ${idSolicitud} no encontrada`);
+
+        const nuevoEstado = await this.estadoSolicitudRepository.findOne({ where: { Id_Estado_Solicitud: idNuevoEstado } });
+        if (!nuevoEstado) throw new BadRequestException(`Estado con id ${idNuevoEstado} no encontrado`);
+
+        const nombre = `${solicitudAgregarMedidor.Nombre} ${solicitudAgregarMedidor.Apellido1 ?? ''} ${solicitudAgregarMedidor.Apellido2 ?? ''}`.trim();
+
+        const datosAnteriores = {
+            Tipo_Identificacion: solicitudAgregarMedidor.Tipo_Identificacion,
+            Identificacion: solicitudAgregarMedidor.Identificacion,
+            Nombre_Solicitante: nombre,
+            Estado_Anterior: solicitudAgregarMedidor.Estado
+        };
+
+        // Estado 2 = En revisión
+        if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'En revisión', nombre);
+
+        // Estado 3 = Aprobada y en espera
+        if (idNuevoEstado === 3) await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'Aprobada y en espera', nombre);
+
+        // Estado 4 = Completada — asignar el nuevo medidor al afiliado (acumulativo)
+        if (idNuevoEstado === 4) {
+            // Asignar medidor PRIMERO antes del email para evitar que un fallo de email interrumpa la lógica
+            if (solicitudAgregarMedidor.Id_Nuevo_Medidor) {
+                const nuevoMedidor = await this.medidorRepository.findOne({
+                    where: { Id_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor },
+                    relations: ['Estado_Medidor']
+                });
+                if (nuevoMedidor) {
+                    const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitudAgregarMedidor.Identificacion } });
+                    if (afiliado) {
+                        const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } }); // 2 = Instalado
+                        nuevoMedidor.Afiliado = afiliado;
+                        if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
+                        await this.medidorRepository.save(nuevoMedidor);
+                        console.log(`Nuevo medidor ${nuevoMedidor.Numero_Medidor} agregado al afiliado ${afiliado.Identificacion} y marcado como 'Instalado'`);
+                    } else {
+                        console.warn(`Afiliado físico con identificación ${solicitudAgregarMedidor.Identificacion} no encontrado para asignar nuevo medidor.`);
+                    }
+                } else {
+                    console.warn(`Nuevo medidor con id ${solicitudAgregarMedidor.Id_Nuevo_Medidor} no encontrado.`);
+                }
+            }
+
+            try {
+                await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'Completada', nombre);
+            } catch (error) {
+                console.error('Error al enviar email de completada para agregar medidor:', error);
+            }
+        }
+
+        // Estado 5 = Rechazada
+        if (idNuevoEstado === 5) {
+            await this.emailService.enviarEmailSolicitudRechazada(
+                solicitudAgregarMedidor.Correo,
+                nombre,
+                'Agregar Medidor',
+                idSolicitud.toString(),
+                motivoRechazo!
+            );
+        }
+
+        solicitudAgregarMedidor.Estado = nuevoEstado;
+        const resultado = await this.solicitudAgregarMedidorFisicaRepository.save(solicitudAgregarMedidor);
+
+        try {
+            await this.auditoriaService.logActualizacion('Solicitudes', idUsuario, idSolicitud, datosAnteriores, {
+                Tipo_Identificacion: solicitudAgregarMedidor.Tipo_Identificacion,
+                Identificacion: solicitudAgregarMedidor.Identificacion,
+                Nombre_Solicitante: nombre,
+                Estado_Nuevo: nuevoEstado.Nombre_Estado,
+                ...(motivoRechazo && { Motivo_Rechazo: motivoRechazo })
+            });
+        } catch (error) {
+            console.error('Error al actualizar estado de solicitud de agregar medidor:', error);
+        }
+
+        return {
+            Solicitud: {
+                ...resultado,
+                Nuevo_Medidor_Info: resultado.Nuevo_Medidor ? {
+                    Id_Medidor: resultado.Nuevo_Medidor.Id_Medidor,
+                    Numero_Medidor: resultado.Nuevo_Medidor.Numero_Medidor,
+                    Estado: resultado.Nuevo_Medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? null
+                } : null
+            },
+            Mensaje: `Estado de solicitud de agregar medidor cambiado a '${nuevoEstado.Nombre_Estado}' exitosamente`
         };
     }
 }
