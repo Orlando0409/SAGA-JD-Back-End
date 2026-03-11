@@ -353,6 +353,12 @@ export class AfiliadosService {
             if (medidorDuplicado) throw new BadRequestException(`Ya existe un medidor con el número ${dto.Numero_Medidor}`);
         }
 
+        // Validación temprana de archivos: obligatorios cuando se vincula un medidor
+        if (opcion === OpcionMedidor.Asignar || opcion === OpcionMedidor.Agregar) {
+            if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio cuando se asigna o agrega un medidor');
+            if (!files?.Escritura_Terreno?.[0]) throw new BadRequestException('El archivo Escritura_Terreno es obligatorio cuando se asigna o agrega un medidor');
+        }
+
         const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} `.trim();
 
         // Crear el Afiliado sin archivos (los archivos pertenecen al Medidor)
@@ -380,17 +386,13 @@ export class AfiliadosService {
             const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
             if (!estadoInstalado) throw new BadRequestException('Estado "Instalado" no encontrado');
 
-            const planoFile = files?.Planos_Terreno?.[0];
-            const escrituraFile = files?.Escritura_Terreno?.[0];
-            if (planoFile) {
-                const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Medidores', 'Fisicos', dto.Identificacion, nombre);
-                medidorExistente.Planos_Terreno = planoRes?.url ?? null;
-            }
-            if (escrituraFile) {
-                const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Fisicos', dto.Identificacion, nombre);
-                medidorExistente.Escritura_Terreno = escrituraRes?.url ?? null;
-            }
+            const planoFile = files.Planos_Terreno[0];
+            const escrituraFile = files.Escritura_Terreno[0];
+            const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Medidores', 'Fisicos', dto.Identificacion, nombre);
+            const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Fisicos', dto.Identificacion, nombre);
 
+            medidorExistente.Planos_Terreno = planoRes.url;
+            medidorExistente.Escritura_Terreno = escrituraRes.url;
             medidorExistente.Afiliado = afiliadoGuardado;
             medidorExistente.Estado_Medidor = estadoInstalado;
             medidorAsignado = await this.medidorRepository.save(medidorExistente);
@@ -398,18 +400,18 @@ export class AfiliadosService {
             const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
             if (!estadoInstalado) throw new BadRequestException('Estado "Instalado" no encontrado');
 
-            const planoFile = files?.Planos_Terreno?.[0];
-            const escrituraFile = files?.Escritura_Terreno?.[0];
-            const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Medidores', 'Fisicos', dto.Identificacion, nombre) : null;
-            const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Fisicos', dto.Identificacion, nombre) : null;
+            const planoFile = files.Planos_Terreno[0];
+            const escrituraFile = files.Escritura_Terreno[0];
+            const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Medidores', 'Fisicos', dto.Identificacion, nombre);
+            const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Fisicos', dto.Identificacion, nombre);
 
             const nuevoMedidor = this.medidorRepository.create({
                 Numero_Medidor: dto.Numero_Medidor!,
                 Afiliado: afiliadoGuardado,
                 Estado_Medidor: estadoInstalado,
                 Usuario: usuario,
-                Planos_Terreno: planoRes?.url ?? null,
-                Escritura_Terreno: escrituraRes?.url ?? null
+                Planos_Terreno: planoRes.url,
+                Escritura_Terreno: escrituraRes.url
             });
             medidorAsignado = await this.medidorRepository.save(nuevoMedidor);
         }
@@ -512,6 +514,12 @@ export class AfiliadosService {
             if (medidorDuplicado) throw new BadRequestException(`Ya existe un medidor con el número ${dto.Numero_Medidor}`);
         }
 
+        // Validación temprana de archivos: obligatorios cuando se vincula un medidor
+        if (opcion === OpcionMedidor.Asignar || opcion === OpcionMedidor.Agregar) {
+            if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio cuando se asigna o agrega un medidor');
+            if (!files?.Escritura_Terreno?.[0]) throw new BadRequestException('El archivo Escritura_Terreno es obligatorio cuando se asigna o agrega un medidor');
+        }
+
         // Crear el Afiliado sin archivos (los archivos pertenecen al Medidor)
         const afiliado = this.afiliadoRepository.create({
             ...dto,
@@ -537,17 +545,13 @@ export class AfiliadosService {
             const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
             if (!estadoInstalado) throw new BadRequestException('Estado "Instalado" no encontrado');
 
-            const planoFile = files?.Planos_Terreno?.[0];
-            const escrituraFile = files?.Escritura_Terreno?.[0];
-            if (planoFile) {
-                const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Medidores', 'Juridicos', dto.Cedula_Juridica, dto.Razon_Social);
-                medidorExistente.Planos_Terreno = planoRes?.url ?? null;
-            }
-            if (escrituraFile) {
-                const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Juridicos', dto.Cedula_Juridica, dto.Razon_Social);
-                medidorExistente.Escritura_Terreno = escrituraRes?.url ?? null;
-            }
+            const planoFile = files.Planos_Terreno[0];
+            const escrituraFile = files.Escritura_Terreno[0];
+            const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Medidores', 'Juridicos', dto.Cedula_Juridica, dto.Razon_Social);
+            const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Juridicos', dto.Cedula_Juridica, dto.Razon_Social);
 
+            medidorExistente.Planos_Terreno = planoRes.url;
+            medidorExistente.Escritura_Terreno = escrituraRes.url;
             medidorExistente.Afiliado = afiliadoGuardado;
             medidorExistente.Estado_Medidor = estadoInstalado;
             medidorAsignado = await this.medidorRepository.save(medidorExistente);
@@ -555,18 +559,18 @@ export class AfiliadosService {
             const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
             if (!estadoInstalado) throw new BadRequestException('Estado "Instalado" no encontrado');
 
-            const planoFile = files?.Planos_Terreno?.[0];
-            const escrituraFile = files?.Escritura_Terreno?.[0];
-            const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Medidores', 'Juridicos', dto.Cedula_Juridica, dto.Razon_Social) : null;
-            const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Juridicos', dto.Cedula_Juridica, dto.Razon_Social) : null;
+            const planoFile = files.Planos_Terreno[0];
+            const escrituraFile = files.Escritura_Terreno[0];
+            const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Medidores', 'Juridicos', dto.Cedula_Juridica, dto.Razon_Social);
+            const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Juridicos', dto.Cedula_Juridica, dto.Razon_Social);
 
             const nuevoMedidor = this.medidorRepository.create({
                 Numero_Medidor: dto.Numero_Medidor!,
                 Afiliado: afiliadoGuardado,
                 Estado_Medidor: estadoInstalado,
                 Usuario: usuario,
-                Planos_Terreno: planoRes?.url ?? null,
-                Escritura_Terreno: escrituraRes?.url ?? null
+                Planos_Terreno: planoRes.url,
+                Escritura_Terreno: escrituraRes.url
             });
             medidorAsignado = await this.medidorRepository.save(nuevoMedidor);
         }
