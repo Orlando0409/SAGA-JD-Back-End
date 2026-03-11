@@ -13,6 +13,7 @@ import { AuditoriaService } from "src/Modules/Auditoria/auditoria.service";
 import { UsuariosService } from "src/Modules/Usuarios/Services/usuarios.service";
 import { AfiliadosService } from "src/Modules/Afiliados/afiliados.service";
 import { Solicitud } from "src/Modules/Solicitudes/SolicitudEntities/Solicitud.Entity";
+import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 
 @Injectable()
 export class MedidorService {
@@ -42,7 +43,9 @@ export class MedidorService {
 
         private readonly auditoriaService: AuditoriaService,
 
-        private readonly usuariosService: UsuariosService
+        private readonly usuariosService: UsuariosService,
+
+        private readonly dropboxFilesService: DropboxFilesService,
     ) { }
 
     private async formatearMedidoresConRelaciones(medidores: Medidor[]) {
@@ -383,6 +386,51 @@ export class MedidorService {
                 Id_Estado: medidor.Estado_Medidor?.Id_Estado_Medidor || null,
                 Nombre_Estado: medidor.Estado_Medidor?.Nombre_Estado_Medidor || 'Sin estado'
             }
+        };
+    }
+
+    async updateMedidorFiles(idMedidor: number, idUsuario: number, files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const medidor = await this.medidorRepository.findOne({
+            where: { Id_Medidor: idMedidor },
+            relations: ['Estado_Medidor', 'Afiliado']
+        });
+        if (!medidor) throw new BadRequestException(`Medidor con ID ${idMedidor} no encontrado`);
+
+        const planoFile = files?.Planos_Terreno?.[0];
+        const escrituraFile = files?.Escritura_Terreno?.[0];
+
+        if (!planoFile && !escrituraFile) {
+            throw new BadRequestException('Debe proporcionar al menos un archivo (Planos_Terreno o Escritura_Terreno)');
+        }
+
+        if (planoFile) {
+            const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Medidores', 'Archivos', String(idMedidor));
+            medidor.Planos_Terreno = planoRes?.url ?? null;
+        }
+
+        if (escrituraFile) {
+            const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Archivos', String(idMedidor));
+            medidor.Escritura_Terreno = escrituraRes?.url ?? null;
+        }
+
+        const medidorActualizado = await this.medidorRepository.save(medidor);
+
+        try {
+            await this.auditoriaService.logActualizacion('Medidores', idUsuario, idMedidor,
+                { Planos_Terreno: medidor.Planos_Terreno, Escritura_Terreno: medidor.Escritura_Terreno },
+                { Planos_Terreno: medidorActualizado.Planos_Terreno, Escritura_Terreno: medidorActualizado.Escritura_Terreno }
+            );
+        } catch (error) {
+            console.error('Error al registrar auditoría de actualización de archivos del medidor:', error);
+        }
+
+        return {
+            Id_Medidor: medidorActualizado.Id_Medidor,
+            Numero_Medidor: medidorActualizado.Numero_Medidor,
+            Planos_Terreno: medidorActualizado.Planos_Terreno,
+            Escritura_Terreno: medidorActualizado.Escritura_Terreno
         };
     }
 }

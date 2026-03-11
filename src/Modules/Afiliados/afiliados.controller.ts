@@ -90,31 +90,21 @@ export class AfiliadosController {
     }
 
     @Put('/update/fisico/:cedula')
-    @ApiOperation({ summary: 'Actualizar un afiliado físico' })
-    @UseInterceptors(FileFieldsInterceptor([
-        { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
-    ]),)
+    @ApiOperation({ summary: 'Actualizar datos de un afiliado físico' })
     updateAfiliadoFisico(
         @Param('cedula') cedula: string,
         @Body() dto: UpdateAfiliadoFisicoDto,
-        @GetUser() usuario: Usuario,
-        @UploadedFiles() files?: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; }) {
-        return this.afiliadosService.updateAfiliadoFisico(cedula, dto, usuario.Id_Usuario, files);
+        @GetUser() usuario: Usuario) {
+        return this.afiliadosService.updateAfiliadoFisico(cedula, dto, usuario.Id_Usuario);
     }
 
     @Put('/update/juridico/:cedulaJuridica')
-    @ApiOperation({ summary: 'Actualizar un afiliado jurídico' })
-    @UseInterceptors(FileFieldsInterceptor([
-        { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
-    ]),)
+    @ApiOperation({ summary: 'Actualizar datos de un afiliado jurídico' })
     updateAfiliadoJuridico(
         @Param('cedulaJuridica') cedulaJuridica: string,
         @Body() dto: UpdateAfiliadoJuridicoDto,
-        @GetUser() usuario: Usuario,
-        @UploadedFiles() files?: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; }) {
-        return this.afiliadosService.updateAfiliadoJuridico(cedulaJuridica, dto, usuario.Id_Usuario, files);
+        @GetUser() usuario: Usuario) {
+        return this.afiliadosService.updateAfiliadoJuridico(cedulaJuridica, dto, usuario.Id_Usuario);
     }
 
     @Patch('/fisico/:id/update/estado/:nuevoEstadoId')

@@ -23,7 +23,7 @@ export enum OpcionMedidor {
   Agregar = 'agregar',
 }
 
-export abstract class CreateAfiliadoDto {
+export class CreateAfiliadoDto {
   @ApiProperty({ example: 'ejemplo@gmail.com' })
   @Transform(({ value }) => value?.trim())
   @IsEmail({}, { message: 'El correo electrónico debe tener un formato válido' })
@@ -78,6 +78,7 @@ export abstract class CreateAfiliadoDto {
   })
   @IsOptional()
   @Transform(({ value }) => (value !== undefined && value !== null && value !== '' ? Number(value) : undefined))
+  @IsNumber({}, { message: 'Numero_Medidor debe ser un número entero' })
   Numero_Medidor?: number;
 }
 

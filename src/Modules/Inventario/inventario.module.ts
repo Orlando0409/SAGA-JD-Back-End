@@ -29,6 +29,7 @@ import { UsuariosModule } from '../Usuarios/Modules/usuarios.module';
 import { RolesModule } from '../Usuarios/Modules/roles.module';
 import { AfiliadosModule } from '../Afiliados/afiliados.module';
 import { Solicitud } from '../Solicitudes/SolicitudEntities/Solicitud.Entity';
+import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
 
 @Module({
   imports: [
@@ -36,7 +37,8 @@ import { Solicitud } from '../Solicitudes/SolicitudEntities/Solicitud.Entity';
     forwardRef(() => AfiliadosModule),
     forwardRef(() => UsuariosModule),
     forwardRef(() => RolesModule),
-    forwardRef(() => AuditoriaModule)
+    forwardRef(() => AuditoriaModule),
+    DropboxModule,
   ],
   controllers: [InventarioController],
   providers: [MaterialService, CategoriasService, UnidadesDeMedicionService, MovimientosService, MedidorService, ProveedorService],

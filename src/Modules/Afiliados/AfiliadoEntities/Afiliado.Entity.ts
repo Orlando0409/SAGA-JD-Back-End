@@ -29,12 +29,6 @@ export abstract class Afiliado {
     @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Actualizacion: Date;
 
-    @Column({ nullable: false })
-    Planos_Terreno: string;
-
-    @Column({ nullable: false })
-    Escritura_Terreno: string;
-
     @ManyToOne(() => EstadoAfiliado, estado => estado.Afiliados)
     @JoinColumn({ name: 'Id_Estado_Afiliado' })
     Estado: EstadoAfiliado;

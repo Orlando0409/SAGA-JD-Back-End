@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, UseInterceptors, ClassSerializerInterceptor, Put, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, UseInterceptors, ClassSerializerInterceptor, Put, Patch, UseGuards, UploadedFiles } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { MaterialService } from './Services/material.service';
 import { CategoriasService } from './Services/categorias.service';
@@ -18,6 +18,7 @@ import { AsignarMedidorExistenteAAfiliado } from './InventarioDTO\'s/AsignarMedi
 import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
 import { GetUser } from '../auth/Decorator/GetUser.decorator';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
+import { FileFieldsInterceptor } from '@nestjs/platform-express/multer';
 
 @Controller('Inventario')
 @UseGuards(JwtAuthGuard)
@@ -361,5 +362,19 @@ export class InventarioController {
     @GetUser() usuario: Usuario
   ) {
     return this.medidorService.updateEstadoMedidor(idMedidor, nuevoEstadoId, usuario.Id_Usuario);
+  }
+
+  @Patch('/medidor/:id/files')
+  @ApiOperation({ summary: 'Actualiza los archivos (Planos y/o Escritura) de un Medidor existente.' })
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'Planos_Terreno', maxCount: 1 },
+    { name: 'Escritura_Terreno', maxCount: 1 },
+  ]))
+  async updateMedidorFiles(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() usuario: Usuario,
+    @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }
+  ) {
+    return this.medidorService.updateMedidorFiles(id, usuario.Id_Usuario, files);
   }
 }
