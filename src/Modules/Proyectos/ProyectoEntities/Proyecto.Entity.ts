@@ -10,8 +10,12 @@ export class Proyecto {
   @Column({ nullable: false })
   Titulo: string;
 
-  @Column({ nullable: false })
-  Descripcion: string;
+  @Column({
+  type: 'varchar',
+  length: 1000,
+  nullable: false
+})
+Descripcion: string;
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
   Fecha_Creacion: Date;
