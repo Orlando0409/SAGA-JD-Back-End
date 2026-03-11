@@ -449,7 +449,10 @@ export class SolicitudAgregarMedidorFisica extends SolicitudFisica {
     Direccion_Exacta: string;
 
     @Column({ nullable: false })
-    Motivo_Solicitud: string;
+    Planos_Terreno: string;
+
+    @Column({ nullable: false })
+    Escritura_Terreno: string;
 
     @Column({ nullable: true, default: null })
     Id_Nuevo_Medidor: number;
@@ -491,7 +494,10 @@ export class SolicitudAgregarMedidorJuridica extends SolicitudJuridica {
     Direccion_Exacta: string;
 
     @Column({ nullable: false })
-    Motivo_Solicitud: string;
+    Planos_Terreno: string;
+
+    @Column({ nullable: false })
+    Escritura_Terreno: string;
 
     @Column({ nullable: true, default: null })
     Id_Nuevo_Medidor: number;

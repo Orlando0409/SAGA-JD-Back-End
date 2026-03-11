@@ -198,10 +198,15 @@ export class SolicitudesJuridicasController {
     @Public()
     @Post('/create/agregar-medidor')
     @ApiOperation({ summary: 'Crear una nueva solicitud de agregar medidor jurídica' })
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'Planos_Terreno', maxCount: 1 },
+        { name: 'Escritura_Terreno', maxCount: 1 },
+    ]),)
     async createSolicitudAgregarMedidor(
         @Body() solicitudAgregarMedidor: CreateSolicitudAgregarMedidorJuridicaDto,
+        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Escritura_Terreno: Express.Multer.File[]; }
     ) {
-        return this.solicitudesJuridicasService.createSolicitudAgregarMedidor(solicitudAgregarMedidor);
+        return this.solicitudesJuridicasService.createSolicitudAgregarMedidor(solicitudAgregarMedidor, files);
     }
 
     @Put('/update/agregar-medidor/:id')

@@ -1032,7 +1032,7 @@ export class SolicitudesFisicasService {
         };
     }
 
-    async createSolicitudAgregarMedidor(dto: CreateSolicitudAgregarMedidorFisicaDto) {
+    async createSolicitudAgregarMedidor(dto: CreateSolicitudAgregarMedidorFisicaDto, files: any) {
         const solicitudActiva = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (solicitudActiva) throw new BadRequestException(solicitudActiva);
 
@@ -1040,7 +1040,12 @@ export class SolicitudesFisicasService {
         const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado físico con la identificación ${dto.Identificacion}`);
 
+        const planoFile = files?.Planos_Terreno?.[0];
+        const escrituraFile = files?.Escritura_Terreno?.[0];
         const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
+
+        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-AgregarMedidor', 'Fisicas', dto.Identificacion, nombre) : null;
+        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-AgregarMedidor', 'Fisicas', dto.Identificacion, nombre) : null;
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
@@ -1079,7 +1084,8 @@ export class SolicitudesFisicasService {
             Apellido1: dto.Apellido1,
             Apellido2: dto.Apellido2,
             Direccion_Exacta: dto.Direccion_Exacta,
-            Motivo_Solicitud: dto.Motivo_Solicitud,
+            Planos_Terreno: planoRes?.url || '',
+            Escritura_Terreno: escrituraRes?.url || '',
             ...(dto.Id_Nuevo_Medidor && { Id_Nuevo_Medidor: dto.Id_Nuevo_Medidor }),
         });
         const solicitudFinal = await this.solicitudAgregarMedidorFisicaRepository.save(solicitudAgregarMedidor);
@@ -1113,7 +1119,8 @@ export class SolicitudesFisicasService {
             Numero_Telefono: solicitudAgregarMedidor.Numero_Telefono,
             Correo: solicitudAgregarMedidor.Correo,
             Direccion_Exacta: solicitudAgregarMedidor.Direccion_Exacta,
-            Motivo_Solicitud: solicitudAgregarMedidor.Motivo_Solicitud,
+            Planos_Terreno: solicitudAgregarMedidor.Planos_Terreno,
+            Escritura_Terreno: solicitudAgregarMedidor.Escritura_Terreno,
             Id_Nuevo_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor
         };
 
@@ -1123,7 +1130,6 @@ export class SolicitudesFisicasService {
         solicitudAgregarMedidor.Numero_Telefono = dto.Numero_Telefono ?? solicitudAgregarMedidor.Numero_Telefono;
         solicitudAgregarMedidor.Correo = dto.Correo ?? solicitudAgregarMedidor.Correo;
         solicitudAgregarMedidor.Direccion_Exacta = dto.Direccion_Exacta ?? solicitudAgregarMedidor.Direccion_Exacta;
-        solicitudAgregarMedidor.Motivo_Solicitud = dto.Motivo_Solicitud ?? solicitudAgregarMedidor.Motivo_Solicitud;
         solicitudAgregarMedidor.Id_Nuevo_Medidor = dto.Id_Nuevo_Medidor ?? solicitudAgregarMedidor.Id_Nuevo_Medidor;
 
         await this.solicitudAgregarMedidorFisicaRepository.save(solicitudAgregarMedidor);
@@ -1143,7 +1149,8 @@ export class SolicitudesFisicasService {
                 Numero_Telefono: solicitudAgregarMedidor.Numero_Telefono,
                 Correo: solicitudAgregarMedidor.Correo,
                 Direccion_Exacta: solicitudAgregarMedidor.Direccion_Exacta,
-                Motivo_Solicitud: solicitudAgregarMedidor.Motivo_Solicitud,
+                Planos_Terreno: solicitudAgregarMedidor.Planos_Terreno,
+                Escritura_Terreno: solicitudAgregarMedidor.Escritura_Terreno,
                 Id_Nuevo_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor
             });
         } catch (error) {
