@@ -152,9 +152,16 @@ export class MedidorService {
         return this.formatearMedidoresConRelaciones(medidores);
     }
 
-    async asignarMedidorExistenteAAfiliado(dto: AsignarMedidorExistenteAAfiliado, idUsuario: number) {
+    async asignarMedidorExistenteAAfiliado(
+        dto: AsignarMedidorExistenteAAfiliado,
+        idUsuario: number,
+        files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }
+    ) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
+       
+        if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para asignar un medidor a un afiliado');
+        if (!files?.Escritura_Terreno?.[0]) throw new BadRequestException('El archivo Escritura_Terreno es obligatorio para asignar un medidor a un afiliado');
 
         const medidor = await this.medidorRepository.findOne({
             where: { Id_Medidor: dto.Id_Medidor },
@@ -176,6 +183,16 @@ export class MedidorService {
             Afiliado_Anterior: null
         };
 
+       
+        const planoRes = await this.dropboxFilesService.uploadFile(
+            files.Planos_Terreno[0], 'Medidores', 'Archivos', String(dto.Id_Medidor), String(dto.Id_Afiliado)
+        );
+        const escrituraRes = await this.dropboxFilesService.uploadFile(
+            files.Escritura_Terreno[0], 'Medidores', 'Archivos', String(dto.Id_Medidor), String(dto.Id_Afiliado)
+        );
+
+        medidor.Planos_Terreno = planoRes.url;
+        medidor.Escritura_Terreno = escrituraRes.url;
         medidor.Afiliado = afiliado;
         medidor.Estado_Medidor = estadoInstalado;
         await this.medidorRepository.save(medidor);

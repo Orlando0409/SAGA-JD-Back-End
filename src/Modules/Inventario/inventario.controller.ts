@@ -346,12 +346,17 @@ export class InventarioController {
   }
 
   @Post('/asignar/medidor/afiliado')
-  @ApiOperation({ summary: 'Asigna un medidor ya existente y disponible directamente a un afiliado.' })
+  @ApiOperation({ summary: 'Asigna un medidor ya existente y disponible directamente a un afiliado. Requiere Planos_Terreno y Escritura_Terreno.' })
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'Planos_Terreno', maxCount: 1 },
+    { name: 'Escritura_Terreno', maxCount: 1 },
+  ]))
   async asignarMedidorExistenteAAfiliado(
     @Body() dto: AsignarMedidorExistenteAAfiliado,
-    @GetUser() usuario: Usuario
+    @GetUser() usuario: Usuario,
+    @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }
   ) {
-    return this.medidorService.asignarMedidorExistenteAAfiliado(dto, usuario.Id_Usuario);
+    return this.medidorService.asignarMedidorExistenteAAfiliado(dto, usuario.Id_Usuario, files);
   }
 
   @Patch('/update/estado/medidor/:idMedidor/:nuevoEstadoId')
