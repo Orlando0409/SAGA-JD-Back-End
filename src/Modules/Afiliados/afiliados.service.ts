@@ -546,9 +546,11 @@ export class AfiliadosService {
         const opcion = dto.Opcion_Medidor ?? OpcionMedidor.SinMedidor;
 
         let medidorExistente: Medidor | null = null;
+
         if (opcion === OpcionMedidor.Asignar) {
             if (!dto.Id_Medidor) throw new BadRequestException('Debe proporcionar Id_Medidor cuando Opcion_Medidor es "asignar"');
             medidorExistente = await this.medidorRepository.findOne({ where: { Id_Medidor: dto.Id_Medidor }, relations: ['Estado_Medidor', 'Afiliado'] });
+
             if (!medidorExistente) throw new BadRequestException(`Medidor con ID ${dto.Id_Medidor} no encontrado`);
             if (medidorExistente.Estado_Medidor.Id_Estado_Medidor === 3) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} está averiado y no puede asignarse`);
             if (medidorExistente.Afiliado) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} ya está asignado a otro afiliado`);
@@ -582,6 +584,16 @@ export class AfiliadosService {
             Tipo_Afiliado: tipoAfiliado
         });
 
+        try {
+            await this.auditoriaService.logCreacion('Afiliado jurídico', idUsuario, afiliadoJuridico.Id_Afiliado, {
+                'Cédula Jurídica': afiliadoJuridico.Cedula_Juridica,
+                'Razón Social': afiliadoJuridico.Razon_Social,
+                'Correo': afiliadoJuridico.Correo,
+            });
+        } catch (error) {
+            console.error('Error al registrar auditoría para creación de afiliado jurídico:', error);
+        }
+
         const afiliadoJuridicoGuardado = await this.afiliadoJuridicoRepository.save(afiliadoJuridico);
 
         // ─── Gestión del medidor con archivos ────────────────────────────────────────
@@ -590,6 +602,12 @@ export class AfiliadosService {
         if (opcion === OpcionMedidor.Asignar && medidorExistente) {
             const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
             if (!estadoInstalado) throw new BadRequestException('Estado "Instalado" no encontrado');
+
+            const datosAnteriores = {
+                'Número de Medidor': medidorExistente.Numero_Medidor,
+                'Estado del Medidor': medidorExistente.Estado_Medidor?.Nombre_Estado_Medidor,
+                'Afiliado Asignado': medidorExistente.Afiliado
+            };
 
             const planoFile = files.Planos_Terreno[0];
             const escrituraFile = files.Escritura_Terreno[0];
@@ -600,8 +618,23 @@ export class AfiliadosService {
             medidorExistente.Escritura_Terreno = escrituraRes.url;
             medidorExistente.Afiliado = afiliadoGuardado;
             medidorExistente.Estado_Medidor = estadoInstalado;
+
             medidorAsignado = await this.medidorRepository.save(medidorExistente);
-        } else if (opcion === OpcionMedidor.Agregar) {
+
+            try {
+            if (medidorAsignado) {
+                await this.auditoriaService.logActualizacion('Medidores', idUsuario, medidorAsignado.Id_Medidor, datosAnteriores, {
+                    'Número de Medidor': medidorAsignado.Numero_Medidor,
+                    'Estado del Medidor': medidorAsignado.Estado_Medidor?.Nombre_Estado_Medidor,
+                    'Afiliado Asignado': `${afiliadoJuridico.Razon_Social} (${afiliadoJuridico.Cedula_Juridica})`
+                });
+            }
+        } catch (error) {
+                console.error('Error al registrar auditoría para actualización de medidor:', error);
+            }
+        }
+
+        else if (opcion === OpcionMedidor.Agregar) {
             const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
             if (!estadoInstalado) throw new BadRequestException('Estado "Instalado" no encontrado');
 
@@ -618,7 +651,20 @@ export class AfiliadosService {
                 Planos_Terreno: planoRes.url,
                 Escritura_Terreno: escrituraRes.url
             });
+
             medidorAsignado = await this.medidorRepository.save(nuevoMedidor);
+
+            try {
+                if (medidorAsignado) {
+                    await this.auditoriaService.logCreacion('Medidores', idUsuario, medidorAsignado.Id_Medidor, {
+                        'Número de Medidor': medidorAsignado.Numero_Medidor,
+                        'Estado del Medidor': medidorAsignado.Estado_Medidor?.Nombre_Estado_Medidor,
+                        'Afiliado Asignado': `${afiliadoJuridico.Razon_Social} (${afiliadoJuridico.Cedula_Juridica})`
+                    });
+                }
+        } catch (error) {
+                console.error('Error al registrar auditoría para creación de medidor:', error);
+            }
         }
 
         return {
