@@ -266,15 +266,23 @@ export class SolicitudesFisicasService {
         return solicitudFinal;
     }
 
-    async createSolicitudCambioMedidor(dto: CreateSolicitudCambioMedidorFisicaDto) {
+    async createSolicitudCambioMedidor(
+        dto: CreateSolicitudCambioMedidorFisicaDto,
+        files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }
+    ) {
+        if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para crear una solicitud de cambio de medidor');
+        if (!files?.Escritura_Terreno?.[0]) throw new BadRequestException('El archivo Escritura_Terreno es obligatorio para crear una solicitud de cambio de medidor');
+
         const solicitudActiva = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (solicitudActiva) throw new BadRequestException(solicitudActiva);
 
-        // Validación específica para cambio medidor: SÍ debe existir un afiliado físico
         const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado físico con la identificación ${dto.Identificacion}`);
 
         const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
+
+        const planoRes = await this.dropboxFilesService.uploadFile(files.Planos_Terreno[0], 'Solicitudes-CambioMedidor', 'Fisicas', dto.Identificacion, nombre);
+        const escrituraRes = await this.dropboxFilesService.uploadFile(files.Escritura_Terreno[0], 'Solicitudes-CambioMedidor', 'Fisicas', dto.Identificacion, nombre);
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
@@ -303,7 +311,7 @@ export class SolicitudesFisicasService {
         // 3. Crear registro en tabla específica SolicitudCambioMedidorFisica
         const solicitudCambioMedidor = this.solicitudCambioMedidorFisicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
-            Tipo_Entidad: 1, // Física
+            Tipo_Entidad: 1,
             Correo: dto.Correo,
             Numero_Telefono: dto.Numero_Telefono,
             Id_Tipo_Solicitud: 3,
@@ -315,6 +323,8 @@ export class SolicitudesFisicasService {
             Direccion_Exacta: dto.Direccion_Exacta,
             Motivo_Solicitud: dto.Motivo_Solicitud,
             Id_Medidor: dto.Id_Medidor,
+            Planos_Terreno: planoRes.url,
+            Escritura_Terreno: escrituraRes.url,
         });
         const solicitudFinal = await this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
 
@@ -865,11 +875,12 @@ export class SolicitudesFisicasService {
                 if (nuevoMedidor) {
                     const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitudCambioMedidor.Identificacion } });
                     if (afiliado) {
-                        const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } }); // 2 = Instalado
+                        const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
                         nuevoMedidor.Afiliado = afiliado;
+                        nuevoMedidor.Planos_Terreno = solicitudCambioMedidor.Planos_Terreno;
+                        nuevoMedidor.Escritura_Terreno = solicitudCambioMedidor.Escritura_Terreno;
                         if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
                         await this.medidorRepository.save(nuevoMedidor);
-                        console.log(`Nuevo medidor ${nuevoMedidor.Numero_Medidor} asignado al afiliado ${afiliado.Identificacion} y marcado como 'Instalado'`);
                     } else {
                         console.warn(`Afiliado físico con identificación ${solicitudCambioMedidor.Identificacion} no encontrado para asignar nuevo medidor.`);
                     }

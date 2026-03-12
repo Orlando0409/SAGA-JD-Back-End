@@ -214,6 +214,12 @@ export class SolicitudCambioMedidorFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Id_Medidor: number;
 
+    @Column({ nullable: false, type: 'varchar', length: 500 })
+    Planos_Terreno: string;
+
+    @Column({ nullable: false, type: 'varchar', length: 500 })
+    Escritura_Terreno: string;
+
     @ManyToOne(() => Medidor, { nullable: true })
     @JoinColumn({ name: 'Id_Medidor' })
     Medidor: Medidor;
@@ -374,6 +380,12 @@ export class SolicitudCambioMedidorJuridica extends SolicitudJuridica {
 
     @Column({ nullable: false })
     Id_Medidor: number;
+
+    @Column({ nullable: false, type: 'varchar', length: 500 })
+    Planos_Terreno: string;
+
+    @Column({ nullable: false, type: 'varchar', length: 500 })
+    Escritura_Terreno: string;
 
     @ManyToOne(() => Medidor, { nullable: true })
     @JoinColumn({ name: 'Id_Medidor' })

@@ -253,15 +253,23 @@ export class SolicitudesJuridicasService {
         return solicitudFinal;
     }
 
-    async createSolicitudCambioMedidor(dto: CreateSolicitudCambioMedidorJuridicaDto) {
+    async createSolicitudCambioMedidor(
+        dto: CreateSolicitudCambioMedidorJuridicaDto,
+        files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }
+    ) {
+        if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para crear una solicitud de cambio de medidor');
+        if (!files?.Escritura_Terreno?.[0]) throw new BadRequestException('El archivo Escritura_Terreno es obligatorio para crear una solicitud de cambio de medidor');
+
         const solicitudActiva = await this.validationsService.validarSolicitudesJuridicasActivas(dto.Cedula_Juridica);
         if (solicitudActiva) throw new BadRequestException(solicitudActiva);
 
-        // Validación específica para cambio medidor: SÍ debe existir un afiliado jurídico
         const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(dto.Cedula_Juridica);
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}`);
 
         const razonSocial = dto.Razon_Social;
+
+        const planoRes = await this.dropboxFilesService.uploadFile(files.Planos_Terreno[0], 'Solicitudes-CambioMedidor', 'Juridicas', dto.Cedula_Juridica, razonSocial);
+        const escrituraRes = await this.dropboxFilesService.uploadFile(files.Escritura_Terreno[0], 'Solicitudes-CambioMedidor', 'Juridicas', dto.Cedula_Juridica, razonSocial);
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
@@ -287,7 +295,7 @@ export class SolicitudesJuridicasService {
         // 3. Crear registro en tabla específica SolicitudCambioMedidorJuridica
         const solicitudCambioMedidor = this.solicitudCambioMedidorRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
-            Tipo_Entidad: 2, // Jurídica
+            Tipo_Entidad: 2,
             Correo: dto.Correo,
             Numero_Telefono: dto.Numero_Telefono,
             Id_Tipo_Solicitud: 3,
@@ -296,6 +304,8 @@ export class SolicitudesJuridicasService {
             Direccion_Exacta: dto.Direccion_Exacta,
             Motivo_Solicitud: dto.Motivo_Solicitud,
             Id_Medidor: dto.Id_Medidor,
+            Planos_Terreno: planoRes.url,
+            Escritura_Terreno: escrituraRes.url,
         });
         const solicitudFinal = await this.solicitudCambioMedidorRepository.save(solicitudCambioMedidor);
 
@@ -788,11 +798,12 @@ export class SolicitudesJuridicasService {
                 if (nuevoMedidor) {
                     const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: solicitudCambioMedidor.Cedula_Juridica } });
                     if (afiliado) {
-                        const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } }); // 2 = Instalado
+                        const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
                         nuevoMedidor.Afiliado = afiliado;
+                        nuevoMedidor.Planos_Terreno = solicitudCambioMedidor.Planos_Terreno;
+                        nuevoMedidor.Escritura_Terreno = solicitudCambioMedidor.Escritura_Terreno;
                         if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
                         await this.medidorRepository.save(nuevoMedidor);
-                        console.log(`Nuevo medidor ${nuevoMedidor.Numero_Medidor} asignado al afiliado ${afiliado.Cedula_Juridica} y marcado como 'Instalado'`);
                     } else {
                         console.warn(`Afiliado jurídico con cédula ${solicitudCambioMedidor.Cedula_Juridica} no encontrado para asignar nuevo medidor.`);
                     }

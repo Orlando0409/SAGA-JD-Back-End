@@ -78,10 +78,15 @@ export class SolicitudesJuridicasController {
     @Public()
     @Post('/create/cambio-medidor')
     @ApiOperation({ summary: 'Crear una nueva solicitud de cambio de medidor jurídica' })
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'Planos_Terreno', maxCount: 1 },
+        { name: 'Escritura_Terreno', maxCount: 1 },
+    ]))
     async createSolicitudCambioMedidor(
         @Body() solicitudCambioMedidor: CreateSolicitudCambioMedidorJuridicaDto,
+        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Escritura_Terreno: Express.Multer.File[] }
     ) {
-        return this.solicitudesJuridicasService.createSolicitudCambioMedidor(solicitudCambioMedidor);
+        return this.solicitudesJuridicasService.createSolicitudCambioMedidor(solicitudCambioMedidor, files);
     }
 
     @Public()
