@@ -10,8 +10,6 @@ import { AuditoriaService } from "../Auditoria/auditoria.service";
 import { Acta } from "./ActaEntities/Actas.Entity";
 import { ArchivoActa } from "./ActaEntities/ArchivoActa.Entity";
 
-
-
 @Injectable()
 export class ActasService {
     constructor(

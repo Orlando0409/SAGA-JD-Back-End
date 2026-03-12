@@ -5,6 +5,7 @@ import { TipoIdentificacion } from 'src/Common/Enums/TipoIdentificacion.enum';
 import { IsIdentificacionValida } from 'src/Validations/DTO Validators/Identificacion.validator';
 import { IsTelefonoValido } from 'src/Validations/DTO Validators/NumeroTelefono.validator';
 import { IsCedulaJuridicaValida } from 'src/Validations/DTO Validators/CedulaJuridica.validator';
+import { OpcionMedidor } from 'src/Common/Enums/OpcionMedidor.enum';
 
 // Función helper para capitalizar cada palabra
 const capitalizarCadaPalabra = (value: string): string => {
@@ -15,13 +16,6 @@ const capitalizarCadaPalabra = (value: string): string => {
     .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase())
     .join(' ');
 };
-
-//Proximamente lo guardare en la carpeta de los enums 
-export enum OpcionMedidor {
-  SinMedidor = 'sin_medidor',
-  Asignar = 'asignar',
-  Agregar = 'agregar',
-}
 
 export class CreateAfiliadoDto {
   @ApiProperty({ example: 'ejemplo@gmail.com' })

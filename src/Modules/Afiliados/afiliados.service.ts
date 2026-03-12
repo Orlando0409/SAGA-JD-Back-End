@@ -6,7 +6,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UpdateAfiliadoFisicoDto, UpdateAfiliadoJuridicoDto } from "./AfiliadoDTO's/UpdateAfiliado.dto";
 import { TipoAfiliado } from "./AfiliadoEntities/TipoAfiliado.Entity";
-import { CreateAfiliadoFisicoDto, CreateAfiliadoJuridicoDto, OpcionMedidor } from "./AfiliadoDTO's/CreateAfiliado.dto";
+import { CreateAfiliadoFisicoDto, CreateAfiliadoJuridicoDto } from "./AfiliadoDTO's/CreateAfiliado.dto";
 import { CreateAfiliacionJuridicaDto } from "src/Modules/Solicitudes/SolicitudDTO's/CreateSolicitudJuridica.dto";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
@@ -15,6 +15,7 @@ import { UsuariosService } from "../Usuarios/Services/usuarios.service";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { Medidor } from "../Inventario/InventarioEntities/Medidor.Entity";
 import { EstadoMedidor } from "../Inventario/InventarioEntities/EstadoMedidor.Entity";
+import { OpcionMedidor } from "src/Common/Enums/OpcionMedidor.enum";
 
 @Injectable()
 export class AfiliadosService {
@@ -61,7 +62,7 @@ export class AfiliadosService {
 
 
     //METODOS PUBLICOS PARA LOS MEDIDORES EN SOLICITUDES 
-    
+
     //FISICOS
     async getMedidoresbyIdentificacion(identificacion: string) {
         const afiliado = await this.afiliadoFisicoRepository.findOne({
@@ -70,7 +71,7 @@ export class AfiliadosService {
         });
 
         if (!afiliado) throw new BadRequestException(`Afiliado físico con identificación ${identificacion} no encontrado`);
-       
+
         return {
             Nombre: `${afiliado.Nombre} ${afiliado.Apellido1} ${afiliado.Apellido2}`.trim(),
             Identificación: afiliado.Identificacion,
@@ -79,12 +80,10 @@ export class AfiliadosService {
                 Numero_Medidor: m.Numero_Medidor,
                 Estado: m.Estado_Medidor?.Nombre_Estado_Medidor ?? 'Sin estado'
             })) ?? []
-                
         }
     }
 
-    //Juridicos 
-
+    //JURIDICOS
     async getMedidoresbyCedulaJuridica(cedulaJuridica: string) {
         const afiliado = await this.afiliadoJuridicoRepository.findOne({
             where: { Cedula_Juridica: cedulaJuridica },
@@ -92,7 +91,7 @@ export class AfiliadosService {
         });
 
         if (!afiliado) throw new BadRequestException(`Afiliado jurídico con cédula ${cedulaJuridica} no encontrado`);
-       
+
         return {
             Razon_Social: afiliado.Razon_Social,
             Cédula_Jurídica: afiliado.Cedula_Juridica,
@@ -101,10 +100,8 @@ export class AfiliadosService {
                 Numero_Medidor: m.Numero_Medidor,
                 Estado: m.Estado_Medidor?.Nombre_Estado_Medidor ?? 'Sin estado'
             })) ?? []
-                
         }
     }
-
 
 
 
@@ -339,24 +336,27 @@ export class AfiliadosService {
         const opcion = dto.Opcion_Medidor ?? OpcionMedidor.SinMedidor;
 
         let medidorExistente: Medidor | null = null;
+
         if (opcion === OpcionMedidor.Asignar) {
-            if (!dto.Id_Medidor) throw new BadRequestException('Debe proporcionar Id_Medidor cuando Opcion_Medidor es "asignar"');
+            if (!dto.Id_Medidor) throw new BadRequestException('Debe proporcionar un Id de Medidor cuando la opción es "asignar"');
             medidorExistente = await this.medidorRepository.findOne({ where: { Id_Medidor: dto.Id_Medidor }, relations: ['Estado_Medidor', 'Afiliado'] });
+
             if (!medidorExistente) throw new BadRequestException(`Medidor con ID ${dto.Id_Medidor} no encontrado`);
             if (medidorExistente.Estado_Medidor.Id_Estado_Medidor === 3) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} está averiado y no puede asignarse`);
             if (medidorExistente.Afiliado) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} ya está asignado a otro afiliado`);
         }
 
         if (opcion === OpcionMedidor.Agregar) {
-            if (!dto.Numero_Medidor) throw new BadRequestException('Debe proporcionar Numero_Medidor cuando Opcion_Medidor es "agregar"');
+            if (!dto.Numero_Medidor) throw new BadRequestException('Debe proporcionar un Número de Medidor cuando la opción es "agregar"');
+
             const medidorDuplicado = await this.medidorRepository.findOne({ where: { Numero_Medidor: dto.Numero_Medidor } });
             if (medidorDuplicado) throw new BadRequestException(`Ya existe un medidor con el número ${dto.Numero_Medidor}`);
         }
 
         // Validación temprana de archivos: obligatorios cuando se vincula un medidor
         if (opcion === OpcionMedidor.Asignar || opcion === OpcionMedidor.Agregar) {
-            if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio cuando se asigna o agrega un medidor');
-            if (!files?.Escritura_Terreno?.[0]) throw new BadRequestException('El archivo Escritura_Terreno es obligatorio cuando se asigna o agrega un medidor');
+            if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('Los planos de terreno son obligatorios cuando se asigna o agrega un medidor');
+            if (!files?.Escritura_Terreno?.[0]) throw new BadRequestException('La escritura del terreno es obligatoria cuando se asigna o agrega un medidor');
         }
 
         const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} `.trim();
@@ -377,6 +377,17 @@ export class AfiliadosService {
             Tipo_Afiliado: tipoAfiliado
         });
 
+        try {
+            await this.auditoriaService.logCreacion('Afiliado físico', idUsuario, afiliadoFisico.Id_Afiliado, {
+                'Tipo de Identificación': afiliadoFisico.Tipo_Identificacion,
+                'Identificación': afiliadoFisico.Identificacion,
+                'Nombre Completo': `${afiliadoFisico.Nombre} ${afiliadoFisico.Apellido1} ${afiliadoFisico.Apellido2}`.trim(),
+                'Correo': afiliadoFisico.Correo,
+            });
+        } catch (error) {
+            console.error('Error al registrar auditoría para creación de afiliado físico:', error);
+        }
+
         const afiliadoFisicoGuardado = await this.afiliadoFisicoRepository.save(afiliadoFisico);
 
         // ─── MEDIDOR CON ARCHIVOS ─────────────────────────────────────────
@@ -386,8 +397,15 @@ export class AfiliadosService {
             const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
             if (!estadoInstalado) throw new BadRequestException('Estado "Instalado" no encontrado');
 
+            const datosAnteriores = {
+                'Número de Medidor': medidorExistente.Numero_Medidor,
+                'Estado del Medidor': medidorExistente.Estado_Medidor?.Nombre_Estado_Medidor,
+                'Afiliado Asignado': medidorExistente.Afiliado
+            };
+
             const planoFile = files.Planos_Terreno[0];
             const escrituraFile = files.Escritura_Terreno[0];
+
             const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Medidores', 'Fisicos', dto.Identificacion, nombre);
             const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Fisicos', dto.Identificacion, nombre);
 
@@ -395,8 +413,23 @@ export class AfiliadosService {
             medidorExistente.Escritura_Terreno = escrituraRes.url;
             medidorExistente.Afiliado = afiliadoGuardado;
             medidorExistente.Estado_Medidor = estadoInstalado;
+
             medidorAsignado = await this.medidorRepository.save(medidorExistente);
-        } else if (opcion === OpcionMedidor.Agregar) {
+
+            try {
+                if (medidorAsignado) {
+                    await this.auditoriaService.logActualizacion('Medidores', idUsuario, medidorAsignado.Id_Medidor, datosAnteriores, {
+                        'Número de Medidor': medidorAsignado.Numero_Medidor,
+                        'Estado del Medidor': medidorAsignado.Estado_Medidor?.Nombre_Estado_Medidor,
+                        'Afiliado Asignado': `${afiliadoFisico.Nombre} ${afiliadoFisico.Apellido1} ${afiliadoFisico.Apellido2}`.trim(),
+                    });
+                }
+            } catch (error) {
+                console.error('Error al registrar auditoría para creación de medidor:', error);
+            }
+        }
+
+        else if (opcion === OpcionMedidor.Agregar) {
             const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
             if (!estadoInstalado) throw new BadRequestException('Estado "Instalado" no encontrado');
 
@@ -413,7 +446,20 @@ export class AfiliadosService {
                 Planos_Terreno: planoRes.url,
                 Escritura_Terreno: escrituraRes.url
             });
-            medidorAsignado = await this.medidorRepository.save(nuevoMedidor);
+
+                medidorAsignado = await this.medidorRepository.save(nuevoMedidor);
+
+                try {
+                if (medidorAsignado) {
+                    await this.auditoriaService.logCreacion('Medidores', idUsuario, medidorAsignado.Id_Medidor, {
+                        'Número de Medidor': medidorAsignado.Numero_Medidor,
+                        'Estado del Medidor': medidorAsignado.Estado_Medidor?.Nombre_Estado_Medidor,
+                        'Afiliado Asignado': `${afiliadoFisico.Nombre} ${afiliadoFisico.Apellido1} ${afiliadoFisico.Apellido2}`.trim(),
+                    });
+                }
+            } catch (error) {
+                console.error('Error al registrar auditoría para creación de medidor:', error);
+            }
         }
 
         return {
@@ -793,7 +839,7 @@ export class AfiliadosService {
             Razon_Social: afiliadoJuridico.Razon_Social,
         };
     }
-      async FormatearAfiliadoParaResponseSimple(afiliado: any) {
+    async FormatearAfiliadoParaResponseSimple(afiliado: any) {
         if (!afiliado) return null;
 
         const afiliadoFormateado = {
@@ -829,5 +875,5 @@ export class AfiliadosService {
         }
 
         return afiliadoFormateado;
-      }
+    }
 }

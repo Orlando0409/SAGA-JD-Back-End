@@ -159,7 +159,6 @@ export class MedidorService {
     ) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
-       
         if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para asignar un medidor a un afiliado');
         if (!files?.Escritura_Terreno?.[0]) throw new BadRequestException('El archivo Escritura_Terreno es obligatorio para asignar un medidor a un afiliado');
 
@@ -167,6 +166,7 @@ export class MedidorService {
             where: { Id_Medidor: dto.Id_Medidor },
             relations: ['Estado_Medidor', 'Afiliado']
         });
+
         if (!medidor) throw new BadRequestException(`Medidor con ID ${dto.Id_Medidor} no encontrado`);
         if (medidor.Estado_Medidor.Id_Estado_Medidor === 3) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} está averiado y no puede ser asignado`);
         if (medidor.Afiliado) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} ya está asignado al afiliado con ID ${medidor.Afiliado.Id_Afiliado}`);
@@ -183,7 +183,6 @@ export class MedidorService {
             Afiliado_Anterior: null
         };
 
-       
         const planoRes = await this.dropboxFilesService.uploadFile(
             files.Planos_Terreno[0], 'Medidores', 'Archivos', String(dto.Id_Medidor), String(dto.Id_Afiliado)
         );
@@ -199,9 +198,9 @@ export class MedidorService {
 
         try {
             await this.auditoriaService.logActualizacion('Medidores', idUsuario, dto.Id_Medidor, datosAnteriores, {
-                Numero_Medidor: medidor.Numero_Medidor,
-                Estado_Nuevo: 'Instalado',
-                Afiliado_Asignado: dto.Id_Afiliado
+                'Número de Medidor': medidor.Numero_Medidor,
+                'Estado del Medidor': 'Instalado',
+                'Afiliado Asignado': dto.Id_Afiliado
             });
         } catch (error) {
             console.error('Error al registrar auditoría de asignación de medidor a afiliado:', error);
@@ -247,8 +246,9 @@ export class MedidorService {
         // Registrar en auditoría
         try {
             await this.auditoriaService.logCreacion('Medidores', idUsuario, medidorGuardado.Id_Medidor, {
-                Numero_Medidor: medidorGuardado.Numero_Medidor,
-                Estado_Inicial: 'Disponible'
+                'Número de Medidor': medidorGuardado.Numero_Medidor,
+                'Estado del Medidor': 'Disponible',
+                'Afiliado Asignado': null
             });
         } catch (error) {
             console.error('Error al registrar auditoría de creación de medidor:', error);
