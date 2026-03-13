@@ -1,3 +1,4 @@
+import { Usuario } from './../../Usuarios/UsuarioEntities/Usuario.Entity';
 import { UpdateSolicitudAfiliacionFisicaDto, UpdateSolicitudAgregarMedidorFisicaDto, UpdateSolicitudAsociadoFisicaDto, UpdateSolicitudCambioMedidorFisicaDto, UpdateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/UpdateSolicitudFisica.dto";
 import { Solicitud, SolicitudAfiliacionFisica, SolicitudAgregarMedidorFisica, SolicitudAsociadoFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudFisica } from "../SolicitudEntities/Solicitud.Entity";
 import { CreateSolicitudAfiliacionFisicaDto, CreateSolicitudAgregarMedidorFisicaDto, CreateSolicitudAsociadoFisicaDto, CreateSolicitudCambioMedidorFisicaDto, CreateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/CreateSolicitudFisica.dto";
@@ -8,7 +9,6 @@ import { AfiliadosService } from "src/Modules/Afiliados/afiliados.service";
 import { EmailService } from "src/Modules/Emails/email.service";
 import { AfiliadoFisico } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { EstadoAfiliado } from "src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
-import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 import { AuditoriaService } from "src/Modules/Auditoria/auditoria.service";
 import { UsuariosService } from 'src/Modules/Usuarios/Services/usuarios.service';
 import { BadRequestException, Injectable } from "@nestjs/common";
@@ -1229,6 +1229,13 @@ export class SolicitudesFisicasService {
                         if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
                         await this.medidorRepository.save(nuevoMedidor);
                         console.log(`Nuevo medidor ${nuevoMedidor.Numero_Medidor} agregado al afiliado ${afiliado.Identificacion} y marcado como 'Instalado'`);
+                        
+                        // Asignar los planos y escrituras de la solicitud al medidor
+                        try {
+                            await this.asignarDocumentosDeSolicitudAMedidor(solicitudAgregarMedidor, nuevoMedidor);
+                        } catch (error) {
+                            console.error(`Error al asignar documentos al medidor ${nuevoMedidor.Id_Medidor}:`, error);
+                        }
                     } else {
                         console.warn(`Afiliado físico con identificación ${solicitudAgregarMedidor.Identificacion} no encontrado para asignar nuevo medidor.`);
                     }
@@ -1282,7 +1289,18 @@ export class SolicitudesFisicasService {
             Mensaje: `Estado de solicitud de agregar medidor cambiado a '${nuevoEstado.Nombre_Estado}' exitosamente`
         };
     }
+
+    private async asignarDocumentosDeSolicitudAMedidor(solicitud: SolicitudAgregarMedidorFisica, medidor: Medidor): Promise<void> {
+        // Asignar las URLs de planos y escrituras de la solicitud al medidor
+        if (solicitud.Planos_Terreno) {
+            medidor.Planos_Terreno = solicitud.Planos_Terreno;
+        }
+        if (solicitud.Escritura_Terreno) {
+            medidor.Escritura_Terreno = solicitud.Escritura_Terreno;
+        }
+
+        // Guardar el medidor actualizado
+        await this.medidorRepository.save(medidor);
+        console.log(`Documentos asignados al medidor ${medidor.Numero_Medidor}: Planos=${!!solicitud.Planos_Terreno}, Escrituras=${!!solicitud.Escritura_Terreno}`);
+    }
 }
-
-
-
