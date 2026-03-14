@@ -179,6 +179,7 @@ export class SeederService implements OnModuleInit {
         const estados = [
             { Id_Estado_Afiliado: 1, Nombre_Estado: 'Activo' },
             { Id_Estado_Afiliado: 2, Nombre_Estado: 'Inactivo' },
+            { Id_Estado_Afiliado: 3, Nombre_Estado: 'En Espera' },
         ];
 
         for (const estado of estados) {

@@ -33,7 +33,7 @@ import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor, Usuario, Proveedor, ProveedorFisico, ProveedorJuridico, EstadoProveedor, Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado, Solicitud]),
+    TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor, Usuario, Proveedor, EstadoProveedor, ProveedorFisico, ProveedorJuridico, Afiliado, EstadoAfiliado, AfiliadoFisico, AfiliadoJuridico, TipoAfiliado, Solicitud]),
     forwardRef(() => AfiliadosModule),
     forwardRef(() => UsuariosModule),
     forwardRef(() => RolesModule),

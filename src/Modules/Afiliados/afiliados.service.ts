@@ -397,6 +397,9 @@ export class AfiliadosService {
             const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
             if (!estadoInstalado) throw new BadRequestException('Estado "Instalado" no encontrado');
 
+            const estadoActivo = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 1 } });
+            if (!estadoActivo) throw new BadRequestException('Estado "Activo" no encontrado');
+
             const datosAnteriores = {
                 'Número de Medidor': medidorExistente.Numero_Medidor,
                 'Estado del Medidor': medidorExistente.Estado_Medidor?.Nombre_Estado_Medidor,
@@ -460,6 +463,14 @@ export class AfiliadosService {
             } catch (error) {
                 console.error('Error al registrar auditoría para creación de medidor:', error);
             }
+        }
+
+        else if (opcion === OpcionMedidor.SinMedidor) {
+            const estadoEnEspera = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 3 } });
+            if (!estadoEnEspera) throw new BadRequestException('Estado "En Espera" no encontrado');
+
+            afiliadoFisicoGuardado.Estado = estadoEnEspera;
+            await this.afiliadoFisicoRepository.save(afiliadoFisicoGuardado);
         }
 
         return {

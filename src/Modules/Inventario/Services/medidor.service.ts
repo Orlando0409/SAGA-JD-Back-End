@@ -14,6 +14,7 @@ import { UsuariosService } from "src/Modules/Usuarios/Services/usuarios.service"
 import { AfiliadosService } from "src/Modules/Afiliados/afiliados.service";
 import { Solicitud } from "src/Modules/Solicitudes/SolicitudEntities/Solicitud.Entity";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
+import { EstadoAfiliado } from "src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
 
 @Injectable()
 export class MedidorService {
@@ -26,6 +27,9 @@ export class MedidorService {
 
         @InjectRepository(Afiliado)
         private readonly afiliadoRepository: Repository<Afiliado>,
+
+        @InjectRepository(EstadoAfiliado)
+        private readonly estadoAfiliadoRepository: Repository<EstadoAfiliado>,
 
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
@@ -171,11 +175,43 @@ export class MedidorService {
         if (medidor.Estado_Medidor.Id_Estado_Medidor === 3) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} está averiado y no puede ser asignado`);
         if (medidor.Afiliado) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} ya está asignado al afiliado con ID ${medidor.Afiliado.Id_Afiliado}`);
 
-        const afiliado = await this.afiliadoRepository.findOne({ where: { Id_Afiliado: dto.Id_Afiliado } });
+        const afiliado = await this.afiliadoRepository.findOne({
+            where: { Id_Afiliado: dto.Id_Afiliado },
+            relations: ['Estado', 'Tipo_Afiliado']
+        });
         if (!afiliado) throw new BadRequestException(`Afiliado con ID ${dto.Id_Afiliado} no encontrado`);
 
         const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
         if (!estadoInstalado) throw new BadRequestException('Estado "Instalado" no encontrado en la base de datos');
+
+        const estadoActivo = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 1 } });
+        if (!estadoActivo) throw new BadRequestException('Estado "Activo" no encontrado en la base de datos');
+
+        const estadoEnEspera = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 3 } });
+        if (!estadoEnEspera) throw new BadRequestException('Estado "En espera" no encontrado en la base de datos');
+
+        // Cambiar estado del afiliado de "En Espera" a "Activo" cuando se le asigna un medidor
+        if (afiliado.Tipo_Entidad === TipoEntidad.Física) {
+            const afiliadoFisico = await this.afiliadoFisicoRepository.findOne({
+                where: { Id_Afiliado: dto.Id_Afiliado },
+                relations: ['Estado']
+            });
+            
+            if (afiliadoFisico && afiliadoFisico.Estado?.Id_Estado_Afiliado === 3) {
+                afiliadoFisico.Estado = estadoActivo;
+                await this.afiliadoFisicoRepository.save(afiliadoFisico);
+            }
+        } else if (afiliado.Tipo_Entidad === TipoEntidad.Jurídica) {
+            const afiliadoJuridico = await this.afiliadoJuridicoRepository.findOne({
+                where: { Id_Afiliado: dto.Id_Afiliado },
+                relations: ['Estado']
+            });
+            
+            if (afiliadoJuridico && afiliadoJuridico.Estado?.Id_Estado_Afiliado === 3) {
+                afiliadoJuridico.Estado = estadoActivo;
+                await this.afiliadoJuridicoRepository.save(afiliadoJuridico);
+            }
+        }
 
         const datosAnteriores = {
             Numero_Medidor: medidor.Numero_Medidor,

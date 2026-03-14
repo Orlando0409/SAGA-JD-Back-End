@@ -93,3 +93,5 @@ select * from faq;
 select * from auditoria;
 
 select * from manuales;
+
+select * from cargo_fijo_tarifas;
