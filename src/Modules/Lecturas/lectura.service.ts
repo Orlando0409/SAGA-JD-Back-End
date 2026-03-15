@@ -4,7 +4,7 @@ import { Lectura } from "./LecturaEntities/Lectura.Entity";
 import { Repository } from "typeorm";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { UsuariosService } from "../Usuarios/Services/usuarios.service";
-import { Afiliado } from "../Afiliados/AfiliadoEntities/Afiliado.Entity";
+import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from "../Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { CreateLecturaDTO } from "./LecturaDTO'S/CreateLectura.dto";
 import { EstadoMedidor } from "../Inventario/InventarioEntities/EstadoMedidor.Entity";
 import { Medidor } from "../Inventario/InventarioEntities/Medidor.Entity";
@@ -15,6 +15,7 @@ import { AfiliadosService } from "../Afiliados/afiliados.service";
 import { TipoTarifaLectura } from "./LecturaEntities/TipoTarifaLectura.Entity";
 import { TipoTarifaServiciosFijos } from "./LecturaEntities/TipoTarifaServiciosFijos.Entity";
 import { TipoTarifaVentaAgua } from "./LecturaEntities/TipoTarifaVentaAgua.Entity";
+import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
 import { Readable } from "stream";
 import * as csvParser from "csv-parser";
 
@@ -57,6 +58,45 @@ export class LecturaService {
         @Inject(forwardRef(() => AfiliadosService))
         private readonly afiliadosService: AfiliadosService,
     ) { }
+
+    private identificarAfiliado(afiliado: Afiliado): { tipo: string; id: number; identificacion: string; nombreCompleto: string; detalles: any } {
+        // Determinar el tipo de afiliado
+        const tipoAfiliado = afiliado.Tipo_Entidad === TipoEntidad.Física ? 'Físico' : 'Jurídico';
+
+        let identificacion = '';
+        let nombreCompleto = '';
+        let detalles: any = {};
+
+        // Verificar si es afiliado físico
+        if (afiliado.Tipo_Entidad === TipoEntidad.Física) {
+            const afiliadoFisico = afiliado as AfiliadoFisico;
+            identificacion = afiliadoFisico.Identificacion || 'N/A';
+            nombreCompleto = `${afiliadoFisico.Nombre} ${afiliadoFisico.Apellido1} ${afiliadoFisico.Apellido2 || ''}`.trim();
+            detalles = {
+                Tipo_Identificacion: afiliadoFisico.Tipo_Identificacion,
+                Identificacion: afiliadoFisico.Identificacion,
+                Nombre_Completo: nombreCompleto
+            };
+        }
+        // Verificar si es afiliado jurídico
+        else if (afiliado.Tipo_Entidad === TipoEntidad.Jurídica) {
+            const afiliadoJuridico = afiliado as AfiliadoJuridico;
+            identificacion = afiliadoJuridico.Cedula_Juridica || 'N/A';
+            nombreCompleto = afiliadoJuridico.Razon_Social || 'N/A';
+            detalles = {
+                Cedula_Juridica: afiliadoJuridico.Cedula_Juridica,
+                Razon_Social: afiliadoJuridico.Razon_Social
+            };
+        }
+
+        return {
+            tipo: tipoAfiliado,
+            id: afiliado.Id_Afiliado,
+            identificacion,
+            nombreCompleto,
+            detalles
+        };
+    }
 
     async getAllLecturas() {
         const lecturas = await this.lecturaRepository.createQueryBuilder('lectura')
@@ -277,11 +317,23 @@ export class LecturaService {
                                     continue;
                                 }
 
+                                // Validar que el medidor tenga un afiliado asociado
+                                if (!medidor.Afiliado) {
+                                    advertencias.push(`Fila ${lineNumber}: Medidor ${numeroMedidor} no tiene un afiliado asociado`);
+                                    continue;
+                                }
+
                                 // Validar estado del medidor
                                 if (medidor.Estado_Medidor?.Id_Estado_Medidor !== 2) {
                                     advertencias.push(`Fila ${lineNumber}: Medidor ${numeroMedidor} no está instalado`);
                                     continue;
                                 }
+
+                                // Identificar afiliado vinculado al medidor
+                                const afiliadoIdentificado = medidor.Afiliado;
+                                const infoAfiliado = this.identificarAfiliado(afiliadoIdentificado);
+
+                                console.log(`Fila ${lineNumber}: Afiliado ${infoAfiliado.tipo} identificado - ID: ${infoAfiliado.id}, Identificación: ${infoAfiliado.identificacion}, Nombre/Razón Social: ${infoAfiliado.nombreCompleto}`);
 
                                 // Buscar la última lectura del medidor para calcular consumo
                                 const lecturaAnterior = await this.lecturaRepository.createQueryBuilder('lectura')
@@ -329,7 +381,7 @@ export class LecturaService {
 
                                 // Obtener la tarifa (usar la primera disponible o una específica del CSV)
                                 let tipoTarifa: TipoTarifaLectura | null = null;
-                                
+
                                 if (row.Id_Tipo_Tarifa_Lectura) {
                                     const idTarifa = Number(row.Id_Tipo_Tarifa_Lectura);
                                     if (!isNaN(idTarifa)) {
@@ -344,7 +396,7 @@ export class LecturaService {
                                     tipoTarifa = await this.tipoTarifaLecturaRepository.findOne({
                                         order: { Id_Tipo_Tarifa_Lectura: 'ASC' }
                                     });
-                                    
+
                                     if (!tipoTarifa) {
                                         errores.push(`Fila ${lineNumber}: No hay tarifas disponibles en el sistema`);
                                         continue;
@@ -374,6 +426,11 @@ export class LecturaService {
                                         Consumo_Calculado_M3: nuevaLectura.Consumo_Calculado_M3,
                                         Fecha_Lectura: nuevaLectura.Fecha_Lectura,
                                         Numero_Medidor: medidor.Numero_Medidor,
+                                        Id_Afiliado: infoAfiliado.id,
+                                        Tipo_Afiliado: infoAfiliado.tipo,
+                                        Identificacion_Afiliado: infoAfiliado.identificacion,
+                                        Nombre_Afiliado: infoAfiliado.nombreCompleto,
+                                        Detalles_Afiliado: infoAfiliado.detalles,
                                         Origen: 'Importación CSV'
                                     });
                                 } catch (error) {
@@ -421,7 +478,17 @@ export class LecturaService {
         });
 
         if (!medidor) throw new BadRequestException('El medidor especificado no existe.');
+
+        // Validar que el medidor tenga un afiliado asociado
+        if (!medidor.Afiliado) throw new BadRequestException(`El medidor ${dto.Numero_Medidor} no tiene un afiliado asociado. Debe asignar un afiliado al medidor antes de registrar lecturas.`);
+
         if (medidor.Estado_Medidor.Id_Estado_Medidor !== 2) throw new BadRequestException('El medidor no está en un estado válido para registrar lecturas.');
+
+        // Identificar afiliado vinculado al medidor
+        const afiliadoIdentificado = medidor.Afiliado;
+        const infoAfiliado = this.identificarAfiliado(afiliadoIdentificado);
+
+        console.log(`Lectura manual - Afiliado ${infoAfiliado.tipo} identificado: ID: ${infoAfiliado.id}, Identificación: ${infoAfiliado.identificacion}, Nombre/Razón Social: ${infoAfiliado.nombreCompleto}, Medidor: ${dto.Numero_Medidor}`);
 
         const tipoTarifa = await this.tipoTarifaLecturaRepository.findOne({ where: { Id_Tipo_Tarifa_Lectura: dto.Id_Tipo_Tarifa } });
         if (!tipoTarifa) throw new BadRequestException('La tarifa especificada no existe');
@@ -464,7 +531,12 @@ export class LecturaService {
                 Lectura_Actual: lecturaGuardada.Valor_Lectura_Actual,
                 Consumo_Calculado_M3: lecturaGuardada.Consumo_Calculado_M3,
                 Fecha_Lectura: lecturaGuardada.Fecha_Lectura,
-                Numero_Medidor: medidor.Numero_Medidor
+                Numero_Medidor: medidor.Numero_Medidor,
+                Id_Afiliado: infoAfiliado.id,
+                Tipo_Afiliado: infoAfiliado.tipo,
+                Identificacion_Afiliado: infoAfiliado.identificacion,
+                Nombre_Afiliado: infoAfiliado.nombreCompleto,
+                Detalles_Afiliado: infoAfiliado.detalles
             });
         } catch (error) {
             console.error('Error al registrar auditoría de creación de lectura:', error);
