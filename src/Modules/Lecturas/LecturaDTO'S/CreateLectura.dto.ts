@@ -7,7 +7,7 @@ export class CreateLecturaDTO {
     @IsDefined({ message: 'El tipo de tarifa no puede estar vacío' })
     Id_Tipo_Tarifa: number;
 
-    @ApiProperty({ example: 12345 })
+    @ApiProperty({ example: 123456 })
     @IsInt({ message: 'El número de medidor debe ser un número entero' })
     @Min(1, { message: 'El número de medidor debe ser mayor o igual a 1' })
     @Max(9999999, { message: 'El número de medidor debe ser menor o igual a 9999999' })

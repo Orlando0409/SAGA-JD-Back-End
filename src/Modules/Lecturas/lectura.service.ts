@@ -130,7 +130,7 @@ export class LecturaService {
         return await this.tipoTarifaLecturaRepository.find();
     }
 
-    async getLecturasByAfiliado(idAfiliado: number) {
+    async getLecturasByUsuario(idUsuario: number) {
         const lecturas = await this.lecturaRepository.createQueryBuilder('lectura')
             .leftJoinAndSelect('lectura.Medidor', 'medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estadoMedidor')
@@ -139,7 +139,7 @@ export class LecturaService {
             .leftJoinAndSelect('afiliado.Estado', 'estadoAfiliado')
             .leftJoinAndSelect('lectura.Usuario', 'usuario')
             .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
-            .where('afiliado.Id_Afiliado = :idAfiliado', { idAfiliado })
+            .where('usuario.Id_Usuario = :idUsuario', { idUsuario })
             .getMany();
 
         return Promise.all(lecturas.map(async lectura => ({
@@ -159,7 +159,7 @@ export class LecturaService {
         })));
     }
 
-    async getLecturasByUsuario(idUsuario: number) {
+    async getLecturasByAfiliado(idAfiliado: number) {
         const lecturas = await this.lecturaRepository.createQueryBuilder('lectura')
             .leftJoinAndSelect('lectura.Medidor', 'medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estadoMedidor')
@@ -168,7 +168,7 @@ export class LecturaService {
             .leftJoinAndSelect('afiliado.Estado', 'estadoAfiliado')
             .leftJoinAndSelect('lectura.Usuario', 'usuario')
             .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
-            .where('usuario.Id_Usuario = :idUsuario', { idUsuario })
+            .where('afiliado.Id_Afiliado = :idAfiliado', { idAfiliado })
             .getMany();
 
         return Promise.all(lecturas.map(async lectura => ({
@@ -239,6 +239,37 @@ export class LecturaService {
             .leftJoinAndSelect('lectura.Usuario', 'usuario')
             .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
             .where('lectura.Fecha_Lectura BETWEEN :fechaInicio AND :fechaFin', { fechaInicio: fechaInicioDate, fechaFin: fechaFinDate })
+            .getMany();
+
+        return Promise.all(lecturas.map(async lectura => ({
+            Id_Lectura: lectura.Id_Lectura,
+            Tipo_Tarifa: lectura.Tipo_Tarifa ? {
+                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
+                Cargo_Fijo_Por_Mes: lectura.Tipo_Tarifa.Cargo_Fijo_Por_Mes
+            } : null,
+            Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
+            Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
+            Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
+            Fecha_Lectura: lectura.Fecha_Lectura,
+            Medidor: this.medidorService.formatearMedidorResponse(lectura.Medidor),
+            Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(lectura.Medidor?.Afiliado),
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(lectura.Usuario)
+        })));
+    }
+
+    async getLecturasByMesAnio(mes: number, anio: number) {
+        if (isNaN(mes) || isNaN(anio) || mes < 1 || mes > 12) throw new BadRequestException('Mes o año inválidos');
+
+        const lecturas = await this.lecturaRepository.createQueryBuilder('lectura')
+            .leftJoinAndSelect('lectura.Medidor', 'medidor')
+            .leftJoinAndSelect('medidor.Estado_Medidor', 'estadoMedidor')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+            .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
+            .leftJoinAndSelect('afiliado.Estado', 'estadoAfiliado')
+            .leftJoinAndSelect('lectura.Usuario', 'usuario')
+            .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
+            .where('MONTH(lectura.Fecha_Lectura) = :mes AND YEAR(lectura.Fecha_Lectura) = :anio', { mes, anio })
             .getMany();
 
         return Promise.all(lecturas.map(async lectura => ({
