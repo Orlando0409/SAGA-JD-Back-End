@@ -518,7 +518,6 @@ export class SeederService implements OnModuleInit {
                 await this.tipoTarifaServiciosFijosRepository.save(nuevo);
             }
         }
-        console.log('✅ Servicios Fijos creados (32 registros según rangos de afiliados)');
     }
 
     private async createDefaultTiposTarifaVentaAgua() {

@@ -1,3 +1,4 @@
+import { totalLecturasService } from './totalLecturas.service';
 import { Body, Controller, Get, Param, Post, Put, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { LecturaService } from "./lectura.service";
 import { CreateLecturaDTO } from "./LecturaDTO'S/CreateLectura.dto";
@@ -7,11 +8,13 @@ import { GetUser } from "../auth/Decorator/GetUser.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiProperty } from "@nestjs/swagger";
+import { getTotalPorM3DTO } from "./LecturaDTO'S/getTotalPorM3.dto";
 
 @Controller('lecturas')
 @UseGuards(JwtAuthGuard)
 export class LecturaController {
     constructor(
+        private readonly totalLecturasService: totalLecturasService,
         private readonly lecturaService: LecturaService
     ) { }
 
@@ -81,5 +84,16 @@ export class LecturaController {
         @GetUser() usuario: Usuario
     ) {
         return this.lecturaService.updateLectura(dto, idLectura, usuario.Id_Usuario);
+    }
+
+
+
+    @Post('por-pagar/:idTipoTarifa')
+    @ApiProperty({ description: 'Calcula el total a pagar por una lectura específica.' })
+    calcularTotalAPagar(
+        @Body() dto: getTotalPorM3DTO,
+        @Param('idTipoTarifa') idTipoTarifa: number
+    ) {
+        return this.totalLecturasService.CalcularTotalAPagar(dto, idTipoTarifa);
     }
 }
