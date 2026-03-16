@@ -114,7 +114,6 @@ export class LecturaService {
             Tipo_Tarifa: lectura.Tipo_Tarifa ? {
                 Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
                 Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
-                Cargo_Fijo_Por_Mes: lectura.Tipo_Tarifa.Cargo_Fijo_Por_Mes
             } : null,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
@@ -147,7 +146,6 @@ export class LecturaService {
             Tipo_Tarifa: lectura.Tipo_Tarifa ? {
                 Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
                 Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
-                Cargo_Fijo_Por_Mes: lectura.Tipo_Tarifa.Cargo_Fijo_Por_Mes
             } : null,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
@@ -176,7 +174,6 @@ export class LecturaService {
             Tipo_Tarifa: lectura.Tipo_Tarifa ? {
                 Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
                 Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
-                Cargo_Fijo_Por_Mes: lectura.Tipo_Tarifa.Cargo_Fijo_Por_Mes
             } : null,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
@@ -205,7 +202,6 @@ export class LecturaService {
             Tipo_Tarifa: lectura.Tipo_Tarifa ? {
                 Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
                 Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
-                Cargo_Fijo_Por_Mes: lectura.Tipo_Tarifa.Cargo_Fijo_Por_Mes
             } : null,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
@@ -246,7 +242,6 @@ export class LecturaService {
             Tipo_Tarifa: lectura.Tipo_Tarifa ? {
                 Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
                 Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
-                Cargo_Fijo_Por_Mes: lectura.Tipo_Tarifa.Cargo_Fijo_Por_Mes
             } : null,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
@@ -277,7 +272,6 @@ export class LecturaService {
             Tipo_Tarifa: lectura.Tipo_Tarifa ? {
                 Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
                 Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
-                Cargo_Fijo_Por_Mes: lectura.Tipo_Tarifa.Cargo_Fijo_Por_Mes
             } : null,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
@@ -578,7 +572,6 @@ export class LecturaService {
             Tipo_Tarifa: tipoTarifa ? {
                 Id_Tipo_Tarifa_Lectura: tipoTarifa.Id_Tipo_Tarifa_Lectura,
                 Nombre_Tipo_Tarifa: tipoTarifa.Nombre_Tipo_Tarifa,
-                Cargo_Fijo_Por_Mes: tipoTarifa.Cargo_Fijo_Por_Mes
             } : null,
             Valor_Lectura_Anterior: lecturaGuardada.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lecturaGuardada.Valor_Lectura_Actual,
@@ -646,7 +639,6 @@ export class LecturaService {
             Tipo_Tarifa: lecturaCompleta.Tipo_Tarifa ? {
                 Id_Tipo_Tarifa_Lectura: lecturaCompleta.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
                 Nombre_Tipo_Tarifa: lecturaCompleta.Tipo_Tarifa.Nombre_Tipo_Tarifa,
-                Cargo_Fijo_Por_Mes: lecturaCompleta.Tipo_Tarifa.Cargo_Fijo_Por_Mes
             } : null,
             Valor_Lectura_Anterior: lecturaCompleta.Valor_Lectura_Anterior,
             Valor_Lectura_Actual: lecturaCompleta.Valor_Lectura_Actual,

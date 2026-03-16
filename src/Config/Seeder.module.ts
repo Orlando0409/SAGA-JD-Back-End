@@ -23,9 +23,11 @@ import { RangoConsumo } from 'src/Modules/Lecturas/LecturaEntities/RangoConsumo.
 import { EstadoReporte } from 'src/Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
 import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
 import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
+import { TipoTarifaCargoFijo } from 'src/Modules/Lecturas/LecturaEntities/TipoTarifaCargoFijo.Entity';
+import { CargoFijoTarifas } from 'src/Modules/Lecturas/LecturaEntities/CargoFijoTarifas.Entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Usuario, UsuarioRol, Permiso, EstadoProveedor, EstadoProyecto, EstadoSolicitud, EstadoAfiliado, TipoAfiliado, EstadoMaterial, Categoria, EstadoCategoria, EstadoUnidadMedicion, UnidadMedicion, EstadoReporte, EstadoSugerencia, EstadoQueja, EstadoMedidor, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, RangoAfiliados, RangoConsumo])],
+    imports: [TypeOrmModule.forFeature([Usuario, UsuarioRol, Permiso, EstadoProveedor, EstadoProyecto, EstadoSolicitud, EstadoAfiliado, TipoAfiliado, EstadoMaterial, Categoria, EstadoCategoria, EstadoUnidadMedicion, UnidadMedicion, EstadoReporte, EstadoSugerencia, EstadoQueja, EstadoMedidor, TipoTarifaLectura, TipoTarifaCargoFijo, CargoFijoTarifas, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, RangoAfiliados, RangoConsumo])],
     providers: [SeederService],
     exports: [SeederService]
 })

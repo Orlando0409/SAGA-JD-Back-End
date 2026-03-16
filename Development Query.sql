@@ -94,7 +94,7 @@ select * from auditoria;
 
 select * from manuales;
 
-select * from cargo_fijo_tarifas;
+select * from tipo_tarifa_lectura;
 
 SELECT * FROM rango_afiliados;
 

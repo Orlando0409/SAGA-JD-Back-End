@@ -69,6 +69,8 @@ import { RangoConsumo } from './Modules/Lecturas/LecturaEntities/RangoConsumo.En
 import { EstadoReporte } from './Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
 import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
 import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
+import { TipoTarifaCargoFijo } from './Modules/Lecturas/LecturaEntities/TipoTarifaCargoFijo.Entity';
+import { CargoFijoTarifas } from './Modules/Lecturas/LecturaEntities/CargoFijoTarifas.Entity';
 
 @Module({
   imports: [
@@ -106,7 +108,7 @@ import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
           FAQEntity,
           Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
           Auditoria,
-          Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua,
+          Lectura, TipoTarifaLectura, TipoTarifaCargoFijo, CargoFijoTarifas, TipoTarifaServiciosFijos, TipoTarifaVentaAgua,
           ImagenEntity,
           ManualEntity, RangoAfiliados, RangoConsumo
         ],

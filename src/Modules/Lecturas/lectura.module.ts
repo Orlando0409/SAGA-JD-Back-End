@@ -19,10 +19,11 @@ import { TipoTarifaServiciosFijos } from "./LecturaEntities/TipoTarifaServiciosF
 import { RangoAfiliados } from "./LecturaEntities/RangoAfiliados.Entity";
 import { RangoConsumo } from "./LecturaEntities/RangoConsumo.Entity";
 import { CargoFijoTarifas } from "./LecturaEntities/CargoFijoTarifas.Entity";
+import { TipoTarifaCargoFijo } from "./LecturaEntities/TipoTarifaCargoFijo.Entity";
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, CargoFijoTarifas, RangoAfiliados, RangoConsumo, Usuario, Medidor, EstadoMedidor, Afiliado, EstadoAfiliado]), 
+        TypeOrmModule.forFeature([Lectura, TipoTarifaLectura, TipoTarifaCargoFijo, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, CargoFijoTarifas, RangoAfiliados, RangoConsumo, Usuario, Medidor, EstadoMedidor, Afiliado, EstadoAfiliado]), 
         forwardRef(() => UsuariosModule),
         forwardRef(() => AuditoriaModule),
         forwardRef(() => InventarioModule),

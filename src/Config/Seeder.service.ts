@@ -24,6 +24,8 @@ import { RangoConsumo } from 'src/Modules/Lecturas/LecturaEntities/RangoConsumo.
 import { EstadoReporte } from 'src/Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
 import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
 import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
+import { TipoTarifaCargoFijo } from 'src/Modules/Lecturas/LecturaEntities/TipoTarifaCargoFijo.Entity';
+import { CargoFijoTarifas } from 'src/Modules/Lecturas/LecturaEntities/CargoFijoTarifas.Entity';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -85,6 +87,12 @@ export class SeederService implements OnModuleInit {
         @InjectRepository(TipoTarifaServiciosFijos)
         private readonly tipoTarifaServiciosFijosRepository: Repository<TipoTarifaServiciosFijos>,
 
+        @InjectRepository(CargoFijoTarifas)
+        private readonly cargoFijoTarifasRepository: Repository<CargoFijoTarifas>,
+
+        @InjectRepository(TipoTarifaCargoFijo)
+        private readonly tipoTarifaCargoFijoRepository: Repository<TipoTarifaCargoFijo>,
+
         @InjectRepository(TipoTarifaVentaAgua)
         private readonly tipoTarifaVentaAguaRepository: Repository<TipoTarifaVentaAgua>,
 
@@ -113,9 +121,11 @@ export class SeederService implements OnModuleInit {
             await this.createDefaultUnidadesMedicion();
             await this.createDefaultEstadosMedidor();
             await this.createDefaultTiposTarifaLectura();
+            await this.createDefaultCargosFijosTarifas();
+            await this.createRangosAfiliados();
+            await this.createDefaultTipoTarifaCargoFijo();
             await this.createDefaultTiposTarifaServiciosFijos();
             await this.createDefaultTiposTarifaVentaAgua();
-            await this.createRangosAfiliados();
             await this.createRangosConsumo();
         } catch (err) {
             console.error('Error ejecutando Seeder.onModuleInit:', err);
@@ -429,13 +439,98 @@ export class SeederService implements OnModuleInit {
         }
     }
 
+    private async createDefaultCargosFijosTarifas() {
+        const cargos = [
+            { Id_Cargo_Fijo_Tarifa: 1, Cargo_Fijo_Por_Mes: 3100 },
+            { Id_Cargo_Fijo_Tarifa: 2, Cargo_Fijo_Por_Mes: 3100 },
+            { Id_Cargo_Fijo_Tarifa: 3, Cargo_Fijo_Por_Mes: 2800 },
+            { Id_Cargo_Fijo_Tarifa: 4, Cargo_Fijo_Por_Mes: 2800 },
+        ];
+
+        for (const cargo of cargos) {
+            const existe = await this.cargoFijoTarifasRepository.findOne({
+                where: { Id_Cargo_Fijo_Tarifa: cargo.Id_Cargo_Fijo_Tarifa }
+            });
+            if (!existe) {
+                const nuevo = this.cargoFijoTarifasRepository.create(cargo);
+                await this.cargoFijoTarifasRepository.save(nuevo);
+            }
+        }
+    }
+
+    private async createDefaultTipoTarifaCargoFijo() {
+        const tipos = [
+            { Id_Tipo_Tarifa_Lectura: 1, Id_Cargo_Fijo_Tarifa: 1, Id_Rango_Afiliados: 1 },
+            { Id_Tipo_Tarifa_Lectura: 1, Id_Cargo_Fijo_Tarifa: 2, Id_Rango_Afiliados: 2 },
+            { Id_Tipo_Tarifa_Lectura: 1, Id_Cargo_Fijo_Tarifa: 3, Id_Rango_Afiliados: 3 },
+            { Id_Tipo_Tarifa_Lectura: 1, Id_Cargo_Fijo_Tarifa: 4, Id_Rango_Afiliados: 4 },
+
+            { Id_Tipo_Tarifa_Lectura: 2, Id_Cargo_Fijo_Tarifa: 1, Id_Rango_Afiliados: 5 },
+            { Id_Tipo_Tarifa_Lectura: 2, Id_Cargo_Fijo_Tarifa: 2, Id_Rango_Afiliados: 6 },
+            { Id_Tipo_Tarifa_Lectura: 2, Id_Cargo_Fijo_Tarifa: 3, Id_Rango_Afiliados: 7 },
+            { Id_Tipo_Tarifa_Lectura: 2, Id_Cargo_Fijo_Tarifa: 4, Id_Rango_Afiliados: 8 },
+
+            { Id_Tipo_Tarifa_Lectura: 3, Id_Cargo_Fijo_Tarifa: 1, Id_Rango_Afiliados: 9 },
+            { Id_Tipo_Tarifa_Lectura: 3, Id_Cargo_Fijo_Tarifa: 2, Id_Rango_Afiliados: 10 },
+            { Id_Tipo_Tarifa_Lectura: 3, Id_Cargo_Fijo_Tarifa: 3, Id_Rango_Afiliados: 11 },
+            { Id_Tipo_Tarifa_Lectura: 3, Id_Cargo_Fijo_Tarifa: 4, Id_Rango_Afiliados: 12 },
+
+            { Id_Tipo_Tarifa_Lectura: 4, Id_Cargo_Fijo_Tarifa: 1, Id_Rango_Afiliados: 13 },
+            { Id_Tipo_Tarifa_Lectura: 4, Id_Cargo_Fijo_Tarifa: 2, Id_Rango_Afiliados: 14 },
+            { Id_Tipo_Tarifa_Lectura: 4, Id_Cargo_Fijo_Tarifa: 3, Id_Rango_Afiliados: 15 },
+            { Id_Tipo_Tarifa_Lectura: 4, Id_Cargo_Fijo_Tarifa: 4, Id_Rango_Afiliados: 16 },
+
+            { Id_Tipo_Tarifa_Lectura: 5, Id_Cargo_Fijo_Tarifa: 1, Id_Rango_Afiliados: 17 },
+            { Id_Tipo_Tarifa_Lectura: 5, Id_Cargo_Fijo_Tarifa: 2, Id_Rango_Afiliados: 18 },
+            { Id_Tipo_Tarifa_Lectura: 5, Id_Cargo_Fijo_Tarifa: 3, Id_Rango_Afiliados: 19 },
+            { Id_Tipo_Tarifa_Lectura: 5, Id_Cargo_Fijo_Tarifa: 4, Id_Rango_Afiliados: 20 },
+
+            { Id_Tipo_Tarifa_Lectura: 6, Id_Cargo_Fijo_Tarifa: 1, Id_Rango_Afiliados: 21 },
+            { Id_Tipo_Tarifa_Lectura: 6, Id_Cargo_Fijo_Tarifa: 2, Id_Rango_Afiliados: 22 },
+            { Id_Tipo_Tarifa_Lectura: 6, Id_Cargo_Fijo_Tarifa: 3, Id_Rango_Afiliados: 23 },
+            { Id_Tipo_Tarifa_Lectura: 6, Id_Cargo_Fijo_Tarifa: 4, Id_Rango_Afiliados: 24 },
+
+            { Id_Tipo_Tarifa_Lectura: 7, Id_Cargo_Fijo_Tarifa: 1, Id_Rango_Afiliados: 25 },
+            { Id_Tipo_Tarifa_Lectura: 7, Id_Cargo_Fijo_Tarifa: 2, Id_Rango_Afiliados: 26 },
+            { Id_Tipo_Tarifa_Lectura: 7, Id_Cargo_Fijo_Tarifa: 3, Id_Rango_Afiliados: 27 },
+            { Id_Tipo_Tarifa_Lectura: 7, Id_Cargo_Fijo_Tarifa: 4, Id_Rango_Afiliados: 28 },
+
+            { Id_Tipo_Tarifa_Lectura: 8, Id_Cargo_Fijo_Tarifa: 1, Id_Rango_Afiliados: 29 },
+            { Id_Tipo_Tarifa_Lectura: 8, Id_Cargo_Fijo_Tarifa: 2, Id_Rango_Afiliados: 30 },
+            { Id_Tipo_Tarifa_Lectura: 8, Id_Cargo_Fijo_Tarifa: 3, Id_Rango_Afiliados: 31 },
+            { Id_Tipo_Tarifa_Lectura: 8, Id_Cargo_Fijo_Tarifa: 4, Id_Rango_Afiliados: 32 },
+        ];
+
+        for (const tipo of tipos) {
+            const existe = await this.tipoTarifaCargoFijoRepository.findOne({
+                where: {
+                    Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: tipo.Id_Tipo_Tarifa_Lectura },
+                    Cargo_Fijo: { Id_Cargo_Fijo_Tarifa: tipo.Id_Cargo_Fijo_Tarifa },
+                    Rango_Afiliados: { Id_Rango_Afiliados: tipo.Id_Rango_Afiliados },
+                }
+            });
+            if (!existe) {
+                const nuevo = this.tipoTarifaCargoFijoRepository.create({
+                    Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: tipo.Id_Tipo_Tarifa_Lectura },
+                    Cargo_Fijo: { Id_Cargo_Fijo_Tarifa: tipo.Id_Cargo_Fijo_Tarifa },
+                    Rango_Afiliados: { Id_Rango_Afiliados: tipo.Id_Rango_Afiliados },
+                });
+                await this.tipoTarifaCargoFijoRepository.save(nuevo);
+            }
+        }
+    }
+
     // VALORES FIJOS PARA TARIFAS DEL 10/26/2025
     private async createDefaultTiposTarifaLectura() {
         const tipos = [
-            { Id_Tipo_Tarifa_Lectura: 1, Nombre_Tipo_Tarifa: '1-100', Cargo_Fijo_Por_Mes: 3100 },
-            { Id_Tipo_Tarifa_Lectura: 2, Nombre_Tipo_Tarifa: '101-300', Cargo_Fijo_Por_Mes: 3100 },
-            { Id_Tipo_Tarifa_Lectura: 3, Nombre_Tipo_Tarifa: '301-1000', Cargo_Fijo_Por_Mes: 2800 },
-            { Id_Tipo_Tarifa_Lectura: 4, Nombre_Tipo_Tarifa: '+1000', Cargo_Fijo_Por_Mes: 2800 },
+            { Id_Tipo_Tarifa_Lectura: 1, Nombre_Tipo_Tarifa: 'Residencial' },
+            { Id_Tipo_Tarifa_Lectura: 2, Nombre_Tipo_Tarifa: 'Comercio y Servicios' },
+            { Id_Tipo_Tarifa_Lectura: 3, Nombre_Tipo_Tarifa: 'Industrial' },
+            { Id_Tipo_Tarifa_Lectura: 4, Nombre_Tipo_Tarifa: 'Preferencial' },
+            { Id_Tipo_Tarifa_Lectura: 5, Nombre_Tipo_Tarifa: 'Grandes Consumidores' },
+            { Id_Tipo_Tarifa_Lectura: 6, Nombre_Tipo_Tarifa: 'Residencial Pobreza Basica' },
+            { Id_Tipo_Tarifa_Lectura: 7, Nombre_Tipo_Tarifa: 'Residencial Pobreza Extrema' },
+            { Id_Tipo_Tarifa_Lectura: 8, Nombre_Tipo_Tarifa: 'Grandes Consumidores Residenciales Bien Social' },
         ];
 
         for (const tipo of tipos) {
@@ -456,18 +551,6 @@ export class SeederService implements OnModuleInit {
             { Id_Tipo_Tarifa: 1, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 6228 },
             { Id_Tipo_Tarifa: 1, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 5132 },
             { Id_Tipo_Tarifa: 1, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 3772 },
-
-            // RESIDENCIAL POBREZA BÁSICA (Tarifa 6)
-            { Id_Tipo_Tarifa: 6, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 6185 },
-            { Id_Tipo_Tarifa: 6, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 5112 },
-            { Id_Tipo_Tarifa: 6, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 4212 },
-            { Id_Tipo_Tarifa: 6, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 3096 },
-
-            // RESIDENCIAL POBREZA EXTREMA (Tarifa 7)
-            { Id_Tipo_Tarifa: 7, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 4834 },
-            { Id_Tipo_Tarifa: 7, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 3995 },
-            { Id_Tipo_Tarifa: 7, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 3292 },
-            { Id_Tipo_Tarifa: 7, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 2420 },
 
             // COMERCIO Y SERVICIOS (Tarifa 2)
             { Id_Tipo_Tarifa: 2, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 9110 },
@@ -492,6 +575,18 @@ export class SeederService implements OnModuleInit {
             { Id_Tipo_Tarifa: 5, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 251052 },
             { Id_Tipo_Tarifa: 5, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 203833 },
             { Id_Tipo_Tarifa: 5, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 151001 },
+
+            // RESIDENCIAL POBREZA BÁSICA (Tarifa 6)
+            { Id_Tipo_Tarifa: 6, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 6185 },
+            { Id_Tipo_Tarifa: 6, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 5112 },
+            { Id_Tipo_Tarifa: 6, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 4212 },
+            { Id_Tipo_Tarifa: 6, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 3096 },
+
+            // RESIDENCIAL POBREZA EXTREMA (Tarifa 7)
+            { Id_Tipo_Tarifa: 7, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 4834 },
+            { Id_Tipo_Tarifa: 7, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 3995 },
+            { Id_Tipo_Tarifa: 7, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 3292 },
+            { Id_Tipo_Tarifa: 7, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 2420 },
 
             // GC BIEN SOCIAL (Tarifa 8)
             { Id_Tipo_Tarifa: 8, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 305518 },
