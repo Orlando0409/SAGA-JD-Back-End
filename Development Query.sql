@@ -101,3 +101,5 @@ SELECT * FROM rango_afiliados;
 SELECT * FROM rango_consumo;
 
 SELECT * FROM cargo_fijo_tarifas;
+
+SELECT * FROM tipo_tarifa_cargo_fijo;
