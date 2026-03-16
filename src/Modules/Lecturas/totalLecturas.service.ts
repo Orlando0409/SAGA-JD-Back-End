@@ -48,31 +48,33 @@ export class totalLecturasService {
         });
     }
 
-    // Metodo para obtener los rangos de afiliados (minimo, maximo y el ID)
-    async getRangoAfiliados() {
-        const Rangos = await this.rangoAfiliadosRepository.createQueryBuilder('rangoAfiliados')
-            .getMany();
+    // Metodo para obtener los rangos de afiliados filtrado por tarifa (minimo, maximo, costo por M3 y el ID)
+    async getRangoAfiliados(idTipoTarifa: number) {
+        const Rangos = await this.rangoAfiliadosRepository.find({
+            where: { Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: idTipoTarifa } },
+            relations: ['Tipo_Tarifa']
+        });
 
-        return Promise.all(Rangos.map(async (rango) => {
-            return {
-                Id_Rango_Afiliados: rango.Id_Rango_Afiliados,
-                Minimo_Afiliados: rango.Minimo_Afiliados,
-                Maximo_Afiliados: rango.Maximo_Afiliados
-            };
+        return Rangos.map(rango => ({
+            Id_Rango_Afiliados: rango.Id_Rango_Afiliados,
+            Minimo_Afiliados: rango.Minimo_Afiliados,
+            Maximo_Afiliados: rango.Maximo_Afiliados,
+            Costo_Por_M3: rango.Costo_Por_M3
         }));
     }
 
-    async getRangoConsumo() {
-        const Rangos = await this.rangoConsumoRepository.createQueryBuilder('rangoConsumo')
-            .getMany();
+    // Metodo para obtener los bloques de consumo filtrado por tarifa
+    async getRangoConsumo(idTipoTarifa: number) {
+        const Rangos = await this.rangoConsumoRepository.find({
+            where: { Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: idTipoTarifa } },
+            relations: ['Tipo_Tarifa']
+        });
 
-        return Promise.all(Rangos.map(async (rango) => {
-            return {
-                Id_Rango_Consumo: rango.Id_Rango_Consumo,
-                Minimo_M3: rango.Minimo_M3,
-                Maximo_M3: rango.Maximo_M3,
-                Costo_Por_M3: rango.Costo_Por_M3
-            };
+        return Rangos.map(rango => ({
+            Id_Rango_Consumo: rango.Id_Rango_Consumo,
+            Minimo_M3: rango.Minimo_M3,
+            Maximo_M3: rango.Maximo_M3,
+            Costo_Por_M3: rango.Costo_Por_M3
         }));
     }
 
@@ -91,18 +93,38 @@ export class totalLecturasService {
         if (!tipoTarifa) throw new Error('Tipo de tarifa no encontrado');
 
         //asigna los afiliados activos del metodo a la variable
-        const AfiliadosActivosPrueba = 171;
+        const AfiliadosActivosPrueba =400;
         //const AfiliadosActivos = await this.ContarAfiliadosActivos();
         //if (AfiliadosActivos === 0) throw new Error('No hay afiliados activos para calcular el total');
 
-        let Rangos = await this.getRangoAfiliados();
-        let RangoAfiliados = Rangos.find(rango => AfiliadosActivosPrueba > rango.Minimo_Afiliados && AfiliadosActivosPrueba <= rango.Maximo_Afiliados);
+        let Rangos = await this.getRangoAfiliados(idTipoTarifa);
+        let RangoAfiliados = Rangos.find(rango =>
+            rango.Minimo_Afiliados <= AfiliadosActivosPrueba && rango.Maximo_Afiliados >= AfiliadosActivosPrueba
+        );
         if (!RangoAfiliados) throw new Error('No se encontró un rango de afiliados para la cantidad de afiliados activos');
 
-        // Jala el consumo del dto para validar el rango de consumo y obtener el costo por M3
-        let RangosConsumo = await this.getRangoConsumo();
-        let RangoConsumo = RangosConsumo.find(rango => dto.Metros_Cubicos > rango.Minimo_M3 && dto.Metros_Cubicos <= rango.Maximo_M3);
+        let rangoId
+        let RangoAfiliadosArr = [RangoAfiliados];
+        for (const element of RangoAfiliadosArr) {
+
+            rangoId = element.Id_Rango_Afiliados;
+        }
+
+        // Jala el consumo del dto para validar el rango de consumo (filtrado por tarifa)
+        let RangosConsumo = await this.getRangoConsumo(idTipoTarifa);
+        let RangoConsumo = RangosConsumo.find(rango => dto.Metros_Cubicos >= rango.Minimo_M3 && dto.Metros_Cubicos <= rango.Maximo_M3);
         if (!RangoConsumo) throw new Error('No se encontró un rango de consumo');
+
+        // Ajusta el costo del bloque segun el rango de afiliados usando el primer rango como base.
+        // Ejemplo residencial: bloque 16-30 base 416 * (298/360) = 344 para rango 101-300.
+        const rangoAfiliadosBase = [...Rangos].sort((a, b) => a.Minimo_Afiliados - b.Minimo_Afiliados)[0];
+
+        if (!rangoAfiliadosBase || rangoAfiliadosBase.Costo_Por_M3 <= 0) {
+            throw new Error('No se encontró un rango base válido para ajustar el costo por M3');
+        }
+
+        const factorRangoAfiliados = RangoAfiliados.Costo_Por_M3 / rangoAfiliadosBase.Costo_Por_M3;
+        const costoPorM3Ajustado = Math.round(RangoConsumo.Costo_Por_M3 * factorRangoAfiliados);
 
         // Variable para almacenar el total final luego de los calculos
         let valorFinalAPagar = 0;
@@ -110,69 +132,39 @@ export class totalLecturasService {
         switch (idTipoTarifa) {
             case 1: //Tarifa Residencial
                 // Rango de 1 a 100 afiliados activos
-                if (AfiliadosActivosPrueba > RangoAfiliados.Minimo_Afiliados && AfiliadosActivosPrueba <= RangoAfiliados.Maximo_Afiliados) {
+                if (rangoId == 1) {
+                    // Rango 1-100 afiliados: usa el costo del bloque sin ajuste adicional (factor 1).
 
-                    console.log('Afiliados activos:', AfiliadosActivosPrueba);
-                    console.log('Rango de afiliados minimo:', RangoAfiliados.Minimo_Afiliados);
-                    console.log('Rango de afiliados maximo:', RangoAfiliados.Maximo_Afiliados);
-
-                    if (dto.Metros_Cubicos > RangoConsumo.Minimo_M3 && dto.Metros_Cubicos <= RangoConsumo.Maximo_M3) {
-                        for (let i = 0; i < dto.Metros_Cubicos; i++) {
-                            valorFinalAPagar += RangoConsumo.Costo_Por_M3;
-                            console.log('Valor agregado por consumo:', RangoConsumo.Costo_Por_M3);
-                        }
-                        valorFinalAPagar += tipoTarifa.Cargo_Fijo_Por_Mes;
-                        console.log('Valor final a pagar:', valorFinalAPagar);
-                    }
-
-                    else if (dto.Metros_Cubicos > RangoConsumo.Minimo_M3 && dto.Metros_Cubicos <= RangoConsumo.Maximo_M3) {
-                        for (let i = 0; i < dto.Metros_Cubicos; i++) {
-                            valorFinalAPagar += RangoConsumo.Costo_Por_M3;
-                            console.log('Valor agregado por consumo:', RangoConsumo.Costo_Por_M3);
-                        }
-                        valorFinalAPagar += tipoTarifa.Cargo_Fijo_Por_Mes;
-                        console.log('Valor final a pagar:', valorFinalAPagar);
-                    }
-
-                    else if (dto.Metros_Cubicos > RangoConsumo.Minimo_M3 && dto.Metros_Cubicos <= RangoConsumo.Maximo_M3) {
-                        for (let i = 0; i < dto.Metros_Cubicos; i++) {
-                            valorFinalAPagar += RangoConsumo.Costo_Por_M3;
-                            console.log('Valor agregado por consumo:', RangoConsumo.Costo_Por_M3);
-                        }
-                        valorFinalAPagar += tipoTarifa.Cargo_Fijo_Por_Mes;
-                        console.log('Valor final a pagar:', valorFinalAPagar);
-                    }
-
-                    else if (dto.Metros_Cubicos > RangoConsumo.Minimo_M3) {
-                        for (let i = 0; i < dto.Metros_Cubicos; i++) {
-                            valorFinalAPagar += RangoConsumo.Costo_Por_M3;
-                            console.log('Valor agregado por consumo:', RangoConsumo.Costo_Por_M3);
-                        }
+                    if (dto.Metros_Cubicos >= RangoConsumo.Minimo_M3 && dto.Metros_Cubicos <= RangoConsumo.Maximo_M3) {
+                        MatematicaParaPago();
                         valorFinalAPagar += tipoTarifa.Cargo_Fijo_Por_Mes;
                         console.log('Valor final a pagar:', valorFinalAPagar);
                     }
                 }
-
                 // Rango de 101 a 300 afiliados activos
-                else if (AfiliadosActivosPrueba > RangoAfiliados.Minimo_Afiliados && AfiliadosActivosPrueba <= RangoAfiliados.Maximo_Afiliados) {
+                else if (rangoId == 2) {
+                    // Rango 101-300 afiliados: ajusta el costo del bloque por factor de rango (ej: 416 -> 344).
 
-                    console.log('Afiliados activos:', AfiliadosActivosPrueba);
-                    console.log('Rango de afiliados minimo:', RangoAfiliados.Minimo_Afiliados);
-                    console.log('Rango de afiliados maximo:', RangoAfiliados.Maximo_Afiliados);
-
-                    if (dto.Metros_Cubicos > RangoConsumo.Minimo_M3 && dto.Metros_Cubicos <= RangoConsumo.Maximo_M3) {
-                        for (let i = 0; i < dto.Metros_Cubicos; i++) {
-                            valorFinalAPagar += RangoConsumo.Costo_Por_M3;
-                            console.log('Valor agregado por consumo:', RangoConsumo.Costo_Por_M3);
-                        }
+                    if (dto.Metros_Cubicos >= RangoConsumo.Minimo_M3 && dto.Metros_Cubicos <= RangoConsumo.Maximo_M3) {
+                       MatematicaParaPago();
                         valorFinalAPagar += tipoTarifa.Cargo_Fijo_Por_Mes;
                         console.log('Valor final a pagar:', valorFinalAPagar);
                     }
                 }
+
+
+                
 
                 // Rango de 301 a 1000 afiliados activos
-                else if (AfiliadosActivosPrueba > 300 && AfiliadosActivosPrueba <= 1000) {
+                else if (rangoId === 3) {
                     // Calcular total para tarifa 1
+
+                    
+                    if (dto.Metros_Cubicos >= RangoConsumo.Minimo_M3 && dto.Metros_Cubicos <= RangoConsumo.Maximo_M3) {
+                       MatematicaParaPago();
+                        valorFinalAPagar += tipoTarifa.Cargo_Fijo_Por_Mes;
+                        console.log('Valor final a pagar:', valorFinalAPagar);
+                    }
                 }
 
                 // Rango de más de 1000 afiliados activos
@@ -319,5 +311,19 @@ export class totalLecturasService {
         }
 
         return valorFinalAPagar;
-    }
+
+
+        function MatematicaParaPago() {
+        // Lógica para realizar los cálculos matemáticos necesarios para determinar el total a pagar por una lectura específica, considerando el tipo de tarifa, el rango de afiliados y el rango de consumo.
+        // Este método puede ser llamado dentro del método CalcularTotalAPagar para mantener la lógica de negocio organizada y modularizada.
+
+            for (let i = 0; i < dto.Metros_Cubicos; i++) {
+                    valorFinalAPagar += costoPorM3Ajustado;
+                    console.log('Valor agregado por consumo:', costoPorM3Ajustado);            
+                }
+
+                return valorFinalAPagar; // Retorna el resultado del cálculo matemático (este es un valor de ejemplo, se debe reemplazar con el resultado real).
+            }
+        }
+
 }
