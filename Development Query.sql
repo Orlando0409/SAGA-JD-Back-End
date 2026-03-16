@@ -95,3 +95,7 @@ select * from auditoria;
 select * from manuales;
 
 select * from cargo_fijo_tarifas;
+
+SELECT * FROM rango_afiliados;
+
+SELECT * FROM rango_consumo;

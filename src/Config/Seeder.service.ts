@@ -432,14 +432,10 @@ export class SeederService implements OnModuleInit {
     // VALORES FIJOS PARA TARIFAS DEL 10/26/2025
     private async createDefaultTiposTarifaLectura() {
         const tipos = [
-            { Id_Tipo_Tarifa_Lectura: 1, Nombre_Tipo_Tarifa: 'Residencial', Cargo_Fijo_Por_Mes: 3100 },
-            { Id_Tipo_Tarifa_Lectura: 2, Nombre_Tipo_Tarifa: 'Comercio y Servicios', Cargo_Fijo_Por_Mes: 508 },
-            { Id_Tipo_Tarifa_Lectura: 3, Nombre_Tipo_Tarifa: 'Industrial', Cargo_Fijo_Por_Mes: 536 },
-            { Id_Tipo_Tarifa_Lectura: 4, Nombre_Tipo_Tarifa: 'Preferencial', Cargo_Fijo_Por_Mes: 480 },
-            { Id_Tipo_Tarifa_Lectura: 5, Nombre_Tipo_Tarifa: 'Grandes Consumidores', Cargo_Fijo_Por_Mes: 513 },
-            { Id_Tipo_Tarifa_Lectura: 6, Nombre_Tipo_Tarifa: 'Residencial Pobreza Basica', Cargo_Fijo_Por_Mes: 360 },
-            { Id_Tipo_Tarifa_Lectura: 7, Nombre_Tipo_Tarifa: 'Residencial Pobreza Extrema', Cargo_Fijo_Por_Mes: 180 },
-            { Id_Tipo_Tarifa_Lectura: 8, Nombre_Tipo_Tarifa: 'Grandes Consumidores Residenciales Bien Social', Cargo_Fijo_Por_Mes: 360 },
+            { Id_Tipo_Tarifa_Lectura: 1, Nombre_Tipo_Tarifa: '1-100', Cargo_Fijo_Por_Mes: 3100 },
+            { Id_Tipo_Tarifa_Lectura: 2, Nombre_Tipo_Tarifa: '101-300', Cargo_Fijo_Por_Mes: 3100 },
+            { Id_Tipo_Tarifa_Lectura: 3, Nombre_Tipo_Tarifa: '301-1000', Cargo_Fijo_Por_Mes: 2800 },
+            { Id_Tipo_Tarifa_Lectura: 4, Nombre_Tipo_Tarifa: '+1000', Cargo_Fijo_Por_Mes: 2800 },
         ];
 
         for (const tipo of tipos) {
