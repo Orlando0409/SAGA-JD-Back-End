@@ -92,8 +92,7 @@ export class totalLecturasService {
 
         switch (idTipoTarifa) {
             case 1: //Tarifa Residencial
-                if (AfiliadosActivos > RangoAfiliados.Minimo_Afiliados && AfiliadosActivos <= RangoAfiliados.Maximo_Afiliados) {
-
+                if ( RangoAfiliados && (AfiliadosActivos > RangoAfiliados.Minimo_Afiliados && AfiliadosActivos <= RangoAfiliados.Maximo_Afiliados) ) {
                     if (dto.Metros_Cubicos > 0 && dto.Metros_Cubicos <= 15) {
                         for (let i = 0; i < dto.Metros_Cubicos; i++) {
                             valorFinalAPagar += CostoPorM3;
