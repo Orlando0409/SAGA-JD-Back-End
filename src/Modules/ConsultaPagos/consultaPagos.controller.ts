@@ -4,7 +4,7 @@ import { Public } from "../auth/Decorator/Public.decorator";
 import { ApiOperation } from "@nestjs/swagger";
 import { ConsultaFisicaDTO } from "./ConsultaPagoDTO'S/consultaFisica.dto";
 
-@Controller('consulta_pagos')
+@Controller('consulta-pagos')
 export class PagosController {
     constructor(
         private readonly pagosService: PagosService
