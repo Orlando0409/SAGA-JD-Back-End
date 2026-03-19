@@ -1,4 +1,5 @@
-import { Body, Controller, Param, Get } from "@nestjs/common";
+import { TipoIdentificacion } from './../../Common/Enums/TipoIdentificacion.enum';
+import { Body, Controller, Param, Get, Post } from "@nestjs/common";
 import { PagosService } from "./consultaPagos.service";
 import { Public } from "../auth/Decorator/Public.decorator";
 import { ApiOperation } from "@nestjs/swagger";
@@ -11,16 +12,16 @@ export class PagosController {
     ) { }
 
     @Public()
-    @Get('/afiliado-fisico')
+    @Post('/afiliado-fisico')
     @ApiOperation({ summary: 'Obtener pagos de un afiliado físico por tipo y número de identificación' })
     getConsultaPagosByAfiliadoFisico (
-        @Param() dto: ConsultaFisicaDTO
+        @Body() dto: ConsultaFisicaDTO
     ) {
         return this.pagosService.getConsultaPagosByAfiliadoFisico(dto);
     }
 
     @Public()
-    @Get('/afiliado-juridico')
+    @Post('/afiliado-juridico')
     @ApiOperation({ summary: 'Obtener pagos de un afiliado jurídico por cédula jurídica' })
     getConsultaPagosByAfiliadoJuridico (
         @Body('Cedula_Juridica') Cedula_Juridica: string

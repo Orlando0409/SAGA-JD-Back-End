@@ -16,9 +16,10 @@ import { TipoTarifaCargoFijo } from '../Lecturas/LecturaEntities/TipoTarifaCargo
 import { RangoAfiliados } from '../Lecturas/LecturaEntities/RangoAfiliados.Entity';
 import { RangoConsumo } from '../Lecturas/LecturaEntities/RangoConsumo.Entity';
 import { EstadoAfiliado } from '../Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
+import { ValidationsModule } from 'src/Validations/Validations.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([ConsultaPago, Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, TipoTarifaCargoFijo, CargoFijoTarifas, RangoAfiliados, RangoConsumo, Afiliado, EstadoAfiliado, AfiliadoFisico, AfiliadoJuridico, Medidor]), LecturaModule],
+    imports: [TypeOrmModule.forFeature([ConsultaPago, Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, TipoTarifaCargoFijo, CargoFijoTarifas, RangoAfiliados, RangoConsumo, Afiliado, EstadoAfiliado, AfiliadoFisico, AfiliadoJuridico, Medidor]), LecturaModule, ValidationsModule],
     controllers: [PagosController],
     providers: [PagosService, totalLecturasService],
     exports: [PagosService]

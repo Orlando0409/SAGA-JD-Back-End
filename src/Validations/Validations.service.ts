@@ -109,4 +109,51 @@ export class ValidationsService {
 
         return null; // No hay error
     }
+
+    /**
+     * Valida el formato de una identificación según su tipo
+     * @param tipo - Tipo de identificación (CEDULA, DIMEX, PASAPORTE, CEDULA_JURIDICA)
+     * @param identificacion - Número de identificación a validar
+     * @throws Error si el formato no es válido
+     */
+    validarFormatoIdentificacion(tipo: string, identificacion: string): void {
+        if (!identificacion || !tipo) {
+            throw new Error('Debe proporcionar tanto el tipo como la identificación');
+        }
+
+        // Eliminar espacios, guiones y otros caracteres no alfanuméricos
+        const limpio = identificacion.replace(/[\s\-]+/g, '');
+
+        let esValido = false;
+        let mensajeError = '';
+
+        switch (tipo) {
+            case 'Cedula Nacional':
+                esValido = /^[1-7]\d{8}$/.test(limpio);
+                mensajeError = 'La cédula nacional debe tener 9 dígitos numéricos y comenzar con un número del 1 al 7';
+                break;
+
+            case 'Dimex':
+                esValido = /^(12|13|18)\d{9,10}$/.test(limpio);
+                mensajeError = 'El DIMEX debe tener entre 11 y 12 dígitos numéricos y debe comenzar con 12, 13 o 18';
+                break;
+
+            case 'Pasaporte':
+                esValido = /^(?=.*[A-Z])(?=([A-Z]*[0-9]*){6,12}$)(?!.*[A-Z].*[A-Z].*[A-Z].*[A-Z])[A-Z0-9]{6,12}$/.test(limpio.toUpperCase());
+                mensajeError = 'El pasaporte debe tener entre 6 y 12 caracteres alfanuméricos en mayúsculas, con al menos 1 letra y máximo 3 letras';
+                break;
+
+            case 'Cedula Juridica':
+                esValido = /^[34]\d{9}$/.test(limpio);
+                mensajeError = 'La cédula jurídica debe tener 10 dígitos y comenzar con 3 (nacional) o 4 (extranjera)';
+                break;
+
+            default:
+                throw new Error(`Tipo de identificación no válido: ${tipo}`);
+        }
+
+        if (!esValido) {
+            throw new Error(`${mensajeError}. Formato recibido: ${identificacion}`);
+        }
+    }
 }

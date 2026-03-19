@@ -1,6 +1,6 @@
 import { totalLecturasService } from '../Lecturas/totalLecturas.service';
 import { TipoIdentificacion } from 'src/Common/Enums/TipoIdentificacion.enum';
-import { Injectable } from "@nestjs/common";
+import { Injectable, BadRequestException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Medidor } from "../Inventario/InventarioEntities/Medidor.Entity";
@@ -10,6 +10,7 @@ import { Lectura } from "../Lecturas/LecturaEntities/Lectura.Entity";
 import { LecturaService } from '../Lecturas/lectura.service';
 import { ConsultaPago } from './ConsultaPagoEntities/ConsultaPago.entity';
 import { ConsultaFisicaDTO } from './ConsultaPagoDTO\'S/consultaFisica.dto';
+import { ValidationsService } from 'src/Validations/Validations.service';
 
 @Injectable()
 export class PagosService {
@@ -37,7 +38,9 @@ export class PagosService {
 
         private readonly lecturaService: LecturaService,
 
-        private readonly totalLecturasService: totalLecturasService
+        private readonly totalLecturasService: totalLecturasService,
+
+        private readonly validationsService: ValidationsService
     ) { }
 
     async getConsultaPagosByAfiliadoFisico(dto: ConsultaFisicaDTO) {
@@ -47,7 +50,14 @@ export class PagosService {
             if (dto.Tipo_Identificacion !== TipoIdentificacion.CEDULA &&
                 dto.Tipo_Identificacion !== TipoIdentificacion.DIMEX &&
                 dto.Tipo_Identificacion !== TipoIdentificacion.PASAPORTE) {
-                throw new Error('Tipo de identificación no válido para afiliado físico. Debe ser CEDULA, DIMEX o PASAPORTE.');
+                throw new BadRequestException('Tipo de identificación no válido para afiliado físico. Debe ser CEDULA, DIMEX o PASAPORTE.');
+            }
+
+            // Validar formato de identificación usando el servicio de validaciones
+            try {
+                this.validationsService.validarFormatoIdentificacion(dto.Tipo_Identificacion, dto.Identificacion);
+            } catch (error) {
+                throw new BadRequestException(error.message);
             }
 
             const afiliado = await this.afiliadoFisicoRepository.findOne({
@@ -55,9 +65,9 @@ export class PagosService {
                 relations: ['Medidores']
             });
 
-            if (!afiliado) throw new Error('No se encontró un afiliado físico con la identificación proporcionada.');
+            if (!afiliado) throw new BadRequestException('No se encontró un afiliado físico con la identificación proporcionada.');
             if (!afiliado.Medidores || afiliado.Medidores.length === 0) {
-                throw new Error('El afiliado no tiene medidores asociados.');
+                throw new BadRequestException('El afiliado no tiene medidores asociados.');
             }
 
             // Mapear información de todos los medidores
@@ -88,7 +98,7 @@ export class PagosService {
                     } catch (error) {
                         return {
                             Numero_Medidor: medidor.Numero_Medidor,
-                            Error: `No se pudo obtener información: ${error.message}`
+                            BadRequestException: `No se pudo obtener información: ${error.message}`
                         };
                     }
                 })
@@ -105,8 +115,6 @@ export class PagosService {
         }
 
         // Caso 2: Solo número de medidor (sin identificación ni tipo)
-        // Caso 3: Tipo de identificación + identificación + número de medidor
-        // Ambos casos devuelven información de UN SOLO medidor
         let numeroMedidor: number;
 
         if (dto.Numero_Medidor && !dto.Tipo_Identificacion && !dto.Identificacion) {
@@ -114,40 +122,49 @@ export class PagosService {
                 where: { Numero_Medidor: dto.Numero_Medidor }
             });
 
-            if (!medidor) throw new Error('No se encontró un medidor con el número proporcionado.');
+            if (!medidor) throw new BadRequestException('No se encontró un medidor con el número proporcionado.');
 
             numeroMedidor = dto.Numero_Medidor;
         }
+
+        // Caso 3: Tipo de identificación + identificación + número de medidor
         else if (dto.Tipo_Identificacion && dto.Identificacion && dto.Numero_Medidor) {
             if (dto.Tipo_Identificacion !== TipoIdentificacion.CEDULA &&
                 dto.Tipo_Identificacion !== TipoIdentificacion.DIMEX &&
                 dto.Tipo_Identificacion !== TipoIdentificacion.PASAPORTE) {
-                throw new Error('Tipo de identificación no válido para afiliado físico. Debe ser CEDULA, DIMEX o PASAPORTE.');
+                throw new BadRequestException('Tipo de identificación no válido para afiliado físico. Debe ser CEDULA, DIMEX o PASAPORTE.');
+            }
+
+            // Validar formato de identificación usando el servicio de validaciones
+            try {
+                this.validationsService.validarFormatoIdentificacion(dto.Tipo_Identificacion, dto.Identificacion);
+            } catch (error) {
+                throw new BadRequestException(error.message);
             }
 
             const afiliado = await this.afiliadoFisicoRepository.findOne({
                 where: { Identificacion: dto.Identificacion },
                 relations: ['Medidores']
             });
-            if (!afiliado) throw new Error('No se encontró un afiliado físico con la identificación proporcionada.');
+            if (!afiliado) throw new BadRequestException('No se encontró un afiliado físico con la identificación proporcionada.');
 
             const medidor = afiliado.Medidores?.find(m => m.Numero_Medidor === dto.Numero_Medidor);
             if (!medidor) {
-                throw new Error('No se encontró un medidor con el número proporcionado asociado a esta identificación.');
+                throw new BadRequestException('No se encontró un medidor con el número proporcionado asociado a esta identificación.');
             }
 
             numeroMedidor = dto.Numero_Medidor;
         }
         else {
-            throw new Error('Debe proporcionar: (1) Tipo de identificación + Identificación, (2) Número de medidor, o (3) Los tres datos.');
+            throw new BadRequestException('Debe proporcionar: (1) Tipo de identificación + Identificación, (2) Número de medidor, o (3) Los tres datos.');
         }
 
         // Obtener la última lectura del medidor
         const ultimaLectura = await this.lecturaService.getUltimaLecturaByMedidor(numeroMedidor);
-        if (!ultimaLectura) throw new Error('No se encontró ninguna lectura para el medidor proporcionado.');
+        if (!ultimaLectura) throw new BadRequestException('No se encontró ninguna lectura para el medidor proporcionado.');
 
         const tipoTarifa = ultimaLectura['Tipo de Tarifa'];
-        if (!tipoTarifa) throw new Error('La última lectura no tiene un tipo de tarifa asociado.');
+        if (!tipoTarifa) throw new BadRequestException('La última lectura no tiene un tipo de tarifa asociado.');
 
         const historial_Lecturas = await this.lecturaService.getHistorialLecturasByMedidor(numeroMedidor);
 
@@ -177,6 +194,6 @@ export class PagosService {
             relations: ['Medidores', 'Medidores.Lecturas', 'Medidores.Lecturas.Tipo_Tarifa']
         });
 
-        if (!afiliado) throw new Error('No se encontró un afiliado jurídico con la cédula jurídica proporcionada.');
+        if (!afiliado) throw new BadRequestException('No se encontró un afiliado jurídico con la cédula jurídica proporcionada.');
     }
 }
