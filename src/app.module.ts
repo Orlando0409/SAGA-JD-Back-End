@@ -71,6 +71,8 @@ import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/Estad
 import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
 import { TipoTarifaCargoFijo } from './Modules/Lecturas/LecturaEntities/TipoTarifaCargoFijo.Entity';
 import { CargoFijoTarifas } from './Modules/Lecturas/LecturaEntities/CargoFijoTarifas.Entity';
+import { Consulta_Pago } from './Modules/ConsultaPagos/PagoEntities/ConsultaPago.entity';
+import { PagosModule } from './Modules/ConsultaPagos/pagos.module';
 
 @Module({
   imports: [
@@ -110,7 +112,8 @@ import { CargoFijoTarifas } from './Modules/Lecturas/LecturaEntities/CargoFijoTa
           Auditoria,
           Lectura, TipoTarifaLectura, TipoTarifaCargoFijo, CargoFijoTarifas, TipoTarifaServiciosFijos, TipoTarifaVentaAgua,
           ImagenEntity,
-          ManualEntity, RangoAfiliados, RangoConsumo
+          ManualEntity, RangoAfiliados, RangoConsumo,
+          Consulta_Pago
         ],
         synchronize: false,
         dropSchema: false,
@@ -135,7 +138,8 @@ import { CargoFijoTarifas } from './Modules/Lecturas/LecturaEntities/CargoFijoTa
     FAQModule,
     QuejasModule,
     ImagenesModule,
-    ManualModule
+    ManualModule,
+    PagosModule
   ],
   controllers: [],
   providers: [

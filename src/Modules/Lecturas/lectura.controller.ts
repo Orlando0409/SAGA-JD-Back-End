@@ -91,9 +91,9 @@ export class LecturaController {
     @Post('por-pagar/:idTipoTarifa')
     @ApiProperty({ description: 'Calcula el total a pagar por una lectura específica.' })
     calcularTotalAPagar(
-        @Body() dto: getTotalPorM3DTO,
+        @Param('consumo') consumo: number,
         @Param('idTipoTarifa') idTipoTarifa: number
     ) {
-        return this.totalLecturasService.CalcularTotalAPagar(dto, idTipoTarifa);
+        return this.totalLecturasService.CalcularTotalAPagar(consumo, idTipoTarifa);
     }
 }

@@ -1,3 +1,4 @@
+import { totalLecturasService } from './../Lecturas/totalLecturas.service';
 import { TipoIdentificacion } from 'src/Common/Enums/TipoIdentificacion.enum';
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -6,10 +7,16 @@ import { Medidor } from "../Inventario/InventarioEntities/Medidor.Entity";
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from "../Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { TipoTarifaLectura } from "../Lecturas/LecturaEntities/TipoTarifaLectura.Entity";
 import { Lectura } from "../Lecturas/LecturaEntities/Lectura.Entity";
+import { LecturaService } from '../Lecturas/lectura.service';
+import { ConsultaFisicaDTO } from './PagoDTO\'S/consultaFisica.dto';
+import { Consulta_Pago } from './PagoEntities/ConsultaPago.entity';
 
 @Injectable()
 export class PagosService {
     constructor(
+        @InjectRepository(Consulta_Pago)
+        private readonly consultaPagoRepository: Repository<Consulta_Pago>,
+
         @InjectRepository(Lectura)
         private readonly lecturaRepository: Repository<Lectura>,
 
@@ -27,39 +34,51 @@ export class PagosService {
 
         @InjectRepository(Medidor)
         private readonly medidorRepository: Repository<Medidor>,
+
+        private readonly lecturaService: LecturaService,
+
+        private readonly totalLecturasService: totalLecturasService
     ) { }
 
-    async getPagosByAfiliadoFisico(Tipo: TipoIdentificacion, Identificacion: string) {
-        if (Tipo === TipoIdentificacion.CEDULA) {
-            const afiliado = await this.afiliadoFisicoRepository.findOne({
-                where: { Identificacion: Identificacion },
-                relations: ['Afiliado', 'Afiliado.Medidores', 'Afiliado.Medidores.Lecturas', 'Afiliado.Medidores.Lecturas.Tipo_Tarifa_Lectura']
-            });
+    async getConsultaPagosByAfiliadoFisico(dto: ConsultaFisicaDTO) {
+        if (dto.Tipo_Identificacion){
+            if (dto.Tipo_Identificacion != TipoIdentificacion.CEDULA && dto.Tipo_Identificacion != TipoIdentificacion.DIMEX && dto.Tipo_Identificacion != TipoIdentificacion.PASAPORTE) {
+                throw new Error('Tipo de identificación no válido para afiliado físico. Debe ser CEDULA, DIMEX o PASAPORTE.');
+            }
         }
 
-        else if (Tipo === TipoIdentificacion.DIMEX) {
-            const afiliado = await this.afiliadoFisicoRepository.findOne({
-                where: { Identificacion: Identificacion },
-                relations: ['Afiliado', 'Afiliado.Medidores', 'Afiliado.Medidores.Lecturas', 'Afiliado.Medidores.Lecturas.Tipo_Tarifa_Lectura']
-            });
-        }
+        // AfiliadoFisico hereda de Afiliado, por lo que tiene acceso directo a Medidores
+        const afiliado = await this.afiliadoFisicoRepository.findOne({
+            where: { Identificacion: dto.Identificacion },
+            relations: ['Medidores', 'Medidores.Lecturas', 'Medidores.Lecturas.Tipo_Tarifa']
+        });
+        if (!afiliado) throw new Error('No se encontró un afiliado físico con la identificación proporcionada.');
 
-        else if (Tipo === TipoIdentificacion.PASAPORTE) {
-            const afiliado = await this.afiliadoFisicoRepository.findOne({
-                where: { Identificacion: Identificacion },
-                relations: ['Afiliado', 'Afiliado.Medidores', 'Afiliado.Medidores.Lecturas', 'Afiliado.Medidores.Lecturas.Tipo_Tarifa_Lectura']
-            });
-        }
+        // Buscar el medidor específico dentro de los medidores del afiliado
+        const medidor = afiliado.Medidores?.find(m => m.Numero_Medidor === dto.Numero_Medidor);
+        if (!medidor) throw new Error('No se encontró un medidor con el número proporcionado asociado a esta identificación.');
 
-        else {
-            throw new Error('Tipo de identificación no válido para afiliado físico. Debe ser CEDULA, DIMEX o PASAPORTE.');
-        }
+        const ultimaLectura = await this.lecturaService.getUltimaLecturaByMedidor(medidor.Numero_Medidor);
+        if (!ultimaLectura) throw new Error('No se encontró ninguna lectura para el medidor proporcionado.');
+
+        const tipoTarifa = ultimaLectura['Tipo de Tarifa'];
+        if (!tipoTarifa) throw new Error('La última lectura no tiene un tipo de tarifa asociado.');
+
+        const ConsultaPago = this.consultaPagoRepository.create({
+            Tipo_Identificacion: dto.Tipo_Identificacion,
+            Identificacion: dto.Identificacion,
+            Numero_Medidor: dto.Numero_Medidor
+        });
+        await this.consultaPagoRepository.save(ConsultaPago);
+
+        return this.totalLecturasService.CalcularTotalAPagar(ultimaLectura['Consumo Calculado M3'], tipoTarifa['Id_Tipo_Tarifa_Lectura']);
     }
 
-    async getPagosByAfiliadoJuridico(Cedula_Juridica: string) {
+    async getConsultaPagosByAfiliadoJuridico(Cedula_Juridica: string) {
+        // AfiliadoJuridico hereda de Afiliado, por lo que tiene acceso directo a Medidores
         const afiliado = await this.afiliadoJuridicoRepository.findOne({
             where: { Cedula_Juridica: Cedula_Juridica },
-            relations: ['Afiliado', 'Afiliado.Medidores', 'Afiliado.Medidores.Lecturas', 'Afiliado.Medidores.Lecturas.Tipo_Tarifa_Lectura']
+            relations: ['Medidores', 'Medidores.Lecturas', 'Medidores.Lecturas.Tipo_Tarifa']
         });
 
         if (!afiliado) throw new Error('No se encontró un afiliado jurídico con la cédula jurídica proporcionada.');

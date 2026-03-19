@@ -96,7 +96,7 @@ export class totalLecturasService {
         }));
     }
 
-    async CalcularTotalAPagar(dto: getTotalPorM3DTO, idTipoTarifa: number): Promise<number> {
+    async CalcularTotalAPagar(consumo: number, idTipoTarifa: number): Promise<number> {
         /*
             Hay 3 entidades a tener en cuenta para los calculos de los afiliados,
             estas siendo: tipoTarifa, RangoAfiliados y RangoConsumo
@@ -125,7 +125,7 @@ export class totalLecturasService {
 
         // Jala el consumo del dto para validar el rango de consumo (filtrado por tarifa)
         let RangosConsumo = await this.getRangoConsumo(idTipoTarifa);
-        let RangoConsumo = RangosConsumo.find(rango => dto.Metros_Cubicos >= rango.Minimo_M3 && dto.Metros_Cubicos <= rango.Maximo_M3);
+        let RangoConsumo = RangosConsumo.find(rango => consumo >= rango.Minimo_M3 && consumo <= rango.Maximo_M3);
         if (!RangoConsumo) throw new Error('No se encontró un rango de consumo');
 
         // Ajusta el costo del bloque segun el rango de afiliados usando el primer rango como base.
@@ -139,16 +139,15 @@ export class totalLecturasService {
         // Variable para almacenar el total final luego de los calculos
         let valorFinalAPagar = 0;
 
-        // Calcula el costo por consumo de agua
-        for (let i = 0; i < dto.Metros_Cubicos; i++) {
-            valorFinalAPagar += costoPorM3Ajustado;
-            console.log('Valor agregado por consumo:', costoPorM3Ajustado);
-        }
+        // Calcula el costo por consumo de agua (multiplicación directa en vez de loop)
+        const costoConsumo = consumo * costoPorM3Ajustado;
+        valorFinalAPagar += costoConsumo;
+        console.log(`Consumo: ${consumo} M3 x ${costoPorM3Ajustado} = ${costoConsumo}`);
 
         // Agrega el cargo fijo mensual
         valorFinalAPagar += cargoFijo.Cargo_Fijo_Por_Mes;
-        console.log('Cargo fijo agregado:', cargoFijo.Cargo_Fijo_Por_Mes);
-        console.log('Valor final a pagar:', valorFinalAPagar);
+        console.log(`Cargo fijo agregado: ${cargoFijo.Cargo_Fijo_Por_Mes}`);
+        console.log(`Valor final a pagar: ${valorFinalAPagar}`);
 
         return valorFinalAPagar;
     }

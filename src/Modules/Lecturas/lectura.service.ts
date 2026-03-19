@@ -125,6 +125,106 @@ export class LecturaService {
         })));
     }
 
+    //Obtiene las ultimas 5 lecturas hechas para se medidor especifico
+    async getHistorialLecturasByMedidor(numeroMedidor: number) {
+        const lecturas = await this.lecturaRepository.createQueryBuilder('lectura')
+            .leftJoinAndSelect('lectura.Medidor', 'medidor')
+            .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
+            .leftJoinAndSelect('medidor.Estado_Medidor', 'estadoMedidor')
+            .where('medidor.Numero_Medidor = :numeroMedidor', { numeroMedidor })
+            .orderBy('lectura.Fecha_Lectura', 'DESC')
+            .limit(5)
+            .getMany();
+
+        return Promise.all(lecturas.map(async lectura => ({
+            Id_Lectura: lectura.Id_Lectura,
+            Tipo_Tarifa: lectura.Tipo_Tarifa ? {
+                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
+            } : null,
+            Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
+            Fecha_Lectura: lectura.Fecha_Lectura,
+            Medidor: this.medidorService.formatearMedidorResponse(lectura.Medidor),
+            Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(lectura.Medidor?.Afiliado),
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(lectura.Usuario)
+        })));
+    }
+
+    //Obtiene la ultima lectura hecha para se medidor especifico
+    async getUltimaLecturaByMedidor(numeroMedidor: number) {
+        const lectura = await this.lecturaRepository.createQueryBuilder('lectura')
+            .leftJoinAndSelect('lectura.Medidor', 'medidor')
+            .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
+            .leftJoinAndSelect('medidor.Estado_Medidor', 'estadoMedidor')
+            .where('medidor.Numero_Medidor = :numeroMedidor', { numeroMedidor })
+            .orderBy('lectura.Fecha_Lectura', 'DESC')
+            .getOne();
+
+        if (!lectura) throw new Error('No se encontró ninguna lectura para el número de medidor proporcionado.');
+
+        return {
+            "Tipo de Tarifa": lectura.Tipo_Tarifa,
+            "Consumo Calculado M3": lectura.Consumo_Calculado_M3
+        }
+    }
+
+    //Obtiene las ultimas 5 lecturas hechas para un afiliado fisico especifico
+    async getHistorialLecturasByAfiliadoFisico(Identificacion: number) {
+        const lecturas = await this.lecturaRepository.createQueryBuilder('lectura')
+            .leftJoinAndSelect('lectura.Medidor', 'medidor')
+            .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
+            .leftJoinAndSelect('medidor.Estado_Medidor', 'estadoMedidor')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+            .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
+            .leftJoinAndSelect('afiliado.Estado', 'estadoAfiliado')
+            .where('afiliado.Identificacion = :Identificacion', { Identificacion })
+            .orderBy('lectura.Fecha_Lectura', 'DESC')
+            .limit(5)
+            .getMany();
+
+        return Promise.all(lecturas.map(async lectura => ({
+            Id_Lectura: lectura.Id_Lectura,
+            Tipo_Tarifa: lectura.Tipo_Tarifa ? {
+                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
+            } : null,
+            Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
+            Fecha_Lectura: lectura.Fecha_Lectura,
+            Medidor: this.medidorService.formatearMedidorResponse(lectura.Medidor),
+            Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(lectura.Medidor?.Afiliado),
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(lectura.Usuario)
+        })));
+
+    }
+
+    //Obtiene las ultimas 5 lecturas hechas para un afiliado juridico especifico
+    async getHistorialLecturasByAfiliadoJuridico(Cedula_Juridica: number) {
+        const lecturas = await this.lecturaRepository.createQueryBuilder('lectura')
+            .leftJoinAndSelect('lectura.Medidor', 'medidor')
+            .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
+            .leftJoinAndSelect('medidor.Estado_Medidor', 'estadoMedidor')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+            .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
+            .leftJoinAndSelect('afiliado.Estado', 'estadoAfiliado')
+            .where('afiliado.Cedula_Juridica = :Cedula_Juridica', { Cedula_Juridica })
+            .orderBy('lectura.Fecha_Lectura', 'DESC')
+            .limit(5)
+            .getMany();
+
+        return Promise.all(lecturas.map(async lectura => ({
+            Id_Lectura: lectura.Id_Lectura,
+            Tipo_Tarifa: lectura.Tipo_Tarifa ? {
+                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
+            } : null,
+            Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
+            Fecha_Lectura: lectura.Fecha_Lectura,
+            Medidor: this.medidorService.formatearMedidorResponse(lectura.Medidor),
+            Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(lectura.Medidor?.Afiliado),
+            Usuario: await this.usuariosService.FormatearUsuarioResponse(lectura.Usuario)
+        })));
+    }
+
     async getTarifasLecturas() {
         return await this.tipoTarifaLecturaRepository.find();
     }
