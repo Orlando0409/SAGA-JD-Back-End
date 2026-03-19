@@ -1,3 +1,4 @@
+import { ConsultaJuridicaDTO } from './ConsultaPagoDTO\'S/consultaJuridica.dto';
 import { totalLecturasService } from '../Lecturas/totalLecturas.service';
 import { TipoIdentificacion } from 'src/Common/Enums/TipoIdentificacion.enum';
 import { Injectable, BadRequestException } from "@nestjs/common";
@@ -155,6 +156,7 @@ export class PagosService {
 
             numeroMedidor = dto.Numero_Medidor;
         }
+
         else {
             throw new BadRequestException('Debe proporcionar: (1) Tipo de identificación + Identificación, (2) Número de medidor, o (3) Los tres datos.');
         }
@@ -187,13 +189,100 @@ export class PagosService {
         };
     }
 
-    async getConsultaPagosByAfiliadoJuridico(Cedula_Juridica: string) {
-        // AfiliadoJuridico hereda de Afiliado, por lo que tiene acceso directo a Medidores
-        const afiliado = await this.afiliadoJuridicoRepository.findOne({
-            where: { Cedula_Juridica: Cedula_Juridica },
-            relations: ['Medidores', 'Medidores.Lecturas', 'Medidores.Lecturas.Tipo_Tarifa']
-        });
+    async getConsultaPagosByAfiliadoJuridico(dto: ConsultaJuridicaDTO) {
+        if (dto.Cedula_Juridica && !dto.Numero_Medidor) {
+            const afiliado = await this.afiliadoJuridicoRepository.findOne({
+                where: { Cedula_Juridica: dto.Cedula_Juridica },
+                relations: ['Medidores']
+            });
+            if (!afiliado) throw new BadRequestException('No se encontró un afiliado jurídico con la cédula jurídica proporcionada.');
+            if (!afiliado.Medidores || afiliado.Medidores.length === 0) throw new BadRequestException('El afiliado no tiene medidores asociados.');
 
-        if (!afiliado) throw new BadRequestException('No se encontró un afiliado jurídico con la cédula jurídica proporcionada.');
+            const medidoresInfo = await Promise.all(
+                afiliado.Medidores.map(async (medidor) => {
+                    try {
+                        const ultimaLectura = await this.lecturaService.getUltimaLecturaByMedidor(medidor.Numero_Medidor);
+                        const tipoTarifa = ultimaLectura['Tipo de Tarifa'];
+                        const historial_Lecturas = await this.lecturaService.getHistorialLecturasByMedidor(medidor.Numero_Medidor);
+                        const total_A_Pagar = await this.totalLecturasService.CalcularTotalAPagar(
+                            ultimaLectura['Consumo Calculado M3'],
+                            tipoTarifa['Id_Tipo_Tarifa_Lectura']
+                        );
+
+                        // Registrar consulta para cada medidor
+                        const ConsultaPago = this.consultaPagoRepository.create({
+                            Cedula_Juridica: dto.Cedula_Juridica,
+                            Numero_Medidor: medidor.Numero_Medidor
+                        });
+                        await this.consultaPagoRepository.save(ConsultaPago);
+
+                        return {
+                            Numero_Medidor: medidor.Numero_Medidor,
+                            "Calculo final": total_A_Pagar,
+                            "Historial de lecturas": historial_Lecturas
+                        };
+                    } catch (error) {
+                        return {
+                            Numero_Medidor: medidor.Numero_Medidor,
+                            BadRequestException: `No se pudo obtener información: ${error.message}`
+                        };
+                    }
+                })
+            );
+
+            return {
+                Afiliado: {
+                    Razon_Social: afiliado.Razon_Social,
+                    Cedula_Juridica: afiliado.Cedula_Juridica
+                },
+                Total_Medidores: afiliado.Medidores.length,
+                Medidores: medidoresInfo
+            };
+        }
+
+        let numeroMedidor: number;
+
+        if (!dto.Cedula_Juridica && dto.Numero_Medidor) {
+            const medidor = await this.medidorRepository.findOne({
+                where: { Numero_Medidor: dto.Numero_Medidor }
+            });
+            if (!medidor) throw new BadRequestException('No se encontró un medidor con el número proporcionado.');
+
+            numeroMedidor = dto.Numero_Medidor;
+        }
+
+        else if (dto.Cedula_Juridica && dto.Numero_Medidor) {
+            const afiliado = await this.afiliadoJuridicoRepository.findOne({
+                where: { Cedula_Juridica: dto.Cedula_Juridica },
+                relations: ['Medidores']
+            });
+            if (!afiliado) throw new BadRequestException('No se encontró un afiliado jurídico con la cédula jurídica proporcionada.');
+
+            const medidor = afiliado.Medidores?.find(m => m.Numero_Medidor === dto.Numero_Medidor);
+            if (!medidor) throw new BadRequestException('No se encontró un medidor con el número proporcionado asociado a esta cédula jurídica.');
+
+            numeroMedidor = dto.Numero_Medidor;
+        }
+
+        else throw new BadRequestException('Debe proporcionar: (1) Cédula jurídica, (2) Número de medidor, o (3) Ambos datos.');
+
+        const ultimaLectura = await this.lecturaService.getUltimaLecturaByMedidor(numeroMedidor);
+        if (!ultimaLectura) throw new BadRequestException('No se encontró ninguna lectura para el medidor proporcionado.');
+
+        const tipoTarifa = ultimaLectura['Tipo de Tarifa'];
+        if (!tipoTarifa) throw new BadRequestException('La última lectura no tiene un tipo de tarifa asociado.');
+
+        const historial_Lecturas = await this.lecturaService.getHistorialLecturasByMedidor(numeroMedidor);
+
+        const total_A_Pagar = await this.totalLecturasService.CalcularTotalAPagar(
+            ultimaLectura['Consumo Calculado M3'], 
+            tipoTarifa['Id_Tipo_Tarifa_Lectura']
+        );
+
+        return {
+            Numero_Medidor: numeroMedidor,
+            "Calculo final": total_A_Pagar,
+            "Historial de lecturas": historial_Lecturas
+        };
     }
 }

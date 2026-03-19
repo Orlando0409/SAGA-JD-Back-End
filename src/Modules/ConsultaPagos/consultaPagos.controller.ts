@@ -4,6 +4,7 @@ import { PagosService } from "./consultaPagos.service";
 import { Public } from "../auth/Decorator/Public.decorator";
 import { ApiOperation } from "@nestjs/swagger";
 import { ConsultaFisicaDTO } from "./ConsultaPagoDTO'S/consultaFisica.dto";
+import { ConsultaJuridicaDTO } from "./ConsultaPagoDTO'S/consultaJuridica.dto";
 
 @Controller('consulta-pagos')
 export class PagosController {
@@ -24,8 +25,8 @@ export class PagosController {
     @Post('/afiliado-juridico')
     @ApiOperation({ summary: 'Obtener pagos de un afiliado jurídico por cédula jurídica' })
     getConsultaPagosByAfiliadoJuridico (
-        @Body('Cedula_Juridica') Cedula_Juridica: string
+        @Body() dto: ConsultaJuridicaDTO
     ) {
-        return this.pagosService.getConsultaPagosByAfiliadoJuridico(Cedula_Juridica);
+        return this.pagosService.getConsultaPagosByAfiliadoJuridico(dto);
     }
 }
