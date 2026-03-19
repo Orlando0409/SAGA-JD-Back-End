@@ -11,6 +11,7 @@ import { getTotalPorM3DTO } from './LecturaDTO\'S/getTotalPorM3.dto';
 import { RangoConsumo } from './LecturaEntities/RangoConsumo.Entity';
 import { CargoFijoTarifas } from './LecturaEntities/CargoFijoTarifas.Entity';
 import { TipoTarifaCargoFijo } from './LecturaEntities/TipoTarifaCargoFijo.Entity';
+import { LecturaService } from './lectura.service';
 
 export class totalLecturasService {
     constructor(
@@ -42,7 +43,9 @@ export class totalLecturasService {
         private readonly afiliadoRepository: Repository<Afiliado>,
 
         @InjectRepository(EstadoAfiliado)
-        private readonly estadoAfiliadoRepository: Repository<EstadoAfiliado>
+        private readonly estadoAfiliadoRepository: Repository<EstadoAfiliado>,
+
+        private readonly lecturasService: LecturaService
     ) { }
 
     // Metodo para contar la cantidad de afiliados activos
@@ -96,7 +99,7 @@ export class totalLecturasService {
         }));
     }
 
-    async CalcularTotalAPagar(consumo: number, idTipoTarifa: number): Promise<number> {
+    async CalcularTotalAPagar(consumo: number, idTipoTarifa: number) {
         /*
             Hay 3 entidades a tener en cuenta para los calculos de los afiliados,
             estas siendo: tipoTarifa, RangoAfiliados y RangoConsumo
@@ -149,6 +152,13 @@ export class totalLecturasService {
         console.log(`Cargo fijo agregado: ${cargoFijo.Cargo_Fijo_Por_Mes}`);
         console.log(`Valor final a pagar: ${valorFinalAPagar}`);
 
-        return valorFinalAPagar;
+        return {
+            Total_A_Pagar: valorFinalAPagar,
+            Detalles: {
+                Consumo_M3: consumo,
+                Costo_Por_M3: costoPorM3Ajustado,
+                Cargo_Fijo: cargoFijo.Cargo_Fijo_Por_Mes
+            }
+        }
     }
 }

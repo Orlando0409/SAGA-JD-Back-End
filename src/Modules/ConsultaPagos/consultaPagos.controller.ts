@@ -1,19 +1,22 @@
+import { LecturaService } from './../Lecturas/lectura.service';
 import { Body, Controller, Get } from "@nestjs/common";
-import { PagosService } from "./pagos.service";
+import { PagosService } from "./consultaPagos.service";
 import { Public } from "../auth/Decorator/Public.decorator";
 import { ApiOperation } from "@nestjs/swagger";
-import { ConsultaFisicaDTO } from "./PagoDTO'S/consultaFisica.dto";
+import { ConsultaFisicaDTO } from "./ConsultaPagoDTO'S/consultaFisica.dto";
 
-@Controller('pagos')
+@Controller('consulta_pagos')
 export class PagosController {
     constructor(
-        private readonly pagosService: PagosService
+        private readonly pagosService: PagosService,
+
+        private readonly lecturaService: LecturaService
     ) { }
 
     @Public()
     @Get('/afiliado-fisico')
     @ApiOperation({ summary: 'Obtener pagos de un afiliado físico por tipo y número de identificación' })
-    getConsultaPagosByAfiliadoFisico(
+    getConsultaPagosByAfiliadoFisico (
         @Body() dto: ConsultaFisicaDTO
     ) {
         return this.pagosService.getConsultaPagosByAfiliadoFisico(dto);
@@ -22,7 +25,9 @@ export class PagosController {
     @Public()
     @Get('/afiliado-juridico')
     @ApiOperation({ summary: 'Obtener pagos de un afiliado jurídico por cédula jurídica' })
-    getConsultaPagosByAfiliadoJuridico(Cedula_Juridica: string) {
+    getConsultaPagosByAfiliadoJuridico (
+        @Body('Cedula_Juridica') Cedula_Juridica: string
+    ) {
         return this.pagosService.getConsultaPagosByAfiliadoJuridico(Cedula_Juridica);
     }
 }

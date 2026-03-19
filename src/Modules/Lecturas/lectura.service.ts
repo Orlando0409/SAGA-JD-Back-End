@@ -192,9 +192,7 @@ export class LecturaService {
             Fecha_Lectura: lectura.Fecha_Lectura,
             Medidor: this.medidorService.formatearMedidorResponse(lectura.Medidor),
             Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(lectura.Medidor?.Afiliado),
-            Usuario: await this.usuariosService.FormatearUsuarioResponse(lectura.Usuario)
         })));
-
     }
 
     //Obtiene las ultimas 5 lecturas hechas para un afiliado juridico especifico

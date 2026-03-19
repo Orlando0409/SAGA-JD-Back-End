@@ -1,4 +1,4 @@
-import { totalLecturasService } from './../Lecturas/totalLecturas.service';
+import { totalLecturasService } from '../Lecturas/totalLecturas.service';
 import { TipoIdentificacion } from 'src/Common/Enums/TipoIdentificacion.enum';
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -8,14 +8,14 @@ import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from "../Afiliados/Afiliad
 import { TipoTarifaLectura } from "../Lecturas/LecturaEntities/TipoTarifaLectura.Entity";
 import { Lectura } from "../Lecturas/LecturaEntities/Lectura.Entity";
 import { LecturaService } from '../Lecturas/lectura.service';
-import { ConsultaFisicaDTO } from './PagoDTO\'S/consultaFisica.dto';
-import { Consulta_Pago } from './PagoEntities/ConsultaPago.entity';
+import { ConsultaPago } from './ConsultaPagoEntities/ConsultaPago.entity';
+import { ConsultaFisicaDTO } from './ConsultaPagoDTO\'S/consultaFisica.dto';
 
 @Injectable()
 export class PagosService {
     constructor(
-        @InjectRepository(Consulta_Pago)
-        private readonly consultaPagoRepository: Repository<Consulta_Pago>,
+        @InjectRepository(ConsultaPago)
+        private readonly consultaPagoRepository: Repository<ConsultaPago>,
 
         @InjectRepository(Lectura)
         private readonly lecturaRepository: Repository<Lectura>,

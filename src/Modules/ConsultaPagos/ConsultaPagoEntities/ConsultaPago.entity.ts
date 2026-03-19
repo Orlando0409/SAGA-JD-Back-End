@@ -2,7 +2,7 @@ import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('consulta_pagos')
-export class Consulta_Pago {
+export class ConsultaPago {
     @PrimaryGeneratedColumn()
     Id_Consulta_Pago: number;
 
