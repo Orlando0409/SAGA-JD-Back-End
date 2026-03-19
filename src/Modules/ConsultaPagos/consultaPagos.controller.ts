@@ -1,4 +1,3 @@
-import { LecturaService } from './../Lecturas/lectura.service';
 import { Body, Controller, Get } from "@nestjs/common";
 import { PagosService } from "./consultaPagos.service";
 import { Public } from "../auth/Decorator/Public.decorator";
@@ -8,9 +7,7 @@ import { ConsultaFisicaDTO } from "./ConsultaPagoDTO'S/consultaFisica.dto";
 @Controller('consulta_pagos')
 export class PagosController {
     constructor(
-        private readonly pagosService: PagosService,
-
-        private readonly lecturaService: LecturaService
+        private readonly pagosService: PagosService
     ) { }
 
     @Public()

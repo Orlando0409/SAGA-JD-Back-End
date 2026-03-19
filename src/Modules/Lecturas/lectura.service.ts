@@ -59,45 +59,6 @@ export class LecturaService {
         private readonly afiliadosService: AfiliadosService,
     ) { }
 
-    private identificarAfiliado(afiliado: Afiliado): { tipo: string; id: number; identificacion: string; nombreCompleto: string; detalles: any } {
-        // Determinar el tipo de afiliado
-        const tipoAfiliado = afiliado.Tipo_Entidad === TipoEntidad.Física ? 'Físico' : 'Jurídico';
-
-        let identificacion = '';
-        let nombreCompleto = '';
-        let detalles: any = {};
-
-        // Verificar si es afiliado físico
-        if (afiliado.Tipo_Entidad === TipoEntidad.Física) {
-            const afiliadoFisico = afiliado as AfiliadoFisico;
-            identificacion = afiliadoFisico.Identificacion || 'N/A';
-            nombreCompleto = `${afiliadoFisico.Nombre} ${afiliadoFisico.Apellido1} ${afiliadoFisico.Apellido2 || ''}`.trim();
-            detalles = {
-                Tipo_Identificacion: afiliadoFisico.Tipo_Identificacion,
-                Identificacion: afiliadoFisico.Identificacion,
-                Nombre_Completo: nombreCompleto
-            };
-        }
-        // Verificar si es afiliado jurídico
-        else if (afiliado.Tipo_Entidad === TipoEntidad.Jurídica) {
-            const afiliadoJuridico = afiliado as AfiliadoJuridico;
-            identificacion = afiliadoJuridico.Cedula_Juridica || 'N/A';
-            nombreCompleto = afiliadoJuridico.Razon_Social || 'N/A';
-            detalles = {
-                Cedula_Juridica: afiliadoJuridico.Cedula_Juridica,
-                Razon_Social: afiliadoJuridico.Razon_Social
-            };
-        }
-
-        return {
-            tipo: tipoAfiliado,
-            id: afiliado.Id_Afiliado,
-            identificacion,
-            nombreCompleto,
-            detalles
-        };
-    }
-
     async getAllLecturas() {
         const lecturas = await this.lecturaRepository.createQueryBuilder('lectura')
             .leftJoinAndSelect('lectura.Medidor', 'medidor')
@@ -125,12 +86,15 @@ export class LecturaService {
         })));
     }
 
-    //Obtiene las ultimas 5 lecturas hechas para se medidor especifico
+    //Obtiene las ultimas 5 lecturas hechas para el medidor especifico
     async getHistorialLecturasByMedidor(numeroMedidor: number) {
         const lecturas = await this.lecturaRepository.createQueryBuilder('lectura')
             .leftJoinAndSelect('lectura.Medidor', 'medidor')
             .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estadoMedidor')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+            .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
+            .leftJoinAndSelect('afiliado.Estado', 'estadoAfiliado')
             .where('medidor.Numero_Medidor = :numeroMedidor', { numeroMedidor })
             .orderBy('lectura.Fecha_Lectura', 'DESC')
             .limit(5)
@@ -145,12 +109,11 @@ export class LecturaService {
             Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
             Fecha_Lectura: lectura.Fecha_Lectura,
             Medidor: this.medidorService.formatearMedidorResponse(lectura.Medidor),
-            Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(lectura.Medidor?.Afiliado),
-            Usuario: await this.usuariosService.FormatearUsuarioResponse(lectura.Usuario)
+            Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(lectura.Medidor?.Afiliado)
         })));
     }
 
-    //Obtiene la ultima lectura hecha para se medidor especifico
+    //Obtiene la ultima lectura hecha para el medidor especifico
     async getUltimaLecturaByMedidor(numeroMedidor: number) {
         const lectura = await this.lecturaRepository.createQueryBuilder('lectura')
             .leftJoinAndSelect('lectura.Medidor', 'medidor')
@@ -166,61 +129,6 @@ export class LecturaService {
             "Tipo de Tarifa": lectura.Tipo_Tarifa,
             "Consumo Calculado M3": lectura.Consumo_Calculado_M3
         }
-    }
-
-    //Obtiene las ultimas 5 lecturas hechas para un afiliado fisico especifico
-    async getHistorialLecturasByAfiliadoFisico(Identificacion: number) {
-        const lecturas = await this.lecturaRepository.createQueryBuilder('lectura')
-            .leftJoinAndSelect('lectura.Medidor', 'medidor')
-            .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
-            .leftJoinAndSelect('medidor.Estado_Medidor', 'estadoMedidor')
-            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
-            .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
-            .leftJoinAndSelect('afiliado.Estado', 'estadoAfiliado')
-            .where('afiliado.Identificacion = :Identificacion', { Identificacion })
-            .orderBy('lectura.Fecha_Lectura', 'DESC')
-            .limit(5)
-            .getMany();
-
-        return Promise.all(lecturas.map(async lectura => ({
-            Id_Lectura: lectura.Id_Lectura,
-            Tipo_Tarifa: lectura.Tipo_Tarifa ? {
-                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
-                Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
-            } : null,
-            Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
-            Fecha_Lectura: lectura.Fecha_Lectura,
-            Medidor: this.medidorService.formatearMedidorResponse(lectura.Medidor),
-            Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(lectura.Medidor?.Afiliado),
-        })));
-    }
-
-    //Obtiene las ultimas 5 lecturas hechas para un afiliado juridico especifico
-    async getHistorialLecturasByAfiliadoJuridico(Cedula_Juridica: number) {
-        const lecturas = await this.lecturaRepository.createQueryBuilder('lectura')
-            .leftJoinAndSelect('lectura.Medidor', 'medidor')
-            .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
-            .leftJoinAndSelect('medidor.Estado_Medidor', 'estadoMedidor')
-            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
-            .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
-            .leftJoinAndSelect('afiliado.Estado', 'estadoAfiliado')
-            .where('afiliado.Cedula_Juridica = :Cedula_Juridica', { Cedula_Juridica })
-            .orderBy('lectura.Fecha_Lectura', 'DESC')
-            .limit(5)
-            .getMany();
-
-        return Promise.all(lecturas.map(async lectura => ({
-            Id_Lectura: lectura.Id_Lectura,
-            Tipo_Tarifa: lectura.Tipo_Tarifa ? {
-                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
-                Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
-            } : null,
-            Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
-            Fecha_Lectura: lectura.Fecha_Lectura,
-            Medidor: this.medidorService.formatearMedidorResponse(lectura.Medidor),
-            Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(lectura.Medidor?.Afiliado),
-            Usuario: await this.usuariosService.FormatearUsuarioResponse(lectura.Usuario)
-        })));
     }
 
     async getTarifasLecturas() {
@@ -454,7 +362,7 @@ export class LecturaService {
 
                                 // Identificar afiliado vinculado al medidor
                                 const afiliadoIdentificado = medidor.Afiliado;
-                                const infoAfiliado = this.identificarAfiliado(afiliadoIdentificado);
+                                const infoAfiliado = this.afiliadosService.identificarAfiliado(afiliadoIdentificado);
 
                                 console.log(`Fila ${lineNumber}: Afiliado ${infoAfiliado.tipo} identificado - ID: ${infoAfiliado.id}, Identificación: ${infoAfiliado.identificacion}, Nombre/Razón Social: ${infoAfiliado.nombreCompleto}`);
 
@@ -609,7 +517,7 @@ export class LecturaService {
 
         // Identificar afiliado vinculado al medidor
         const afiliadoIdentificado = medidor.Afiliado;
-        const infoAfiliado = this.identificarAfiliado(afiliadoIdentificado);
+        const infoAfiliado = this.afiliadosService.identificarAfiliado(afiliadoIdentificado);
 
         console.log(`Lectura manual - Afiliado ${infoAfiliado.tipo} identificado: ID: ${infoAfiliado.id}, Identificación: ${infoAfiliado.identificacion}, Nombre/Razón Social: ${infoAfiliado.nombreCompleto}, Medidor: ${dto.Numero_Medidor}`);
 

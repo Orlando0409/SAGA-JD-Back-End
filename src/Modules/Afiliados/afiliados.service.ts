@@ -896,6 +896,47 @@ export class AfiliadosService {
             Razon_Social: afiliadoJuridico.Razon_Social,
         };
     }
+
+    identificarAfiliado(afiliado: Afiliado): { tipo: string; id: number; identificacion: string; nombreCompleto: string; detalles: any } {
+        // Determinar el tipo de afiliado
+        const tipoAfiliado = afiliado.Tipo_Entidad === TipoEntidad.Física ? 'Físico' : 'Jurídico';
+
+        let identificacion = '';
+        let nombreCompleto = '';
+        let detalles: any = {};
+
+        // Verificar si es afiliado físico
+        if (afiliado.Tipo_Entidad === TipoEntidad.Física) {
+            const afiliadoFisico = afiliado as AfiliadoFisico;
+            identificacion = afiliadoFisico.Identificacion || 'N/A';
+            nombreCompleto = `${afiliadoFisico.Nombre} ${afiliadoFisico.Apellido1} ${afiliadoFisico.Apellido2 || ''}`.trim();
+            detalles = {
+                Tipo_Identificacion: afiliadoFisico.Tipo_Identificacion,
+                Identificacion: afiliadoFisico.Identificacion,
+                Nombre_Completo: nombreCompleto
+            };
+        }
+        
+        // Verificar si es afiliado jurídico
+        else if (afiliado.Tipo_Entidad === TipoEntidad.Jurídica) {
+            const afiliadoJuridico = afiliado as AfiliadoJuridico;
+            identificacion = afiliadoJuridico.Cedula_Juridica || 'N/A';
+            nombreCompleto = afiliadoJuridico.Razon_Social || 'N/A';
+            detalles = {
+                Cedula_Juridica: afiliadoJuridico.Cedula_Juridica,
+                Razon_Social: afiliadoJuridico.Razon_Social
+            };
+        }
+
+        return {
+            tipo: tipoAfiliado,
+            id: afiliado.Id_Afiliado,
+            identificacion,
+            nombreCompleto,
+            detalles
+        };
+    }
+
     async FormatearAfiliadoParaResponseSimple(afiliado: any) {
         if (!afiliado) return null;
 

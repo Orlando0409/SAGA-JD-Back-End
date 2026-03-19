@@ -1,3 +1,5 @@
+import { AfiliadoJuridico } from 'src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity';
+import { AfiliadoFisico } from './../Afiliados/AfiliadoEntities/Afiliado.Entity';
 import { Module, forwardRef } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Lectura } from "./LecturaEntities/Lectura.Entity";
@@ -23,7 +25,7 @@ import { TipoTarifaCargoFijo } from "./LecturaEntities/TipoTarifaCargoFijo.Entit
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Lectura, TipoTarifaLectura, TipoTarifaCargoFijo, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, CargoFijoTarifas, RangoAfiliados, RangoConsumo, Usuario, Medidor, EstadoMedidor, Afiliado, EstadoAfiliado]), 
+        TypeOrmModule.forFeature([Lectura, TipoTarifaLectura, TipoTarifaCargoFijo, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, CargoFijoTarifas, RangoAfiliados, RangoConsumo, Usuario, Medidor, EstadoMedidor, Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado]), 
         forwardRef(() => UsuariosModule),
         forwardRef(() => AuditoriaModule),
         forwardRef(() => InventarioModule),
