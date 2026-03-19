@@ -1,4 +1,3 @@
-import { TipoIdentificacion } from './../../Common/Enums/TipoIdentificacion.enum';
 import { Body, Controller, Param, Get, Post } from "@nestjs/common";
 import { PagosService } from "./consultaPagos.service";
 import { Public } from "../auth/Decorator/Public.decorator";
@@ -11,6 +10,15 @@ export class PagosController {
     constructor(
         private readonly pagosService: PagosService
     ) { }
+
+    @Public()
+    @Get('/medidor/:numeroMedidor')
+    @ApiOperation({ summary: 'Obtener pagos asociados a un número de medidor' })
+    getConsultaPagosByMedidor (
+        @Param('numeroMedidor') numeroMedidor: number
+    ) {
+        return this.pagosService.getConsultaPagosByMedidor(numeroMedidor);
+    }
 
     @Public()
     @Post('/afiliado-fisico')

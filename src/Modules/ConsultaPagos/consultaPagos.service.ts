@@ -44,6 +44,41 @@ export class PagosService {
         private readonly validationsService: ValidationsService
     ) { }
 
+    async getConsultaPagosByMedidor(numeroMedidor: number) {
+        const medidor = await this.medidorRepository.findOne({
+            where: { Numero_Medidor: numeroMedidor },
+            relations: ['Estado_Medidor']
+        });
+        if (!medidor) throw new BadRequestException('No se encontró un medidor con el número proporcionado.');
+
+        const estadoMedidor = medidor.Estado_Medidor.Id_Estado_Medidor;
+        if (estadoMedidor === 1 || estadoMedidor === 3) throw new BadRequestException('El medidor esta inactivo o suspendido.');
+
+        const ultimaLectura = await this.lecturaService.getUltimaLecturaByMedidor(numeroMedidor);
+        if (!ultimaLectura) throw new BadRequestException('No se encontró ninguna lectura para el medidor proporcionado.');
+
+        const tipoTarifa = ultimaLectura['Tipo de Tarifa'];
+        if (!tipoTarifa) throw new BadRequestException('La última lectura no tiene un tipo de tarifa asociado.');
+
+        const historial_Lecturas = await this.lecturaService.getHistorialLecturasByMedidor(numeroMedidor);
+
+        const total_A_Pagar = await this.totalLecturasService.CalcularTotalAPagar(
+            ultimaLectura['Consumo Calculado M3'], 
+            tipoTarifa['Id_Tipo_Tarifa_Lectura']
+        );
+
+        const ConsultaPago = this.consultaPagoRepository.create({
+            Numero_Medidor: numeroMedidor
+        });
+        await this.consultaPagoRepository.save(ConsultaPago);
+
+        return {
+            Numero_Medidor: numeroMedidor,
+            "Calculo final": total_A_Pagar,
+            "Historial de lecturas": historial_Lecturas
+        };
+    }
+
     async getConsultaPagosByAfiliadoFisico(dto: ConsultaFisicaDTO) {
         // Caso 1: Solo tipo de identificación + identificación (sin número de medidor)
         // Devuelve información de TODOS los medidores asociados
