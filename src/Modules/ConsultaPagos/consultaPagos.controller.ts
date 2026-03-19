@@ -1,4 +1,4 @@
-import { Body, Controller, Get } from "@nestjs/common";
+import { Body, Controller, Param, Get } from "@nestjs/common";
 import { PagosService } from "./consultaPagos.service";
 import { Public } from "../auth/Decorator/Public.decorator";
 import { ApiOperation } from "@nestjs/swagger";
@@ -14,7 +14,7 @@ export class PagosController {
     @Get('/afiliado-fisico')
     @ApiOperation({ summary: 'Obtener pagos de un afiliado físico por tipo y número de identificación' })
     getConsultaPagosByAfiliadoFisico (
-        @Body() dto: ConsultaFisicaDTO
+        @Param() dto: ConsultaFisicaDTO
     ) {
         return this.pagosService.getConsultaPagosByAfiliadoFisico(dto);
     }
