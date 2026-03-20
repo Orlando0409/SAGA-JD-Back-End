@@ -1,10 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEmail, IsNumber, IsOptional, IsDefined, IsNotEmpty, MinLength, MaxLength, Matches, Min, Max, IsEnum, } from 'class-validator';
+import { IsString, IsEmail, IsNumber, IsOptional, IsDefined, IsNotEmpty, MinLength, MaxLength, Matches, Min, Max, IsEnum, IsIn, } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { TipoIdentificacion } from 'src/Common/Enums/TipoIdentificacion.enum';
 import { IsIdentificacionValida } from 'src/Validations/DTO Validators/Identificacion.validator';
 import { IsTelefonoValido } from 'src/Validations/DTO Validators/NumeroTelefono.validator';
 import { IsCedulaJuridicaValida } from 'src/Validations/DTO Validators/CedulaJuridica.validator';
+import { OpcionMedidor } from 'src/Common/Enums/OpcionMedidor.enum';
 
 // Función helper para capitalizar cada palabra
 const capitalizarCadaPalabra = (value: string): string => {
@@ -16,7 +17,7 @@ const capitalizarCadaPalabra = (value: string): string => {
     .join(' ');
 };
 
-export abstract class CreateAfiliadoDto {
+export class CreateAfiliadoDto {
   @ApiProperty({ example: 'ejemplo@gmail.com' })
   @Transform(({ value }) => value?.trim())
   @IsEmail({}, { message: 'El correo electrónico debe tener un formato válido' })
@@ -43,17 +44,49 @@ export abstract class CreateAfiliadoDto {
   @MaxLength(255, { message: 'La dirección no puede tener más de 255 caracteres' })
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#-]+$/, { message: 'La dirección solo puede contener letras, números, espacios y los caracteres .,-#' })
   Direccion_Exacta: string;
+
+  // ───MEDIDOR───────────────────────────────────────────────────────
+  @ApiProperty({
+    example: 'sin_medidor',
+    enum: OpcionMedidor,
+    required: false,
+    default: OpcionMedidor.SinMedidor,
+  })
+  @IsOptional()
+  @IsEnum(OpcionMedidor, { message: 'Opcion_Medidor debe ser "sin_medidor", "asignar" o "agregar"' })
+  Opcion_Medidor?: OpcionMedidor;
+
+  @ApiProperty({
+    example: 3,
+    required: false,
+  })
+  @IsOptional()
+  @Transform(({ value }) => (value !== undefined && value !== null && value !== '' ? Number(value) : undefined))
+  @IsNumber({}, { message: 'Id_Medidor debe ser un número entero' })
+  Id_Medidor?: number;
+
+  @ApiProperty({
+    example: 123456,
+    description: 'Requerido cuando Opcion_Medidor = "agregar". Número del nuevo medidor a crear.',
+    required: false,
+  })
+  @IsOptional()
+  @Transform(({ value }) => (value !== undefined && value !== null && value !== '' ? Number(value) : undefined))
+  @IsNumber({}, { message: 'Numero_Medidor debe ser un número entero' })
+  Numero_Medidor?: number;
 }
 
 export class CreateAfiliadoFisicoDto extends CreateAfiliadoDto {
-  @ApiProperty({ example: 'Cedula' })
+  @ApiProperty({ example: 'Cedula', enum: [TipoIdentificacion.CEDULA, TipoIdentificacion.DIMEX, TipoIdentificacion.PASAPORTE] })
   @Transform(({ value }) => value?.trim())
-  @IsEnum(TipoIdentificacion, { message: `El tipo de identificación debe ser uno de los siguientes: ${Object.values(TipoIdentificacion).join(', ')}` })
+  @IsEnum(TipoIdentificacion, { message: `El tipo de identificación debe ser válido` })
+  @IsIn([TipoIdentificacion.CEDULA, TipoIdentificacion.DIMEX, TipoIdentificacion.PASAPORTE],
+    { message: 'Para afiliados físicos solo se permiten: Cedula Nacional, Dimex, Pasaporte' })
   @IsDefined({ message: 'El tipo de identificación no puede estar vacío' })
   Tipo_Identificacion: TipoIdentificacion;
 
-  @ApiProperty({ example: '123456789' })
-  @Transform(({ value }) => value?.trim().toUpperCase())
+  @ApiProperty({ example: '123456789 o 1-2345-6789 o 1 2345 6789' })
+  @Transform(({ value }) => value?.trim().replace(/[\s\-]+/g, '').toUpperCase())
   @IsDefined({ message: 'La identificación no puede estar vacía' })
   @IsNotEmpty({ message: 'La identificación no puede estar vacía' })
   @IsString({ message: 'La identificación debe ser un string' })

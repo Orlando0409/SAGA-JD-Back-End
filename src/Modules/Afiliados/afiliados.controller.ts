@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Put, UploadedFiles, UseInterceptors, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, UploadedFiles, UseInterceptors, UseGuards } from "@nestjs/common";
 import { AfiliadosService } from "./afiliados.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { CreateAfiliadoFisicoDto, CreateAfiliadoJuridicoDto } from "./AfiliadoDTO's/CreateAfiliado.dto";
@@ -7,11 +7,27 @@ import { FileFieldsInterceptor } from "@nestjs/platform-express/multer";
 import { JwtAuthGuard } from "../auth/Guard/JwtGuard";
 import { GetUser } from "../auth/Decorator/GetUser.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
+import { Public } from "../auth/Decorator/Public.decorator";
 
 @Controller('afiliados')
 @UseGuards(JwtAuthGuard)
 export class AfiliadosController {
     constructor(private readonly afiliadosService: AfiliadosService) { }
+
+    @Public()
+    @Get('/fisico/medidores/:identificacion')
+    @ApiOperation({ summary: 'Obtener medidores de un afiliado físico por su identificación' })
+    getMedidoresByIdentificacion(@Param('identificacion') identificacion: string) {
+        return this.afiliadosService.getMedidoresbyIdentificacion(identificacion);
+    }
+
+    @Public()
+    @Get('/juridico/medidores/:cedulaJuridica')
+    @ApiOperation({ summary: 'Obtener medidores de un afiliado jurídico por su cédula jurídica' })
+    getMedidoresByCedulaJuridica(@Param('cedulaJuridica') cedulaJuridica: string) {
+        return this.afiliadosService.getMedidoresbyCedulaJuridica(cedulaJuridica);
+    }
+
 
     @Get('/all')
     @ApiOperation({ summary: 'Obtener todos los afiliados' })
@@ -29,6 +45,22 @@ export class AfiliadosController {
     @ApiOperation({ summary: 'Obtener todos los afiliados jurídicos' })
     findAllJuridicos() {
         return this.afiliadosService.getAfiliadosJuridicos();
+    }
+
+    @Get('/fisico/detail/:id')
+    @ApiOperation({ summary: 'Obtener detalle completo de un afiliado físico incluyendo todos sus medidores' })
+    getDetalleAfiliadoFisico(
+        @Param('id', ParseIntPipe) id: number
+    ) {
+        return this.afiliadosService.getDetalleAfiliadoFisico(id);
+    }
+
+    @Get('/juridico/detail/:id')
+    @ApiOperation({ summary: 'Obtener detalle completo de un afiliado jurídico incluyendo todos sus medidores' })
+    getDetalleAfiliadoJuridico(
+        @Param('id', ParseIntPipe) id: number
+    ) {
+        return this.afiliadosService.getDetalleAfiliadoJuridico(id);
     }
 
     @Post('/fisico/create')
@@ -58,31 +90,21 @@ export class AfiliadosController {
     }
 
     @Put('/update/fisico/:cedula')
-    @ApiOperation({ summary: 'Actualizar un afiliado físico' })
-    @UseInterceptors(FileFieldsInterceptor([
-        { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
-    ]),)
+    @ApiOperation({ summary: 'Actualizar datos de un afiliado físico' })
     updateAfiliadoFisico(
         @Param('cedula') cedula: string,
         @Body() dto: UpdateAfiliadoFisicoDto,
-        @GetUser() usuario: Usuario,
-        @UploadedFiles() files?: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; }) {
-        return this.afiliadosService.updateAfiliadoFisico(cedula, dto, usuario.Id_Usuario, files);
+        @GetUser() usuario: Usuario) {
+        return this.afiliadosService.updateAfiliadoFisico(cedula, dto, usuario.Id_Usuario);
     }
 
     @Put('/update/juridico/:cedulaJuridica')
-    @ApiOperation({ summary: 'Actualizar un afiliado jurídico' })
-    @UseInterceptors(FileFieldsInterceptor([
-        { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
-    ]),)
+    @ApiOperation({ summary: 'Actualizar datos de un afiliado jurídico' })
     updateAfiliadoJuridico(
         @Param('cedulaJuridica') cedulaJuridica: string,
         @Body() dto: UpdateAfiliadoJuridicoDto,
-        @GetUser() usuario: Usuario,
-        @UploadedFiles() files?: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; }) {
-        return this.afiliadosService.updateAfiliadoJuridico(cedulaJuridica, dto, usuario.Id_Usuario, files);
+        @GetUser() usuario: Usuario) {
+        return this.afiliadosService.updateAfiliadoJuridico(cedulaJuridica, dto, usuario.Id_Usuario);
     }
 
     @Patch('/fisico/:id/update/estado/:nuevoEstadoId')

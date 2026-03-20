@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive, IsEnum, IsOptional } from "class-validator";
+import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive, IsEnum, IsOptional, IsNumber } from "class-validator";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { IsIdentificacionValida } from "src/Validations/DTO Validators/Identificacion.validator";
 import { IsTelefonoValido } from "src/Validations/DTO Validators/NumeroTelefono.validator";
@@ -115,6 +115,14 @@ export class CreateSolicitudDesconexionFisicaDto extends CreateSolicitudFisicaDt
   @MaxLength(500, { message: 'El motivo de la solicitud no puede tener más de 500 caracteres' })
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,!?¿¡()-]+$/, { message: 'El motivo de la solicitud solo puede contener letras, números, espacios y los caracteres .,!?¿¡()-' })
   Motivo_Solicitud: string;
+
+  @ApiProperty({ example: 1 })
+  @IsInt({ message: 'El Id del medidor debe ser un número entero' })
+  @IsDefined({ message: 'El Id del medidor no puede estar vacío' })
+  @IsNotEmpty({ message: 'El Id del medidor no puede estar vacío' })
+  @IsPositive({ message: 'El Id del medidor debe ser positivo' })
+  @Min(1, { message: 'El Id del medidor debe ser mayor a 0' })
+  Id_Medidor: number;
 }
 
 export class CreateSolicitudCambioMedidorFisicaDto extends CreateSolicitudFisicaDto {
@@ -138,14 +146,20 @@ export class CreateSolicitudCambioMedidorFisicaDto extends CreateSolicitudFisica
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,!?¿¡()-]+$/, { message: 'El motivo de la solicitud solo puede contener letras, números, espacios y los caracteres .,!?¿¡()-' })
   Motivo_Solicitud: string;
 
-  @ApiProperty({example: 456789})
-  @IsInt({message: 'El numero de medidor anterior debe ser un numero entero'})
-  @IsDefined({message: 'El numero de medidor anterior no puede estar vacio'})
-  @IsNotEmpty({ message: 'El número de medidor anterior no puede estar vacío' })
-  @IsPositive({ message: 'El número de medidor anterior debe ser positivo' })
-  @Min(1, { message: 'El número de medidor anterior debe ser mayor a 0' })
-  @Max(9999999, { message: 'El número de medidor anterior no puede ser mayor a 9,999,999' })
-  Numero_Medidor_Anterior: number;
+  @ApiProperty({ example: 1 })
+  @IsInt({ message: 'El Id del medidor debe ser un número entero' })
+  @IsDefined({ message: 'El Id del medidor no puede estar vacío' })
+  @IsNotEmpty({ message: 'El Id del medidor no puede estar vacío' })
+  @IsPositive({ message: 'El Id del medidor debe ser positivo' })
+  @Min(1, { message: 'El Id del medidor debe ser mayor a 0' })
+  Id_Medidor: number;
+
+  @ApiProperty({ example: 3, required: false, description: 'ID del nuevo medidor que se asignará al afiliado al aprobar la solicitud' })
+  @IsOptional()
+  @IsInt({ message: 'El Id del nuevo medidor debe ser un número entero' })
+  @IsPositive({ message: 'El Id del nuevo medidor debe ser positivo' })
+  @Min(1, { message: 'El Id del nuevo medidor debe ser mayor a 0' })
+  Id_Nuevo_Medidor?: number;
 }
 
 export class CreateSolicitudAsociadoFisicaDto extends CreateSolicitudFisicaDto {
@@ -160,6 +174,25 @@ export class CreateSolicitudAsociadoFisicaDto extends CreateSolicitudFisicaDto {
   Motivo_Solicitud: string;
 }
 
+export class CreateSolicitudAgregarMedidorFisicaDto extends CreateSolicitudFisicaDto {
+  @ApiProperty({ example: '200 metros del perro echado' })
+  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
+  @IsString({ message: 'La dirección debe ser un string' })
+  @IsDefined({ message: 'La dirección no puede estar vacía' })
+  @IsNotEmpty({ message: 'La dirección no puede estar vacía' })
+  @MinLength(10, { message: 'La dirección debe tener al menos 10 caracteres' })
+  @MaxLength(255, { message: 'La dirección no puede tener más de 255 caracteres' })
+  @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#-]+$/, { message: 'La dirección solo puede contener letras, números, espacios y los caracteres .,-#' })
+  Direccion_Exacta: string;
+
+  @ApiProperty({ example: 3, required: false, description: 'ID del nuevo medidor que se asignará al afiliado al completar la solicitud' })
+  @IsOptional()
+  @IsInt({ message: 'El Id del nuevo medidor debe ser un número entero' })
+  @IsPositive({ message: 'El Id del nuevo medidor debe ser positivo' })
+  @Min(1, { message: 'El Id del nuevo medidor debe ser mayor a 0' })
+  Id_Nuevo_Medidor?: number;
+}
+
 export class CreateAfiliacionFisicaDto extends CreateSolicitudAfiliacionFisicaDto {}
 
 export class CreateDesconexionFisicaDto extends CreateSolicitudDesconexionFisicaDto {}
@@ -167,3 +200,5 @@ export class CreateDesconexionFisicaDto extends CreateSolicitudDesconexionFisica
 export class CreateCambioMedidorFisicaDto extends CreateSolicitudCambioMedidorFisicaDto {}
 
 export class CreateAsociadoFisicaDto extends CreateSolicitudAsociadoFisicaDto {}
+
+export class CreateAgregarMedidorFisicaDto extends CreateSolicitudAgregarMedidorFisicaDto {}

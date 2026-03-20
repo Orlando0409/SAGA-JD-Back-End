@@ -1,6 +1,8 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Lectura } from "./Lectura.Entity";
+import { TipoTarifaCargoFijo } from "./TipoTarifaCargoFijo.Entity";
 
+// Entidad que representa los tipos de tarifas para las lecturas, como residencial, comercial, etc.
 @Entity('tipo_tarifa_lectura')
 export class TipoTarifaLectura {
     @PrimaryGeneratedColumn()
@@ -9,9 +11,9 @@ export class TipoTarifaLectura {
     @Column({ type: 'varchar', length: 100, nullable: false })
     Nombre_Tipo_Tarifa: string;
 
-    @Column({ type: 'int', nullable: false })
-    Cargo_Fijo_Por_Mes: number;
-
-    @OneToMany(() => Lectura, lectura => lectura.Tipo_Tarifa, { nullable: false })
+    @OneToMany(() => Lectura, lectura => lectura.Tipo_Tarifa)
     Lectura: Lectura[];
+
+    @OneToMany(() => TipoTarifaCargoFijo, tipoTarifaCargoFijo => tipoTarifaCargoFijo.Tipo_Tarifa)
+    Cargos_Fijos: TipoTarifaCargoFijo[];
 }

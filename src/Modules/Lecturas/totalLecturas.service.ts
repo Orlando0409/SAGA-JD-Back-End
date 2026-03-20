@@ -1,3 +1,4 @@
+import { RangoAfiliados } from 'src/Modules/Lecturas/LecturaEntities/RangoAfiliados.Entity';
 import { Afiliado } from 'src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity';
 import { InjectRepository } from "@nestjs/typeorm";
 import { Lectura } from "./LecturaEntities/Lectura.Entity";
@@ -8,7 +9,9 @@ import { TipoTarifaVentaAgua } from "./LecturaEntities/TipoTarifaVentaAgua.Entit
 import { EstadoAfiliado } from '../Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { getTotalPorM3DTO } from './LecturaDTO\'S/getTotalPorM3.dto';
 import { RangoConsumo } from './LecturaEntities/RangoConsumo.Entity';
-import { RangoAfiliados } from './LecturaEntities/RangoAfiliados.Entity';
+import { CargoFijoTarifas } from './LecturaEntities/CargoFijoTarifas.Entity';
+import { TipoTarifaCargoFijo } from './LecturaEntities/TipoTarifaCargoFijo.Entity';
+import { LecturaService } from './lectura.service';
 
 export class totalLecturasService {
     constructor(
@@ -30,11 +33,19 @@ export class totalLecturasService {
         @InjectRepository(RangoAfiliados)
         private readonly rangoAfiliadosRepository: Repository<RangoAfiliados>,
 
+        @InjectRepository(CargoFijoTarifas)
+        private readonly cargoFijoTarifasRepository: Repository<CargoFijoTarifas>,
+
+        @InjectRepository(TipoTarifaCargoFijo)
+        private readonly tipoTarifaCargoFijoRepository: Repository<TipoTarifaCargoFijo>,
+
         @InjectRepository(Afiliado)
         private readonly afiliadoRepository: Repository<Afiliado>,
 
         @InjectRepository(EstadoAfiliado)
-        private readonly estadoAfiliadoRepository: Repository<EstadoAfiliado>
+        private readonly estadoAfiliadoRepository: Repository<EstadoAfiliado>,
+
+        private readonly lecturasService: LecturaService
     ) { }
 
     // Metodo para contar la cantidad de afiliados activos
@@ -44,170 +55,110 @@ export class totalLecturasService {
         });
     }
 
-    async ContarTotalPorM3(dto: getTotalPorM3DTO, idTipoTarifa: number): Promise<number> {
-        if (!idTipoTarifa || idTipoTarifa <= 0) throw new Error('idTipoTarifa debe ser un número positivo mayor que cero');
-        if (!dto.Metros_Cubicos || dto.Metros_Cubicos <= 0) throw new Error('Metros_Cubicos debe ser un número positivo mayor que cero');
-        if (await this.ContarAfiliadosActivos() === 0) throw new Error('No hay afiliados activos para calcular el total');
+    // Metodo para obtener el cargo fijo según el tipo de tarifa y el rango de afiliados
+    async getCargoFijo(idTipoTarifa: number, idRangoAfiliados: number): Promise<CargoFijoTarifas> {
+        const relacion = await this.tipoTarifaCargoFijoRepository.findOne({
+            where: {
+                Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: idTipoTarifa },
+                Rango_Afiliados: { Id_Rango_Afiliados: idRangoAfiliados }
+            },
+            relations: ['Cargo_Fijo']
+        });
 
-        const valorPorM3 = 0;
+        if (!relacion) throw new Error(`No se encontró un cargo fijo para el tipo de tarifa ${idTipoTarifa} y rango de afiliados ${idRangoAfiliados}`);
+        return relacion.Cargo_Fijo;
+    }
 
-        switch (idTipoTarifa) {
-            case 1:
-                // Lógica para el tipo de tarifa 1
-                if (await this.ContarAfiliadosActivos() > 1 && await this.ContarAfiliadosActivos() <= 100) {
-                    // Calcular total para tarifa 1
-                }
+    // Metodo para obtener los rangos de afiliados filtrado por tarifa (minimo, maximo, costo por M3 y el ID)
+    async getRangoAfiliados(idTipoTarifa: number) {
+        const Rangos = await this.rangoAfiliadosRepository.find({
+            where: { Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: idTipoTarifa } },
+            relations: ['Tipo_Tarifa']
+        });
 
-                else if (await this.ContarAfiliadosActivos() > 100 && await this.ContarAfiliadosActivos() <= 300) {
-                    // Calcular total para tarifa 1
-                }
+        return Rangos.map(rango => ({
+            Id_Rango_Afiliados: rango.Id_Rango_Afiliados,
+            Minimo_Afiliados: rango.Minimo_Afiliados,
+            Maximo_Afiliados: rango.Maximo_Afiliados,
+            Costo_Por_M3: rango.Costo_Por_M3
+        }));
+    }
 
-                else if (await this.ContarAfiliadosActivos() > 300 && await this.ContarAfiliadosActivos() <= 1000) {
-                    // Calcular total para tarifa 1
-                }
+    // Metodo para obtener los bloques de consumo filtrado por tarifa
+    async getRangoConsumo(idTipoTarifa: number) {
+        const Rangos = await this.rangoConsumoRepository.find({
+            where: { Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: idTipoTarifa } },
+            relations: ['Tipo_Tarifa']
+        });
 
-                else if (await this.ContarAfiliadosActivos() > 1000) {
-                    // Calcular total para tarifa 1
-                }
-                break;
+        return Rangos.map(rango => ({
+            Id_Rango_Consumo: rango.Id_Rango_Consumo,
+            Minimo_M3: rango.Minimo_M3,
+            Maximo_M3: rango.Maximo_M3,
+            Costo_Por_M3: rango.Costo_Por_M3
+        }));
+    }
 
-            case 2:
-                // Lógica para el tipo de tarifa 2
-                if (await this.ContarAfiliadosActivos() > 1 && await this.ContarAfiliadosActivos() <= 100) {
-                    // Calcular total para tarifa 2
-                }
+    async CalcularTotalAPagar(consumo: number, idTipoTarifa: number) {
+        /*
+            Hay 3 entidades a tener en cuenta para los calculos de los afiliados,
+            estas siendo: tipoTarifa, RangoAfiliados y RangoConsumo
 
-                else if (await this.ContarAfiliadosActivos() > 100 && await this.ContarAfiliadosActivos() <= 300) {
-                    // Calcular total para tarifa 2
-                }
+            tipoTarifa se encarga de identificar que tarifa se debe aplicar al calculo, Residencial, Comercial, etc.
+            RangoAfiliados se encarga de identificar cuantos afiliados activos hay, para asi saber cuanto menos se cobra.
+            RangoConsumo se encarga de identificar el rango de consumo de agua para calcular el costo por M3 usando el RangoAfiliados.
+        */
 
-                else if (await this.ContarAfiliadosActivos() > 300 && await this.ContarAfiliadosActivos() <= 1000) {
-                    // Calcular total para tarifa 2
-                }
+        // Para identificar el tipo de tarifa, se jala la tarifa usando el ID que se recibe por parametro
+        const tipoTarifa = await this.tipoTarifaRepository.findOne({ where: { Id_Tipo_Tarifa_Lectura: idTipoTarifa } });
+        if (!tipoTarifa) throw new Error('Tipo de tarifa no encontrado');
 
-                else if (await this.ContarAfiliadosActivos() > 1000) {
-                    // Calcular total para tarifa 2
-                }
-                break;
+        // Obtiene la cantidad de afiliados activos
+        const afiliadosActivos = await this.ContarAfiliadosActivos();
 
-            case 3:
-                // Lógica para el tipo de tarifa 3
-                if (await this.ContarAfiliadosActivos() > 1 && await this.ContarAfiliadosActivos() <= 100) {
-                    // Calcular total para tarifa 3
-                }
+        // Busca el rango de afiliados que corresponde a la cantidad actual
+        let Rangos = await this.getRangoAfiliados(idTipoTarifa);
+        let RangoAfiliados = Rangos.find(rango =>
+            rango.Minimo_Afiliados <= afiliadosActivos && rango.Maximo_Afiliados >= afiliadosActivos
+        );
+        if (!RangoAfiliados) throw new Error('No se encontró un rango de afiliados para la cantidad de afiliados activos');
 
-                else if (await this.ContarAfiliadosActivos() > 100 && await this.ContarAfiliadosActivos() <= 300) {
-                    // Calcular total para tarifa 3
-                }
+        // Obtiene el cargo fijo correspondiente al tipo de tarifa y rango de afiliados
+        const cargoFijo = await this.getCargoFijo(idTipoTarifa, RangoAfiliados.Id_Rango_Afiliados);
 
-                else if (await this.ContarAfiliadosActivos() > 300 && await this.ContarAfiliadosActivos() <= 1000) {
-                    // Calcular total para tarifa 3
-                }
+        // Jala el consumo del dto para validar el rango de consumo (filtrado por tarifa)
+        let RangosConsumo = await this.getRangoConsumo(idTipoTarifa);
+        let RangoConsumo = RangosConsumo.find(rango => consumo >= rango.Minimo_M3 && consumo <= rango.Maximo_M3);
+        if (!RangoConsumo) throw new Error('No se encontró un rango de consumo');
 
-                else if (await this.ContarAfiliadosActivos() > 1000) {
-                    // Calcular total para tarifa 3
-                }
-                break;
+        // Ajusta el costo del bloque segun el rango de afiliados usando el primer rango como base.
+        const rangoAfiliadosBase = [...Rangos].sort((a, b) => a.Minimo_Afiliados - b.Minimo_Afiliados)[0];
 
-            case 4:
-                // Lógica para el tipo de tarifa 4
-                if (await this.ContarAfiliadosActivos() > 1 && await this.ContarAfiliadosActivos() <= 100) {
-                    // Calcular total para tarifa 4
-                }
+        if (!rangoAfiliadosBase || rangoAfiliadosBase.Costo_Por_M3 <= 0) throw new Error('No se encontró un rango base válido para ajustar el costo por M3');
 
-                else if (await this.ContarAfiliadosActivos() > 100 && await this.ContarAfiliadosActivos() <= 300) {
-                    // Calcular total para tarifa 4
-                }
+        const factorRangoAfiliados = RangoAfiliados.Costo_Por_M3 / rangoAfiliadosBase.Costo_Por_M3;
+        const costoPorM3Ajustado = Math.round(RangoConsumo.Costo_Por_M3 * factorRangoAfiliados);
 
-                else if (await this.ContarAfiliadosActivos() > 300 && await this.ContarAfiliadosActivos() <= 1000) {
-                    // Calcular total para tarifa 4
-                }
+        // Variable para almacenar el total final luego de los calculos
+        let valorFinalAPagar = 0;
 
-                else if (await this.ContarAfiliadosActivos() > 1000) {
-                    // Calcular total para tarifa 4
-                }
-                break;
+        // Calcula el costo por consumo de agua (multiplicación directa en vez de loop)
+        const costoConsumo = consumo * costoPorM3Ajustado;
+        valorFinalAPagar += costoConsumo;
+        console.log(`Consumo: ${consumo} M3 x ${costoPorM3Ajustado} = ${costoConsumo}`);
 
-            case 5:
-                // Lógica para el tipo de tarifa 5
-                if (await this.ContarAfiliadosActivos() > 1 && await this.ContarAfiliadosActivos() <= 100) {
-                    // Calcular total para tarifa 5
-                }
+        // Agrega el cargo fijo mensual
+        valorFinalAPagar += cargoFijo.Cargo_Fijo_Por_Mes;
+        console.log(`Cargo fijo agregado: ${cargoFijo.Cargo_Fijo_Por_Mes}`);
+        console.log(`Valor final a pagar: ${valorFinalAPagar}`);
 
-                else if (await this.ContarAfiliadosActivos() > 100 && await this.ContarAfiliadosActivos() <= 300) {
-                    // Calcular total para tarifa 5
-                }
-
-                else if (await this.ContarAfiliadosActivos() > 300 && await this.ContarAfiliadosActivos() <= 1000) {
-                    // Calcular total para tarifa 5
-                }
-
-                else if (await this.ContarAfiliadosActivos() > 1000) {
-                    // Calcular total para tarifa 5
-                }
-                break;
-
-            case 6:
-                // Lógica para el tipo de tarifa 6
-                if (await this.ContarAfiliadosActivos() > 1 && await this.ContarAfiliadosActivos() <= 100) {
-                    // Calcular total para tarifa 6
-                }
-
-                else if (await this.ContarAfiliadosActivos() > 100 && await this.ContarAfiliadosActivos() <= 300) {
-                    // Calcular total para tarifa 6
-                }
-
-                else if (await this.ContarAfiliadosActivos() > 300 && await this.ContarAfiliadosActivos() <= 1000) {
-                    // Calcular total para tarifa 6
-                }
-
-                else if (await this.ContarAfiliadosActivos() > 1000) {
-                    // Calcular total para tarifa 6
-                }
-                break;
-
-            case 7:
-                // Lógica para el tipo de tarifa 7
-                if (await this.ContarAfiliadosActivos() > 1 && await this.ContarAfiliadosActivos() <= 100) {
-                    // Calcular total para tarifa 7
-                }
-
-                else if (await this.ContarAfiliadosActivos() > 100 && await this.ContarAfiliadosActivos() <= 300) {
-                    // Calcular total para tarifa 7
-                }
-
-                else if (await this.ContarAfiliadosActivos() > 300 && await this.ContarAfiliadosActivos() <= 1000) {
-                    // Calcular total para tarifa 7
-                }
-
-                else if (await this.ContarAfiliadosActivos() > 1000) {
-                    // Calcular total para tarifa 7
-                }
-                break;
-
-            case 8:
-                // Lógica para el tipo de tarifa 8
-                if (await this.ContarAfiliadosActivos() > 1 && await this.ContarAfiliadosActivos() <= 100) {
-                    // Calcular total para tarifa 8
-                }
-
-                else if (await this.ContarAfiliadosActivos() > 100 && await this.ContarAfiliadosActivos() <= 300) {
-                    // Calcular total para tarifa 8
-                }
-
-                else if (await this.ContarAfiliadosActivos() > 300 && await this.ContarAfiliadosActivos() <= 1000) {
-                    // Calcular total para tarifa 8
-                }
-
-                else if (await this.ContarAfiliadosActivos() > 1000) {
-                    // Calcular total para tarifa 8
-                }
-                break;
-
-            default:
-                throw new Error('Tipo de tarifa no válido');
+        return {
+            Total_A_Pagar: valorFinalAPagar,
+            Detalles: {
+                Consumo_M3: consumo,
+                Costo_Por_M3: costoPorM3Ajustado,
+                Cargo_Fijo: cargoFijo.Cargo_Fijo_Por_Mes
+            }
         }
-
-        return valorPorM3;
     }
 }

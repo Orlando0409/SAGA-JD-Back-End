@@ -3,6 +3,7 @@ import { EstadoSolicitud } from "./EstadoSolicitud.Entity";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
+import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
 
 @Entity('solicitud')
 export abstract class Solicitud {
@@ -172,6 +173,9 @@ export class SolicitudDesconexionFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Escritura_Terreno: string;
 
+    @Column({ nullable: false })
+    Id_Medidor: number;
+
     @BeforeInsert()
     @BeforeUpdate()
     setNormalizarCampos() {
@@ -208,7 +212,24 @@ export class SolicitudCambioMedidorFisica extends SolicitudFisica {
     Motivo_Solicitud: string;
 
     @Column({ nullable: false })
-    Numero_Medidor_Anterior: number;
+    Id_Medidor: number;
+
+    @Column({ nullable: false, type: 'varchar', length: 500 })
+    Planos_Terreno: string;
+
+    @Column({ nullable: false, type: 'varchar', length: 500 })
+    Escritura_Terreno: string;
+
+    @ManyToOne(() => Medidor, { nullable: true })
+    @JoinColumn({ name: 'Id_Medidor' })
+    Medidor: Medidor;
+
+    @Column({ nullable: true, default: null })
+    Id_Nuevo_Medidor: number;
+
+    @ManyToOne(() => Medidor, { nullable: true, eager: false })
+    @JoinColumn({ name: 'Id_Nuevo_Medidor' })
+    Nuevo_Medidor: Medidor;
 
     @BeforeInsert()
     @BeforeUpdate()
@@ -320,6 +341,9 @@ export class SolicitudDesconexionJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Escritura_Terreno: string;
 
+    @Column({ nullable: false })
+    Id_Medidor: number;
+
     @BeforeInsert()
     @BeforeUpdate()
     setNormalizarCampos() {
@@ -355,7 +379,24 @@ export class SolicitudCambioMedidorJuridica extends SolicitudJuridica {
     Motivo_Solicitud: string;
 
     @Column({ nullable: false })
-    Numero_Medidor_Anterior: number;
+    Id_Medidor: number;
+
+    @Column({ nullable: false, type: 'varchar', length: 500 })
+    Planos_Terreno: string;
+
+    @Column({ nullable: false, type: 'varchar', length: 500 })
+    Escritura_Terreno: string;
+
+    @ManyToOne(() => Medidor, { nullable: true })
+    @JoinColumn({ name: 'Id_Medidor' })
+    Medidor: Medidor;
+
+    @Column({ nullable: true, default: null })
+    Id_Nuevo_Medidor: number;
+
+    @ManyToOne(() => Medidor, { nullable: true, eager: false })
+    @JoinColumn({ name: 'Id_Nuevo_Medidor' })
+    Nuevo_Medidor: Medidor;
 
     @BeforeInsert()
     @BeforeUpdate()
@@ -402,6 +443,95 @@ export class SolicitudAsociadoJuridica extends SolicitudJuridica {
 
         if (!this.Id_Tipo_Solicitud) {
             this.Id_Tipo_Solicitud = 4;
+        }
+    }
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    setDefaultTipoEntidad() {
+        if (!this.Tipo_Entidad) {
+            this.Tipo_Entidad = TipoEntidad.Jurídica;
+        }
+    }
+}
+
+@Entity('solicitud_agregar_medidor_fisica')
+export class SolicitudAgregarMedidorFisica extends SolicitudFisica {
+    @Column({ nullable: false })
+    Direccion_Exacta: string;
+
+    @Column({ nullable: false })
+    Planos_Terreno: string;
+
+    @Column({ nullable: false })
+    Escritura_Terreno: string;
+
+    @Column({ nullable: true, default: null })
+    Id_Nuevo_Medidor: number;
+
+    @ManyToOne(() => Medidor, { nullable: true, eager: false })
+    @JoinColumn({ name: 'Id_Nuevo_Medidor' })
+    Nuevo_Medidor: Medidor;
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    setNormalizarCampos() {
+        this.normalizarTelefono();
+        this.normalizarApellido2();
+    }
+
+    @BeforeInsert()
+    setDefaultEstados() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Solicitud: 1 } as EstadoSolicitud;
+        }
+
+        if (!this.Id_Tipo_Solicitud) {
+            this.Id_Tipo_Solicitud = 5;
+        }
+    }
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    setDefaultTipoEntidad() {
+        if (!this.Tipo_Entidad) {
+            this.Tipo_Entidad = TipoEntidad.Física;
+        }
+    }
+}
+
+@Entity('solicitud_agregar_medidor_juridica')
+export class SolicitudAgregarMedidorJuridica extends SolicitudJuridica {
+    @Column({ nullable: false })
+    Direccion_Exacta: string;
+
+    @Column({ nullable: false })
+    Planos_Terreno: string;
+
+    @Column({ nullable: false })
+    Escritura_Terreno: string;
+
+    @Column({ nullable: true, default: null })
+    Id_Nuevo_Medidor: number;
+
+    @ManyToOne(() => Medidor, { nullable: true, eager: false })
+    @JoinColumn({ name: 'Id_Nuevo_Medidor' })
+    Nuevo_Medidor: Medidor;
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    setNormalizarCampos() {
+        this.normalizarTelefono();
+    }
+
+    @BeforeInsert()
+    setDefaultEstados() {
+        if (!this.Estado) {
+            this.Estado = { Id_Estado_Solicitud: 1 } as EstadoSolicitud;
+        }
+
+        if (!this.Id_Tipo_Solicitud) {
+            this.Id_Tipo_Solicitud = 5;
         }
     }
 

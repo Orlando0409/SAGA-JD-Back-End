@@ -1,9 +1,10 @@
-import { CreateSolicitudAfiliacionFisicaDto, CreateSolicitudAsociadoFisicaDto, CreateSolicitudCambioMedidorFisicaDto, CreateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/CreateSolicitudFisica.dto";import { Body, Controller, Get, Param, Patch, Post, UploadedFiles, UseInterceptors, Request, Put } from "@nestjs/common";
+import { CreateSolicitudAfiliacionFisicaDto, CreateSolicitudAgregarMedidorFisicaDto, CreateSolicitudAsociadoFisicaDto, CreateSolicitudCambioMedidorFisicaDto, CreateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/CreateSolicitudFisica.dto"; import { Body, Controller, Get, Param, Patch, Post, UploadedFiles, UseInterceptors, Request, Put } from "@nestjs/common";
 import { SolicitudesFisicasService } from "../Services/solicitudesFisicas.service";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { ApiOperation } from "@nestjs/swagger";
-import { UpdateSolicitudAfiliacionFisicaDto, UpdateSolicitudAsociadoFisicaDto, UpdateSolicitudCambioMedidorFisicaDto, UpdateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/UpdateSolicitudFisica.dto";
+import { UpdateSolicitudAfiliacionFisicaDto, UpdateSolicitudAgregarMedidorFisicaDto, UpdateSolicitudAsociadoFisicaDto, UpdateSolicitudCambioMedidorFisicaDto, UpdateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/UpdateSolicitudFisica.dto";
+import { RechazarSolicitudDto } from "../SolicitudDTO's/RechazarSolicitud.dto";
 
 @Controller('solicitudes-fisicas')
 export class SolicitudesFisicasController {
@@ -33,6 +34,12 @@ export class SolicitudesFisicasController {
     @ApiOperation({ summary: 'Obtener todas las solicitudes de cambio de medidor' })
     getAllSolicitudesCambioMedidor() {
         return this.solicitudesFisicasService.getAllSolicitudesCambioMedidor();
+    }
+
+    @Get('/cambio-medidor/:id')
+    @ApiOperation({ summary: 'Obtener el detalle de una solicitud de cambio de medidor física por ID' })
+    getSolicitudCambioMedidorById(@Param('id') id: number) {
+        return this.solicitudesFisicasService.getSolicitudCambioMedidorById(id);
     }
 
     @Get('/asociado')
@@ -70,10 +77,15 @@ export class SolicitudesFisicasController {
     @Public()
     @Post('/create/cambio-medidor')
     @ApiOperation({ summary: 'Crear una nueva solicitud de cambio de medidor fisica' })
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'Planos_Terreno', maxCount: 1 },
+        { name: 'Escritura_Terreno', maxCount: 1 },
+    ]))
     async createSolicitudCambioMedidor(
         @Body() solicitudCambioMedidor: CreateSolicitudCambioMedidorFisicaDto,
+        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Escritura_Terreno: Express.Multer.File[] }
     ) {
-        return this.solicitudesFisicasService.createSolicitudCambioMedidor(solicitudCambioMedidor);
+        return this.solicitudesFisicasService.createSolicitudCambioMedidor(solicitudCambioMedidor, files);
     }
 
     @Public()
@@ -134,10 +146,11 @@ export class SolicitudesFisicasController {
     async updateEstadoSolicitudAfiliacion(
         @Param('idSolicitud') idSolicitud: number,
         @Param('idNuevoEstado') idNuevoEstado: number,
+        @Body() dto: RechazarSolicitudDto,
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesFisicasService.updateEstadoSolicitudAfiliacion(idSolicitud, idNuevoEstado, idUsuario);
+        return this.solicitudesFisicasService.updateEstadoSolicitudAfiliacion(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
     }
 
     @Patch('/update/estado/desconexion/:idSolicitud/:idNuevoEstado')
@@ -145,10 +158,11 @@ export class SolicitudesFisicasController {
     async updateEstadoSolicitudDesconexion(
         @Param('idSolicitud') idSolicitud: number,
         @Param('idNuevoEstado') idNuevoEstado: number,
+        @Body() dto: RechazarSolicitudDto,
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesFisicasService.updateEstadoSolicitudDesconexion(idSolicitud, idNuevoEstado, idUsuario);
+        return this.solicitudesFisicasService.updateEstadoSolicitudDesconexion(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
     }
 
     @Patch('/update/estado/cambio-medidor/:idSolicitud/:idNuevoEstado')
@@ -156,10 +170,11 @@ export class SolicitudesFisicasController {
     async updateEstadoSolicitudCambioMedidor(
         @Param('idSolicitud') idSolicitud: number,
         @Param('idNuevoEstado') idNuevoEstado: number,
+        @Body() dto: RechazarSolicitudDto,
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesFisicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario);
+        return this.solicitudesFisicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
     }
 
     @Patch('/update/estado/asociado/:idSolicitud/:idNuevoEstado')
@@ -167,9 +182,61 @@ export class SolicitudesFisicasController {
     async updateEstadoSolicitudAsociado(
         @Param('idSolicitud') idSolicitud: number,
         @Param('idNuevoEstado') idNuevoEstado: number,
+        @Body() dto: RechazarSolicitudDto,
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesFisicasService.updateEstadoSolicitudAsociado(idSolicitud, idNuevoEstado, idUsuario);
+        return this.solicitudesFisicasService.updateEstadoSolicitudAsociado(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
+    }
+
+    // ─── AGREGAR MEDIDOR ──────────────────────────────────────────────────────────
+
+    @Get('/agregar-medidor')
+    @ApiOperation({ summary: 'Obtener todas las solicitudes de agregar medidor fisicas' })
+    getAllSolicitudesAgregarMedidor() {
+        return this.solicitudesFisicasService.getAllSolicitudesAgregarMedidor();
+    }
+
+    @Get('/agregar-medidor/:id')
+    @ApiOperation({ summary: 'Obtener el detalle de una solicitud de agregar medidor fisica por ID' })
+    getSolicitudAgregarMedidorById(@Param('id') id: number) {
+        return this.solicitudesFisicasService.getSolicitudAgregarMedidorById(id);
+    }
+
+    @Public()
+    @Post('/create/agregar-medidor')
+    @ApiOperation({ summary: 'Crear una nueva solicitud de agregar medidor fisica' })
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'Planos_Terreno', maxCount: 1 },
+        { name: 'Escritura_Terreno', maxCount: 1 },
+    ]),)
+    async createSolicitudAgregarMedidor(
+        @Body() solicitudAgregarMedidor: CreateSolicitudAgregarMedidorFisicaDto,
+        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Escritura_Terreno: Express.Multer.File[]; }
+    ) {
+        return this.solicitudesFisicasService.createSolicitudAgregarMedidor(solicitudAgregarMedidor, files);
+    }
+
+    @Put('/update/agregar-medidor/:id')
+    @ApiOperation({ summary: 'Actualizar una solicitud de agregar medidor fisica' })
+    async updateSolicitudAgregarMedidor(
+        @Param('id') id: number,
+        @Body() solicitudAgregarMedidor: UpdateSolicitudAgregarMedidorFisicaDto,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.solicitudesFisicasService.updateSolicitudAgregarMedidor(id, solicitudAgregarMedidor, idUsuario);
+    }
+
+    @Patch('/update/estado/agregar-medidor/:idSolicitud/:idNuevoEstado')
+    @ApiOperation({ summary: 'Actualizar el estado de una solicitud de agregar medidor fisica' })
+    async updateEstadoSolicitudAgregarMedidor(
+        @Param('idSolicitud') idSolicitud: number,
+        @Param('idNuevoEstado') idNuevoEstado: number,
+        @Body() dto: RechazarSolicitudDto,
+        @Request() req: any
+    ) {
+        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+        return this.solicitudesFisicasService.updateEstadoSolicitudAgregarMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
     }
 }

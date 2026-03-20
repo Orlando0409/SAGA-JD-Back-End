@@ -142,6 +142,8 @@ export class RolesService {
 
         if (role.Fecha_Eliminacion) throw new BadRequestException('El rol ya está inactivo.');
 
+        if (role.Id_Rol === 1) throw new BadRequestException('El rol de Administrador no puede ser desactivado.');
+
         // Guardar datos anteriores para auditoría
         const datosAnteriores = {
             Id_Rol: role.Id_Rol,

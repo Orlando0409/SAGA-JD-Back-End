@@ -10,6 +10,9 @@ export class ArchivoActa
     @Column({ nullable: false })
     Url_Archivo: string;
 
+    @Column({ nullable: true })
+    Delete_file: string;
+
     @ManyToOne(() => Acta, acta => acta.Archivos, { onDelete: 'CASCADE' })
     Acta: Acta;
 }

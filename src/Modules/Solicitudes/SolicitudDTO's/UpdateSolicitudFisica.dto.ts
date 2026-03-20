@@ -1,5 +1,5 @@
 import { OmitType, PartialType } from "@nestjs/swagger";
-import { CreateSolicitudAfiliacionFisicaDto, CreateSolicitudAsociadoFisicaDto, CreateSolicitudCambioMedidorFisicaDto, CreateSolicitudDesconexionFisicaDto, CreateSolicitudFisicaDto } from "./CreateSolicitudFisica.dto";
+import { CreateSolicitudAfiliacionFisicaDto, CreateSolicitudAgregarMedidorFisicaDto, CreateSolicitudAsociadoFisicaDto, CreateSolicitudCambioMedidorFisicaDto, CreateSolicitudDesconexionFisicaDto, CreateSolicitudFisicaDto } from "./CreateSolicitudFisica.dto";
 
 export class UpdateSolicitudFisicaDto extends PartialType(
     OmitType(CreateSolicitudFisicaDto, ['Identificacion'])
@@ -19,4 +19,8 @@ export class UpdateSolicitudDesconexionFisicaDto extends PartialType(
 
 export class UpdateSolicitudAsociadoFisicaDto extends PartialType(
     OmitType(CreateSolicitudAsociadoFisicaDto, ['Identificacion'])
+) {}
+
+export class UpdateSolicitudAgregarMedidorFisicaDto extends PartialType(
+    OmitType(CreateSolicitudAgregarMedidorFisicaDto, ['Identificacion'])
 ) {}

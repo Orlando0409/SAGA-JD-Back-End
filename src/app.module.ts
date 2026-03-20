@@ -23,7 +23,10 @@ import { CalidadAguaModule } from './Modules/CalidadAgua/calidadAgua.module';
 import { CalidadAgua } from './Modules/CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity';
 import { SugerenciaModule } from './Modules/Sugerencias/sugerencia.module';
 import { EstadoAfiliado } from './Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
-import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, SolicitudDesconexionJuridica, SolicitudFisica, SolicitudJuridica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
+import { Solicitud, SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica, SolicitudAgregarMedidorFisica, 
+  SolicitudAgregarMedidorJuridica, SolicitudAsociadoFisica, SolicitudAsociadoJuridica, 
+  SolicitudCambioMedidorFisica, SolicitudCambioMedidorJuridica, SolicitudDesconexionFisica, 
+  SolicitudDesconexionJuridica, SolicitudFisica, SolicitudJuridica } from './Modules/Solicitudes/SolicitudEntities/Solicitud.Entity';
 import { TipoAfiliado } from './Modules/Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
 import { AfiliadosModule } from './Modules/Afiliados/afiliados.module';
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from './Modules/Afiliados/AfiliadoEntities/Afiliado.Entity';
@@ -51,7 +54,8 @@ import { AuditoriaModule } from './Modules/Auditoria/auditoria.module';
 import { ReportesModule } from './Modules/Reportes/reportes.module';
 import { Reporte } from './Modules/Reportes/ReporteEntities/Reportes.Entity';
 import { Sugerencia } from './Modules/Sugerencias/SugerenciaEntities/Sugerencia.Entity';
-import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity'; import { Lectura } from './Modules/Lecturas/LecturaEntities/Lectura.Entity';
+import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity'; 
+import { Lectura } from './Modules/Lecturas/LecturaEntities/Lectura.Entity';
 import { LecturaModule } from './Modules/Lecturas/lectura.module';
 import { TipoTarifaLectura } from './Modules/Lecturas/LecturaEntities/TipoTarifaLectura.Entity';
 import { TipoTarifaServiciosFijos } from './Modules/Lecturas/LecturaEntities/TipoTarifaServiciosFijos.Entity';
@@ -65,6 +69,10 @@ import { RangoConsumo } from './Modules/Lecturas/LecturaEntities/RangoConsumo.En
 import { EstadoReporte } from './Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
 import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
 import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
+import { TipoTarifaCargoFijo } from './Modules/Lecturas/LecturaEntities/TipoTarifaCargoFijo.Entity';
+import { CargoFijoTarifas } from './Modules/Lecturas/LecturaEntities/CargoFijoTarifas.Entity';
+import { ConsultaPago } from './Modules/ConsultaPagos/ConsultaPagoEntities/ConsultaPago.entity';
+import { PagosModule } from './Modules/ConsultaPagos/consultaPagos.module';
 
 @Module({
   imports: [
@@ -89,8 +97,8 @@ import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
         entities: [
           Usuario, UsuarioRol, Permiso,
           Solicitud, SolicitudFisica, SolicitudJuridica, EstadoSolicitud,
-          SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudAsociadoFisica,
-          SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica,
+          SolicitudAfiliacionFisica, SolicitudCambioMedidorFisica, SolicitudDesconexionFisica, SolicitudAsociadoFisica, SolicitudAgregarMedidorFisica,
+          SolicitudAfiliacionJuridica, SolicitudDesconexionJuridica, SolicitudCambioMedidorJuridica, SolicitudAsociadoJuridica, SolicitudAgregarMedidorJuridica,
           Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado,
           Proveedor, EstadoProveedor, ProveedorFisico, ProveedorJuridico,
           Proyecto, EstadoProyecto,
@@ -102,9 +110,10 @@ import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
           FAQEntity,
           Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
           Auditoria,
-          Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua,
+          Lectura, TipoTarifaLectura, TipoTarifaCargoFijo, CargoFijoTarifas, TipoTarifaServiciosFijos, TipoTarifaVentaAgua,
           ImagenEntity,
-          ManualEntity, RangoAfiliados, RangoConsumo
+          ManualEntity, RangoAfiliados, RangoConsumo,
+          ConsultaPago
         ],
         synchronize: false,
         dropSchema: false,
@@ -129,7 +138,8 @@ import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
     FAQModule,
     QuejasModule,
     ImagenesModule,
-    ManualModule
+    ManualModule,
+    PagosModule
   ],
   controllers: [],
   providers: [

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, UseInterceptors, ClassSerializerInterceptor, Put, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, UseInterceptors, ClassSerializerInterceptor, Put, Patch, UseGuards, UploadedFiles } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { MaterialService } from './Services/material.service';
 import { CategoriasService } from './Services/categorias.service';
@@ -14,9 +14,11 @@ import { MovimientosService } from './Services/movimientos.service';
 import { MedidorService } from './Services/medidor.service';
 import { CreateMedidorDTO } from './InventarioDTO\'s/CreateMedidor.dto';
 import { AsignarMedidorDTO } from './InventarioDTO\'s/AsignarMedidor.dto';
+import { AsignarMedidorExistenteAAfiliado } from './InventarioDTO\'s/AsignarMedidorExistenteAAfiliado.dto';
 import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
 import { GetUser } from '../auth/Decorator/GetUser.decorator';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
+import { FileFieldsInterceptor } from '@nestjs/platform-express/multer';
 
 @Controller('Inventario')
 @UseGuards(JwtAuthGuard)
@@ -311,6 +313,12 @@ export class InventarioController {
     return this.medidorService.getMedidoresAveriados();
   }
 
+  @Get('/medidores/disponibles')
+  @ApiOperation({ summary: 'Obtiene medidores sin dueño y sin averías (disponibles para asignar a un afiliado).' })
+  async getMedidoresDisponibles() {
+    return this.medidorService.getMedidoresDisponibles();
+  }
+
   @Get('/medidores/afiliado/:idAfiliado')
   @ApiOperation({ summary: 'Obtiene todos los medidores asociados a un afiliado específico.' })
   async getMedidoresAfiliado(
@@ -320,7 +328,7 @@ export class InventarioController {
   }
 
   @Post('/create/medidor')
-  @ApiOperation({ summary: 'Crea un nuevo medidor en el sistema.' })
+  @ApiOperation({ summary: 'Crea un nuevo medidor en el sistema (sin asignar a ningún afiliado).' })
   async createMedidor(
     @Body() dto: CreateMedidorDTO,
     @GetUser() usuario: Usuario
@@ -329,12 +337,26 @@ export class InventarioController {
   }
 
   @Post('/asignar/medidor')
-  @ApiOperation({ summary: 'Asigna un medidor a un afiliado específico.' })
+  @ApiOperation({ summary: 'Asigna un medidor a una solicitud (flujo de aprobación de solicitudes).' })
   async asignarMedidor(
     @Body() dto: AsignarMedidorDTO,
     @GetUser() usuario: Usuario
   ) {
     return this.medidorService.asignarMedidorAAfiliado(dto, usuario.Id_Usuario);
+  }
+
+  @Post('/asignar/medidor/afiliado')
+  @ApiOperation({ summary: 'Asigna un medidor ya existente y disponible directamente a un afiliado. Requiere Planos_Terreno y Escritura_Terreno.' })
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'Planos_Terreno', maxCount: 1 },
+    { name: 'Escritura_Terreno', maxCount: 1 },
+  ]))
+  async asignarMedidorExistenteAAfiliado(
+    @Body() dto: AsignarMedidorExistenteAAfiliado,
+    @GetUser() usuario: Usuario,
+    @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }
+  ) {
+    return this.medidorService.asignarMedidorExistenteAAfiliado(dto, usuario.Id_Usuario, files);
   }
 
   @Patch('/update/estado/medidor/:idMedidor/:nuevoEstadoId')
@@ -345,5 +367,19 @@ export class InventarioController {
     @GetUser() usuario: Usuario
   ) {
     return this.medidorService.updateEstadoMedidor(idMedidor, nuevoEstadoId, usuario.Id_Usuario);
+  }
+
+  @Patch('/medidor/:id/files')
+  @ApiOperation({ summary: 'Actualiza los archivos (Planos y/o Escritura) de un Medidor existente.' })
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'Planos_Terreno', maxCount: 1 },
+    { name: 'Escritura_Terreno', maxCount: 1 },
+  ]))
+  async updateMedidorFiles(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() usuario: Usuario,
+    @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }
+  ) {
+    return this.medidorService.updateMedidorFiles(id, usuario.Id_Usuario, files);
   }
 }

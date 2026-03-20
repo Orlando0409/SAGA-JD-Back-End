@@ -29,14 +29,16 @@ import { UsuariosModule } from '../Usuarios/Modules/usuarios.module';
 import { RolesModule } from '../Usuarios/Modules/roles.module';
 import { AfiliadosModule } from '../Afiliados/afiliados.module';
 import { Solicitud } from '../Solicitudes/SolicitudEntities/Solicitud.Entity';
+import { DropboxModule } from 'src/Dropbox/Files/DropboxFiles.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor, Usuario, Proveedor, ProveedorFisico, ProveedorJuridico, EstadoProveedor, Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, TipoAfiliado, Solicitud]),
+    TypeOrmModule.forFeature([Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor, Usuario, Proveedor, EstadoProveedor, ProveedorFisico, ProveedorJuridico, Afiliado, EstadoAfiliado, AfiliadoFisico, AfiliadoJuridico, TipoAfiliado, Solicitud]),
     forwardRef(() => AfiliadosModule),
     forwardRef(() => UsuariosModule),
     forwardRef(() => RolesModule),
-    forwardRef(() => AuditoriaModule)
+    forwardRef(() => AuditoriaModule),
+    DropboxModule,
   ],
   controllers: [InventarioController],
   providers: [MaterialService, CategoriasService, UnidadesDeMedicionService, MovimientosService, MedidorService, ProveedorService],

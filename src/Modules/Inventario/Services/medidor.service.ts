@@ -7,11 +7,14 @@ import { CreateMedidorDTO } from "../InventarioDTO's/CreateMedidor.dto";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { AsignarMedidorDTO } from "../InventarioDTO's/AsignarMedidor.dto";
+import { AsignarMedidorExistenteAAfiliado } from "../InventarioDTO's/AsignarMedidorExistenteAAfiliado.dto";
 import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
 import { AuditoriaService } from "src/Modules/Auditoria/auditoria.service";
 import { UsuariosService } from "src/Modules/Usuarios/Services/usuarios.service";
 import { AfiliadosService } from "src/Modules/Afiliados/afiliados.service";
 import { Solicitud } from "src/Modules/Solicitudes/SolicitudEntities/Solicitud.Entity";
+import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
+import { EstadoAfiliado } from "src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
 
 @Injectable()
 export class MedidorService {
@@ -24,6 +27,9 @@ export class MedidorService {
 
         @InjectRepository(Afiliado)
         private readonly afiliadoRepository: Repository<Afiliado>,
+
+        @InjectRepository(EstadoAfiliado)
+        private readonly estadoAfiliadoRepository: Repository<EstadoAfiliado>,
 
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
@@ -41,8 +47,20 @@ export class MedidorService {
 
         private readonly auditoriaService: AuditoriaService,
 
-        private readonly usuariosService: UsuariosService
+        private readonly usuariosService: UsuariosService,
+
+        private readonly dropboxFilesService: DropboxFilesService,
     ) { }
+
+    private async formatearMedidoresConRelaciones(medidores: Medidor[]) {
+        return Promise.all(
+            medidores.map(async (medidor) => ({
+                ...medidor,
+                Afiliado: medidor.Afiliado ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado) : null,
+                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
+            }))
+        );
+    }
 
     async getAllMedidores() {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
@@ -52,16 +70,7 @@ export class MedidorService {
             .leftJoinAndSelect('usuario.Rol', 'rol')
             .getMany();
 
-        // Mapear cada medidor y obtener info completa del afiliado
-        const medidoresConAfiliados = await Promise.all(
-            medidores.map(async (medidor) => ({
-                ...medidor,
-                Afiliado: medidor.Afiliado ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado) : null,
-                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
-            }))
-        );
-
-        return medidoresConAfiliados;
+        return this.formatearMedidoresConRelaciones(medidores);
     }
 
     async getMedidoresNoInstalados() {
@@ -73,15 +82,7 @@ export class MedidorService {
             .where('estado.Id_Estado_Medidor = :estado', { estado: 1 }) // 1 = No Instalado
             .getMany();
 
-        const medidoresConAfiliados = await Promise.all(
-            medidores.map(async (medidor) => ({
-                ...medidor,
-                Afiliado: medidor.Afiliado ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado) : null,
-                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
-            }))
-        );
-
-        return medidoresConAfiliados;
+        return this.formatearMedidoresConRelaciones(medidores);
     }
 
     async getMedidoresInstalados() {
@@ -93,15 +94,7 @@ export class MedidorService {
             .where('estado.Id_Estado_Medidor = :estado', { estado: 2 }) // 2 = Instalado
             .getMany();
 
-        const medidoresConAfiliados = await Promise.all(
-            medidores.map(async (medidor) => ({
-                ...medidor,
-                Afiliado: medidor.Afiliado ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado) : null,
-                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
-            }))
-        );
-
-        return medidoresConAfiliados;
+        return this.formatearMedidoresConRelaciones(medidores);
     }
 
     async getMedidoresAveriados() {
@@ -113,15 +106,7 @@ export class MedidorService {
             .where('estado.Id_Estado_Medidor = :estado', { estado: 3 }) // 3 = Averiado
             .getMany();
 
-        const medidoresConAfiliados = await Promise.all(
-            medidores.map(async (medidor) => ({
-                ...medidor,
-                Afiliado: medidor.Afiliado ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado) : null,
-                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
-            }))
-        );
-
-        return medidoresConAfiliados;
+        return this.formatearMedidoresConRelaciones(medidores);
     }
 
     async getMedidoresConAfiliado() {
@@ -130,32 +115,19 @@ export class MedidorService {
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
             .getMany();
 
-        const medidoresConAfiliados = await Promise.all(
-            medidores.map(async (medidor) => ({
-                ...medidor,
-                Afiliado: medidor.Afiliado ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado) : null,
-                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
-            }))
-        );
-
-        return medidoresConAfiliados;
+        return this.formatearMedidoresConRelaciones(medidores);
     }
 
     async getMedidoresSinAfiliado() {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
             .where('medidor.Afiliado IS NULL')
             .getMany();
 
-        const medidoresConAfiliados = await Promise.all(
-            medidores.map(async (medidor) => ({
-                ...medidor,
-                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
-            }))
-        );
-
-        return medidoresConAfiliados;
+        return this.formatearMedidoresConRelaciones(medidores);
     }
 
     async getMedidoresByAfiliado(idAfiliado: number) {
@@ -167,15 +139,124 @@ export class MedidorService {
             .where('medidor.Afiliado.Id_Afiliado = :idAfiliado', { idAfiliado })
             .getMany();
 
-        const medidoresConAfiliados = await Promise.all(
-            medidores.map(async (medidor) => ({
-                ...medidor,
-                Afiliado: medidor.Afiliado ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado) : null,
-                Usuario: medidor.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidor.Usuario) : null
-            }))
+        return this.formatearMedidoresConRelaciones(medidores);
+    }
+
+    async getMedidoresDisponibles() {
+
+        const medidores = await this.medidorRepository.createQueryBuilder('medidor')
+            .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('estado.Id_Estado_Medidor = :estado', { estado: 1 })
+            .andWhere('medidor.Id_Afiliado IS NULL')
+            .getMany();
+
+        return this.formatearMedidoresConRelaciones(medidores);
+    }
+
+    async asignarMedidorExistenteAAfiliado(
+        dto: AsignarMedidorExistenteAAfiliado,
+        idUsuario: number,
+        files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }
+    ) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para asignar un medidor a un afiliado');
+        if (!files?.Escritura_Terreno?.[0]) throw new BadRequestException('El archivo Escritura_Terreno es obligatorio para asignar un medidor a un afiliado');
+
+        const medidor = await this.medidorRepository.findOne({
+            where: { Id_Medidor: dto.Id_Medidor },
+            relations: ['Estado_Medidor', 'Afiliado']
+        });
+
+        if (!medidor) throw new BadRequestException(`Medidor con ID ${dto.Id_Medidor} no encontrado`);
+        if (medidor.Estado_Medidor.Id_Estado_Medidor === 3) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} está averiado y no puede ser asignado`);
+        if (medidor.Afiliado) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} ya está asignado al afiliado con ID ${medidor.Afiliado.Id_Afiliado}`);
+
+        const afiliado = await this.afiliadoRepository.findOne({
+            where: { Id_Afiliado: dto.Id_Afiliado },
+            relations: ['Estado', 'Tipo_Afiliado']
+        });
+        if (!afiliado) throw new BadRequestException(`Afiliado con ID ${dto.Id_Afiliado} no encontrado`);
+
+        const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
+        if (!estadoInstalado) throw new BadRequestException('Estado "Instalado" no encontrado en la base de datos');
+
+        const estadoActivo = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 1 } });
+        if (!estadoActivo) throw new BadRequestException('Estado "Activo" no encontrado en la base de datos');
+
+        const estadoEnEspera = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 3 } });
+        if (!estadoEnEspera) throw new BadRequestException('Estado "En espera" no encontrado en la base de datos');
+
+        // Cambiar estado del afiliado de "En Espera" a "Activo" cuando se le asigna un medidor
+        if (afiliado.Tipo_Entidad === TipoEntidad.Física) {
+            const afiliadoFisico = await this.afiliadoFisicoRepository.findOne({
+                where: { Id_Afiliado: dto.Id_Afiliado },
+                relations: ['Estado']
+            });
+            
+            if (afiliadoFisico && afiliadoFisico.Estado?.Id_Estado_Afiliado === 3) {
+                afiliadoFisico.Estado = estadoActivo;
+                await this.afiliadoFisicoRepository.save(afiliadoFisico);
+            }
+        } else if (afiliado.Tipo_Entidad === TipoEntidad.Jurídica) {
+            const afiliadoJuridico = await this.afiliadoJuridicoRepository.findOne({
+                where: { Id_Afiliado: dto.Id_Afiliado },
+                relations: ['Estado']
+            });
+            
+            if (afiliadoJuridico && afiliadoJuridico.Estado?.Id_Estado_Afiliado === 3) {
+                afiliadoJuridico.Estado = estadoActivo;
+                await this.afiliadoJuridicoRepository.save(afiliadoJuridico);
+            }
+        }
+
+        const datosAnteriores = {
+            Numero_Medidor: medidor.Numero_Medidor,
+            Estado_Anterior: medidor.Estado_Medidor.Nombre_Estado_Medidor,
+            Afiliado_Anterior: null
+        };
+
+        const planoRes = await this.dropboxFilesService.uploadFile(
+            files.Planos_Terreno[0], 'Medidores', 'Archivos', String(dto.Id_Medidor), String(dto.Id_Afiliado)
+        );
+        const escrituraRes = await this.dropboxFilesService.uploadFile(
+            files.Escritura_Terreno[0], 'Medidores', 'Archivos', String(dto.Id_Medidor), String(dto.Id_Afiliado)
         );
 
-        return medidoresConAfiliados;
+        medidor.Planos_Terreno = planoRes.url;
+        medidor.Escritura_Terreno = escrituraRes.url;
+        medidor.Afiliado = afiliado;
+        medidor.Estado_Medidor = estadoInstalado;
+        await this.medidorRepository.save(medidor);
+
+        try {
+            await this.auditoriaService.logActualizacion('Medidores', idUsuario, dto.Id_Medidor, datosAnteriores, {
+                'Número de Medidor': medidor.Numero_Medidor,
+                'Estado del Medidor': 'Instalado',
+                'Afiliado Asignado': dto.Id_Afiliado
+            });
+        } catch (error) {
+            console.error('Error al registrar auditoría de asignación de medidor a afiliado:', error);
+        }
+
+        const medidorActualizado = await this.medidorRepository.createQueryBuilder('medidor')
+            .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+            .leftJoinAndSelect('medidor.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('medidor.Id_Medidor = :id', { id: dto.Id_Medidor })
+            .getOne();
+
+        if (!medidorActualizado) throw new BadRequestException('Error al recuperar el medidor actualizado');
+
+        return {
+            ...medidorActualizado,
+            Afiliado: await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidorActualizado.Afiliado),
+            Usuario: medidorActualizado.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidorActualizado.Usuario) : null
+        };
     }
 
     async createMedidor(dto: CreateMedidorDTO, idUsuario: number) {
@@ -201,8 +282,9 @@ export class MedidorService {
         // Registrar en auditoría
         try {
             await this.auditoriaService.logCreacion('Medidores', idUsuario, medidorGuardado.Id_Medidor, {
-                Numero_Medidor: medidorGuardado.Numero_Medidor,
-                Estado_Inicial: 'Disponible'
+                'Número de Medidor': medidorGuardado.Numero_Medidor,
+                'Estado del Medidor': 'Disponible',
+                'Afiliado Asignado': null
             });
         } catch (error) {
             console.error('Error al registrar auditoría de creación de medidor:', error);
@@ -292,7 +374,7 @@ export class MedidorService {
                 Id_Solicitud: dto.Id_Solicitud,
                 Tipo_Entidad: dto.Id_Tipo_Entidad === TipoEntidad.Física ? 'Física' : 'Jurídica'
             },
-            Afiliado: medidorActualizado.Afiliado 
+            Afiliado: medidorActualizado.Afiliado
                 ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidorActualizado.Afiliado) : null,
             Usuario: await this.usuariosService.FormatearUsuarioResponse(medidorActualizado.Usuario)
         };
@@ -357,6 +439,51 @@ export class MedidorService {
                 Id_Estado: medidor.Estado_Medidor?.Id_Estado_Medidor || null,
                 Nombre_Estado: medidor.Estado_Medidor?.Nombre_Estado_Medidor || 'Sin estado'
             }
+        };
+    }
+
+    async updateMedidorFiles(idMedidor: number, idUsuario: number, files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const medidor = await this.medidorRepository.findOne({
+            where: { Id_Medidor: idMedidor },
+            relations: ['Estado_Medidor', 'Afiliado']
+        });
+        if (!medidor) throw new BadRequestException(`Medidor con ID ${idMedidor} no encontrado`);
+
+        const planoFile = files?.Planos_Terreno?.[0];
+        const escrituraFile = files?.Escritura_Terreno?.[0];
+
+        if (!planoFile && !escrituraFile) {
+            throw new BadRequestException('Debe proporcionar al menos un archivo (Planos_Terreno o Escritura_Terreno)');
+        }
+
+        if (planoFile) {
+            const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Medidores', 'Archivos', String(idMedidor));
+            medidor.Planos_Terreno = planoRes?.url ?? null;
+        }
+
+        if (escrituraFile) {
+            const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Archivos', String(idMedidor));
+            medidor.Escritura_Terreno = escrituraRes?.url ?? null;
+        }
+
+        const medidorActualizado = await this.medidorRepository.save(medidor);
+
+        try {
+            await this.auditoriaService.logActualizacion('Medidores', idUsuario, idMedidor,
+                { Planos_Terreno: medidor.Planos_Terreno, Escritura_Terreno: medidor.Escritura_Terreno },
+                { Planos_Terreno: medidorActualizado.Planos_Terreno, Escritura_Terreno: medidorActualizado.Escritura_Terreno }
+            );
+        } catch (error) {
+            console.error('Error al registrar auditoría de actualización de archivos del medidor:', error);
+        }
+
+        return {
+            Id_Medidor: medidorActualizado.Id_Medidor,
+            Numero_Medidor: medidorActualizado.Numero_Medidor,
+            Planos_Terreno: medidorActualizado.Planos_Terreno,
+            Escritura_Terreno: medidorActualizado.Escritura_Terreno
         };
     }
 }

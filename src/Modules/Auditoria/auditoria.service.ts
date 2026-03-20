@@ -15,6 +15,13 @@ import { Medidor } from "../Inventario/InventarioEntities/Medidor.Entity";
 import { Acta } from "../Actas/ActaEntities/Actas.Entity";
 import { Solicitud } from "../Solicitudes/SolicitudEntities/Solicitud.Entity";
 import { MovimientoInventario } from "../Inventario/InventarioEntities/Movimiento.Entity";
+import { ArchivoActa } from "../Actas/ActaEntities/ArchivoActa.Entity";
+import { AfiliadoFisico, AfiliadoJuridico } from "../Afiliados/AfiliadoEntities/Afiliado.Entity";
+import { ImagenEntity } from "../Imagenes/ImagenesEntity/Imagen.Entity";
+import { ManualEntity } from "../ManualdeUsuario/ManualEntities/Manual.Entity";
+import { Reporte } from "../Reportes/ReporteEntities/Reportes.Entity";
+import { Queja } from "../Quejas/QuejaEntities/QuejasEntity";
+import { Sugerencia } from "../Sugerencias/SugerenciaEntities/Sugerencia.Entity";
 
 @Injectable()
 export class AuditoriaService {
@@ -76,12 +83,16 @@ export class AuditoriaService {
                             if (anteriores.Titulo) return anteriores.Titulo;
                             break;
 
+                        case 'actas-archivo':
+                            if (anteriores.Nombre_Archivo) return anteriores.Nombre_Archivo;
+                            break;
+
                         case 'calidad de agua':
                             if (anteriores.Titulo) return anteriores.Titulo;
                             break;
 
                         case 'solicitudes':
-                            if (anteriores.correo) return anteriores.correo;
+                            if (anteriores.Correo) return anteriores.Correo;
                             break;
 
                         case 'medidores':
@@ -120,10 +131,18 @@ export class AuditoriaService {
                             if (anteriores.Nombre_Usuario) return anteriores.Nombre_Usuario;
                             break;
 
-                case 'movimientos':
-                    if (anteriores.Nombre_Material) return anteriores.Nombre_Material;
-                    if (anteriores.Registro_Afectado) return anteriores.Registro_Afectado;
-                    break;
+                        case 'afiliado físico':
+                            if (anteriores.Identificacion) return anteriores.Identificacion;
+                            break;
+
+                        case 'afiliado jurídico':
+                            if (anteriores.Cedula_Juridica) return anteriores.Cedula_Juridica;
+                            break;
+
+                        case 'movimientos':
+                            if (anteriores.Nombre_Material) return anteriores.Nombre_Material;
+                            if (anteriores.Registro_Afectado) return anteriores.Registro_Afectado;
+                            break;
                     }
                 } catch (error) {
                     console.error('Error al parsear datos anteriores:', error);
@@ -166,6 +185,10 @@ export class AuditoriaService {
 
                         case 'actas':
                             if (nuevos.Titulo) return nuevos.Titulo;
+                            break;
+
+                        case 'actas-archivo':
+                            if (nuevos.Nombre_Archivo) return nuevos.Nombre_Archivo;
                             break;
 
                         case 'calidad de agua':
@@ -215,6 +238,14 @@ export class AuditoriaService {
 
                         case 'autenticación':
                             if (nuevos.Nombre_Usuario) return nuevos.Nombre_Usuario;
+                            break;
+
+                        case 'afiliado físico':
+                            if (nuevos.Identificacion) return nuevos.Identificacion;
+                            break;
+
+                        case 'afiliado jurídico':
+                            if (nuevos.Cedula_Juridica) return nuevos.Cedula_Juridica;
                             break;
                     }
                 } catch (error) {
@@ -267,6 +298,12 @@ export class AuditoriaService {
                     });
                     return acta?.Titulo || `Acta ID: ${idRegistro}`;
 
+                case 'actas-archivo':
+                    const archivoActa = await this.dataSource.getRepository(ArchivoActa).findOne({
+                        where: { Id_Archivo_Acta: idRegistro }
+                    });
+                    return archivoActa?.Acta.Titulo || `Archivo Acta ID: ${idRegistro}`;
+
                 case 'calidad de agua':
                     const calidadAgua = await this.dataSource.getRepository(CalidadAgua).findOne({
                         where: { Id_Calidad_Agua: idRegistro }
@@ -304,31 +341,31 @@ export class AuditoriaService {
                     return faq?.Pregunta || `FAQ ID: ${idRegistro}`;
 
                 case 'edicion de imagenes':
-                    const imagen = await this.dataSource.getRepository('ImagenEntity').findOne({
+                    const imagen = await this.dataSource.getRepository(ImagenEntity).findOne({
                         where: { Id_Imagen: idRegistro }
                     });
                     return imagen?.Nombre_Imagen || `Imagen ID: ${idRegistro}`;
 
                 case 'manuales de usuario':
-                    const manual = await this.dataSource.getRepository('ManualEntity').findOne({
+                    const manual = await this.dataSource.getRepository(ManualEntity).findOne({
                         where: { Id_Manual: idRegistro }
                     });
                     return manual?.Nombre_Manual || `Manual ID: ${idRegistro}`;
 
                 case 'reportes':
-                    const reporte = await this.dataSource.getRepository('Reporte').findOne({
+                    const reporte = await this.dataSource.getRepository(Reporte).findOne({
                         where: { Id_Reporte: idRegistro }
                     });
                     return reporte?.Ubicacion || `Reporte ID: ${idRegistro}`;
 
                 case 'quejas':
-                    const queja = await this.dataSource.getRepository('Queja').findOne({
+                    const queja = await this.dataSource.getRepository(Queja).findOne({
                         where: { Id_Queja: idRegistro }
                     });
                     return queja?.Descripcion || `Queja ID: ${idRegistro}`;
 
                 case 'sugerencias':
-                    const sugerencia = await this.dataSource.getRepository('Sugerencia').findOne({
+                    const sugerencia = await this.dataSource.getRepository(Sugerencia).findOne({
                         where: { Id_Sugerencia: idRegistro }
                     });
                     return sugerencia?.Mensaje || `Sugerencia ID: ${idRegistro}`;
@@ -338,6 +375,22 @@ export class AuditoriaService {
                         where: { Id_Usuario: idRegistro }
                     });
                     return usuarioAuth?.Nombre_Usuario || `Usuario ID: ${idRegistro}`;
+
+                case 'afiliado físico':
+                    const afiliadoFisico = await this.dataSource.getRepository(AfiliadoFisico).findOne({
+                        where: { Id_Afiliado: idRegistro }
+                    });
+                    if (afiliadoFisico) {
+                        if (afiliadoFisico.Identificacion) return afiliadoFisico.Identificacion;
+                    }
+
+                case 'afiliado jurídico':
+                    const afiliadoJuridico = await this.dataSource.getRepository(AfiliadoJuridico).findOne({
+                        where: { Id_Afiliado: idRegistro }
+                    });
+                    if (afiliadoJuridico) {
+                        if (afiliadoJuridico.Cedula_Juridica) return afiliadoJuridico.Cedula_Juridica;
+                    }
 
                 default:
                     return `Registro ID: ${idRegistro}`;
@@ -447,7 +500,6 @@ export class AuditoriaService {
     }
 
     async logAutenticacion(accion: 'Login' | 'Logout', usuarioId: number, datosAdicionales?: any): Promise<Auditoria> {
-        // Para eventos de autenticación, usamos el ID del usuario como Id_Registro
         return this.createAuditoria('Autenticación', accion, usuarioId, usuarioId, null, datosAdicionales || {});
     }
 }

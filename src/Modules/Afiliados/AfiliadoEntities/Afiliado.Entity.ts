@@ -1,4 +1,4 @@
-import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, Table, TableInheritance, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, ManyToOne, JoinColumn, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { EstadoAfiliado } from "./EstadoAfiliado.Entity";
 import { TipoAfiliado } from "./TipoAfiliado.Entity";
 import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
@@ -29,12 +29,6 @@ export abstract class Afiliado {
     @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Actualizacion: Date;
 
-    @Column({ nullable: false })
-    Planos_Terreno: string;
-
-    @Column({ nullable: false })
-    Escritura_Terreno: string;
-
     @ManyToOne(() => EstadoAfiliado, estado => estado.Afiliados)
     @JoinColumn({ name: 'Id_Estado_Afiliado' })
     Estado: EstadoAfiliado;
@@ -44,7 +38,6 @@ export abstract class Afiliado {
     Tipo_Afiliado: TipoAfiliado;
 
     @OneToMany(() => Medidor, (medidor) => medidor.Afiliado)
-    @JoinColumn({ name: 'Id_Medidor' })
     Medidores: Medidor[];
 
     @BeforeInsert()
