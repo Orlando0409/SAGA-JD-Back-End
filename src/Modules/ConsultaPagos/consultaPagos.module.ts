@@ -17,11 +17,12 @@ import { RangoAfiliados } from '../Lecturas/LecturaEntities/RangoAfiliados.Entit
 import { RangoConsumo } from '../Lecturas/LecturaEntities/RangoConsumo.Entity';
 import { EstadoAfiliado } from '../Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
 import { ValidationsModule } from 'src/Validations/Validations.module';
+import { ConsultaPagosPdfService } from './consultaPagosPdf.service';
 
 @Module({
     imports: [TypeOrmModule.forFeature([ConsultaPago, Lectura, TipoTarifaLectura, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, TipoTarifaCargoFijo, CargoFijoTarifas, RangoAfiliados, RangoConsumo, Afiliado, EstadoAfiliado, AfiliadoFisico, AfiliadoJuridico, Medidor]), LecturaModule, ValidationsModule],
     controllers: [PagosController],
-    providers: [PagosService, totalLecturasService],
+    providers: [PagosService, totalLecturasService, ConsultaPagosPdfService],
     exports: [PagosService]
 })
 
