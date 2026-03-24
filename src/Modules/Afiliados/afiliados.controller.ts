@@ -67,12 +67,12 @@ export class AfiliadosController {
     @ApiOperation({ summary: 'Crear un nuevo afiliado físico' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
+        { name: 'Certificacion_Literal', maxCount: 1 },
     ]),)
     createAfiliadoFisico(
         @Body() dto: CreateAfiliadoFisicoDto,
         @GetUser() usuario: Usuario,
-        @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; }) {
+        @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[]; }) {
         return this.afiliadosService.createAfiliadoFisico(dto, usuario.Id_Usuario, files);
     }
 
@@ -80,12 +80,12 @@ export class AfiliadosController {
     @ApiOperation({ summary: 'Crear un nuevo afiliado jurídico' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
+        { name: 'Certificacion_Literal', maxCount: 1 },
     ]),)
     createAfiliadoJuridico(
         @Body() dto: CreateAfiliadoJuridicoDto,
         @GetUser() usuario: Usuario,
-        @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[]; }) {
+        @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[]; }) {
         return this.afiliadosService.createAfiliadoJuridico(dto, usuario.Id_Usuario, files);
     }
 

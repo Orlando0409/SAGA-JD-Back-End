@@ -148,7 +148,7 @@ export class AfiliadosService {
                 Id_Medidor: m.Id_Medidor,
                 Numero_Medidor: m.Numero_Medidor,
                 Planos_Terreno: m.Planos_Terreno ?? null,
-                Escritura_Terreno: m.Escritura_Terreno ?? null,
+                Certificacion_Literal: m.Certificacion_Literal ?? null,
                 Estado: {
                     Id_Estado: m.Estado_Medidor?.Id_Estado_Medidor ?? null,
                     Nombre_Estado: m.Estado_Medidor?.Nombre_Estado_Medidor ?? 'Sin estado'
@@ -177,7 +177,7 @@ export class AfiliadosService {
                 Id_Medidor: m.Id_Medidor,
                 Numero_Medidor: m.Numero_Medidor,
                 Planos_Terreno: m.Planos_Terreno ?? null,
-                Escritura_Terreno: m.Escritura_Terreno ?? null,
+                Certificacion_Literal: m.Certificacion_Literal ?? null,
                 Estado: {
                     Id_Estado: m.Estado_Medidor?.Id_Estado_Medidor ?? null,
                     Nombre_Estado: m.Estado_Medidor?.Nombre_Estado_Medidor ?? 'Sin estado'
@@ -209,7 +209,7 @@ export class AfiliadosService {
                 Id_Medidor: m.Id_Medidor,
                 Numero_Medidor: m.Numero_Medidor,
                 Planos_Terreno: m.Planos_Terreno ?? null,
-                Escritura_Terreno: m.Escritura_Terreno ?? null,
+                Certificacion_Literal: m.Certificacion_Literal ?? null,
                 Estado: {
                     Id_Estado: m.Estado_Medidor?.Id_Estado_Medidor ?? null,
                     Nombre_Estado: m.Estado_Medidor?.Nombre_Estado_Medidor ?? 'Sin estado'
@@ -241,7 +241,7 @@ export class AfiliadosService {
                 Id_Medidor: m.Id_Medidor,
                 Numero_Medidor: m.Numero_Medidor,
                 Planos_Terreno: m.Planos_Terreno ?? null,
-                Escritura_Terreno: m.Escritura_Terreno ?? null,
+                Certificacion_Literal: m.Certificacion_Literal ?? null,
                 Estado: {
                     Id_Estado: m.Estado_Medidor?.Id_Estado_Medidor ?? null,
                     Nombre_Estado: m.Estado_Medidor?.Nombre_Estado_Medidor ?? 'Sin estado'
@@ -305,7 +305,7 @@ export class AfiliadosService {
         if (medidor) {
             medidor.Afiliado = afiliadoGuardado;
             medidor.Planos_Terreno = solicitud.Planos_Terreno ?? null;
-            medidor.Escritura_Terreno = solicitud.Escritura_Terreno ?? null;
+            medidor.Certificacion_Literal = solicitud.Certificacion_Literal ?? null;
             await this.medidorRepository.save(medidor);
 
             console.log(`Medidor ${medidor.Numero_Medidor} vinculado exitosamente al afiliado físico ${solicitud.Identificacion}`);
@@ -356,7 +356,7 @@ export class AfiliadosService {
         // Validación temprana de archivos: obligatorios cuando se vincula un medidor
         if (opcion === OpcionMedidor.Asignar || opcion === OpcionMedidor.Agregar) {
             if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('Los planos de terreno son obligatorios cuando se asigna o agrega un medidor');
-            if (!files?.Escritura_Terreno?.[0]) throw new BadRequestException('La escritura del terreno es obligatoria cuando se asigna o agrega un medidor');
+            if (!files?.Certificacion_Literal?.[0]) throw new BadRequestException('La escritura del terreno es obligatoria cuando se asigna o agrega un medidor');
         }
 
         const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} `.trim();
@@ -407,13 +407,13 @@ export class AfiliadosService {
             };
 
             const planoFile = files.Planos_Terreno[0];
-            const escrituraFile = files.Escritura_Terreno[0];
+            const escrituraFile = files.Certificacion_Literal[0];
 
             const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Medidores', 'Fisicos', dto.Identificacion, nombre);
             const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Fisicos', dto.Identificacion, nombre);
 
             medidorExistente.Planos_Terreno = planoRes.url;
-            medidorExistente.Escritura_Terreno = escrituraRes.url;
+            medidorExistente.Certificacion_Literal = escrituraRes.url;
             medidorExistente.Afiliado = afiliadoGuardado;
             medidorExistente.Estado_Medidor = estadoInstalado;
 
@@ -437,7 +437,7 @@ export class AfiliadosService {
             if (!estadoInstalado) throw new BadRequestException('Estado "Instalado" no encontrado');
 
             const planoFile = files.Planos_Terreno[0];
-            const escrituraFile = files.Escritura_Terreno[0];
+            const escrituraFile = files.Certificacion_Literal[0];
             const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Medidores', 'Fisicos', dto.Identificacion, nombre);
             const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Fisicos', dto.Identificacion, nombre);
 
@@ -447,7 +447,7 @@ export class AfiliadosService {
                 Estado_Medidor: estadoInstalado,
                 Usuario: usuario,
                 Planos_Terreno: planoRes.url,
-                Escritura_Terreno: escrituraRes.url
+                Certificacion_Literal: escrituraRes.url
             });
 
                 medidorAsignado = await this.medidorRepository.save(nuevoMedidor);
@@ -526,7 +526,7 @@ export class AfiliadosService {
         if (medidor) {
             medidor.Afiliado = afiliadoGuardado;
             medidor.Planos_Terreno = solicitud.Planos_Terreno ?? null;
-            medidor.Escritura_Terreno = solicitud.Escritura_Terreno ?? null;
+            medidor.Certificacion_Literal = solicitud.Certificacion_Literal ?? null;
             await this.medidorRepository.save(medidor);
 
             console.log(`Medidor ${medidor.Numero_Medidor} vinculado exitosamente al afiliado jurídico ${solicitud.Cedula_Juridica}`);
@@ -576,7 +576,7 @@ export class AfiliadosService {
         // Validación temprana de archivos: obligatorios cuando se vincula un medidor
         if (opcion === OpcionMedidor.Asignar || opcion === OpcionMedidor.Agregar) {
             if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio cuando se asigna o agrega un medidor');
-            if (!files?.Escritura_Terreno?.[0]) throw new BadRequestException('El archivo Escritura_Terreno es obligatorio cuando se asigna o agrega un medidor');
+            if (!files?.Certificacion_Literal?.[0]) throw new BadRequestException('El archivo Certificacion_Literal es obligatorio cuando se asigna o agrega un medidor');
         }
 
         // Crear el Afiliado sin archivos (los archivos pertenecen al Medidor)
@@ -621,12 +621,12 @@ export class AfiliadosService {
             };
 
             const planoFile = files.Planos_Terreno[0];
-            const escrituraFile = files.Escritura_Terreno[0];
+            const escrituraFile = files.Certificacion_Literal[0];
             const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Medidores', 'Juridicos', dto.Cedula_Juridica, dto.Razon_Social);
             const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Juridicos', dto.Cedula_Juridica, dto.Razon_Social);
 
             medidorExistente.Planos_Terreno = planoRes.url;
-            medidorExistente.Escritura_Terreno = escrituraRes.url;
+            medidorExistente.Certificacion_Literal = escrituraRes.url;
             medidorExistente.Afiliado = afiliadoGuardado;
             medidorExistente.Estado_Medidor = estadoInstalado;
 
@@ -650,7 +650,7 @@ export class AfiliadosService {
             if (!estadoInstalado) throw new BadRequestException('Estado "Instalado" no encontrado');
 
             const planoFile = files.Planos_Terreno[0];
-            const escrituraFile = files.Escritura_Terreno[0];
+            const escrituraFile = files.Certificacion_Literal[0];
             const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Medidores', 'Juridicos', dto.Cedula_Juridica, dto.Razon_Social);
             const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Juridicos', dto.Cedula_Juridica, dto.Razon_Social);
 
@@ -660,7 +660,7 @@ export class AfiliadosService {
                 Estado_Medidor: estadoInstalado,
                 Usuario: usuario,
                 Planos_Terreno: planoRes.url,
-                Escritura_Terreno: escrituraRes.url
+                Certificacion_Literal: escrituraRes.url
             });
 
             medidorAsignado = await this.medidorRepository.save(nuevoMedidor);

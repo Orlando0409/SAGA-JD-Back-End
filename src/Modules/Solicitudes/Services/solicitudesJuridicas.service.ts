@@ -150,7 +150,7 @@ export class SolicitudesJuridicasService {
         if (afiliadoExistente) throw new BadRequestException(`Ya existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}`);
 
         const planoFile = files?.Planos_Terreno?.[0];
-        const escrituraFile = files?.Escritura_Terreno?.[0];
+        const escrituraFile = files?.Certificacion_Literal?.[0];
         const razonSocial = dto.Razon_Social;
 
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Juridicas', dto.Cedula_Juridica, razonSocial) : null;
@@ -188,7 +188,7 @@ export class SolicitudesJuridicasService {
             Razon_Social: dto.Razon_Social,
             Direccion_Exacta: dto.Direccion_Exacta,
             Planos_Terreno: planoRes?.url || '',
-            Escritura_Terreno: escrituraRes?.url || '',
+            Certificacion_Literal: escrituraRes?.url || '',
         });
         const solicitudFinal = await this.solicitudAfiliacionRepository.save(solicitudAfiliacion);
 
@@ -205,7 +205,7 @@ export class SolicitudesJuridicasService {
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}`);
 
         const planoFile = files?.Planos_Terreno?.[0];
-        const escrituraFile = files?.Escritura_Terreno?.[0];
+        const escrituraFile = files?.Certificacion_Literal?.[0];
         const razonSocial = dto.Razon_Social;
 
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Desconexion', 'Juridicas', dto.Cedula_Juridica, razonSocial) : null;
@@ -244,7 +244,7 @@ export class SolicitudesJuridicasService {
             Direccion_Exacta: dto.Direccion_Exacta,
             Motivo_Solicitud: dto.Motivo_Solicitud,
             Planos_Terreno: planoRes?.url || '',
-            Escritura_Terreno: escrituraRes?.url || '',
+            Certificacion_Literal: escrituraRes?.url || '',
             Id_Medidor: dto.Id_Medidor,
         });
         const solicitudFinal = await this.solicitudDesconexionRepository.save(solicitudDesconexion);
@@ -255,10 +255,10 @@ export class SolicitudesJuridicasService {
 
     async createSolicitudCambioMedidor(
         dto: CreateSolicitudCambioMedidorJuridicaDto,
-        files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }
+        files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[] }
     ) {
         if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para crear una solicitud de cambio de medidor');
-        if (!files?.Escritura_Terreno?.[0]) throw new BadRequestException('El archivo Escritura_Terreno es obligatorio para crear una solicitud de cambio de medidor');
+        if (!files?.Certificacion_Literal?.[0]) throw new BadRequestException('El archivo Certificacion_Literal es obligatorio para crear una solicitud de cambio de medidor');
 
         const solicitudActiva = await this.validationsService.validarSolicitudesJuridicasActivas(dto.Cedula_Juridica);
         if (solicitudActiva) throw new BadRequestException(solicitudActiva);
@@ -269,7 +269,7 @@ export class SolicitudesJuridicasService {
         const razonSocial = dto.Razon_Social;
 
         const planoRes = await this.dropboxFilesService.uploadFile(files.Planos_Terreno[0], 'Solicitudes-CambioMedidor', 'Juridicas', dto.Cedula_Juridica, razonSocial);
-        const escrituraRes = await this.dropboxFilesService.uploadFile(files.Escritura_Terreno[0], 'Solicitudes-CambioMedidor', 'Juridicas', dto.Cedula_Juridica, razonSocial);
+        const escrituraRes = await this.dropboxFilesService.uploadFile(files.Certificacion_Literal[0], 'Solicitudes-CambioMedidor', 'Juridicas', dto.Cedula_Juridica, razonSocial);
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
@@ -305,7 +305,7 @@ export class SolicitudesJuridicasService {
             Motivo_Solicitud: dto.Motivo_Solicitud,
             Id_Medidor: dto.Id_Medidor,
             Planos_Terreno: planoRes.url,
-            Escritura_Terreno: escrituraRes.url,
+            Certificacion_Literal: escrituraRes.url,
         });
         const solicitudFinal = await this.solicitudCambioMedidorRepository.save(solicitudCambioMedidor);
 
@@ -801,7 +801,7 @@ export class SolicitudesJuridicasService {
                         const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
                         nuevoMedidor.Afiliado = afiliado;
                         nuevoMedidor.Planos_Terreno = solicitudCambioMedidor.Planos_Terreno;
-                        nuevoMedidor.Escritura_Terreno = solicitudCambioMedidor.Escritura_Terreno;
+                        nuevoMedidor.Certificacion_Literal = solicitudCambioMedidor.Certificacion_Literal;
                         if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
                         await this.medidorRepository.save(nuevoMedidor);
                     } else {
@@ -940,7 +940,7 @@ export class SolicitudesJuridicasService {
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}`);
 
         const planoFile = files?.Planos_Terreno?.[0];
-        const escrituraFile = files?.Escritura_Terreno?.[0];
+        const escrituraFile = files?.Certificacion_Literal?.[0];
         const razonSocial = dto.Razon_Social;
 
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-AgregarMedidor', 'Juridicas', dto.Cedula_Juridica, razonSocial) : null;
@@ -975,7 +975,7 @@ export class SolicitudesJuridicasService {
             Razon_Social: dto.Razon_Social,
             Direccion_Exacta: dto.Direccion_Exacta,
             Planos_Terreno: planoRes?.url || '',
-            Escritura_Terreno: escrituraRes?.url || '',
+            Certificacion_Literal: escrituraRes?.url || '',
             ...(dto.Id_Nuevo_Medidor && { Id_Nuevo_Medidor: dto.Id_Nuevo_Medidor }),
         });
         const solicitudFinal = await this.solicitudAgregarMedidorRepository.save(solicitudAgregarMedidor);
@@ -1009,7 +1009,7 @@ export class SolicitudesJuridicasService {
             Correo: solicitudAgregarMedidor.Correo,
             Direccion_Exacta: solicitudAgregarMedidor.Direccion_Exacta,
             Planos_Terreno: solicitudAgregarMedidor.Planos_Terreno,
-            Escritura_Terreno: solicitudAgregarMedidor.Escritura_Terreno,
+            Certificacion_Literal: solicitudAgregarMedidor.Certificacion_Literal,
             Id_Nuevo_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor
         };
 
@@ -1029,7 +1029,7 @@ export class SolicitudesJuridicasService {
                 Correo: solicitudAgregarMedidor.Correo,
                 Direccion_Exacta: solicitudAgregarMedidor.Direccion_Exacta,
                 Planos_Terreno: solicitudAgregarMedidor.Planos_Terreno,
-                Escritura_Terreno: solicitudAgregarMedidor.Escritura_Terreno,
+                Certificacion_Literal: solicitudAgregarMedidor.Certificacion_Literal,
                 Id_Nuevo_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor
             });
         } catch (error) {
