@@ -58,6 +58,9 @@ export function SolicitudCreadaExitosamenteMail(tipoSolicitud: string, nombreApe
 
         <p style="color: #999999; font-size: 14px; line-height: 1.5; margin-top: 30px;">
             Si tiene alguna consulta, no dude en contactarnos. <br/>
+            Telefono: (506) 7249-5817 <br/>
+            Email: juandiazasada@gmail.com <br/>
+            Whatsapp: <a href="https://wa.me/50672495817" target="_blank">Contactar por WhatsApp</a> <br/>
             Gracias por utilizar nuestros servicios.
         </p>
 
@@ -130,9 +133,12 @@ export function EstadoSolicitudMail(tipoSolicitud: string, estadoSolicitud: stri
             ${getEstadoMessage(estadoSolicitud)}
         </p>
         
-        <p style="color: #999999; font-size: 14px; line-height: 1.5;">
-            Si tiene alguna consulta sobre su solicitud, no dude en contactarnos. <br/>
-            Gracias por confiar en nuestros servicios.
+       <p style="color: #999999; font-size: 14px; line-height: 1.5; margin-top: 30px;">
+            Si tiene alguna consulta, no dude en contactarnos. <br/>
+            Telefono: (506) 7249-5817 <br/>
+            Email: juandiazasada@gmail.com <br/>
+            Whatsapp: <a href="https://wa.me/50672495817" target="_blank">Contactar por WhatsApp</a> <br/>
+            Gracias por utilizar nuestros servicios.
         </p>
 
         <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
@@ -146,6 +152,72 @@ export function EstadoSolicitudMail(tipoSolicitud: string, estadoSolicitud: stri
     </div>
     `;
 }
+
+export function SolicitudCambioMedidorMail(
+    nombreSolicitante: string,
+    montoCambio: number,
+    movtivo: string
+): string {
+    return `
+    <div style="font-family: 'Helvetica', Arial, sans-serif; background-color: #f4f6f8; padding: 40px; text-align: center;">
+        <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            <div style="margin-bottom: 25px;">
+                <img src="cid:logo" alt="Logo ASADA Juan Díaz" 
+                    style="
+                    width: 100px;
+                    height: 100px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    box-shadow: 0 2px 8px rgba(0,123,255,0.2);
+                    margin-bottom: 15px;
+                    " />
+                <h1 style="color: #007bff; margin: 0; font-size: 24px; font-weight: bold;">
+                    ASADA Juan Díaz
+                </h1>
+            </div>
+
+            <h2 style="color: #555555; margin-bottom: 20px;"> Solicitud de Cambio de Medidor</h2>
+
+            <p style="color: #555555; font-size: 16px; margin-bottom: 15px;">
+                Estimado(a) <strong>${nombreSolicitante}</strong>,
+            </p>
+
+            <p style="color: #555555; font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+                Su solicitud de cambio de medidor ha sido procesada, debido a que hubo un daño en el medidor se le estará aplicando un coste. <br/>
+                El monto del cambio es de <strong>CRC ${montoCambio.toLocaleString('es-CR')}</strong> <br/>
+            </p>
+
+            <p style="color: #555555; font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+                Segun nuestro fontanero el medidor quedó dañado por el siguiente motivo: "
+                <em style="color: #777777;">${movtivo}"</em> <br/>
+            </p>
+
+             <p style="color: #555555; font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+                 Cuando el pago se haya realizado, continuaremos con el proceso de cambio de medidor. <br/>
+                 Para realizar el pago, puede contactarnos a través de nuestros canales de atención o visitar nuestras oficinas en horario laboral.
+             </p>
+
+            <p style="color: #999999; font-size: 14px; line-height: 1.5; margin-top: 30px;">
+            Si tiene alguna consulta, no dude en contactarnos. <br/>
+            Telefono: (506) 7249-5817 <br/>
+            Email: juandiazasada@gmail.com <br/>
+            Whatsapp: <a href="https://wa.me/50672495817" target="_blank">Contactar por WhatsApp</a> <br/>
+            Gracias por utilizar nuestros servicios.
+            </p>
+
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+
+            <p style="color: #aaaaaa; font-size: 12px; margin: 0;">
+                ASADA Juan Díaz <br/>
+                © ${new Date().getFullYear()} Todos los derechos reservados.
+            </p>
+
+        </div>
+    </div>
+    `;
+}
+
+
 
 function getEstadoMessage(estado: string): string {
     switch (estado.toLowerCase()) {
@@ -340,3 +412,4 @@ export function SolicitudRechazadaMail(
     </div>
     `;
 }
+

@@ -6,6 +6,7 @@ import { ApiOperation } from "@nestjs/swagger";
 import { CreateSolicitudAfiliacionJuridicaDto, CreateSolicitudAgregarMedidorJuridicaDto, CreateSolicitudAsociadoJuridicaDto, CreateSolicitudCambioMedidorJuridicaDto, CreateSolicitudDesconexionJuridicaDto } from "../SolicitudDTO's/CreateSolicitudJuridica.dto";
 import { UpdateSolicitudAfiliacionJuridicaDto, UpdateSolicitudAgregarMedidorJuridicaDto, UpdateSolicitudAsociadoJuridicaDto, UpdateSolicitudCambioMedidorJuridicaDto, UpdateSolicitudDesconexionJuridicaDto } from "../SolicitudDTO's/UpdateSolicitudJuridica.dto";
 import { RechazarSolicitudDto } from "../SolicitudDTO's/RechazarSolicitud.dto";
+import { PagarCambioMedidorDTO } from "../SolicitudDTO's/PagarCambioMedidor.dto";
 
 @Controller('solicitudes-juridicas')
 export class SolicitudesJuridicasController {
@@ -172,13 +173,14 @@ export class SolicitudesJuridicasController {
     @Patch('/update/estado/cambio-medidor/:idSolicitud/:idNuevoEstado')
     @ApiOperation({ summary: 'Actualizar el estado de una solicitud de cambio de medidor jurídica' })
     async updateEstadoSolicitudCambioMedidor(
-        @Param('idSolicitud') idSolicitud: number,
-        @Param('idNuevoEstado') idNuevoEstado: number,
-        @Request() req: any
-    ) {
-        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesJuridicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario);
-    }
+    @Param('idSolicitud') idSolicitud: number,
+    @Param('idNuevoEstado') idNuevoEstado: number,
+    @Body() dtoPago: PagarCambioMedidorDTO,
+    @Request() req: any
+        ) {
+            const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+            return this.solicitudesJuridicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario,  dtoPago.ocupaPago, dtoPago.montoCambio , dtoPago.motivoCobro);
+        }
 
     @Patch('/update/estado/asociado/:idSolicitud/:idNuevoEstado')
     @ApiOperation({ summary: 'Actualizar el estado de una solicitud de asociado jurídica' })

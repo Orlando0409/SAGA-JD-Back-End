@@ -5,6 +5,7 @@ import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { ApiOperation } from "@nestjs/swagger";
 import { UpdateSolicitudAfiliacionFisicaDto, UpdateSolicitudAgregarMedidorFisicaDto, UpdateSolicitudAsociadoFisicaDto, UpdateSolicitudCambioMedidorFisicaDto, UpdateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/UpdateSolicitudFisica.dto";
 import { RechazarSolicitudDto } from "../SolicitudDTO's/RechazarSolicitud.dto";
+import { PagarCambioMedidorDTO } from "../SolicitudDTO's/PagarCambioMedidor.dto";
 
 @Controller('solicitudes-fisicas')
 export class SolicitudesFisicasController {
@@ -175,11 +176,12 @@ export class SolicitudesFisicasController {
     async updateEstadoSolicitudCambioMedidor(
         @Param('idSolicitud') idSolicitud: number,
         @Param('idNuevoEstado') idNuevoEstado: number,
+        @Body() dtoPago: PagarCambioMedidorDTO,
         @Body() dto: RechazarSolicitudDto,
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesFisicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
+        return this.solicitudesFisicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo, dtoPago.montoCambio, dtoPago.ocupaPago, dtoPago.motivoCobro);
     }
 
     @Patch('/update/estado/asociado/:idSolicitud/:idNuevoEstado')

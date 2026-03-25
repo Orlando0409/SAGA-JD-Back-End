@@ -13,6 +13,7 @@ import {
   SolicitudCreadaExitosamenteMail,
   EstadoSolicitudMail,
   SolicitudRechazadaMail,
+  SolicitudCambioMedidorMail,
 } from './Template/SolicitudMail';
 import { ReporteMail } from './Template/PlantillaReporte';
 import { ReporteRespondidoMail } from './Template/ReporteRespondidoMail';
@@ -137,6 +138,29 @@ export class EmailService {
       });
     } catch (error) {
       console.error('Error enviando actualización de estado:', error);
+      throw error;
+    }
+  }
+
+  //CAMBIO DE MEDIDOR - APROBADA CON COSTO - EN ESPERA DE PAGO
+   async enviarEmailCambioMedidorAprobadaConCosto(
+    emailDestino: string,
+    nombreSolicitante: string,
+    montoCambio: number,
+    movtivo: string
+  ) {
+    try {      await this.mailerService.sendMail({
+        to: emailDestino,
+        subject: `Solicitud de Cambio de Medidor - Aprobada con Costo`,
+        html: SolicitudCambioMedidorMail(
+          nombreSolicitante,
+          montoCambio,
+          movtivo
+        ),
+        attachments: this.getLogoAttachment(),
+      });
+    } catch (error) {
+      console.error('Error enviando email de cambio de medidor aprobada con costo:', error);
       throw error;
     }
   }
