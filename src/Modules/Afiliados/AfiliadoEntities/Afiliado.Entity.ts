@@ -23,6 +23,12 @@ export abstract class Afiliado {
     @Column({ nullable: false })
     Direccion_Exacta: string;
 
+    @Column({ type: 'varchar', length: 500, nullable: true })
+    Planos_Terreno?: string;
+
+    @Column({type: 'varchar', length: 500, nullable: true })
+    Escrituras_Terreno?: string;
+
     @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Creacion: Date;
 

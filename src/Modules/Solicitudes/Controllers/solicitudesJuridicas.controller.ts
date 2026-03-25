@@ -92,10 +92,15 @@ export class SolicitudesJuridicasController {
     @Public()
     @Post('/create/asociado')
     @ApiOperation({ summary: 'Crear una nueva solicitud de asociado jurídica' })
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'Planos_Terreno', maxCount: 1 },
+        { name: 'Escrituras_Terreno', maxCount: 1 },
+    ]))
     async createSolicitudAsociado(
         @Body() solicitudAsociado: CreateSolicitudAsociadoJuridicaDto,
+        @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escrituras_Terreno?: Express.Multer.File[] },
     ) {
-        return this.solicitudesJuridicasService.createSolicitudAsociado(solicitudAsociado);
+        return this.solicitudesJuridicasService.createSolicitudAsociado(solicitudAsociado, files);
     }
 
     @Put('/update/afiliacion/:id')

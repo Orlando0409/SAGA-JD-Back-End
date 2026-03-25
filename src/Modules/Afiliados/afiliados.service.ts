@@ -744,7 +744,7 @@ export class AfiliadosService {
         return this.afiliadoJuridicoRepository.save(afiliado);
     }
 
-    async updateTipoAfiliadoFisico(idAfiliado: number, nuevoTipoId: number, idUsuario: number) {
+    async updateTipoAfiliadoFisico(idAfiliado: number, nuevoTipoId: number, idUsuario: number, files?: { Planos_Terreno?: Express.Multer.File[]; Escrituras_Terreno?: Express.Multer.File[]; }) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
@@ -765,11 +765,26 @@ export class AfiliadosService {
         // Validar transiciones válidas (solo de Abonado a Asociado por ahora)
         if (afiliado.Tipo_Afiliado.Id_Tipo_Afiliado === 1 && nuevoTipoId !== 2) throw new BadRequestException(`Solo se puede cambiar de Abonado (ID=1) a Asociado (ID=2)`);
 
+        if (nuevoTipoId === 2) {
+            const planoFile = files?.Planos_Terreno?.[0];
+            const escrituraFile = files?.Escrituras_Terreno?.[0];
+
+            if (!planoFile) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para convertir un afiliado en asociado');
+            if (!escrituraFile) throw new BadRequestException('El archivo Escrituras_Terreno es obligatorio para convertir un afiliado en asociado');
+
+            const nombreCompleto = `${afiliado.Nombre} ${afiliado.Apellido1 ?? ''} ${afiliado.Apellido2 ?? ''}`.trim();
+            const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Afiliados-Asociados', 'Fisicos', afiliado.Identificacion, nombreCompleto);
+            const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Afiliados-Asociados', 'Fisicos', afiliado.Identificacion, nombreCompleto);
+
+            afiliado.Planos_Terreno = planoRes.url;
+            afiliado.Escrituras_Terreno = escrituraRes.url;
+        }
+
         afiliado.Tipo_Afiliado = nuevoTipo;
         return this.afiliadoFisicoRepository.save(afiliado);
     }
 
-    async updateTipoAfiliadoJuridico(idAfiliado: number, nuevoTipoId: number, idUsuario: number) {
+    async updateTipoAfiliadoJuridico(idAfiliado: number, nuevoTipoId: number, idUsuario: number, files?: { Planos_Terreno?: Express.Multer.File[]; Escrituras_Terreno?: Express.Multer.File[]; }) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
@@ -788,12 +803,26 @@ export class AfiliadosService {
         // Validar transiciones válidas (solo de Abonado a Asociado por ahora)
         if (afiliado.Tipo_Afiliado.Id_Tipo_Afiliado === 1 && nuevoTipoId !== 2) throw new BadRequestException(`Solo se puede cambiar de Abonado (ID=1) a Asociado (ID=2)`);
 
+        if (nuevoTipoId === 2) {
+            const planoFile = files?.Planos_Terreno?.[0];
+            const escrituraFile = files?.Escrituras_Terreno?.[0];
+
+            if (!planoFile) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para convertir un afiliado en asociado');
+            if (!escrituraFile) throw new BadRequestException('El archivo Escrituras_Terreno es obligatorio para convertir un afiliado en asociado');
+
+            const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Afiliados-Asociados', 'Juridicos', afiliado.Cedula_Juridica, afiliado.Razon_Social);
+            const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Afiliados-Asociados', 'Juridicos', afiliado.Cedula_Juridica, afiliado.Razon_Social);
+
+            afiliado.Planos_Terreno = planoRes.url;
+            afiliado.Escrituras_Terreno = escrituraRes.url;
+        }
+
         afiliado.Tipo_Afiliado = nuevoTipo;
         return this.afiliadoJuridicoRepository.save(afiliado);
     }
 
     // Métodos para cambiar afiliado a asociado basado en solicitud de asociado aprobada
-    async cambiarAbonadoAAsociadoFisico(identificacion: string, idUsuario: number) {
+    async cambiarAbonadoAAsociadoFisico(identificacion: string, idUsuario: number, planosTerreno?: string, escriturasTerreno?: string) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
@@ -810,11 +839,16 @@ export class AfiliadosService {
         const tipoAsociado = await this.tipoAfiliadoRepository.findOne({ where: { Id_Tipo_Afiliado: 2 } });
         if (!tipoAsociado) throw new BadRequestException('Tipo "Asociado" no configurado');
 
+        if (!planosTerreno) throw new BadRequestException('Los Planos_Terreno son obligatorios para convertir a asociado');
+        if (!escriturasTerreno) throw new BadRequestException('Las Escrituras_Terreno son obligatorias para convertir a asociado');
+
+        afiliado.Planos_Terreno = planosTerreno;
+        afiliado.Escrituras_Terreno = escriturasTerreno;
         afiliado.Tipo_Afiliado = tipoAsociado;
         return this.afiliadoFisicoRepository.save(afiliado);
     }
 
-    async cambiarAbonadoAAsociadoJuridico(cedulaJuridica: string, idUsuario: number) {
+    async cambiarAbonadoAAsociadoJuridico(cedulaJuridica: string, idUsuario: number, planosTerreno?: string, escriturasTerreno?: string) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
@@ -829,6 +863,11 @@ export class AfiliadosService {
         const tipoAsociado = await this.tipoAfiliadoRepository.findOne({ where: { Id_Tipo_Afiliado: 2 } });
         if (!tipoAsociado) throw new BadRequestException('Tipo "Asociado" no configurado');
 
+        if (!planosTerreno) throw new BadRequestException('Los Planos_Terreno son obligatorios para convertir a asociado');
+        if (!escriturasTerreno) throw new BadRequestException('Las Escrituras_Terreno son obligatorias para convertir a asociado');
+
+        afiliado.Planos_Terreno = planosTerreno;
+        afiliado.Escrituras_Terreno = escriturasTerreno;
         afiliado.Tipo_Afiliado = tipoAsociado;
         return this.afiliadoJuridicoRepository.save(afiliado);
     }

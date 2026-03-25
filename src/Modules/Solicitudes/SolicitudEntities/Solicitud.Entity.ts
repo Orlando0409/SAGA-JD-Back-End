@@ -129,7 +129,7 @@ export class SolicitudAfiliacionFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Planos_Terreno: string;
 
-    @Column({ name: 'Escritura_Terreno', nullable: false })
+    @Column({nullable: false })
     Certificacion_Literal: string;
 
     @BeforeInsert()
@@ -170,7 +170,7 @@ export class SolicitudDesconexionFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Planos_Terreno: string;
 
-    @Column({ name: 'Escritura_Terreno', nullable: false })
+    @Column({  nullable: false })
     Certificacion_Literal: string;
 
     @Column({ nullable: false })
@@ -217,7 +217,7 @@ export class SolicitudCambioMedidorFisica extends SolicitudFisica {
     @Column({ nullable: false, type: 'varchar', length: 500 })
     Planos_Terreno: string;
 
-    @Column({ name: 'Escritura_Terreno', nullable: false, type: 'varchar', length: 500 })
+    @Column({ nullable: false, type: 'varchar', length: 500 })
     Certificacion_Literal: string;
 
     @ManyToOne(() => Medidor, { nullable: true })
@@ -263,6 +263,12 @@ export class SolicitudAsociadoFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Motivo_Solicitud: string;
 
+    @Column({ nullable: false, type: 'varchar', length: 500 })
+    Planos_Terreno: string;
+
+    @Column({ nullable: false, type: 'varchar', length: 500 })
+    Escrituras_Terreno: string;
+
     @BeforeInsert()
     @BeforeUpdate()
     setNormalizarCampos() {
@@ -298,7 +304,7 @@ export class SolicitudAfiliacionJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Planos_Terreno: string;
 
-    @Column({ name: 'Escritura_Terreno', nullable: false })
+    @Column({  nullable: false })
     Certificacion_Literal: string;
 
     @BeforeInsert()
@@ -338,7 +344,7 @@ export class SolicitudDesconexionJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Planos_Terreno: string;
 
-    @Column({ name: 'Escritura_Terreno', nullable: false })
+    @Column({ nullable: false })
     Certificacion_Literal: string;
 
     @Column({ nullable: false })
@@ -384,7 +390,7 @@ export class SolicitudCambioMedidorJuridica extends SolicitudJuridica {
     @Column({ nullable: false, type: 'varchar', length: 500 })
     Planos_Terreno: string;
 
-    @Column({ name: 'Escritura_Terreno', nullable: false, type: 'varchar', length: 500 })
+    @Column({ nullable: false, type: 'varchar', length: 500 })
     Certificacion_Literal: string;
 
     @ManyToOne(() => Medidor, { nullable: true })
@@ -429,6 +435,12 @@ export class SolicitudAsociadoJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Motivo_Solicitud: string;
 
+    @Column({ nullable: false, type: 'varchar', length: 500 })
+    Planos_Terreno: string;
+
+    @Column({ nullable: false, type: 'varchar', length: 500 })
+    Escrituras_Terreno: string;
+
     @BeforeInsert()
     @BeforeUpdate()
     setNormalizarCampos() {
@@ -463,7 +475,7 @@ export class SolicitudAgregarMedidorFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Planos_Terreno: string;
 
-    @Column({ name: 'Escritura_Terreno', nullable: false })
+    @Column({ nullable: false })
     Certificacion_Literal: string;
 
     @Column({ nullable: true, default: null })
@@ -508,7 +520,7 @@ export class SolicitudAgregarMedidorJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Planos_Terreno: string;
 
-    @Column({ name: 'Escritura_Terreno', nullable: false })
+    @Column({ nullable: false })
     Certificacion_Literal: string;
 
     @Column({ nullable: true, default: null })

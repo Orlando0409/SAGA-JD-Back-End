@@ -127,19 +127,29 @@ export class AfiliadosController {
 
     @Patch('/update/tipo/fisico/:id/tipo/:nuevoTipoId')
     @ApiOperation({ summary: 'Actualizar tipo de un afiliado físico' })
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'Planos_Terreno', maxCount: 1 },
+        { name: 'Escrituras_Terreno', maxCount: 1 },
+    ]))
     updateTipoAfiliadoFisico(
         @Param('id') id: number,
         @Param('nuevoTipoId') nuevoTipoId: number,
-        @GetUser() usuario: Usuario) {
-        return this.afiliadosService.updateTipoAfiliadoFisico(id, nuevoTipoId, usuario.Id_Usuario);
+        @GetUser() usuario: Usuario,
+        @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escrituras_Terreno?: Express.Multer.File[]; }) {
+        return this.afiliadosService.updateTipoAfiliadoFisico(id, nuevoTipoId, usuario.Id_Usuario, files);
     }
 
     @Patch('/update/tipo/juridico/:id/tipo/:nuevoTipoId')
     @ApiOperation({ summary: 'Actualizar tipo de un afiliado jurídico' })
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'Planos_Terreno', maxCount: 1 },
+        { name: 'Escrituras_Terreno', maxCount: 1 },
+    ]))
     updateTipoAfiliadoJuridico(
         @Param('id') id: number,
         @Param('nuevoTipoId') nuevoTipoId: number,
-        @GetUser() usuario: Usuario) {
-        return this.afiliadosService.updateTipoAfiliadoJuridico(id, nuevoTipoId, usuario.Id_Usuario);
+        @GetUser() usuario: Usuario,
+        @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escrituras_Terreno?: Express.Multer.File[]; }) {
+        return this.afiliadosService.updateTipoAfiliadoJuridico(id, nuevoTipoId, usuario.Id_Usuario, files);
     }
 }

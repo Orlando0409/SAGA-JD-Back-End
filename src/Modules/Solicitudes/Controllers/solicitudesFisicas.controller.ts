@@ -91,10 +91,15 @@ export class SolicitudesFisicasController {
     @Public()
     @Post('/create/asociado')
     @ApiOperation({ summary: 'Crear una nueva solicitud de asociado fisica' })
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'Planos_Terreno', maxCount: 1 },
+        { name: 'Escrituras_Terreno', maxCount: 1 },
+    ]))
     async createSolicitudAsociado(
         @Body() solicitudAsociado: CreateSolicitudAsociadoFisicaDto,
+        @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escrituras_Terreno?: Express.Multer.File[] },
     ) {
-        return this.solicitudesFisicasService.createSolicitudAsociado(solicitudAsociado);
+        return this.solicitudesFisicasService.createSolicitudAsociado(solicitudAsociado, files);
     }
 
     @Put('/update/afiliacion/:id')

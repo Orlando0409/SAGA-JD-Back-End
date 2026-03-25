@@ -332,7 +332,7 @@ export class SolicitudesFisicasService {
         return solicitudFinal;
     }
 
-    async createSolicitudAsociado(dto: CreateSolicitudAsociadoFisicaDto) {
+    async createSolicitudAsociado(dto: CreateSolicitudAsociadoFisicaDto, files: { Planos_Terreno?: Express.Multer.File[]; Escrituras_Terreno?: Express.Multer.File[] }) {
         const solicitudActiva = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (solicitudActiva) throw new BadRequestException(solicitudActiva);
 
@@ -340,7 +340,14 @@ export class SolicitudesFisicasService {
         const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado físico con la identificación ${dto.Identificacion}. No se puede crear la solicitud de asociado.`);
 
+        const planoFile = files?.Planos_Terreno?.[0];
+        const escrituraFile = files?.Escrituras_Terreno?.[0];
+        if (!planoFile) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para la solicitud de asociado');
+        if (!escrituraFile) throw new BadRequestException('El archivo Escrituras_Terreno es obligatorio para la solicitud de asociado');
+
         const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
+        const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Asociado', 'Fisicas', dto.Identificacion, nombre);
+        const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Asociado', 'Fisicas', dto.Identificacion, nombre);
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
@@ -379,6 +386,8 @@ export class SolicitudesFisicasService {
             Apellido1: dto.Apellido1,
             Apellido2: dto.Apellido2,
             Motivo_Solicitud: dto.Motivo_Solicitud,
+            Planos_Terreno: planoRes.url,
+            Escrituras_Terreno: escrituraRes.url,
         });
         const solicitudFinal = await this.solicitudAsociadoFisicaRepository.save(solicitudAsociado);
 
@@ -969,7 +978,12 @@ export class SolicitudesFisicasService {
             await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociado', 'Completada', nombre);
 
             // Cambiar afiliado de abonado a asociado
-            await this.afiliadosService.cambiarAbonadoAAsociadoFisico(solicitudAsociado.Identificacion, idUsuario);
+            await this.afiliadosService.cambiarAbonadoAAsociadoFisico(
+                solicitudAsociado.Identificacion,
+                idUsuario,
+                solicitudAsociado.Planos_Terreno,
+                solicitudAsociado.Escrituras_Terreno,
+            );
         }
 
         // Estado 5 = Rechazada

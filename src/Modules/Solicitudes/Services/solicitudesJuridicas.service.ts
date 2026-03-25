@@ -313,7 +313,7 @@ export class SolicitudesJuridicasService {
         return solicitudFinal;
     }
 
-    async createSolicitudAsociado(dto: CreateSolicitudAsociadoJuridicaDto) {
+    async createSolicitudAsociado(dto: CreateSolicitudAsociadoJuridicaDto, files: { Planos_Terreno?: Express.Multer.File[]; Escrituras_Terreno?: Express.Multer.File[] }) {
         const solicitudActiva = await this.validationsService.validarSolicitudesJuridicasActivas(dto.Cedula_Juridica);
         if (solicitudActiva) throw new BadRequestException(solicitudActiva);
 
@@ -322,6 +322,13 @@ export class SolicitudesJuridicasService {
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}. No se puede crear la solicitud de asociado.`);
 
         const razonSocial = dto.Razon_Social;
+        const planoFile = files?.Planos_Terreno?.[0];
+        const escrituraFile = files?.Escrituras_Terreno?.[0];
+        if (!planoFile) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para la solicitud de asociado');
+        if (!escrituraFile) throw new BadRequestException('El archivo Escrituras_Terreno es obligatorio para la solicitud de asociado');
+
+        const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Asociado', 'Juridicas', dto.Cedula_Juridica, razonSocial);
+        const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Asociado', 'Juridicas', dto.Cedula_Juridica, razonSocial);
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
@@ -354,6 +361,8 @@ export class SolicitudesJuridicasService {
             Cedula_Juridica: dto.Cedula_Juridica,
             Razon_Social: dto.Razon_Social,
             Motivo_Solicitud: dto.Motivo_Solicitud,
+            Planos_Terreno: planoRes.url,
+            Escrituras_Terreno: escrituraRes.url,
         });
         const solicitudFinal = await this.solicitudAsociadoRepository.save(solicitudAsociado);
 
@@ -875,7 +884,12 @@ export class SolicitudesJuridicasService {
             await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociado', 'Completada', razonSocial);
 
             // Cambiar afiliado de abonado a asociado
-            await this.afiliadosService.cambiarAbonadoAAsociadoJuridico(solicitudAsociado.Cedula_Juridica, idUsuario);
+            await this.afiliadosService.cambiarAbonadoAAsociadoJuridico(
+                solicitudAsociado.Cedula_Juridica,
+                idUsuario,
+                solicitudAsociado.Planos_Terreno,
+                solicitudAsociado.Escrituras_Terreno,
+            );
         }
 
         // Estado 5 = Rechazada
