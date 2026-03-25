@@ -740,7 +740,7 @@ export class SolicitudesJuridicasService {
         };
     }
 
-    async updateEstadoSolicitudCambioMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number) {
+    async updateEstadoSolicitudCambioMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, ocupaPago?: boolean, montoCambio?: number, motivoCobro?: string) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de cambio de medidor.');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
@@ -768,7 +768,17 @@ export class SolicitudesJuridicasService {
         if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'En revisión', razonSocial);
 
         // Estado 3 = Aprobada y en espera
-        if (idNuevoEstado === 3) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Aprobada y en espera', razonSocial);
+        if (idNuevoEstado === 3) {
+             
+            if (ocupaPago){
+                
+                if (montoCambio && motivoCobro)  await this.emailService.enviarEmailCambioMedidorAprobadaConCosto(solicitudCambioMedidor.Correo, razonSocial, montoCambio, motivoCobro);
+
+                else throw new BadRequestException('Debe proporcionar el monto y el motivo del cambio de medidor para enviar el correo correspondiente');
+            } 
+        
+            else await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Aprobada y en espera', razonSocial);
+        } 
 
         // Estado 4 = Completada
         if (idNuevoEstado === 4) {
