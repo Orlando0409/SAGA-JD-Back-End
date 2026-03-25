@@ -176,12 +176,11 @@ export class SolicitudesFisicasController {
     async updateEstadoSolicitudCambioMedidor(
         @Param('idSolicitud') idSolicitud: number,
         @Param('idNuevoEstado') idNuevoEstado: number,
-        @Body() dtoPago: PagarCambioMedidorDTO,
-        @Body() dto: RechazarSolicitudDto,
+        @Body() dto: PagarCambioMedidorDTO,
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesFisicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo, dtoPago.montoCambio, dtoPago.ocupaPago, dtoPago.motivoCobro);
+        return this.solicitudesFisicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo, dto.montoCambio, dto.ocupaPago, dto.motivoCobro);
     }
 
     @Patch('/update/estado/asociado/:idSolicitud/:idNuevoEstado')
