@@ -159,12 +159,12 @@ export class MedidorService {
     async asignarMedidorExistenteAAfiliado(
         dto: AsignarMedidorExistenteAAfiliado,
         idUsuario: number,
-        files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }
+        files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[] }
     ) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
         if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para asignar un medidor a un afiliado');
-        if (!files?.Escritura_Terreno?.[0]) throw new BadRequestException('El archivo Escritura_Terreno es obligatorio para asignar un medidor a un afiliado');
+        if (!files?.Certificacion_Literal?.[0]) throw new BadRequestException('El archivo Certificacion_Literal es obligatorio para asignar un medidor a un afiliado');
 
         const medidor = await this.medidorRepository.findOne({
             where: { Id_Medidor: dto.Id_Medidor },
@@ -223,11 +223,11 @@ export class MedidorService {
             files.Planos_Terreno[0], 'Medidores', 'Archivos', String(dto.Id_Medidor), String(dto.Id_Afiliado)
         );
         const escrituraRes = await this.dropboxFilesService.uploadFile(
-            files.Escritura_Terreno[0], 'Medidores', 'Archivos', String(dto.Id_Medidor), String(dto.Id_Afiliado)
+            files.Certificacion_Literal[0], 'Medidores', 'Archivos', String(dto.Id_Medidor), String(dto.Id_Afiliado)
         );
 
         medidor.Planos_Terreno = planoRes.url;
-        medidor.Escritura_Terreno = escrituraRes.url;
+        medidor.Certificacion_Literal = escrituraRes.url;
         medidor.Afiliado = afiliado;
         medidor.Estado_Medidor = estadoInstalado;
         await this.medidorRepository.save(medidor);
@@ -442,7 +442,7 @@ export class MedidorService {
         };
     }
 
-    async updateMedidorFiles(idMedidor: number, idUsuario: number, files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }) {
+    async updateMedidorFiles(idMedidor: number, idUsuario: number, files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[] }) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
         const medidor = await this.medidorRepository.findOne({
@@ -452,10 +452,10 @@ export class MedidorService {
         if (!medidor) throw new BadRequestException(`Medidor con ID ${idMedidor} no encontrado`);
 
         const planoFile = files?.Planos_Terreno?.[0];
-        const escrituraFile = files?.Escritura_Terreno?.[0];
+        const escrituraFile = files?.Certificacion_Literal?.[0];
 
         if (!planoFile && !escrituraFile) {
-            throw new BadRequestException('Debe proporcionar al menos un archivo (Planos_Terreno o Escritura_Terreno)');
+            throw new BadRequestException('Debe proporcionar al menos un archivo (Planos_Terreno o Certificacion_Literal)');
         }
 
         if (planoFile) {
@@ -465,15 +465,15 @@ export class MedidorService {
 
         if (escrituraFile) {
             const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Archivos', String(idMedidor));
-            medidor.Escritura_Terreno = escrituraRes?.url ?? null;
+            medidor.Certificacion_Literal = escrituraRes?.url ?? null;
         }
 
         const medidorActualizado = await this.medidorRepository.save(medidor);
 
         try {
             await this.auditoriaService.logActualizacion('Medidores', idUsuario, idMedidor,
-                { Planos_Terreno: medidor.Planos_Terreno, Escritura_Terreno: medidor.Escritura_Terreno },
-                { Planos_Terreno: medidorActualizado.Planos_Terreno, Escritura_Terreno: medidorActualizado.Escritura_Terreno }
+                { Planos_Terreno: medidor.Planos_Terreno, Certificacion_Literal: medidor.Certificacion_Literal },
+                { Planos_Terreno: medidorActualizado.Planos_Terreno, Certificacion_Literal: medidorActualizado.Certificacion_Literal }
             );
         } catch (error) {
             console.error('Error al registrar auditoría de actualización de archivos del medidor:', error);
@@ -483,7 +483,7 @@ export class MedidorService {
             Id_Medidor: medidorActualizado.Id_Medidor,
             Numero_Medidor: medidorActualizado.Numero_Medidor,
             Planos_Terreno: medidorActualizado.Planos_Terreno,
-            Escritura_Terreno: medidorActualizado.Escritura_Terreno
+            Certificacion_Literal: medidorActualizado.Certificacion_Literal
         };
     }
 }

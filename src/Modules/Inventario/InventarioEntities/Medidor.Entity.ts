@@ -19,8 +19,8 @@ export class Medidor {
     @Column({ nullable: true, type: 'varchar', length: 500 })
     Planos_Terreno: string | null;
 
-    @Column({ nullable: true, type: 'varchar', length: 500 })
-    Escritura_Terreno: string | null;
+    @Column({ name: 'Escritura_Terreno', nullable: true, type: 'varchar', length: 500 })
+    Certificacion_Literal: string | null;
 
     @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Creacion: Date;

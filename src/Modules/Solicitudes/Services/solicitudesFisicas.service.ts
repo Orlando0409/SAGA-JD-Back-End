@@ -150,7 +150,7 @@ export class SolicitudesFisicasService {
         if (afiliadoExistente) throw new BadRequestException(`Ya existe un afiliado físico con la identificación ${dto.Identificacion}`);
 
         const planoFile = files?.Planos_Terreno?.[0];
-        const escrituraFile = files?.Escritura_Terreno?.[0];
+        const escrituraFile = files?.Certificacion_Literal?.[0];
         const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
 
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Identificacion, nombre) : null;
@@ -195,7 +195,7 @@ export class SolicitudesFisicasService {
             Direccion_Exacta: dto.Direccion_Exacta,
             Edad: dto.Edad,
             Planos_Terreno: planoRes?.url || '',
-            Escritura_Terreno: escrituraRes?.url || '',
+            Certificacion_Literal: escrituraRes?.url || '',
         });
         const solicitudFinal = await this.solicitudAfiliacionFisicaRepository.save(solicitudAfiliacion);
 
@@ -212,7 +212,7 @@ export class SolicitudesFisicasService {
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado físico con la identificación ${dto.Identificacion}`);
 
         const planoFile = files?.Planos_Terreno?.[0];
-        const escrituraFile = files?.Escritura_Terreno?.[0];
+        const escrituraFile = files?.Certificacion_Literal?.[0];
         const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
 
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Desconexion', 'Fisicas', dto.Identificacion, nombre) : null;
@@ -257,7 +257,7 @@ export class SolicitudesFisicasService {
             Direccion_Exacta: dto.Direccion_Exacta,
             Motivo_Solicitud: dto.Motivo_Solicitud,
             Planos_Terreno: planoRes?.url || '',
-            Escritura_Terreno: escrituraRes?.url || '',
+            Certificacion_Literal: escrituraRes?.url || '',
             Id_Medidor: dto.Id_Medidor,
         });
         const solicitudFinal = await this.solicitudDesconexionFisicaRepository.save(solicitudDesconexion);
@@ -268,10 +268,10 @@ export class SolicitudesFisicasService {
 
     async createSolicitudCambioMedidor(
         dto: CreateSolicitudCambioMedidorFisicaDto,
-        files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }
+        files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[] }
     ) {
         if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para crear una solicitud de cambio de medidor');
-        if (!files?.Escritura_Terreno?.[0]) throw new BadRequestException('El archivo Escritura_Terreno es obligatorio para crear una solicitud de cambio de medidor');
+        if (!files?.Certificacion_Literal?.[0]) throw new BadRequestException('El archivo Certificacion_Literal es obligatorio para crear una solicitud de cambio de medidor');
 
         const solicitudActiva = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (solicitudActiva) throw new BadRequestException(solicitudActiva);
@@ -282,7 +282,7 @@ export class SolicitudesFisicasService {
         const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
 
         const planoRes = await this.dropboxFilesService.uploadFile(files.Planos_Terreno[0], 'Solicitudes-CambioMedidor', 'Fisicas', dto.Identificacion, nombre);
-        const escrituraRes = await this.dropboxFilesService.uploadFile(files.Escritura_Terreno[0], 'Solicitudes-CambioMedidor', 'Fisicas', dto.Identificacion, nombre);
+        const escrituraRes = await this.dropboxFilesService.uploadFile(files.Certificacion_Literal[0], 'Solicitudes-CambioMedidor', 'Fisicas', dto.Identificacion, nombre);
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
@@ -324,7 +324,7 @@ export class SolicitudesFisicasService {
             Motivo_Solicitud: dto.Motivo_Solicitud,
             Id_Medidor: dto.Id_Medidor,
             Planos_Terreno: planoRes.url,
-            Escritura_Terreno: escrituraRes.url,
+            Certificacion_Literal: escrituraRes.url,
         });
         const solicitudFinal = await this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
 
@@ -888,7 +888,7 @@ export class SolicitudesFisicasService {
                         const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
                         nuevoMedidor.Afiliado = afiliado;
                         nuevoMedidor.Planos_Terreno = solicitudCambioMedidor.Planos_Terreno;
-                        nuevoMedidor.Escritura_Terreno = solicitudCambioMedidor.Escritura_Terreno;
+                        nuevoMedidor.Certificacion_Literal = solicitudCambioMedidor.Certificacion_Literal;
                         if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
                         await this.medidorRepository.save(nuevoMedidor);
                     } else {
@@ -1062,7 +1062,7 @@ export class SolicitudesFisicasService {
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado físico con la identificación ${dto.Identificacion}`);
 
         const planoFile = files?.Planos_Terreno?.[0];
-        const escrituraFile = files?.Escritura_Terreno?.[0];
+        const escrituraFile = files?.Certificacion_Literal?.[0];
         const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
 
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-AgregarMedidor', 'Fisicas', dto.Identificacion, nombre) : null;
@@ -1106,7 +1106,7 @@ export class SolicitudesFisicasService {
             Apellido2: dto.Apellido2,
             Direccion_Exacta: dto.Direccion_Exacta,
             Planos_Terreno: planoRes?.url || '',
-            Escritura_Terreno: escrituraRes?.url || '',
+            Certificacion_Literal: escrituraRes?.url || '',
             ...(dto.Id_Nuevo_Medidor && { Id_Nuevo_Medidor: dto.Id_Nuevo_Medidor }),
         });
         const solicitudFinal = await this.solicitudAgregarMedidorFisicaRepository.save(solicitudAgregarMedidor);
@@ -1141,7 +1141,7 @@ export class SolicitudesFisicasService {
             Correo: solicitudAgregarMedidor.Correo,
             Direccion_Exacta: solicitudAgregarMedidor.Direccion_Exacta,
             Planos_Terreno: solicitudAgregarMedidor.Planos_Terreno,
-            Escritura_Terreno: solicitudAgregarMedidor.Escritura_Terreno,
+            Certificacion_Literal: solicitudAgregarMedidor.Certificacion_Literal,
             Id_Nuevo_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor
         };
 
@@ -1171,7 +1171,7 @@ export class SolicitudesFisicasService {
                 Correo: solicitudAgregarMedidor.Correo,
                 Direccion_Exacta: solicitudAgregarMedidor.Direccion_Exacta,
                 Planos_Terreno: solicitudAgregarMedidor.Planos_Terreno,
-                Escritura_Terreno: solicitudAgregarMedidor.Escritura_Terreno,
+                Certificacion_Literal: solicitudAgregarMedidor.Certificacion_Literal,
                 Id_Nuevo_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor
             });
         } catch (error) {
@@ -1305,12 +1305,12 @@ export class SolicitudesFisicasService {
         if (solicitud.Planos_Terreno) {
             medidor.Planos_Terreno = solicitud.Planos_Terreno;
         }
-        if (solicitud.Escritura_Terreno) {
-            medidor.Escritura_Terreno = solicitud.Escritura_Terreno;
+        if (solicitud.Certificacion_Literal) {
+            medidor.Certificacion_Literal = solicitud.Certificacion_Literal;
         }
 
         // Guardar el medidor actualizado
         await this.medidorRepository.save(medidor);
-        console.log(`Documentos asignados al medidor ${medidor.Numero_Medidor}: Planos=${!!solicitud.Planos_Terreno}, Escrituras=${!!solicitud.Escritura_Terreno}`);
+        console.log(`Documentos asignados al medidor ${medidor.Numero_Medidor}: Planos=${!!solicitud.Planos_Terreno}, Escrituras=${!!solicitud.Certificacion_Literal}`);
     }
 }

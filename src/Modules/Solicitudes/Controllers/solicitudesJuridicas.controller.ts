@@ -55,11 +55,11 @@ export class SolicitudesJuridicasController {
     @ApiOperation({ summary: 'Crear una nueva solicitud de afiliación jurídica' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
+        { name: 'Certificacion_Literal', maxCount: 1 },
     ]),)
     async createSolicitudAfiliacion(
         @Body() solicitudAfiliacion: CreateSolicitudAfiliacionJuridicaDto,
-        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Escritura_Terreno: Express.Multer.File[]; }) {
+        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Certificacion_Literal: Express.Multer.File[]; }) {
         return this.solicitudesJuridicasService.createSolicitudAfiliacion(solicitudAfiliacion, files);
     }
 
@@ -68,11 +68,11 @@ export class SolicitudesJuridicasController {
     @ApiOperation({ summary: 'Crear una nueva solicitud de desconexión jurídica' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
+        { name: 'Certificacion_Literal', maxCount: 1 },
     ]),)
     async createSolicitudDesconexion(
         @Body() solicitudDesconexion: CreateSolicitudDesconexionJuridicaDto,
-        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Escritura_Terreno: Express.Multer.File[]; }) {
+        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Certificacion_Literal: Express.Multer.File[]; }) {
         return this.solicitudesJuridicasService.createSolicitudDesconexion(solicitudDesconexion, files);
     }
 
@@ -81,11 +81,11 @@ export class SolicitudesJuridicasController {
     @ApiOperation({ summary: 'Crear una nueva solicitud de cambio de medidor jurídica' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
+        { name: 'Certificacion_Literal', maxCount: 1 },
     ]))
     async createSolicitudCambioMedidor(
         @Body() solicitudCambioMedidor: CreateSolicitudCambioMedidorJuridicaDto,
-        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Escritura_Terreno: Express.Multer.File[] }
+        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Certificacion_Literal: Express.Multer.File[] }
     ) {
         return this.solicitudesJuridicasService.createSolicitudCambioMedidor(solicitudCambioMedidor, files);
     }
@@ -207,11 +207,11 @@ export class SolicitudesJuridicasController {
     @ApiOperation({ summary: 'Crear una nueva solicitud de agregar medidor jurídica' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
+        { name: 'Certificacion_Literal', maxCount: 1 },
     ]),)
     async createSolicitudAgregarMedidor(
         @Body() solicitudAgregarMedidor: CreateSolicitudAgregarMedidorJuridicaDto,
-        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Escritura_Terreno: Express.Multer.File[]; }
+        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Certificacion_Literal: Express.Multer.File[]; }
     ) {
         return this.solicitudesJuridicasService.createSolicitudAgregarMedidor(solicitudAgregarMedidor, files);
     }

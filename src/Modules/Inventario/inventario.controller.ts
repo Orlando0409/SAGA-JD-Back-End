@@ -346,15 +346,15 @@ export class InventarioController {
   }
 
   @Post('/asignar/medidor/afiliado')
-  @ApiOperation({ summary: 'Asigna un medidor ya existente y disponible directamente a un afiliado. Requiere Planos_Terreno y Escritura_Terreno.' })
+  @ApiOperation({ summary: 'Asigna un medidor ya existente y disponible directamente a un afiliado. Requiere Planos_Terreno y Certificacion_Literal.' })
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'Planos_Terreno', maxCount: 1 },
-    { name: 'Escritura_Terreno', maxCount: 1 },
+    { name: 'Certificacion_Literal', maxCount: 1 },
   ]))
   async asignarMedidorExistenteAAfiliado(
     @Body() dto: AsignarMedidorExistenteAAfiliado,
     @GetUser() usuario: Usuario,
-    @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }
+    @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[] }
   ) {
     return this.medidorService.asignarMedidorExistenteAAfiliado(dto, usuario.Id_Usuario, files);
   }
@@ -373,12 +373,12 @@ export class InventarioController {
   @ApiOperation({ summary: 'Actualiza los archivos (Planos y/o Escritura) de un Medidor existente.' })
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'Planos_Terreno', maxCount: 1 },
-    { name: 'Escritura_Terreno', maxCount: 1 },
+    { name: 'Certificacion_Literal', maxCount: 1 },
   ]))
   async updateMedidorFiles(
     @Param('id', ParseIntPipe) id: number,
     @GetUser() usuario: Usuario,
-    @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }
+    @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[] }
   ) {
     return this.medidorService.updateMedidorFiles(id, usuario.Id_Usuario, files);
   }
