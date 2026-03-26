@@ -8,6 +8,8 @@ import { JwtAuthGuard } from "../auth/Guard/JwtGuard";
 import { GetUser } from "../auth/Decorator/GetUser.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { Public } from "../auth/Decorator/Public.decorator";
+import { AsignarMedidorExistenteAfiliadoDto } from "./AfiliadoDTO's/AsignarMedidorExistenteAfiliado.dto";
+import { CrearYAsignarMedidorAfiliadoDto } from "./AfiliadoDTO's/CrearYAsignarMedidorAfiliado.dto";
 
 @Controller('afiliados')
 @UseGuards(JwtAuthGuard)
@@ -151,5 +153,33 @@ export class AfiliadosController {
         @GetUser() usuario: Usuario,
         @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escrituras_Terreno?: Express.Multer.File[]; }) {
         return this.afiliadosService.updateTipoAfiliadoJuridico(id, nuevoTipoId, usuario.Id_Usuario, files);
+    }
+
+    @Post('/medidores/asignar-existente')
+    @ApiOperation({ summary: 'Asigna un medidor existente a un afiliado desde el modulo de afiliados. Requiere Planos_Terreno y Certificacion_Literal.' })
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'Planos_Terreno', maxCount: 1 },
+        { name: 'Certificacion_Literal', maxCount: 1 },
+    ]))
+    asignarMedidorExistenteAAfiliado(
+        @Body() dto: AsignarMedidorExistenteAfiliadoDto,
+        @GetUser() usuario: Usuario,
+        @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[]; }
+    ) {
+        return this.afiliadosService.asignarMedidorExistenteAAfiliadoDesdeModuloAfiliados(dto, usuario.Id_Usuario, files);
+    }
+
+    @Post('/medidores/crear-y-asignar')
+    @ApiOperation({ summary: 'Crea un medidor nuevo y lo asigna a un afiliado desde el modulo de afiliados. Requiere Planos_Terreno y Certificacion_Literal.' })
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'Planos_Terreno', maxCount: 1 },
+        { name: 'Certificacion_Literal', maxCount: 1 },
+    ]))
+    crearYAsignarMedidorAAfiliado(
+        @Body() dto: CrearYAsignarMedidorAfiliadoDto,
+        @GetUser() usuario: Usuario,
+        @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[]; }
+    ) {
+        return this.afiliadosService.crearYAsignarMedidorDesdeModuloAfiliados(dto, usuario.Id_Usuario, files);
     }
 }

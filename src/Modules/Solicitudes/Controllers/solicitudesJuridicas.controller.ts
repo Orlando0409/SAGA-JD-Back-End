@@ -7,6 +7,7 @@ import { CreateSolicitudAfiliacionJuridicaDto, CreateSolicitudAgregarMedidorJuri
 import { UpdateSolicitudAfiliacionJuridicaDto, UpdateSolicitudAgregarMedidorJuridicaDto, UpdateSolicitudAsociadoJuridicaDto, UpdateSolicitudCambioMedidorJuridicaDto, UpdateSolicitudDesconexionJuridicaDto } from "../SolicitudDTO's/UpdateSolicitudJuridica.dto";
 import { RechazarSolicitudDto } from "../SolicitudDTO's/RechazarSolicitud.dto";
 import { PagarCambioMedidorDTO } from "../SolicitudDTO's/PagarCambioMedidor.dto";
+import { PagarSolicitudEnEsperaDTO } from "../SolicitudDTO's/PagarSolicitudEnEspera.dto";
 
 @Controller('solicitudes-juridicas')
 export class SolicitudesJuridicasController {
@@ -179,7 +180,7 @@ export class SolicitudesJuridicasController {
     @Request() req: any
         ) {
             const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-            return this.solicitudesJuridicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario,  dtoPago.ocupaPago, dtoPago.montoCambio , dtoPago.motivoCobro);
+            return this.solicitudesJuridicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario, dtoPago.ocupaPago, dtoPago.montoCambio, dtoPago.motivoCobro, dtoPago.Estado_Pago);
         }
 
     @Patch('/update/estado/asociado/:idSolicitud/:idNuevoEstado')
@@ -237,10 +238,10 @@ export class SolicitudesJuridicasController {
     async updateEstadoSolicitudAgregarMedidor(
         @Param('idSolicitud') idSolicitud: number,
         @Param('idNuevoEstado') idNuevoEstado: number,
-        @Body() dto: RechazarSolicitudDto,
+        @Body() dto: PagarSolicitudEnEsperaDTO,
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesJuridicasService.updateEstadoSolicitudAgregarMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
+        return this.solicitudesJuridicasService.updateEstadoSolicitudAgregarMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo, dto.montoCambio, dto.ocupaPago, dto.Estado_Pago);
     }
 }

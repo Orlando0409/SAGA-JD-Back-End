@@ -16,6 +16,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
 import { EstadoMedidor } from "src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity";
+import { EstadoPagoMedidor } from "src/Common/Enums/EstadoPagoMedidor.enum";
 
 @Injectable()
 export class SolicitudesFisicasService {
@@ -820,7 +821,7 @@ export class SolicitudesFisicasService {
         };
     }
 
-    async updateEstadoSolicitudCambioMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string, montoCambio?: number, ocupaPago?: boolean, motivoCobro?: string) {
+    async updateEstadoSolicitudCambioMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string, montoCambio?: number, ocupaPago?: boolean, motivoCobro?: string, estadoPagoAsignacion?: EstadoPagoMedidor) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de cambio de medidor.');
 
         // Validar que si el estado es rechazado (5), se proporcione el motivo
@@ -870,6 +871,10 @@ export class SolicitudesFisicasService {
         if (idNuevoEstado === 4) {
             await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Completada', nombre);
 
+            if (!estadoPagoAsignacion || estadoPagoAsignacion === EstadoPagoMedidor.Libre) {
+                throw new BadRequestException('Debe proporcionar Estado_Pago (Pagado o Pendiente) al asignar el nuevo medidor');
+            }
+
             // Cambiar estado del medidor ANTIGUO a Averiado (3)
             if (solicitudCambioMedidor.Id_Medidor) {
                 const medidorAntiguo = await this.medidorRepository.findOne({ where: { Id_Medidor: solicitudCambioMedidor.Id_Medidor } });
@@ -898,6 +903,7 @@ export class SolicitudesFisicasService {
                         nuevoMedidor.Afiliado = afiliado;
                         nuevoMedidor.Planos_Terreno = solicitudCambioMedidor.Planos_Terreno;
                         nuevoMedidor.Certificacion_Literal = solicitudCambioMedidor.Certificacion_Literal;
+                        nuevoMedidor.Estado_Pago = estadoPagoAsignacion;
                         if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
                         await this.medidorRepository.save(nuevoMedidor);
                     } else {
@@ -1203,7 +1209,7 @@ export class SolicitudesFisicasService {
         };
     }
 
-    async updateEstadoSolicitudAgregarMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string) {
+    async updateEstadoSolicitudAgregarMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string, montoCambio?: number, ocupaPago?: boolean, estadoPagoAsignacion?: EstadoPagoMedidor) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de agregar medidor.');
 
         if (idNuevoEstado === 5 && !motivoRechazo) {
@@ -1235,10 +1241,28 @@ export class SolicitudesFisicasService {
         if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'En revisión', nombre);
 
         // Estado 3 = Aprobada y en espera
-        if (idNuevoEstado === 3) await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'Aprobada y en espera', nombre);
+        if (idNuevoEstado === 3) {
+            if (ocupaPago) {
+                if (montoCambio) {
+                    await this.emailService.enviarEmailAgregarMedidorAprobadaConCosto(
+                        solicitudAgregarMedidor.Correo,
+                        nombre,
+                        montoCambio
+                    );
+                } else {
+                    throw new BadRequestException('Debe proporcionar el monto del agregar medidor para enviar el correo correspondiente');
+                }
+            } else {
+                await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'Aprobada y en espera', nombre);
+            }
+        }
 
         // Estado 4 = Completada — asignar el nuevo medidor al afiliado (acumulativo)
         if (idNuevoEstado === 4) {
+            if (!estadoPagoAsignacion || estadoPagoAsignacion === EstadoPagoMedidor.Libre) {
+                throw new BadRequestException('Debe proporcionar Estado_Pago (Pagado o Pendiente) al asignar el nuevo medidor');
+            }
+
             // Asignar medidor PRIMERO antes del email para evitar que un fallo de email interrumpa la lógica
             if (solicitudAgregarMedidor.Id_Nuevo_Medidor) {
                 const nuevoMedidor = await this.medidorRepository.findOne({
@@ -1250,6 +1274,7 @@ export class SolicitudesFisicasService {
                     if (afiliado) {
                         const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } }); // 2 = Instalado
                         nuevoMedidor.Afiliado = afiliado;
+                        nuevoMedidor.Estado_Pago = estadoPagoAsignacion;
                         if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
                         await this.medidorRepository.save(nuevoMedidor);
                         console.log(`Nuevo medidor ${nuevoMedidor.Numero_Medidor} agregado al afiliado ${afiliado.Identificacion} y marcado como 'Instalado'`);
