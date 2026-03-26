@@ -192,6 +192,7 @@ export class AfiliadosService {
             Medidor_Asignado: {
                 Id_Medidor: medidorGuardado.Id_Medidor,
                 Numero_Medidor: medidorGuardado.Numero_Medidor,
+                Estado_Pago: medidorGuardado.Estado_Pago ?? 'Libre',
                 Planos_Terreno: medidorGuardado.Planos_Terreno,
                 Certificacion_Literal: medidorGuardado.Certificacion_Literal
             },
@@ -271,6 +272,7 @@ export class AfiliadosService {
             Medidor_Asignado: {
                 Id_Medidor: medidorGuardado.Id_Medidor,
                 Numero_Medidor: medidorGuardado.Numero_Medidor,
+                Estado_Pago: medidorGuardado.Estado_Pago ?? 'Libre',
                 Planos_Terreno: medidorGuardado.Planos_Terreno,
                 Certificacion_Literal: medidorGuardado.Certificacion_Literal
             },
@@ -301,7 +303,8 @@ export class AfiliadosService {
             Medidores: afiliado.Medidores?.map(m => ({
                 Id_Medidor: m.Id_Medidor,
                 Numero_Medidor: m.Numero_Medidor,
-                Estado: m.Estado_Medidor?.Nombre_Estado_Medidor ?? 'Sin estado'
+                Estado: m.Estado_Medidor?.Nombre_Estado_Medidor ?? 'Sin estado',
+                Estado_Pago: m.Estado_Pago ?? 'Libre'
             })) ?? []
         }
     }
@@ -321,7 +324,8 @@ export class AfiliadosService {
             Medidores: afiliado.Medidores?.map(m => ({
                 Id_Medidor: m.Id_Medidor,
                 Numero_Medidor: m.Numero_Medidor,
-                Estado: m.Estado_Medidor?.Nombre_Estado_Medidor ?? 'Sin estado'
+                Estado: m.Estado_Medidor?.Nombre_Estado_Medidor ?? 'Sin estado',
+                Estado_Pago: m.Estado_Pago ?? 'Libre'
             })) ?? []
         }
     }
@@ -370,6 +374,7 @@ export class AfiliadosService {
             Medidores: afiliado.Medidores?.map(m => ({
                 Id_Medidor: m.Id_Medidor,
                 Numero_Medidor: m.Numero_Medidor,
+                Estado_Pago: m.Estado_Pago ?? 'Libre',
                 Planos_Terreno: m.Planos_Terreno ?? null,
                 Certificacion_Literal: m.Certificacion_Literal ?? null,
                 Estado: {
@@ -399,6 +404,7 @@ export class AfiliadosService {
             Medidores: afiliado.Medidores?.map(m => ({
                 Id_Medidor: m.Id_Medidor,
                 Numero_Medidor: m.Numero_Medidor,
+                Estado_Pago: m.Estado_Pago ?? 'Libre',
                 Planos_Terreno: m.Planos_Terreno ?? null,
                 Certificacion_Literal: m.Certificacion_Literal ?? null,
                 Estado: {
@@ -431,6 +437,7 @@ export class AfiliadosService {
             Medidores: afiliado.Medidores?.map(m => ({
                 Id_Medidor: m.Id_Medidor,
                 Numero_Medidor: m.Numero_Medidor,
+                Estado_Pago: m.Estado_Pago ?? 'Libre',
                 Planos_Terreno: m.Planos_Terreno ?? null,
                 Certificacion_Literal: m.Certificacion_Literal ?? null,
                 Estado: {
@@ -463,6 +470,7 @@ export class AfiliadosService {
             Medidores: afiliado.Medidores?.map(m => ({
                 Id_Medidor: m.Id_Medidor,
                 Numero_Medidor: m.Numero_Medidor,
+                Estado_Pago: m.Estado_Pago ?? 'Libre',
                 Planos_Terreno: m.Planos_Terreno ?? null,
                 Certificacion_Literal: m.Certificacion_Literal ?? null,
                 Estado: {
@@ -699,7 +707,11 @@ export class AfiliadosService {
         return {
             ...afiliadoFisicoGuardado,
             Medidor_Asignado: medidorAsignado
-                ? { Id_Medidor: medidorAsignado.Id_Medidor, Numero_Medidor: medidorAsignado.Numero_Medidor }
+                ? {
+                    Id_Medidor: medidorAsignado.Id_Medidor,
+                    Numero_Medidor: medidorAsignado.Numero_Medidor,
+                    Estado_Pago: medidorAsignado.Estado_Pago ?? 'Libre'
+                }
                 : null
         };
     }
@@ -904,7 +916,11 @@ export class AfiliadosService {
         return {
             ...afiliadoJuridicoGuardado,
             Medidor_Asignado: medidorAsignado
-                ? { Id_Medidor: medidorAsignado.Id_Medidor, Numero_Medidor: medidorAsignado.Numero_Medidor }
+                ? {
+                    Id_Medidor: medidorAsignado.Id_Medidor,
+                    Numero_Medidor: medidorAsignado.Numero_Medidor,
+                    Estado_Pago: medidorAsignado.Estado_Pago ?? 'Libre'
+                }
                 : null
         };
     }

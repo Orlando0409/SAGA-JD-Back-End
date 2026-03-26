@@ -180,7 +180,7 @@ export class SolicitudesJuridicasController {
     @Request() req: any
         ) {
             const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-            return this.solicitudesJuridicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario,  dtoPago.ocupaPago, dtoPago.montoCambio , dtoPago.motivoCobro);
+            return this.solicitudesJuridicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario, dtoPago.ocupaPago, dtoPago.montoCambio, dtoPago.motivoCobro, dtoPago.Estado_Pago);
         }
 
     @Patch('/update/estado/asociado/:idSolicitud/:idNuevoEstado')
@@ -242,6 +242,6 @@ export class SolicitudesJuridicasController {
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesJuridicasService.updateEstadoSolicitudAgregarMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo, dto.montoCambio, dto.ocupaPago);
+        return this.solicitudesJuridicasService.updateEstadoSolicitudAgregarMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo, dto.montoCambio, dto.ocupaPago, dto.Estado_Pago);
     }
 }

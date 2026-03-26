@@ -1,6 +1,8 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsBoolean, IsNumber, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsEnum } from "class-validator";
+import { EstadoPagoMedidor } from "src/Common/Enums/EstadoPagoMedidor.enum";
 
 export class PagarSolicitudEnEsperaDTO {
     @ApiPropertyOptional({
@@ -30,4 +32,13 @@ export class PagarSolicitudEnEsperaDTO {
     @MinLength(10, { message: 'El motivo debe tener al menos 10 caracteres' })
     @MaxLength(500, { message: 'El motivo no puede exceder 500 caracteres' })
     motivoRechazo?: string;
+
+    @ApiPropertyOptional({
+        description: 'Estado de pago para el medidor al momento de asignarlo al afiliado (requerido en estado 4)',
+        enum: [EstadoPagoMedidor.Pagado, EstadoPagoMedidor.Pendiente],
+        example: EstadoPagoMedidor.Pagado
+    })
+    @IsOptional()
+    @IsEnum(EstadoPagoMedidor, { message: 'Estado_Pago debe ser Pagado o Pendiente' })
+    Estado_Pago?: EstadoPagoMedidor;
 }

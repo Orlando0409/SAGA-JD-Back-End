@@ -15,6 +15,7 @@ import { MedidorService } from './Services/medidor.service';
 import { CreateMedidorDTO } from './InventarioDTO\'s/CreateMedidor.dto';
 import { AsignarMedidorDTO } from './InventarioDTO\'s/AsignarMedidor.dto';
 import { AsignarMedidorExistenteAAfiliado } from './InventarioDTO\'s/AsignarMedidorExistenteAAfiliado.dto';
+import { UpdateEstadoPagoMedidorDTO } from './InventarioDTO\'s/UpdateEstadoPagoMedidor.dto';
 import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
 import { GetUser } from '../auth/Decorator/GetUser.decorator';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
@@ -367,6 +368,16 @@ export class InventarioController {
     @GetUser() usuario: Usuario
   ) {
     return this.medidorService.updateEstadoMedidor(idMedidor, nuevoEstadoId, usuario.Id_Usuario);
+  }
+
+  @Patch('/update/estado-pago/medidor/:idMedidor')
+  @ApiOperation({ summary: 'Actualiza el estado de pago de un medidor específico.' })
+  async updateEstadoPagoMedidor(
+    @Param('idMedidor', ParseIntPipe) idMedidor: number,
+    @Body() dto: UpdateEstadoPagoMedidorDTO,
+    @GetUser() usuario: Usuario
+  ) {
+    return this.medidorService.updateEstadoPagoMedidor(idMedidor, dto.Estado_Pago, usuario.Id_Usuario);
   }
 
   @Patch('/medidor/:id/files')

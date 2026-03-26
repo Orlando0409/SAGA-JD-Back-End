@@ -16,6 +16,7 @@ import { AfiliadoJuridico } from "src/Modules/Afiliados/AfiliadoEntities/Afiliad
 import { EstadoAfiliado } from "src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
 import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
 import { EstadoMedidor } from "src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity";
+import { EstadoPagoMedidor } from "src/Common/Enums/EstadoPagoMedidor.enum";
 
 @Injectable()
 export class SolicitudesJuridicasService {
@@ -749,7 +750,7 @@ export class SolicitudesJuridicasService {
         };
     }
 
-    async updateEstadoSolicitudCambioMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, ocupaPago?: boolean, montoCambio?: number, motivoCobro?: string) {
+    async updateEstadoSolicitudCambioMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, ocupaPago?: boolean, montoCambio?: number, motivoCobro?: string, estadoPagoAsignacion?: EstadoPagoMedidor) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de cambio de medidor.');
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
@@ -793,6 +794,10 @@ export class SolicitudesJuridicasService {
         if (idNuevoEstado === 4) {
             await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Completada', razonSocial);
 
+            if (!estadoPagoAsignacion || estadoPagoAsignacion === EstadoPagoMedidor.Libre) {
+                throw new BadRequestException('Debe proporcionar Estado_Pago (Pagado o Pendiente) al asignar el nuevo medidor');
+            }
+
             // Cambiar estado del medidor ANTIGUO a Averiado (3)
             if (solicitudCambioMedidor.Id_Medidor) {
                 const medidorAntiguo = await this.medidorRepository.findOne({ where: { Id_Medidor: solicitudCambioMedidor.Id_Medidor } });
@@ -821,6 +826,7 @@ export class SolicitudesJuridicasService {
                         nuevoMedidor.Afiliado = afiliado;
                         nuevoMedidor.Planos_Terreno = solicitudCambioMedidor.Planos_Terreno;
                         nuevoMedidor.Certificacion_Literal = solicitudCambioMedidor.Certificacion_Literal;
+                        nuevoMedidor.Estado_Pago = estadoPagoAsignacion;
                         if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
                         await this.medidorRepository.save(nuevoMedidor);
                     } else {
@@ -1071,7 +1077,7 @@ export class SolicitudesJuridicasService {
         };
     }
 
-    async updateEstadoSolicitudAgregarMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string, montoCambio?: number, ocupaPago?: boolean) {
+    async updateEstadoSolicitudAgregarMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string, montoCambio?: number, ocupaPago?: boolean, estadoPagoAsignacion?: EstadoPagoMedidor) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de agregar medidor.');
 
         if (idNuevoEstado === 5 && !motivoRechazo) {
@@ -1122,6 +1128,10 @@ export class SolicitudesJuridicasService {
         if (idNuevoEstado === 4) {
             await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'Completada', razonSocial);
 
+            if (!estadoPagoAsignacion || estadoPagoAsignacion === EstadoPagoMedidor.Libre) {
+                throw new BadRequestException('Debe proporcionar Estado_Pago (Pagado o Pendiente) al asignar el nuevo medidor');
+            }
+
             if (solicitudAgregarMedidor.Id_Nuevo_Medidor) {
                 const nuevoMedidor = await this.medidorRepository.findOne({
                     where: { Id_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor },
@@ -1132,6 +1142,7 @@ export class SolicitudesJuridicasService {
                     if (afiliado) {
                         const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } }); // 2 = Instalado
                         nuevoMedidor.Afiliado = afiliado;
+                        nuevoMedidor.Estado_Pago = estadoPagoAsignacion;
                         if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
                         await this.medidorRepository.save(nuevoMedidor);
                         console.log(`Nuevo medidor ${nuevoMedidor.Numero_Medidor} agregado al afiliado jurídico ${afiliado.Cedula_Juridica} y marcado como 'Instalado'`);
