@@ -1203,7 +1203,7 @@ export class SolicitudesFisicasService {
         };
     }
 
-    async updateEstadoSolicitudAgregarMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string) {
+    async updateEstadoSolicitudAgregarMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string, montoCambio?: number, ocupaPago?: boolean) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de agregar medidor.');
 
         if (idNuevoEstado === 5 && !motivoRechazo) {
@@ -1235,7 +1235,21 @@ export class SolicitudesFisicasService {
         if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'En revisión', nombre);
 
         // Estado 3 = Aprobada y en espera
-        if (idNuevoEstado === 3) await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'Aprobada y en espera', nombre);
+        if (idNuevoEstado === 3) {
+            if (ocupaPago) {
+                if (montoCambio) {
+                    await this.emailService.enviarEmailAgregarMedidorAprobadaConCosto(
+                        solicitudAgregarMedidor.Correo,
+                        nombre,
+                        montoCambio
+                    );
+                } else {
+                    throw new BadRequestException('Debe proporcionar el monto del agregar medidor para enviar el correo correspondiente');
+                }
+            } else {
+                await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'Aprobada y en espera', nombre);
+            }
+        }
 
         // Estado 4 = Completada — asignar el nuevo medidor al afiliado (acumulativo)
         if (idNuevoEstado === 4) {
