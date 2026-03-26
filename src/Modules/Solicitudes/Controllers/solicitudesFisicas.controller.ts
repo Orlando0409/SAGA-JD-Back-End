@@ -153,11 +153,11 @@ export class SolicitudesFisicasController {
     async updateEstadoSolicitudAfiliacion(
         @Param('idSolicitud') idSolicitud: number,
         @Param('idNuevoEstado') idNuevoEstado: number,
-        @Body() dto: RechazarSolicitudDto,
+        @Body() dto: PagarSolicitudEnEsperaDTO,
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesFisicasService.updateEstadoSolicitudAfiliacion(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
+        return this.solicitudesFisicasService.updateEstadoSolicitudAfiliacion(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo, dto.montoCambio);
     }
 
     @Patch('/update/estado/desconexion/:idSolicitud/:idNuevoEstado')

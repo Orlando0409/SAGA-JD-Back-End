@@ -217,6 +217,64 @@ export function SolicitudCambioMedidorMail(
     `;
 }
 
+export function SolicitudAfiliacionMail(
+    nombreSolicitante: string,
+    montoCambio: number,
+): string {
+    return `
+    <div style="font-family: 'Helvetica', Arial, sans-serif; background-color: #f4f6f8; padding: 40px; text-align: center;">
+        <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            <div style="margin-bottom: 25px;">
+                <img src="cid:logo" alt="Logo ASADA Juan Díaz" 
+                    style="
+                    width: 100px;
+                    height: 100px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    box-shadow: 0 2px 8px rgba(0,123,255,0.2);
+                    margin-bottom: 15px;
+                    " />
+                <h1 style="color: #007bff; margin: 0; font-size: 24px; font-weight: bold;">
+                    ASADA Juan Díaz
+                </h1>
+            </div>
+
+            <h2 style="color: #555555; margin-bottom: 20px;"> Solicitud de Afiliación </h2>
+
+            <p style="color: #555555; font-size: 16px; margin-bottom: 15px;">
+                Estimado(a) <strong>${nombreSolicitante}</strong>,
+            </p>
+
+            <p style="color: #555555; font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+                Su solicitud de afiliación fue aprobada y se encuentra en espera de pago para continuar con el proceso. <br/>
+                El monto total a cancelar es de <strong>CRC ${montoCambio.toLocaleString('es-CR')}</strong> <br/>
+            </p>
+
+            <p style="color: #555555; font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+                 Cuando el pago se haya realizado, continuaremos con el proceso de afiliación. <br/>
+                 Para realizar el pago, puede contactarnos a través de nuestros canales de atención o visitar nuestras oficinas en horario laboral.
+             </p>
+
+            <p style="color: #999999; font-size: 14px; line-height: 1.5; margin-top: 30px;">
+            Si tiene alguna consulta, no dude en contactarnos. <br/>
+            Telefono: (506) 7249-5817 <br/>
+            Email: juandiazasada@gmail.com <br/>
+            Whatsapp: <a href="https://wa.me/50672495817" target="_blank">Contactar por WhatsApp</a> <br/>
+            Gracias por utilizar nuestros servicios.
+            </p>
+
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+
+            <p style="color: #aaaaaa; font-size: 12px; margin: 0;">
+                ASADA Juan Díaz <br/>
+                © ${new Date().getFullYear()} Todos los derechos reservados.
+            </p>
+
+        </div>
+    </div>
+    `;
+}
+
 export function SolicitudAgregarMedidorMail(
     nombreSolicitante: string,
     montoCambio: number,

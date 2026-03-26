@@ -345,7 +345,7 @@ export class MedidorService {
         // Asignar la solicitud al medidor (NO el afiliado, porque aún no existe)
         medidor.Id_Solicitud = dto.Id_Solicitud;
         medidor.Estado_Medidor = estadoInstalado;
-        medidor.Estado_Pago = EstadoPagoMedidor.Libre;
+        medidor.Estado_Pago = dto.Estado_Pago;
         await this.medidorRepository.save(medidor);
 
         // Registrar en auditoría si se proporciona idUsuario

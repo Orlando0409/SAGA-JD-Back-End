@@ -13,6 +13,7 @@ import {
   SolicitudCreadaExitosamenteMail,
   EstadoSolicitudMail,
   SolicitudRechazadaMail,
+  SolicitudAfiliacionMail,
   SolicitudCambioMedidorMail,
   SolicitudAgregarMedidorMail,
 } from './Template/SolicitudMail';
@@ -162,6 +163,28 @@ export class EmailService {
       });
     } catch (error) {
       console.error('Error enviando email de cambio de medidor aprobada con costo:', error);
+      throw error;
+    }
+  }
+
+  //AFILIACION - APROBADA CON COSTO - EN ESPERA DE PAGO
+  async enviarEmailAfiliacionAprobadaConCosto(
+    emailDestino: string,
+    nombreSolicitante: string,
+    montoCambio: number,
+  ) {
+    try {
+      await this.mailerService.sendMail({
+        to: emailDestino,
+        subject: `Solicitud de Afiliacion - Aprobada con Costo`,
+        html: SolicitudAfiliacionMail(
+          nombreSolicitante,
+          montoCambio,
+        ),
+        attachments: this.getLogoAttachment(),
+      });
+    } catch (error) {
+      console.error('Error enviando email de afiliacion aprobada con costo:', error);
       throw error;
     }
   }

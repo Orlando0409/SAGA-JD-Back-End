@@ -626,8 +626,12 @@ export class SolicitudesJuridicasService {
 
 
     // MÉTODOS PARA CAMBIO DE ESTADO DE SOLICITUDES JURÍDICAS
-    async updateEstadoSolicitudAfiliacion(idSolicitud: number, idNuevoEstado: number, idUsuario: number) {
+    async updateEstadoSolicitudAfiliacion(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string, montoCambio?: number) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de afiliación.');
+
+        if (idNuevoEstado === 5 && !motivoRechazo) {
+            throw new BadRequestException('Debe proporcionar un motivo de rechazo');
+        }
 
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
@@ -651,7 +655,17 @@ export class SolicitudesJuridicasService {
         if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudAfiliacion.Correo, 'Afiliación', 'En revisión', razonSocial);
 
         // Estado 3 = Aprobada y en espera / Pendiente de instalar medidor
-        if (idNuevoEstado === 3) await this.emailService.enviarEmailActualizacionEstado(solicitudAfiliacion.Correo, 'Afiliación', 'Aprobada y en espera', razonSocial);
+        if (idNuevoEstado === 3) {
+            if (!montoCambio || montoCambio <= 0) {
+                throw new BadRequestException('Debe proporcionar un monto valido mayor a 0 para aprobar la afiliacion en espera');
+            }
+
+            await this.emailService.enviarEmailAfiliacionAprobadaConCosto(
+                solicitudAfiliacion.Correo,
+                razonSocial,
+                montoCambio
+            );
+        }
 
         // Estado 4 = Completada
         if (idNuevoEstado === 4) {
@@ -662,7 +676,16 @@ export class SolicitudesJuridicasService {
         }
 
         // Estado 5 = Rechazada
-        if (idNuevoEstado === 5) console.log(`Estado de solicitud de afiliación ${idSolicitud} cambiado a 'Rechazada'`);
+        if (idNuevoEstado === 5) {
+            await this.emailService.enviarEmailSolicitudRechazada(
+                solicitudAfiliacion.Correo,
+                razonSocial,
+                'Afiliación',
+                idSolicitud.toString(),
+                motivoRechazo!
+            );
+            console.log(`Estado de solicitud de afiliación ${idSolicitud} cambiado a 'Rechazada'`);
+        }
 
         solicitudAfiliacion.Estado = nuevoEstado;
         const resultado = await this.solicitudAfiliacionRepository.save(solicitudAfiliacion);
@@ -671,7 +694,8 @@ export class SolicitudesJuridicasService {
             await this.auditoriaService.logActualizacion('Solicitudes', idUsuario, idSolicitud, datosAnteriores, {
                 Cedula_Juridica: solicitudAfiliacion.Cedula_Juridica,
                 Razon_Social: razonSocial,
-                Estado_Nuevo: nuevoEstado.Nombre_Estado
+                Estado_Nuevo: nuevoEstado.Nombre_Estado,
+                ...(motivoRechazo && { Motivo_Rechazo: motivoRechazo })
             });
         } catch (error) {
             console.error('Error al actualizar estado de solicitud de afiliación:', error);
@@ -798,6 +822,10 @@ export class SolicitudesJuridicasService {
                 throw new BadRequestException('Debe proporcionar Estado_Pago (Pagado o Pendiente) al asignar el nuevo medidor');
             }
 
+            if (!solicitudCambioMedidor.Id_Nuevo_Medidor || solicitudCambioMedidor.Id_Nuevo_Medidor <= 0) {
+                throw new BadRequestException('Debe seleccionar un nuevo medidor valido para completar la solicitud de cambio');
+            }
+
             // Cambiar estado del medidor ANTIGUO a Averiado (3)
             if (solicitudCambioMedidor.Id_Medidor) {
                 const medidorAntiguo = await this.medidorRepository.findOne({ where: { Id_Medidor: solicitudCambioMedidor.Id_Medidor } });
@@ -814,27 +842,25 @@ export class SolicitudesJuridicasService {
             }
 
             // Asignar el NUEVO medidor al afiliado (acumulativo, no reemplaza los existentes)
-            if (solicitudCambioMedidor.Id_Nuevo_Medidor) {
-                const nuevoMedidor = await this.medidorRepository.findOne({
-                    where: { Id_Medidor: solicitudCambioMedidor.Id_Nuevo_Medidor },
-                    relations: ['Estado_Medidor']
-                });
-                if (nuevoMedidor) {
-                    const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: solicitudCambioMedidor.Cedula_Juridica } });
-                    if (afiliado) {
-                        const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
-                        nuevoMedidor.Afiliado = afiliado;
-                        nuevoMedidor.Planos_Terreno = solicitudCambioMedidor.Planos_Terreno;
-                        nuevoMedidor.Certificacion_Literal = solicitudCambioMedidor.Certificacion_Literal;
-                        nuevoMedidor.Estado_Pago = estadoPagoAsignacion;
-                        if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
-                        await this.medidorRepository.save(nuevoMedidor);
-                    } else {
-                        console.warn(`Afiliado jurídico con cédula ${solicitudCambioMedidor.Cedula_Juridica} no encontrado para asignar nuevo medidor.`);
-                    }
-                } else {
-                    console.warn(`Nuevo medidor con id ${solicitudCambioMedidor.Id_Nuevo_Medidor} no encontrado.`);
-                }
+            const nuevoMedidor = await this.medidorRepository.findOne({
+                where: { Id_Medidor: solicitudCambioMedidor.Id_Nuevo_Medidor },
+                relations: ['Estado_Medidor']
+            });
+            if (!nuevoMedidor) {
+                throw new BadRequestException(`No existe un medidor valido con id ${solicitudCambioMedidor.Id_Nuevo_Medidor} para completar la solicitud`);
+            }
+
+            const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: solicitudCambioMedidor.Cedula_Juridica } });
+            if (afiliado) {
+                const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
+                nuevoMedidor.Afiliado = afiliado;
+                nuevoMedidor.Planos_Terreno = solicitudCambioMedidor.Planos_Terreno;
+                nuevoMedidor.Certificacion_Literal = solicitudCambioMedidor.Certificacion_Literal;
+                nuevoMedidor.Estado_Pago = estadoPagoAsignacion;
+                if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
+                await this.medidorRepository.save(nuevoMedidor);
+            } else {
+                console.warn(`Afiliado jurídico con cédula ${solicitudCambioMedidor.Cedula_Juridica} no encontrado para asignar nuevo medidor.`);
             }
         }
 
@@ -1132,26 +1158,28 @@ export class SolicitudesJuridicasService {
                 throw new BadRequestException('Debe proporcionar Estado_Pago (Pagado o Pendiente) al asignar el nuevo medidor');
             }
 
-            if (solicitudAgregarMedidor.Id_Nuevo_Medidor) {
-                const nuevoMedidor = await this.medidorRepository.findOne({
-                    where: { Id_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor },
-                    relations: ['Estado_Medidor']
-                });
-                if (nuevoMedidor) {
-                    const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: solicitudAgregarMedidor.Cedula_Juridica } });
-                    if (afiliado) {
-                        const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } }); // 2 = Instalado
-                        nuevoMedidor.Afiliado = afiliado;
-                        nuevoMedidor.Estado_Pago = estadoPagoAsignacion;
-                        if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
-                        await this.medidorRepository.save(nuevoMedidor);
-                        console.log(`Nuevo medidor ${nuevoMedidor.Numero_Medidor} agregado al afiliado jurídico ${afiliado.Cedula_Juridica} y marcado como 'Instalado'`);
-                    } else {
-                        console.warn(`Afiliado jurídico con cédula ${solicitudAgregarMedidor.Cedula_Juridica} no encontrado para asignar nuevo medidor.`);
-                    }
-                } else {
-                    console.warn(`Nuevo medidor con id ${solicitudAgregarMedidor.Id_Nuevo_Medidor} no encontrado.`);
-                }
+            if (!solicitudAgregarMedidor.Id_Nuevo_Medidor || solicitudAgregarMedidor.Id_Nuevo_Medidor <= 0) {
+                throw new BadRequestException('Debe seleccionar un nuevo medidor valido para completar la solicitud de agregar medidor');
+            }
+
+            const nuevoMedidor = await this.medidorRepository.findOne({
+                where: { Id_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor },
+                relations: ['Estado_Medidor']
+            });
+            if (!nuevoMedidor) {
+                throw new BadRequestException(`No existe un medidor valido con id ${solicitudAgregarMedidor.Id_Nuevo_Medidor} para completar la solicitud`);
+            }
+
+            const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: solicitudAgregarMedidor.Cedula_Juridica } });
+            if (afiliado) {
+                const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } }); // 2 = Instalado
+                nuevoMedidor.Afiliado = afiliado;
+                nuevoMedidor.Estado_Pago = estadoPagoAsignacion;
+                if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
+                await this.medidorRepository.save(nuevoMedidor);
+                console.log(`Nuevo medidor ${nuevoMedidor.Numero_Medidor} agregado al afiliado jurídico ${afiliado.Cedula_Juridica} y marcado como 'Instalado'`);
+            } else {
+                console.warn(`Afiliado jurídico con cédula ${solicitudAgregarMedidor.Cedula_Juridica} no encontrado para asignar nuevo medidor.`);
             }
         }
 
