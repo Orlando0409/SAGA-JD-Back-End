@@ -1,30 +1,30 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsNumber, IsBoolean, IsString, MinLength, MaxLength } from "class-validator";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
+import { IsBoolean, IsNumber, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 import { IsEnum } from "class-validator";
 import { EstadoPagoMedidor } from "src/Common/Enums/EstadoPagoMedidor.enum";
 
-export class PagarCambioMedidorDTO {
-    @ApiProperty({description: 'Monto a pagar por el cambio de medidor', example: 5000})
-    @Type(() => Number)
-    @IsNumber()
-    @IsOptional()
-    montoCambio?: number;
-    
-    @ApiProperty({description: 'Indica si la solicitud ocupa pago', example: true})
+export class PagarSolicitudEnEsperaDTO {
+    @ApiPropertyOptional({
+        description: 'Indica si la solicitud requiere pago antes de continuar el flujo',
+        example: true
+    })
     @Type(() => Boolean)
     @IsBoolean()
     @IsOptional()
     ocupaPago?: boolean;
 
-    @ApiProperty({description: 'Motivo del cobro por el cambio de medidor', example: 'Cambio de medidor por daño'})
-    @Type(() => String)
-    @IsString()
+    @ApiPropertyOptional({
+        description: 'Monto exacto a pagar cuando la solicitud queda Aprobada y en espera',
+        example: 7500
+    })
+    @Type(() => Number)
+    @IsNumber()
     @IsOptional()
-    motivoCobro?: string;
+    montoCambio?: number;
 
     @ApiPropertyOptional({
-        example: 'Documentación incompleta',
+        example: 'Documentacion incompleta',
         description: 'Motivo del rechazo de la solicitud (requerido cuando el estado es 5 - Rechazada)'
     })
     @IsOptional()
@@ -34,9 +34,9 @@ export class PagarCambioMedidorDTO {
     motivoRechazo?: string;
 
     @ApiPropertyOptional({
-        description: 'Estado de pago para el nuevo medidor al momento de asignarlo al afiliado (requerido en estado 4)',
+        description: 'Estado de pago para el medidor al momento de asignarlo al afiliado (requerido en estado 4)',
         enum: [EstadoPagoMedidor.Pagado, EstadoPagoMedidor.Pendiente],
-        example: EstadoPagoMedidor.Pendiente
+        example: EstadoPagoMedidor.Pagado
     })
     @IsOptional()
     @IsEnum(EstadoPagoMedidor, { message: 'Estado_Pago debe ser Pagado o Pendiente' })

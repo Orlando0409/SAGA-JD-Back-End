@@ -1,9 +1,10 @@
-import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Afiliado } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { EstadoMedidor } from "./EstadoMedidor.Entity";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 import { Expose } from "class-transformer";
 import { Lectura } from "src/Modules/Lecturas/LecturaEntities/Lectura.Entity";
+import { EstadoPagoMedidor } from "src/Common/Enums/EstadoPagoMedidor.enum";
 
 @Entity('medidor')
 export class Medidor {
@@ -21,6 +22,14 @@ export class Medidor {
 
     @Column({ name: 'Escritura_Terreno', nullable: true, type: 'varchar', length: 500 })
     Certificacion_Literal: string | null;
+
+    @Column({
+        type: 'enum',
+        enum: EstadoPagoMedidor,
+        default: EstadoPagoMedidor.Libre,
+        nullable: false,
+    })
+    Estado_Pago: EstadoPagoMedidor;
 
     @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Creacion: Date;
@@ -48,6 +57,20 @@ export class Medidor {
     setDefaultEstado() {
         if (!this.Estado_Medidor) {
             this.Estado_Medidor = { Id_Estado_Medidor: 1 } as EstadoMedidor;
+        }
+
+        if (!this.Estado_Pago) {
+            this.Estado_Pago = EstadoPagoMedidor.Libre;
+        }
+    }
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    setEstadoPagoLibreSiNoTieneAfiliado() {
+        // Solo forzar Libre cuando el medidor realmente esta sin asignar,
+        // es decir, sin afiliado y sin solicitud en proceso.
+        if (!this.Afiliado && !this.Id_Solicitud) {
+            this.Estado_Pago = EstadoPagoMedidor.Libre;
         }
     }
 }
