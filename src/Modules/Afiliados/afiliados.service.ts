@@ -16,6 +16,7 @@ import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { Medidor } from "../Inventario/InventarioEntities/Medidor.Entity";
 import { EstadoMedidor } from "../Inventario/InventarioEntities/EstadoMedidor.Entity";
 import { OpcionMedidor } from "src/Common/Enums/OpcionMedidor.enum";
+import { EstadoPagoMedidor } from "src/Common/Enums/EstadoPagoMedidor.enum";
 import { AsignarMedidorExistenteAfiliadoDto } from "./AfiliadoDTO's/AsignarMedidorExistenteAfiliado.dto";
 import { CrearYAsignarMedidorAfiliadoDto } from "./AfiliadoDTO's/CrearYAsignarMedidorAfiliado.dto";
 
@@ -647,6 +648,7 @@ export class AfiliadosService {
             medidorExistente.Certificacion_Literal = escrituraRes.url;
             medidorExistente.Afiliado = afiliadoGuardado;
             medidorExistente.Estado_Medidor = estadoInstalado;
+            medidorExistente.Estado_Pago = EstadoPagoMedidor.Pendiente;
 
             medidorAsignado = await this.medidorRepository.save(medidorExistente);
 
@@ -676,6 +678,7 @@ export class AfiliadosService {
                 Numero_Medidor: dto.Numero_Medidor!,
                 Afiliado: afiliadoGuardado,
                 Estado_Medidor: estadoInstalado,
+                Estado_Pago: EstadoPagoMedidor.Pendiente,
                 Usuario: usuario,
                 Planos_Terreno: planoRes.url,
                 Certificacion_Literal: escrituraRes.url
@@ -864,6 +867,7 @@ export class AfiliadosService {
             medidorExistente.Certificacion_Literal = escrituraRes.url;
             medidorExistente.Afiliado = afiliadoGuardado;
             medidorExistente.Estado_Medidor = estadoInstalado;
+            medidorExistente.Estado_Pago = EstadoPagoMedidor.Pendiente;
 
             medidorAsignado = await this.medidorRepository.save(medidorExistente);
 
@@ -893,6 +897,7 @@ export class AfiliadosService {
                 Numero_Medidor: dto.Numero_Medidor!,
                 Afiliado: afiliadoGuardado,
                 Estado_Medidor: estadoInstalado,
+                Estado_Pago: EstadoPagoMedidor.Pendiente,
                 Usuario: usuario,
                 Planos_Terreno: planoRes.url,
                 Certificacion_Literal: escrituraRes.url
@@ -911,6 +916,14 @@ export class AfiliadosService {
         } catch (error) {
                 console.error('Error al registrar auditoría para creación de medidor:', error);
             }
+        }
+
+        else if (opcion === OpcionMedidor.SinMedidor) {
+            const estadoEnEspera = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 3 } });
+            if (!estadoEnEspera) throw new BadRequestException('Estado "En Espera" no encontrado');
+
+            afiliadoJuridicoGuardado.Estado = estadoEnEspera;
+            await this.afiliadoJuridicoRepository.save(afiliadoJuridicoGuardado);
         }
 
         return {
