@@ -6,7 +6,6 @@ import { ApiOperation } from "@nestjs/swagger";
 import { UpdateSolicitudAfiliacionFisicaDto, UpdateSolicitudAgregarMedidorFisicaDto, UpdateSolicitudAsociadoFisicaDto, UpdateSolicitudCambioMedidorFisicaDto, UpdateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/UpdateSolicitudFisica.dto";
 import { RechazarSolicitudDto } from "../SolicitudDTO's/RechazarSolicitud.dto";
 import { PagarCambioMedidorDTO } from "../SolicitudDTO's/PagarCambioMedidor.dto";
-import { PagarSolicitudEnEsperaDTO } from "../SolicitudDTO's/PagarSolicitudEnEspera.dto";
 
 @Controller('solicitudes-fisicas')
 export class SolicitudesFisicasController {
@@ -153,11 +152,11 @@ export class SolicitudesFisicasController {
     async updateEstadoSolicitudAfiliacion(
         @Param('idSolicitud') idSolicitud: number,
         @Param('idNuevoEstado') idNuevoEstado: number,
-        @Body() dto: PagarSolicitudEnEsperaDTO,
+        @Body() dto: RechazarSolicitudDto,
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesFisicasService.updateEstadoSolicitudAfiliacion(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo, dto.montoCambio);
+        return this.solicitudesFisicasService.updateEstadoSolicitudAfiliacion(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
     }
 
     @Patch('/update/estado/desconexion/:idSolicitud/:idNuevoEstado')
@@ -181,7 +180,7 @@ export class SolicitudesFisicasController {
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesFisicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo, dto.montoCambio, dto.ocupaPago, dto.motivoCobro, dto.Estado_Pago);
+        return this.solicitudesFisicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo, dto.montoCambio, dto.ocupaPago, dto.motivoCobro);
     }
 
     @Patch('/update/estado/asociado/:idSolicitud/:idNuevoEstado')
@@ -240,10 +239,10 @@ export class SolicitudesFisicasController {
     async updateEstadoSolicitudAgregarMedidor(
         @Param('idSolicitud') idSolicitud: number,
         @Param('idNuevoEstado') idNuevoEstado: number,
-        @Body() dto: PagarSolicitudEnEsperaDTO,
+        @Body() dto: RechazarSolicitudDto,
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesFisicasService.updateEstadoSolicitudAgregarMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo, dto.montoCambio, dto.ocupaPago, dto.Estado_Pago);
+        return this.solicitudesFisicasService.updateEstadoSolicitudAgregarMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
     }
 }

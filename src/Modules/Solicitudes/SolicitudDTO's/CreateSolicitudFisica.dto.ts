@@ -53,11 +53,7 @@ export class CreateSolicitudFisicaDto {
   @ApiProperty({ example: 'Lopez', required: false })
   @Transform(({ value }) => capitalizarCadaPalabra(value))
   @IsString({ message: 'El segundo apellido debe ser un string' })
-  @IsDefined({ message: 'El segundo apellido no puede estar vacío' })
-  @IsNotEmpty({ message: 'El segundo apellido no puede estar vacío' })
-  @MinLength(2, { message: 'El segundo apellido debe tener al menos 2 caracteres' })
   @MaxLength(50, { message: 'El segundo apellido no puede tener más de 50 caracteres' })
-  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'El segundo apellido solo puede contener letras y espacios' })
   Apellido2: string;
 
   @ApiProperty({ example: 'ejemplo@gmail.com' })

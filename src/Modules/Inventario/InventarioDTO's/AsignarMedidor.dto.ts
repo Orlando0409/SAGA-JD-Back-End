@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsDefined, IsEnum, IsInt } from "class-validator";
-import { EstadoPagoMedidor } from "src/Common/Enums/EstadoPagoMedidor.enum";
 import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
 
 export class AsignarMedidorDTO {
@@ -18,13 +17,4 @@ export class AsignarMedidorDTO {
     @IsDefined({ message: 'El ID de la solicitud no puede estar vacio' })
     @IsInt({ message: 'El ID de la solicitud debe ser un número entero' })
     Id_Solicitud: number;
-
-    @ApiProperty({
-        description: 'Estado de pago del medidor al asignarlo a la solicitud',
-        enum: [EstadoPagoMedidor.Pagado, EstadoPagoMedidor.Pendiente],
-        example: EstadoPagoMedidor.Pendiente
-    })
-    @IsDefined({ message: 'El Estado_Pago es obligatorio al asignar un medidor' })
-    @IsEnum(EstadoPagoMedidor, { message: 'Estado_Pago debe ser Pagado o Pendiente' })
-    Estado_Pago: EstadoPagoMedidor;
 }

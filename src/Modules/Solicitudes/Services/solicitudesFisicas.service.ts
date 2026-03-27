@@ -16,7 +16,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
 import { EstadoMedidor } from "src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity";
-import { EstadoPagoMedidor } from "src/Common/Enums/EstadoPagoMedidor.enum";
 
 @Injectable()
 export class SolicitudesFisicasService {
@@ -663,7 +662,7 @@ export class SolicitudesFisicasService {
 
 
     // MÉTODOS PARA CAMBIO DE ESTADO DE SOLICITUDES FÍSICAS
-    async updateEstadoSolicitudAfiliacion(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string, montoCambio?: number) {
+    async updateEstadoSolicitudAfiliacion(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de afiliación.');
 
         //prueba 
@@ -694,17 +693,7 @@ export class SolicitudesFisicasService {
         if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudAfiliacion.Correo, 'Afiliación', 'En revisión', nombre);
 
         // Estado 3 = Aprobada y en espera / Pendiente de instalar medidor
-        if (idNuevoEstado === 3) {
-            if (!montoCambio || montoCambio <= 0) {
-                throw new BadRequestException('Debe proporcionar un monto valido mayor a 0 para aprobar la afiliacion en espera');
-            }
-
-            await this.emailService.enviarEmailAfiliacionAprobadaConCosto(
-                solicitudAfiliacion.Correo,
-                nombre,
-                montoCambio
-            );
-        }
+        if (idNuevoEstado === 3) await this.emailService.enviarEmailActualizacionEstado(solicitudAfiliacion.Correo, 'Afiliación', 'Aprobada y en espera', nombre);
 
         // Estado 4 = Completada
         if (idNuevoEstado === 4) {
@@ -831,7 +820,7 @@ export class SolicitudesFisicasService {
         };
     }
 
-    async updateEstadoSolicitudCambioMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string, montoCambio?: number, ocupaPago?: boolean, motivoCobro?: string, estadoPagoAsignacion?: EstadoPagoMedidor) {
+    async updateEstadoSolicitudCambioMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string, montoCambio?: number, ocupaPago?: boolean, motivoCobro?: string) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de cambio de medidor.');
 
         // Validar que si el estado es rechazado (5), se proporcione el motivo
@@ -881,14 +870,6 @@ export class SolicitudesFisicasService {
         if (idNuevoEstado === 4) {
             await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Completada', nombre);
 
-            if (!estadoPagoAsignacion || estadoPagoAsignacion === EstadoPagoMedidor.Libre) {
-                throw new BadRequestException('Debe proporcionar Estado_Pago (Pagado o Pendiente) al asignar el nuevo medidor');
-            }
-
-            if (!solicitudCambioMedidor.Id_Nuevo_Medidor || solicitudCambioMedidor.Id_Nuevo_Medidor <= 0) {
-                throw new BadRequestException('Debe seleccionar un nuevo medidor valido para completar la solicitud de cambio');
-            }
-
             // Cambiar estado del medidor ANTIGUO a Averiado (3)
             if (solicitudCambioMedidor.Id_Medidor) {
                 const medidorAntiguo = await this.medidorRepository.findOne({ where: { Id_Medidor: solicitudCambioMedidor.Id_Medidor } });
@@ -905,25 +886,26 @@ export class SolicitudesFisicasService {
             }
 
             // Asignar el NUEVO medidor al afiliado (acumulativo, no reemplaza los existentes)
-            const nuevoMedidor = await this.medidorRepository.findOne({
-                where: { Id_Medidor: solicitudCambioMedidor.Id_Nuevo_Medidor },
-                relations: ['Estado_Medidor']
-            });
-            if (!nuevoMedidor) {
-                throw new BadRequestException(`No existe un medidor valido con id ${solicitudCambioMedidor.Id_Nuevo_Medidor} para completar la solicitud`);
-            }
-
-            const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitudCambioMedidor.Identificacion } });
-            if (afiliado) {
-                const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
-                nuevoMedidor.Afiliado = afiliado;
-                nuevoMedidor.Planos_Terreno = solicitudCambioMedidor.Planos_Terreno;
-                nuevoMedidor.Certificacion_Literal = solicitudCambioMedidor.Certificacion_Literal;
-                nuevoMedidor.Estado_Pago = estadoPagoAsignacion;
-                if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
-                await this.medidorRepository.save(nuevoMedidor);
-            } else {
-                console.warn(`Afiliado físico con identificación ${solicitudCambioMedidor.Identificacion} no encontrado para asignar nuevo medidor.`);
+            if (solicitudCambioMedidor.Id_Nuevo_Medidor) {
+                const nuevoMedidor = await this.medidorRepository.findOne({
+                    where: { Id_Medidor: solicitudCambioMedidor.Id_Nuevo_Medidor },
+                    relations: ['Estado_Medidor']
+                });
+                if (nuevoMedidor) {
+                    const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitudCambioMedidor.Identificacion } });
+                    if (afiliado) {
+                        const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
+                        nuevoMedidor.Afiliado = afiliado;
+                        nuevoMedidor.Planos_Terreno = solicitudCambioMedidor.Planos_Terreno;
+                        nuevoMedidor.Certificacion_Literal = solicitudCambioMedidor.Certificacion_Literal;
+                        if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
+                        await this.medidorRepository.save(nuevoMedidor);
+                    } else {
+                        console.warn(`Afiliado físico con identificación ${solicitudCambioMedidor.Identificacion} no encontrado para asignar nuevo medidor.`);
+                    }
+                } else {
+                    console.warn(`Nuevo medidor con id ${solicitudCambioMedidor.Id_Nuevo_Medidor} no encontrado.`);
+                }
             }
         }
 
@@ -1221,7 +1203,7 @@ export class SolicitudesFisicasService {
         };
     }
 
-    async updateEstadoSolicitudAgregarMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string, montoCambio?: number, ocupaPago?: boolean, estadoPagoAsignacion?: EstadoPagoMedidor) {
+    async updateEstadoSolicitudAgregarMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de agregar medidor.');
 
         if (idNuevoEstado === 5 && !motivoRechazo) {
@@ -1253,58 +1235,37 @@ export class SolicitudesFisicasService {
         if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'En revisión', nombre);
 
         // Estado 3 = Aprobada y en espera
-        if (idNuevoEstado === 3) {
-            if (ocupaPago) {
-                if (montoCambio) {
-                    await this.emailService.enviarEmailAgregarMedidorAprobadaConCosto(
-                        solicitudAgregarMedidor.Correo,
-                        nombre,
-                        montoCambio
-                    );
-                } else {
-                    throw new BadRequestException('Debe proporcionar el monto del agregar medidor para enviar el correo correspondiente');
-                }
-            } else {
-                await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'Aprobada y en espera', nombre);
-            }
-        }
+        if (idNuevoEstado === 3) await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'Aprobada y en espera', nombre);
 
         // Estado 4 = Completada — asignar el nuevo medidor al afiliado (acumulativo)
         if (idNuevoEstado === 4) {
-            if (!estadoPagoAsignacion || estadoPagoAsignacion === EstadoPagoMedidor.Libre) {
-                throw new BadRequestException('Debe proporcionar Estado_Pago (Pagado o Pendiente) al asignar el nuevo medidor');
-            }
-
-            if (!solicitudAgregarMedidor.Id_Nuevo_Medidor || solicitudAgregarMedidor.Id_Nuevo_Medidor <= 0) {
-                throw new BadRequestException('Debe seleccionar un nuevo medidor valido para completar la solicitud de agregar medidor');
-            }
-
             // Asignar medidor PRIMERO antes del email para evitar que un fallo de email interrumpa la lógica
-            const nuevoMedidor = await this.medidorRepository.findOne({
-                where: { Id_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor },
-                relations: ['Estado_Medidor']
-            });
-            if (!nuevoMedidor) {
-                throw new BadRequestException(`No existe un medidor valido con id ${solicitudAgregarMedidor.Id_Nuevo_Medidor} para completar la solicitud`);
-            }
-
-            const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitudAgregarMedidor.Identificacion } });
-            if (afiliado) {
-                const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } }); // 2 = Instalado
-                nuevoMedidor.Afiliado = afiliado;
-                nuevoMedidor.Estado_Pago = estadoPagoAsignacion;
-                if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
-                await this.medidorRepository.save(nuevoMedidor);
-                console.log(`Nuevo medidor ${nuevoMedidor.Numero_Medidor} agregado al afiliado ${afiliado.Identificacion} y marcado como 'Instalado'`);
-
-                // Asignar los planos y escrituras de la solicitud al medidor
-                try {
-                    await this.asignarDocumentosDeSolicitudAMedidor(solicitudAgregarMedidor, nuevoMedidor);
-                } catch (error) {
-                    console.error(`Error al asignar documentos al medidor ${nuevoMedidor.Id_Medidor}:`, error);
+            if (solicitudAgregarMedidor.Id_Nuevo_Medidor) {
+                const nuevoMedidor = await this.medidorRepository.findOne({
+                    where: { Id_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor },
+                    relations: ['Estado_Medidor']
+                });
+                if (nuevoMedidor) {
+                    const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitudAgregarMedidor.Identificacion } });
+                    if (afiliado) {
+                        const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } }); // 2 = Instalado
+                        nuevoMedidor.Afiliado = afiliado;
+                        if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
+                        await this.medidorRepository.save(nuevoMedidor);
+                        console.log(`Nuevo medidor ${nuevoMedidor.Numero_Medidor} agregado al afiliado ${afiliado.Identificacion} y marcado como 'Instalado'`);
+                        
+                        // Asignar los planos y escrituras de la solicitud al medidor
+                        try {
+                            await this.asignarDocumentosDeSolicitudAMedidor(solicitudAgregarMedidor, nuevoMedidor);
+                        } catch (error) {
+                            console.error(`Error al asignar documentos al medidor ${nuevoMedidor.Id_Medidor}:`, error);
+                        }
+                    } else {
+                        console.warn(`Afiliado físico con identificación ${solicitudAgregarMedidor.Identificacion} no encontrado para asignar nuevo medidor.`);
+                    }
+                } else {
+                    console.warn(`Nuevo medidor con id ${solicitudAgregarMedidor.Id_Nuevo_Medidor} no encontrado.`);
                 }
-            } else {
-                console.warn(`Afiliado físico con identificación ${solicitudAgregarMedidor.Identificacion} no encontrado para asignar nuevo medidor.`);
             }
 
             try {
