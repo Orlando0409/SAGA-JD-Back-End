@@ -15,6 +15,7 @@ import { AfiliadosService } from "src/Modules/Afiliados/afiliados.service";
 import { Solicitud } from "src/Modules/Solicitudes/SolicitudEntities/Solicitud.Entity";
 import { DropboxFilesService } from "src/Dropbox/Files/DropboxFiles.service";
 import { EstadoAfiliado } from "src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
+import { EstadoPagoMedidor } from "src/Common/Enums/EstadoPagoMedidor.enum";
 
 @Injectable()
 export class MedidorService {
@@ -159,12 +160,12 @@ export class MedidorService {
     async asignarMedidorExistenteAAfiliado(
         dto: AsignarMedidorExistenteAAfiliado,
         idUsuario: number,
-        files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }
+        files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[] }
     ) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
         if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para asignar un medidor a un afiliado');
-        if (!files?.Escritura_Terreno?.[0]) throw new BadRequestException('El archivo Escritura_Terreno es obligatorio para asignar un medidor a un afiliado');
+        if (!files?.Certificacion_Literal?.[0]) throw new BadRequestException('El archivo Certificacion_Literal es obligatorio para asignar un medidor a un afiliado');
 
         const medidor = await this.medidorRepository.findOne({
             where: { Id_Medidor: dto.Id_Medidor },
@@ -174,6 +175,7 @@ export class MedidorService {
         if (!medidor) throw new BadRequestException(`Medidor con ID ${dto.Id_Medidor} no encontrado`);
         if (medidor.Estado_Medidor.Id_Estado_Medidor === 3) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} está averiado y no puede ser asignado`);
         if (medidor.Afiliado) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} ya está asignado al afiliado con ID ${medidor.Afiliado.Id_Afiliado}`);
+        if (dto.Estado_Pago === EstadoPagoMedidor.Libre) throw new BadRequestException('No se puede asignar un medidor con Estado_Pago Libre');
 
         const afiliado = await this.afiliadoRepository.findOne({
             where: { Id_Afiliado: dto.Id_Afiliado },
@@ -223,20 +225,22 @@ export class MedidorService {
             files.Planos_Terreno[0], 'Medidores', 'Archivos', String(dto.Id_Medidor), String(dto.Id_Afiliado)
         );
         const escrituraRes = await this.dropboxFilesService.uploadFile(
-            files.Escritura_Terreno[0], 'Medidores', 'Archivos', String(dto.Id_Medidor), String(dto.Id_Afiliado)
+            files.Certificacion_Literal[0], 'Medidores', 'Archivos', String(dto.Id_Medidor), String(dto.Id_Afiliado)
         );
 
         medidor.Planos_Terreno = planoRes.url;
-        medidor.Escritura_Terreno = escrituraRes.url;
+        medidor.Certificacion_Literal = escrituraRes.url;
         medidor.Afiliado = afiliado;
         medidor.Estado_Medidor = estadoInstalado;
+        medidor.Estado_Pago = dto.Estado_Pago;
         await this.medidorRepository.save(medidor);
 
         try {
             await this.auditoriaService.logActualizacion('Medidores', idUsuario, dto.Id_Medidor, datosAnteriores, {
                 'Número de Medidor': medidor.Numero_Medidor,
                 'Estado del Medidor': 'Instalado',
-                'Afiliado Asignado': dto.Id_Afiliado
+                'Afiliado Asignado': dto.Id_Afiliado,
+                'Estado Pago': medidor.Estado_Pago
             });
         } catch (error) {
             console.error('Error al registrar auditoría de asignación de medidor a afiliado:', error);
@@ -274,6 +278,7 @@ export class MedidorService {
         const medidor = this.medidorRepository.create({
             ...dto,
             Estado_Medidor: estadoInicial,
+            Estado_Pago: EstadoPagoMedidor.Libre,
             Usuario: usuario
         });
 
@@ -340,6 +345,7 @@ export class MedidorService {
         // Asignar la solicitud al medidor (NO el afiliado, porque aún no existe)
         medidor.Id_Solicitud = dto.Id_Solicitud;
         medidor.Estado_Medidor = estadoInstalado;
+        medidor.Estado_Pago = dto.Estado_Pago;
         await this.medidorRepository.save(medidor);
 
         // Registrar en auditoría si se proporciona idUsuario
@@ -400,6 +406,12 @@ export class MedidorService {
         medidor.Estado_Medidor = nuevoEstado;
         await this.medidorRepository.save(medidor);
 
+        // Si el medidor queda sin afiliado, su estado de pago debe mantenerse en Libre.
+        if (!medidor.Afiliado) {
+            medidor.Estado_Pago = EstadoPagoMedidor.Libre;
+            await this.medidorRepository.save(medidor);
+        }
+
         // Registrar en auditoría si se proporciona idUsuario
         try {
             await this.auditoriaService.logActualizacion('Medidores', idUsuario, idMedidor, datosAnteriores, {
@@ -438,11 +450,46 @@ export class MedidorService {
             Estado: {
                 Id_Estado: medidor.Estado_Medidor?.Id_Estado_Medidor || null,
                 Nombre_Estado: medidor.Estado_Medidor?.Nombre_Estado_Medidor || 'Sin estado'
-            }
+            },
+            Estado_Pago: medidor.Estado_Pago || EstadoPagoMedidor.Libre
         };
     }
 
-    async updateMedidorFiles(idMedidor: number, idUsuario: number, files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }) {
+    async updateEstadoPagoMedidor(idMedidor: number, estadoPago: EstadoPagoMedidor, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const medidor = await this.medidorRepository.findOne({
+            where: { Id_Medidor: idMedidor },
+            relations: ['Afiliado', 'Estado_Medidor']
+        });
+
+        if (!medidor) throw new BadRequestException(`Medidor con ID ${idMedidor} no encontrado`);
+
+        if (!medidor.Afiliado && estadoPago !== EstadoPagoMedidor.Libre) {
+            throw new BadRequestException('Un medidor sin dueño solo puede tener Estado_Pago Libre');
+        }
+
+        const datosAnteriores = {
+            Numero_Medidor: medidor.Numero_Medidor,
+            Estado_Pago_Anterior: medidor.Estado_Pago,
+        };
+
+        medidor.Estado_Pago = medidor.Afiliado ? estadoPago : EstadoPagoMedidor.Libre;
+        const medidorActualizado = await this.medidorRepository.save(medidor);
+
+        try {
+            await this.auditoriaService.logActualizacion('Medidores', idUsuario, idMedidor, datosAnteriores, {
+                Numero_Medidor: medidorActualizado.Numero_Medidor,
+                Estado_Pago_Nuevo: medidorActualizado.Estado_Pago,
+            });
+        } catch (error) {
+            console.error('Error al registrar auditoría de actualización de estado de pago:', error);
+        }
+
+        return medidorActualizado;
+    }
+
+    async updateMedidorFiles(idMedidor: number, idUsuario: number, files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[] }) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
         const medidor = await this.medidorRepository.findOne({
@@ -452,10 +499,10 @@ export class MedidorService {
         if (!medidor) throw new BadRequestException(`Medidor con ID ${idMedidor} no encontrado`);
 
         const planoFile = files?.Planos_Terreno?.[0];
-        const escrituraFile = files?.Escritura_Terreno?.[0];
+        const escrituraFile = files?.Certificacion_Literal?.[0];
 
         if (!planoFile && !escrituraFile) {
-            throw new BadRequestException('Debe proporcionar al menos un archivo (Planos_Terreno o Escritura_Terreno)');
+            throw new BadRequestException('Debe proporcionar al menos un archivo (Planos_Terreno o Certificacion_Literal)');
         }
 
         if (planoFile) {
@@ -465,15 +512,15 @@ export class MedidorService {
 
         if (escrituraFile) {
             const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Archivos', String(idMedidor));
-            medidor.Escritura_Terreno = escrituraRes?.url ?? null;
+            medidor.Certificacion_Literal = escrituraRes?.url ?? null;
         }
 
         const medidorActualizado = await this.medidorRepository.save(medidor);
 
         try {
             await this.auditoriaService.logActualizacion('Medidores', idUsuario, idMedidor,
-                { Planos_Terreno: medidor.Planos_Terreno, Escritura_Terreno: medidor.Escritura_Terreno },
-                { Planos_Terreno: medidorActualizado.Planos_Terreno, Escritura_Terreno: medidorActualizado.Escritura_Terreno }
+                { Planos_Terreno: medidor.Planos_Terreno, Certificacion_Literal: medidor.Certificacion_Literal },
+                { Planos_Terreno: medidorActualizado.Planos_Terreno, Certificacion_Literal: medidorActualizado.Certificacion_Literal }
             );
         } catch (error) {
             console.error('Error al registrar auditoría de actualización de archivos del medidor:', error);
@@ -483,7 +530,7 @@ export class MedidorService {
             Id_Medidor: medidorActualizado.Id_Medidor,
             Numero_Medidor: medidorActualizado.Numero_Medidor,
             Planos_Terreno: medidorActualizado.Planos_Terreno,
-            Escritura_Terreno: medidorActualizado.Escritura_Terreno
+            Certificacion_Literal: medidorActualizado.Certificacion_Literal
         };
     }
 }

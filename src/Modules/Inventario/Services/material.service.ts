@@ -854,6 +854,31 @@ export class MaterialService {
             }
         }
 
+        if (dto.Id_Tipo_Proveedor) {
+            if (dto.Id_Tipo_Proveedor !== 1 && dto.Id_Tipo_Proveedor !== 2) {
+                throw new BadRequestException('El tipo de proveedor debe ser 1 (físico) o 2 (jurídico)');
+            }
+
+            if (dto.Id_Proveedor && dto.Id_Tipo_Proveedor === 1) {
+                const proveedorfisico = await this.proveedorFisicoRepository.findOne({ where: { Id_Proveedor: dto.Id_Proveedor }, relations: ['Estado_Proveedor'] });
+                if (!proveedorfisico) {
+                    throw new BadRequestException('El proveedor físico proporcionado no existe');
+                }
+                if (!proveedorfisico.Estado_Proveedor || proveedorfisico.Estado_Proveedor.Id_Estado_Proveedor == 2) throw new BadRequestException('El proveedor físico proporcionado no está activo'); 
+
+                materialExistente.Proveedor = proveedorfisico;
+            }
+            if (dto.Id_Proveedor && dto.Id_Tipo_Proveedor === 2) {
+                const proveedorjuridico = await this.proveedorJuridicoRepository.findOne({ where: { Id_Proveedor: dto.Id_Proveedor }, relations: ['Estado_Proveedor'] });
+                if (!proveedorjuridico) {
+                    throw new BadRequestException('El proveedor jurídico proporcionado no existe');
+                }
+                if (!proveedorjuridico.Estado_Proveedor || proveedorjuridico.Estado_Proveedor.Id_Estado_Proveedor == 2) throw new BadRequestException('El proveedor jurídico proporcionado no está activo'); 
+                materialExistente.Proveedor = proveedorjuridico;
+            }
+        }
+
+
         // Actualizar los campos del material (excluyendo IDS_Categorias y relaciones)
         const { IDS_Categorias, ...datosActualizacion } = dto;
 

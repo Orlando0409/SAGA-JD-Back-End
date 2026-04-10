@@ -5,6 +5,8 @@ import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { ApiOperation } from "@nestjs/swagger";
 import { UpdateSolicitudAfiliacionFisicaDto, UpdateSolicitudAgregarMedidorFisicaDto, UpdateSolicitudAsociadoFisicaDto, UpdateSolicitudCambioMedidorFisicaDto, UpdateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/UpdateSolicitudFisica.dto";
 import { RechazarSolicitudDto } from "../SolicitudDTO's/RechazarSolicitud.dto";
+import { PagarCambioMedidorDTO } from "../SolicitudDTO's/PagarCambioMedidor.dto";
+import { PagarSolicitudEnEsperaDTO } from "../SolicitudDTO's/PagarSolicitudEnEspera.dto";
 
 @Controller('solicitudes-fisicas')
 export class SolicitudesFisicasController {
@@ -53,11 +55,11 @@ export class SolicitudesFisicasController {
     @ApiOperation({ summary: 'Crear una nueva solicitud de afiliacion fisica' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
+        { name: 'Certificacion_Literal', maxCount: 1 },
     ]),)
     async createSolicitudAfiliacion(
         @Body() solicitudAfiliacion: CreateSolicitudAfiliacionFisicaDto,
-        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Escritura_Terreno: Express.Multer.File[]; }) {
+        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Certificacion_Literal: Express.Multer.File[]; }) {
         return this.solicitudesFisicasService.createSolicitudAfiliacion(solicitudAfiliacion, files);
     }
 
@@ -66,11 +68,11 @@ export class SolicitudesFisicasController {
     @ApiOperation({ summary: 'Crear una nueva solicitud de desconexion fisica' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
+        { name: 'Certificacion_Literal', maxCount: 1 },
     ]),)
     async createSolicitudDesconexion(
         @Body() solicitudDesconexion: CreateSolicitudDesconexionFisicaDto,
-        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Escritura_Terreno: Express.Multer.File[]; }) {
+        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Certificacion_Literal: Express.Multer.File[]; }) {
         return this.solicitudesFisicasService.createSolicitudDesconexion(solicitudDesconexion, files);
     }
 
@@ -79,11 +81,11 @@ export class SolicitudesFisicasController {
     @ApiOperation({ summary: 'Crear una nueva solicitud de cambio de medidor fisica' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
+        { name: 'Certificacion_Literal', maxCount: 1 },
     ]))
     async createSolicitudCambioMedidor(
         @Body() solicitudCambioMedidor: CreateSolicitudCambioMedidorFisicaDto,
-        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Escritura_Terreno: Express.Multer.File[] }
+        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Certificacion_Literal: Express.Multer.File[] }
     ) {
         return this.solicitudesFisicasService.createSolicitudCambioMedidor(solicitudCambioMedidor, files);
     }
@@ -91,10 +93,15 @@ export class SolicitudesFisicasController {
     @Public()
     @Post('/create/asociado')
     @ApiOperation({ summary: 'Crear una nueva solicitud de asociado fisica' })
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'Planos_Terreno', maxCount: 1 },
+        { name: 'Escrituras_Terreno', maxCount: 1 },
+    ]))
     async createSolicitudAsociado(
         @Body() solicitudAsociado: CreateSolicitudAsociadoFisicaDto,
+        @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escrituras_Terreno?: Express.Multer.File[] },
     ) {
-        return this.solicitudesFisicasService.createSolicitudAsociado(solicitudAsociado);
+        return this.solicitudesFisicasService.createSolicitudAsociado(solicitudAsociado, files);
     }
 
     @Put('/update/afiliacion/:id')
@@ -146,11 +153,11 @@ export class SolicitudesFisicasController {
     async updateEstadoSolicitudAfiliacion(
         @Param('idSolicitud') idSolicitud: number,
         @Param('idNuevoEstado') idNuevoEstado: number,
-        @Body() dto: RechazarSolicitudDto,
+        @Body() dto: PagarSolicitudEnEsperaDTO,
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesFisicasService.updateEstadoSolicitudAfiliacion(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
+        return this.solicitudesFisicasService.updateEstadoSolicitudAfiliacion(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo, dto.montoCambio);
     }
 
     @Patch('/update/estado/desconexion/:idSolicitud/:idNuevoEstado')
@@ -170,11 +177,11 @@ export class SolicitudesFisicasController {
     async updateEstadoSolicitudCambioMedidor(
         @Param('idSolicitud') idSolicitud: number,
         @Param('idNuevoEstado') idNuevoEstado: number,
-        @Body() dto: RechazarSolicitudDto,
+        @Body() dto: PagarCambioMedidorDTO,
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesFisicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
+        return this.solicitudesFisicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo, dto.montoCambio, dto.ocupaPago, dto.motivoCobro, dto.Estado_Pago);
     }
 
     @Patch('/update/estado/asociado/:idSolicitud/:idNuevoEstado')
@@ -208,11 +215,11 @@ export class SolicitudesFisicasController {
     @ApiOperation({ summary: 'Crear una nueva solicitud de agregar medidor fisica' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
+        { name: 'Certificacion_Literal', maxCount: 1 },
     ]),)
     async createSolicitudAgregarMedidor(
         @Body() solicitudAgregarMedidor: CreateSolicitudAgregarMedidorFisicaDto,
-        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Escritura_Terreno: Express.Multer.File[]; }
+        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Certificacion_Literal: Express.Multer.File[]; }
     ) {
         return this.solicitudesFisicasService.createSolicitudAgregarMedidor(solicitudAgregarMedidor, files);
     }
@@ -233,10 +240,10 @@ export class SolicitudesFisicasController {
     async updateEstadoSolicitudAgregarMedidor(
         @Param('idSolicitud') idSolicitud: number,
         @Param('idNuevoEstado') idNuevoEstado: number,
-        @Body() dto: RechazarSolicitudDto,
+        @Body() dto: PagarSolicitudEnEsperaDTO,
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesFisicasService.updateEstadoSolicitudAgregarMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
+        return this.solicitudesFisicasService.updateEstadoSolicitudAgregarMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo, dto.montoCambio, dto.ocupaPago, dto.Estado_Pago);
     }
 }

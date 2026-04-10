@@ -129,8 +129,8 @@ export class SolicitudAfiliacionFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Planos_Terreno: string;
 
-    @Column({ nullable: false })
-    Escritura_Terreno: string;
+    @Column({nullable: false })
+    Certificacion_Literal: string;
 
     @BeforeInsert()
     @BeforeUpdate()
@@ -170,8 +170,8 @@ export class SolicitudDesconexionFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Planos_Terreno: string;
 
-    @Column({ nullable: false })
-    Escritura_Terreno: string;
+    @Column({  nullable: false })
+    Certificacion_Literal: string;
 
     @Column({ nullable: false })
     Id_Medidor: number;
@@ -218,7 +218,7 @@ export class SolicitudCambioMedidorFisica extends SolicitudFisica {
     Planos_Terreno: string;
 
     @Column({ nullable: false, type: 'varchar', length: 500 })
-    Escritura_Terreno: string;
+    Certificacion_Literal: string;
 
     @ManyToOne(() => Medidor, { nullable: true })
     @JoinColumn({ name: 'Id_Medidor' })
@@ -263,6 +263,12 @@ export class SolicitudAsociadoFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Motivo_Solicitud: string;
 
+    @Column({ nullable: false, type: 'varchar', length: 500 })
+    Planos_Terreno: string;
+
+    @Column({ nullable: false, type: 'varchar', length: 500 })
+    Escrituras_Terreno: string;
+
     @BeforeInsert()
     @BeforeUpdate()
     setNormalizarCampos() {
@@ -298,8 +304,8 @@ export class SolicitudAfiliacionJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Planos_Terreno: string;
 
-    @Column({ nullable: false })
-    Escritura_Terreno: string;
+    @Column({  nullable: false })
+    Certificacion_Literal: string;
 
     @BeforeInsert()
     @BeforeUpdate()
@@ -339,7 +345,7 @@ export class SolicitudDesconexionJuridica extends SolicitudJuridica {
     Planos_Terreno: string;
 
     @Column({ nullable: false })
-    Escritura_Terreno: string;
+    Certificacion_Literal: string;
 
     @Column({ nullable: false })
     Id_Medidor: number;
@@ -385,7 +391,7 @@ export class SolicitudCambioMedidorJuridica extends SolicitudJuridica {
     Planos_Terreno: string;
 
     @Column({ nullable: false, type: 'varchar', length: 500 })
-    Escritura_Terreno: string;
+    Certificacion_Literal: string;
 
     @ManyToOne(() => Medidor, { nullable: true })
     @JoinColumn({ name: 'Id_Medidor' })
@@ -429,6 +435,12 @@ export class SolicitudAsociadoJuridica extends SolicitudJuridica {
     @Column({ nullable: false })
     Motivo_Solicitud: string;
 
+    @Column({ nullable: false, type: 'varchar', length: 500 })
+    Planos_Terreno: string;
+
+    @Column({ nullable: false, type: 'varchar', length: 500 })
+    Escrituras_Terreno: string;
+
     @BeforeInsert()
     @BeforeUpdate()
     setNormalizarCampos() {
@@ -464,7 +476,7 @@ export class SolicitudAgregarMedidorFisica extends SolicitudFisica {
     Planos_Terreno: string;
 
     @Column({ nullable: false })
-    Escritura_Terreno: string;
+    Certificacion_Literal: string;
 
     @Column({ nullable: true, default: null })
     Id_Nuevo_Medidor: number;
@@ -509,7 +521,7 @@ export class SolicitudAgregarMedidorJuridica extends SolicitudJuridica {
     Planos_Terreno: string;
 
     @Column({ nullable: false })
-    Escritura_Terreno: string;
+    Certificacion_Literal: string;
 
     @Column({ nullable: true, default: null })
     Id_Nuevo_Medidor: number;

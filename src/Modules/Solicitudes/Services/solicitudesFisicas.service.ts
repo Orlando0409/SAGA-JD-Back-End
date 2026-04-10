@@ -16,6 +16,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
 import { EstadoMedidor } from "src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity";
+import { EstadoPagoMedidor } from "src/Common/Enums/EstadoPagoMedidor.enum";
 
 @Injectable()
 export class SolicitudesFisicasService {
@@ -150,7 +151,7 @@ export class SolicitudesFisicasService {
         if (afiliadoExistente) throw new BadRequestException(`Ya existe un afiliado físico con la identificación ${dto.Identificacion}`);
 
         const planoFile = files?.Planos_Terreno?.[0];
-        const escrituraFile = files?.Escritura_Terreno?.[0];
+        const escrituraFile = files?.Certificacion_Literal?.[0];
         const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
 
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Afiliacion', 'Fisicas', dto.Identificacion, nombre) : null;
@@ -195,7 +196,7 @@ export class SolicitudesFisicasService {
             Direccion_Exacta: dto.Direccion_Exacta,
             Edad: dto.Edad,
             Planos_Terreno: planoRes?.url || '',
-            Escritura_Terreno: escrituraRes?.url || '',
+            Certificacion_Literal: escrituraRes?.url || '',
         });
         const solicitudFinal = await this.solicitudAfiliacionFisicaRepository.save(solicitudAfiliacion);
 
@@ -212,7 +213,7 @@ export class SolicitudesFisicasService {
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado físico con la identificación ${dto.Identificacion}`);
 
         const planoFile = files?.Planos_Terreno?.[0];
-        const escrituraFile = files?.Escritura_Terreno?.[0];
+        const escrituraFile = files?.Certificacion_Literal?.[0];
         const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
 
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Desconexion', 'Fisicas', dto.Identificacion, nombre) : null;
@@ -257,7 +258,7 @@ export class SolicitudesFisicasService {
             Direccion_Exacta: dto.Direccion_Exacta,
             Motivo_Solicitud: dto.Motivo_Solicitud,
             Planos_Terreno: planoRes?.url || '',
-            Escritura_Terreno: escrituraRes?.url || '',
+            Certificacion_Literal: escrituraRes?.url || '',
             Id_Medidor: dto.Id_Medidor,
         });
         const solicitudFinal = await this.solicitudDesconexionFisicaRepository.save(solicitudDesconexion);
@@ -268,10 +269,10 @@ export class SolicitudesFisicasService {
 
     async createSolicitudCambioMedidor(
         dto: CreateSolicitudCambioMedidorFisicaDto,
-        files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }
+        files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[] }
     ) {
         if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para crear una solicitud de cambio de medidor');
-        if (!files?.Escritura_Terreno?.[0]) throw new BadRequestException('El archivo Escritura_Terreno es obligatorio para crear una solicitud de cambio de medidor');
+        if (!files?.Certificacion_Literal?.[0]) throw new BadRequestException('El archivo Certificacion_Literal es obligatorio para crear una solicitud de cambio de medidor');
 
         const solicitudActiva = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (solicitudActiva) throw new BadRequestException(solicitudActiva);
@@ -282,7 +283,7 @@ export class SolicitudesFisicasService {
         const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
 
         const planoRes = await this.dropboxFilesService.uploadFile(files.Planos_Terreno[0], 'Solicitudes-CambioMedidor', 'Fisicas', dto.Identificacion, nombre);
-        const escrituraRes = await this.dropboxFilesService.uploadFile(files.Escritura_Terreno[0], 'Solicitudes-CambioMedidor', 'Fisicas', dto.Identificacion, nombre);
+        const escrituraRes = await this.dropboxFilesService.uploadFile(files.Certificacion_Literal[0], 'Solicitudes-CambioMedidor', 'Fisicas', dto.Identificacion, nombre);
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
@@ -324,7 +325,7 @@ export class SolicitudesFisicasService {
             Motivo_Solicitud: dto.Motivo_Solicitud,
             Id_Medidor: dto.Id_Medidor,
             Planos_Terreno: planoRes.url,
-            Escritura_Terreno: escrituraRes.url,
+            Certificacion_Literal: escrituraRes.url,
         });
         const solicitudFinal = await this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
 
@@ -332,7 +333,7 @@ export class SolicitudesFisicasService {
         return solicitudFinal;
     }
 
-    async createSolicitudAsociado(dto: CreateSolicitudAsociadoFisicaDto) {
+    async createSolicitudAsociado(dto: CreateSolicitudAsociadoFisicaDto, files: { Planos_Terreno?: Express.Multer.File[]; Escrituras_Terreno?: Express.Multer.File[] }) {
         const solicitudActiva = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (solicitudActiva) throw new BadRequestException(solicitudActiva);
 
@@ -340,7 +341,14 @@ export class SolicitudesFisicasService {
         const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado físico con la identificación ${dto.Identificacion}. No se puede crear la solicitud de asociado.`);
 
+        const planoFile = files?.Planos_Terreno?.[0];
+        const escrituraFile = files?.Escrituras_Terreno?.[0];
+        if (!planoFile) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para la solicitud de asociado');
+        if (!escrituraFile) throw new BadRequestException('El archivo Escrituras_Terreno es obligatorio para la solicitud de asociado');
+
         const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
+        const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Asociado', 'Fisicas', dto.Identificacion, nombre);
+        const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Asociado', 'Fisicas', dto.Identificacion, nombre);
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
@@ -379,6 +387,8 @@ export class SolicitudesFisicasService {
             Apellido1: dto.Apellido1,
             Apellido2: dto.Apellido2,
             Motivo_Solicitud: dto.Motivo_Solicitud,
+            Planos_Terreno: planoRes.url,
+            Escrituras_Terreno: escrituraRes.url,
         });
         const solicitudFinal = await this.solicitudAsociadoFisicaRepository.save(solicitudAsociado);
 
@@ -653,7 +663,7 @@ export class SolicitudesFisicasService {
 
 
     // MÉTODOS PARA CAMBIO DE ESTADO DE SOLICITUDES FÍSICAS
-    async updateEstadoSolicitudAfiliacion(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string) {
+    async updateEstadoSolicitudAfiliacion(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string, montoCambio?: number) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de afiliación.');
 
         //prueba 
@@ -684,7 +694,17 @@ export class SolicitudesFisicasService {
         if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudAfiliacion.Correo, 'Afiliación', 'En revisión', nombre);
 
         // Estado 3 = Aprobada y en espera / Pendiente de instalar medidor
-        if (idNuevoEstado === 3) await this.emailService.enviarEmailActualizacionEstado(solicitudAfiliacion.Correo, 'Afiliación', 'Aprobada y en espera', nombre);
+        if (idNuevoEstado === 3) {
+            if (!montoCambio || montoCambio <= 0) {
+                throw new BadRequestException('Debe proporcionar un monto valido mayor a 0 para aprobar la afiliacion en espera');
+            }
+
+            await this.emailService.enviarEmailAfiliacionAprobadaConCosto(
+                solicitudAfiliacion.Correo,
+                nombre,
+                montoCambio
+            );
+        }
 
         // Estado 4 = Completada
         if (idNuevoEstado === 4) {
@@ -811,7 +831,7 @@ export class SolicitudesFisicasService {
         };
     }
 
-    async updateEstadoSolicitudCambioMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string) {
+    async updateEstadoSolicitudCambioMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string, montoCambio?: number, ocupaPago?: boolean, motivoCobro?: string, estadoPagoAsignacion?: EstadoPagoMedidor) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de cambio de medidor.');
 
         // Validar que si el estado es rechazado (5), se proporcione el motivo
@@ -845,11 +865,29 @@ export class SolicitudesFisicasService {
         if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'En revisión', nombre);
 
         // Estado 3 = Aprobada y en espera
-        if (idNuevoEstado === 3) await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Aprobada y en espera', nombre);
+        if (idNuevoEstado === 3) {
+             
+            if (ocupaPago){
+
+                if (montoCambio && motivoCobro)  await this.emailService.enviarEmailCambioMedidorAprobadaConCosto(solicitudCambioMedidor.Correo, nombre, montoCambio, motivoCobro);
+
+                else throw new BadRequestException('Debe proporcionar el monto y el motivo del cambio de medidor para enviar el correo correspondiente');
+            } 
+        
+            else await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Aprobada y en espera', nombre);
+        } 
 
         // Estado 4 = Completada
         if (idNuevoEstado === 4) {
             await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Completada', nombre);
+
+            if (!estadoPagoAsignacion || estadoPagoAsignacion === EstadoPagoMedidor.Libre) {
+                throw new BadRequestException('Debe proporcionar Estado_Pago (Pagado o Pendiente) al asignar el nuevo medidor');
+            }
+
+            if (!solicitudCambioMedidor.Id_Nuevo_Medidor || solicitudCambioMedidor.Id_Nuevo_Medidor <= 0) {
+                throw new BadRequestException('Debe seleccionar un nuevo medidor valido para completar la solicitud de cambio');
+            }
 
             // Cambiar estado del medidor ANTIGUO a Averiado (3)
             if (solicitudCambioMedidor.Id_Medidor) {
@@ -867,26 +905,25 @@ export class SolicitudesFisicasService {
             }
 
             // Asignar el NUEVO medidor al afiliado (acumulativo, no reemplaza los existentes)
-            if (solicitudCambioMedidor.Id_Nuevo_Medidor) {
-                const nuevoMedidor = await this.medidorRepository.findOne({
-                    where: { Id_Medidor: solicitudCambioMedidor.Id_Nuevo_Medidor },
-                    relations: ['Estado_Medidor']
-                });
-                if (nuevoMedidor) {
-                    const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitudCambioMedidor.Identificacion } });
-                    if (afiliado) {
-                        const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
-                        nuevoMedidor.Afiliado = afiliado;
-                        nuevoMedidor.Planos_Terreno = solicitudCambioMedidor.Planos_Terreno;
-                        nuevoMedidor.Escritura_Terreno = solicitudCambioMedidor.Escritura_Terreno;
-                        if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
-                        await this.medidorRepository.save(nuevoMedidor);
-                    } else {
-                        console.warn(`Afiliado físico con identificación ${solicitudCambioMedidor.Identificacion} no encontrado para asignar nuevo medidor.`);
-                    }
-                } else {
-                    console.warn(`Nuevo medidor con id ${solicitudCambioMedidor.Id_Nuevo_Medidor} no encontrado.`);
-                }
+            const nuevoMedidor = await this.medidorRepository.findOne({
+                where: { Id_Medidor: solicitudCambioMedidor.Id_Nuevo_Medidor },
+                relations: ['Estado_Medidor']
+            });
+            if (!nuevoMedidor) {
+                throw new BadRequestException(`No existe un medidor valido con id ${solicitudCambioMedidor.Id_Nuevo_Medidor} para completar la solicitud`);
+            }
+
+            const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitudCambioMedidor.Identificacion } });
+            if (afiliado) {
+                const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
+                nuevoMedidor.Afiliado = afiliado;
+                nuevoMedidor.Planos_Terreno = solicitudCambioMedidor.Planos_Terreno;
+                nuevoMedidor.Certificacion_Literal = solicitudCambioMedidor.Certificacion_Literal;
+                nuevoMedidor.Estado_Pago = estadoPagoAsignacion;
+                if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
+                await this.medidorRepository.save(nuevoMedidor);
+            } else {
+                console.warn(`Afiliado físico con identificación ${solicitudCambioMedidor.Identificacion} no encontrado para asignar nuevo medidor.`);
             }
         }
 
@@ -969,7 +1006,12 @@ export class SolicitudesFisicasService {
             await this.emailService.enviarEmailActualizacionEstado(solicitudAsociado.Correo, 'Asociado', 'Completada', nombre);
 
             // Cambiar afiliado de abonado a asociado
-            await this.afiliadosService.cambiarAbonadoAAsociadoFisico(solicitudAsociado.Identificacion, idUsuario);
+            await this.afiliadosService.cambiarAbonadoAAsociadoFisico(
+                solicitudAsociado.Identificacion,
+                idUsuario,
+                solicitudAsociado.Planos_Terreno,
+                solicitudAsociado.Escrituras_Terreno,
+            );
         }
 
         // Estado 5 = Rechazada
@@ -1052,7 +1094,7 @@ export class SolicitudesFisicasService {
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado físico con la identificación ${dto.Identificacion}`);
 
         const planoFile = files?.Planos_Terreno?.[0];
-        const escrituraFile = files?.Escritura_Terreno?.[0];
+        const escrituraFile = files?.Certificacion_Literal?.[0];
         const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
 
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-AgregarMedidor', 'Fisicas', dto.Identificacion, nombre) : null;
@@ -1096,7 +1138,7 @@ export class SolicitudesFisicasService {
             Apellido2: dto.Apellido2,
             Direccion_Exacta: dto.Direccion_Exacta,
             Planos_Terreno: planoRes?.url || '',
-            Escritura_Terreno: escrituraRes?.url || '',
+            Certificacion_Literal: escrituraRes?.url || '',
             ...(dto.Id_Nuevo_Medidor && { Id_Nuevo_Medidor: dto.Id_Nuevo_Medidor }),
         });
         const solicitudFinal = await this.solicitudAgregarMedidorFisicaRepository.save(solicitudAgregarMedidor);
@@ -1131,7 +1173,7 @@ export class SolicitudesFisicasService {
             Correo: solicitudAgregarMedidor.Correo,
             Direccion_Exacta: solicitudAgregarMedidor.Direccion_Exacta,
             Planos_Terreno: solicitudAgregarMedidor.Planos_Terreno,
-            Escritura_Terreno: solicitudAgregarMedidor.Escritura_Terreno,
+            Certificacion_Literal: solicitudAgregarMedidor.Certificacion_Literal,
             Id_Nuevo_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor
         };
 
@@ -1161,7 +1203,7 @@ export class SolicitudesFisicasService {
                 Correo: solicitudAgregarMedidor.Correo,
                 Direccion_Exacta: solicitudAgregarMedidor.Direccion_Exacta,
                 Planos_Terreno: solicitudAgregarMedidor.Planos_Terreno,
-                Escritura_Terreno: solicitudAgregarMedidor.Escritura_Terreno,
+                Certificacion_Literal: solicitudAgregarMedidor.Certificacion_Literal,
                 Id_Nuevo_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor
             });
         } catch (error) {
@@ -1179,7 +1221,7 @@ export class SolicitudesFisicasService {
         };
     }
 
-    async updateEstadoSolicitudAgregarMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string) {
+    async updateEstadoSolicitudAgregarMedidor(idSolicitud: number, idNuevoEstado: number, idUsuario: number, motivoRechazo?: string, montoCambio?: number, ocupaPago?: boolean, estadoPagoAsignacion?: EstadoPagoMedidor) {
         if (!idUsuario) throw new BadRequestException('ID de usuario es requerido para actualizar el estado de la solicitud de agregar medidor.');
 
         if (idNuevoEstado === 5 && !motivoRechazo) {
@@ -1211,37 +1253,58 @@ export class SolicitudesFisicasService {
         if (idNuevoEstado === 2) await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'En revisión', nombre);
 
         // Estado 3 = Aprobada y en espera
-        if (idNuevoEstado === 3) await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'Aprobada y en espera', nombre);
+        if (idNuevoEstado === 3) {
+            if (ocupaPago) {
+                if (montoCambio) {
+                    await this.emailService.enviarEmailAgregarMedidorAprobadaConCosto(
+                        solicitudAgregarMedidor.Correo,
+                        nombre,
+                        montoCambio
+                    );
+                } else {
+                    throw new BadRequestException('Debe proporcionar el monto del agregar medidor para enviar el correo correspondiente');
+                }
+            } else {
+                await this.emailService.enviarEmailActualizacionEstado(solicitudAgregarMedidor.Correo, 'Agregar Medidor', 'Aprobada y en espera', nombre);
+            }
+        }
 
         // Estado 4 = Completada — asignar el nuevo medidor al afiliado (acumulativo)
         if (idNuevoEstado === 4) {
+            if (!estadoPagoAsignacion || estadoPagoAsignacion === EstadoPagoMedidor.Libre) {
+                throw new BadRequestException('Debe proporcionar Estado_Pago (Pagado o Pendiente) al asignar el nuevo medidor');
+            }
+
+            if (!solicitudAgregarMedidor.Id_Nuevo_Medidor || solicitudAgregarMedidor.Id_Nuevo_Medidor <= 0) {
+                throw new BadRequestException('Debe seleccionar un nuevo medidor valido para completar la solicitud de agregar medidor');
+            }
+
             // Asignar medidor PRIMERO antes del email para evitar que un fallo de email interrumpa la lógica
-            if (solicitudAgregarMedidor.Id_Nuevo_Medidor) {
-                const nuevoMedidor = await this.medidorRepository.findOne({
-                    where: { Id_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor },
-                    relations: ['Estado_Medidor']
-                });
-                if (nuevoMedidor) {
-                    const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitudAgregarMedidor.Identificacion } });
-                    if (afiliado) {
-                        const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } }); // 2 = Instalado
-                        nuevoMedidor.Afiliado = afiliado;
-                        if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
-                        await this.medidorRepository.save(nuevoMedidor);
-                        console.log(`Nuevo medidor ${nuevoMedidor.Numero_Medidor} agregado al afiliado ${afiliado.Identificacion} y marcado como 'Instalado'`);
-                        
-                        // Asignar los planos y escrituras de la solicitud al medidor
-                        try {
-                            await this.asignarDocumentosDeSolicitudAMedidor(solicitudAgregarMedidor, nuevoMedidor);
-                        } catch (error) {
-                            console.error(`Error al asignar documentos al medidor ${nuevoMedidor.Id_Medidor}:`, error);
-                        }
-                    } else {
-                        console.warn(`Afiliado físico con identificación ${solicitudAgregarMedidor.Identificacion} no encontrado para asignar nuevo medidor.`);
-                    }
-                } else {
-                    console.warn(`Nuevo medidor con id ${solicitudAgregarMedidor.Id_Nuevo_Medidor} no encontrado.`);
+            const nuevoMedidor = await this.medidorRepository.findOne({
+                where: { Id_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor },
+                relations: ['Estado_Medidor']
+            });
+            if (!nuevoMedidor) {
+                throw new BadRequestException(`No existe un medidor valido con id ${solicitudAgregarMedidor.Id_Nuevo_Medidor} para completar la solicitud`);
+            }
+
+            const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitudAgregarMedidor.Identificacion } });
+            if (afiliado) {
+                const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } }); // 2 = Instalado
+                nuevoMedidor.Afiliado = afiliado;
+                nuevoMedidor.Estado_Pago = estadoPagoAsignacion;
+                if (estadoInstalado) nuevoMedidor.Estado_Medidor = estadoInstalado;
+                await this.medidorRepository.save(nuevoMedidor);
+                console.log(`Nuevo medidor ${nuevoMedidor.Numero_Medidor} agregado al afiliado ${afiliado.Identificacion} y marcado como 'Instalado'`);
+
+                // Asignar los planos y escrituras de la solicitud al medidor
+                try {
+                    await this.asignarDocumentosDeSolicitudAMedidor(solicitudAgregarMedidor, nuevoMedidor);
+                } catch (error) {
+                    console.error(`Error al asignar documentos al medidor ${nuevoMedidor.Id_Medidor}:`, error);
                 }
+            } else {
+                console.warn(`Afiliado físico con identificación ${solicitudAgregarMedidor.Identificacion} no encontrado para asignar nuevo medidor.`);
             }
 
             try {
@@ -1295,12 +1358,12 @@ export class SolicitudesFisicasService {
         if (solicitud.Planos_Terreno) {
             medidor.Planos_Terreno = solicitud.Planos_Terreno;
         }
-        if (solicitud.Escritura_Terreno) {
-            medidor.Escritura_Terreno = solicitud.Escritura_Terreno;
+        if (solicitud.Certificacion_Literal) {
+            medidor.Certificacion_Literal = solicitud.Certificacion_Literal;
         }
 
         // Guardar el medidor actualizado
         await this.medidorRepository.save(medidor);
-        console.log(`Documentos asignados al medidor ${medidor.Numero_Medidor}: Planos=${!!solicitud.Planos_Terreno}, Escrituras=${!!solicitud.Escritura_Terreno}`);
+        console.log(`Documentos asignados al medidor ${medidor.Numero_Medidor}: Planos=${!!solicitud.Planos_Terreno}, Escrituras=${!!solicitud.Certificacion_Literal}`);
     }
 }

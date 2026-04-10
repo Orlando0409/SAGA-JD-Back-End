@@ -5,7 +5,8 @@ import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { ApiOperation } from "@nestjs/swagger";
 import { CreateSolicitudAfiliacionJuridicaDto, CreateSolicitudAgregarMedidorJuridicaDto, CreateSolicitudAsociadoJuridicaDto, CreateSolicitudCambioMedidorJuridicaDto, CreateSolicitudDesconexionJuridicaDto } from "../SolicitudDTO's/CreateSolicitudJuridica.dto";
 import { UpdateSolicitudAfiliacionJuridicaDto, UpdateSolicitudAgregarMedidorJuridicaDto, UpdateSolicitudAsociadoJuridicaDto, UpdateSolicitudCambioMedidorJuridicaDto, UpdateSolicitudDesconexionJuridicaDto } from "../SolicitudDTO's/UpdateSolicitudJuridica.dto";
-import { RechazarSolicitudDto } from "../SolicitudDTO's/RechazarSolicitud.dto";
+import { PagarCambioMedidorDTO } from "../SolicitudDTO's/PagarCambioMedidor.dto";
+import { PagarSolicitudEnEsperaDTO } from "../SolicitudDTO's/PagarSolicitudEnEspera.dto";
 
 @Controller('solicitudes-juridicas')
 export class SolicitudesJuridicasController {
@@ -54,11 +55,11 @@ export class SolicitudesJuridicasController {
     @ApiOperation({ summary: 'Crear una nueva solicitud de afiliación jurídica' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
+        { name: 'Certificacion_Literal', maxCount: 1 },
     ]),)
     async createSolicitudAfiliacion(
         @Body() solicitudAfiliacion: CreateSolicitudAfiliacionJuridicaDto,
-        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Escritura_Terreno: Express.Multer.File[]; }) {
+        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Certificacion_Literal: Express.Multer.File[]; }) {
         return this.solicitudesJuridicasService.createSolicitudAfiliacion(solicitudAfiliacion, files);
     }
 
@@ -67,11 +68,11 @@ export class SolicitudesJuridicasController {
     @ApiOperation({ summary: 'Crear una nueva solicitud de desconexión jurídica' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
+        { name: 'Certificacion_Literal', maxCount: 1 },
     ]),)
     async createSolicitudDesconexion(
         @Body() solicitudDesconexion: CreateSolicitudDesconexionJuridicaDto,
-        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Escritura_Terreno: Express.Multer.File[]; }) {
+        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Certificacion_Literal: Express.Multer.File[]; }) {
         return this.solicitudesJuridicasService.createSolicitudDesconexion(solicitudDesconexion, files);
     }
 
@@ -80,11 +81,11 @@ export class SolicitudesJuridicasController {
     @ApiOperation({ summary: 'Crear una nueva solicitud de cambio de medidor jurídica' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
+        { name: 'Certificacion_Literal', maxCount: 1 },
     ]))
     async createSolicitudCambioMedidor(
         @Body() solicitudCambioMedidor: CreateSolicitudCambioMedidorJuridicaDto,
-        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Escritura_Terreno: Express.Multer.File[] }
+        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Certificacion_Literal: Express.Multer.File[] }
     ) {
         return this.solicitudesJuridicasService.createSolicitudCambioMedidor(solicitudCambioMedidor, files);
     }
@@ -92,10 +93,15 @@ export class SolicitudesJuridicasController {
     @Public()
     @Post('/create/asociado')
     @ApiOperation({ summary: 'Crear una nueva solicitud de asociado jurídica' })
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'Planos_Terreno', maxCount: 1 },
+        { name: 'Escrituras_Terreno', maxCount: 1 },
+    ]))
     async createSolicitudAsociado(
         @Body() solicitudAsociado: CreateSolicitudAsociadoJuridicaDto,
+        @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escrituras_Terreno?: Express.Multer.File[] },
     ) {
-        return this.solicitudesJuridicasService.createSolicitudAsociado(solicitudAsociado);
+        return this.solicitudesJuridicasService.createSolicitudAsociado(solicitudAsociado, files);
     }
 
     @Put('/update/afiliacion/:id')
@@ -147,10 +153,11 @@ export class SolicitudesJuridicasController {
     async updateEstadoSolicitudAfiliacion(
         @Param('idSolicitud') idSolicitud: number,
         @Param('idNuevoEstado') idNuevoEstado: number,
+        @Body() dto: PagarSolicitudEnEsperaDTO,
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesJuridicasService.updateEstadoSolicitudAfiliacion(idSolicitud, idNuevoEstado, idUsuario);
+        return this.solicitudesJuridicasService.updateEstadoSolicitudAfiliacion(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo, dto.montoCambio);
     }
 
     @Patch('/update/estado/desconexion/:idSolicitud/:idNuevoEstado')
@@ -167,13 +174,14 @@ export class SolicitudesJuridicasController {
     @Patch('/update/estado/cambio-medidor/:idSolicitud/:idNuevoEstado')
     @ApiOperation({ summary: 'Actualizar el estado de una solicitud de cambio de medidor jurídica' })
     async updateEstadoSolicitudCambioMedidor(
-        @Param('idSolicitud') idSolicitud: number,
-        @Param('idNuevoEstado') idNuevoEstado: number,
-        @Request() req: any
-    ) {
-        const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesJuridicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario);
-    }
+    @Param('idSolicitud') idSolicitud: number,
+    @Param('idNuevoEstado') idNuevoEstado: number,
+    @Body() dtoPago: PagarCambioMedidorDTO,
+    @Request() req: any
+        ) {
+            const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
+            return this.solicitudesJuridicasService.updateEstadoSolicitudCambioMedidor(idSolicitud, idNuevoEstado, idUsuario, dtoPago.ocupaPago, dtoPago.montoCambio, dtoPago.motivoCobro, dtoPago.Estado_Pago);
+        }
 
     @Patch('/update/estado/asociado/:idSolicitud/:idNuevoEstado')
     @ApiOperation({ summary: 'Actualizar el estado de una solicitud de asociado jurídica' })
@@ -205,11 +213,11 @@ export class SolicitudesJuridicasController {
     @ApiOperation({ summary: 'Crear una nueva solicitud de agregar medidor jurídica' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Escritura_Terreno', maxCount: 1 },
+        { name: 'Certificacion_Literal', maxCount: 1 },
     ]),)
     async createSolicitudAgregarMedidor(
         @Body() solicitudAgregarMedidor: CreateSolicitudAgregarMedidorJuridicaDto,
-        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Escritura_Terreno: Express.Multer.File[]; }
+        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Certificacion_Literal: Express.Multer.File[]; }
     ) {
         return this.solicitudesJuridicasService.createSolicitudAgregarMedidor(solicitudAgregarMedidor, files);
     }
@@ -230,10 +238,10 @@ export class SolicitudesJuridicasController {
     async updateEstadoSolicitudAgregarMedidor(
         @Param('idSolicitud') idSolicitud: number,
         @Param('idNuevoEstado') idNuevoEstado: number,
-        @Body() dto: RechazarSolicitudDto,
+        @Body() dto: PagarSolicitudEnEsperaDTO,
         @Request() req: any
     ) {
         const idUsuario = req.user?.Id_Usuario ?? req.user?.id ?? null;
-        return this.solicitudesJuridicasService.updateEstadoSolicitudAgregarMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo);
+        return this.solicitudesJuridicasService.updateEstadoSolicitudAgregarMedidor(idSolicitud, idNuevoEstado, idUsuario, dto.motivoRechazo, dto.montoCambio, dto.ocupaPago, dto.Estado_Pago);
     }
 }

@@ -59,16 +59,13 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 
-  console.log('Entorno actual:', process.env.NODE_ENV);
-  console.log('Base de datos:', process.env.DB_DATABASE);
+  
   if (process.env.NODE_ENV === 'development') {
+    console.log('Entorno actual:', process.env.NODE_ENV);
+    console.log('Base de datos:', process.env.DB_DATABASE);
     console.log('URL de backend:', process.env.BACKEND_URL);
     console.log('URL de frontend (info):', process.env.FRONTEND_URL_INFO);
     console.log('URL de frontend (admin):', process.env.FRONTEND_URL_ADMIN);
-  } else {
-    console.log('URL de backend:', process.env.BACKEND_URL_PROD);
-    console.log('URL de frontend (info):', process.env.FRONTEND_URL_INFO_PROD);
-    console.log('URL de frontend (admin):', process.env.FRONTEND_URL_ADMIN_PROD);
-  }
+  } 
 }
 bootstrap();

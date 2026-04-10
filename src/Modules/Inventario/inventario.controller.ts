@@ -15,6 +15,7 @@ import { MedidorService } from './Services/medidor.service';
 import { CreateMedidorDTO } from './InventarioDTO\'s/CreateMedidor.dto';
 import { AsignarMedidorDTO } from './InventarioDTO\'s/AsignarMedidor.dto';
 import { AsignarMedidorExistenteAAfiliado } from './InventarioDTO\'s/AsignarMedidorExistenteAAfiliado.dto';
+import { UpdateEstadoPagoMedidorDTO } from './InventarioDTO\'s/UpdateEstadoPagoMedidor.dto';
 import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
 import { GetUser } from '../auth/Decorator/GetUser.decorator';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
@@ -346,15 +347,15 @@ export class InventarioController {
   }
 
   @Post('/asignar/medidor/afiliado')
-  @ApiOperation({ summary: 'Asigna un medidor ya existente y disponible directamente a un afiliado. Requiere Planos_Terreno y Escritura_Terreno.' })
+  @ApiOperation({ summary: 'Asigna un medidor ya existente y disponible directamente a un afiliado. Requiere Planos_Terreno y Certificacion_Literal.' })
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'Planos_Terreno', maxCount: 1 },
-    { name: 'Escritura_Terreno', maxCount: 1 },
+    { name: 'Certificacion_Literal', maxCount: 1 },
   ]))
   async asignarMedidorExistenteAAfiliado(
     @Body() dto: AsignarMedidorExistenteAAfiliado,
     @GetUser() usuario: Usuario,
-    @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }
+    @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[] }
   ) {
     return this.medidorService.asignarMedidorExistenteAAfiliado(dto, usuario.Id_Usuario, files);
   }
@@ -369,16 +370,26 @@ export class InventarioController {
     return this.medidorService.updateEstadoMedidor(idMedidor, nuevoEstadoId, usuario.Id_Usuario);
   }
 
+  @Patch('/update/estado-pago/medidor/:idMedidor')
+  @ApiOperation({ summary: 'Actualiza el estado de pago de un medidor específico.' })
+  async updateEstadoPagoMedidor(
+    @Param('idMedidor', ParseIntPipe) idMedidor: number,
+    @Body() dto: UpdateEstadoPagoMedidorDTO,
+    @GetUser() usuario: Usuario
+  ) {
+    return this.medidorService.updateEstadoPagoMedidor(idMedidor, dto.Estado_Pago, usuario.Id_Usuario);
+  }
+
   @Patch('/medidor/:id/files')
   @ApiOperation({ summary: 'Actualiza los archivos (Planos y/o Escritura) de un Medidor existente.' })
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'Planos_Terreno', maxCount: 1 },
-    { name: 'Escritura_Terreno', maxCount: 1 },
+    { name: 'Certificacion_Literal', maxCount: 1 },
   ]))
   async updateMedidorFiles(
     @Param('id', ParseIntPipe) id: number,
     @GetUser() usuario: Usuario,
-    @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Escritura_Terreno?: Express.Multer.File[] }
+    @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[] }
   ) {
     return this.medidorService.updateMedidorFiles(id, usuario.Id_Usuario, files);
   }
