@@ -49,6 +49,11 @@ export class QuejasService {
     return repo;
   }
 
+  async getAllArchivados(){
+    return this.quejasRepository.find({ where: { Estado: { Id_Estado_Queja: 3 } }, relations: ['Estado'] });
+  }
+
+
   async create(dto: CreateQuejaDto, files?: QuejaFiles) {
     const estado = await this.estadoQuejaRepository.findOne({ where: { Id_Estado_Queja: 1 } });
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');

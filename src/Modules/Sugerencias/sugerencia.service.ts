@@ -42,6 +42,11 @@ export class SugerenciaService {
     return this.sugerenciaRepository.find({ relations: ['Estado'] });
   }
 
+  async getAllArchivados(){
+    return this.sugerenciaRepository.find({ where: { Estado: { Id_Estado_Sugerencia: 3 } }, relations: ['Estado'] });
+    
+  }
+
   async getOne(id: number) {
     const repo = await this.sugerenciaRepository.findOne({ where: { Id_Sugerencia: id }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Sugerencia con id ${id} no encontrada`);

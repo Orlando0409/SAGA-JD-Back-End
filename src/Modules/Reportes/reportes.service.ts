@@ -43,6 +43,10 @@ export class ReportesService {
     return this.reportesRepository.find({ relations: ['Estado'] });
   }
 
+  async getAllArchivados(){
+    return this.reportesRepository.find({ where: { Estado: { Id_Estado_Reporte: 3 } }, relations: ['Estado'] });
+  }
+
   async getOne(id: number) {
     const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: id }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Reporte con id ${id} no encontrado`);
