@@ -195,7 +195,7 @@ export class AuthService {
         subject: 'Recuperación de contraseña',
         RecoverPasswordURL: url,
       });
-      console.log('Correo de recuperación enviado correctamente a', email);
+
     } catch (error) {
       console.error('Error al enviar el correo de recuperación:', error);
     }

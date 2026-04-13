@@ -42,6 +42,11 @@ export class SugerenciaService {
     return this.sugerenciaRepository.find({ relations: ['Estado'] });
   }
 
+  async getAllArchivados(){
+    return this.sugerenciaRepository.find({ where: { Estado: { Id_Estado_Sugerencia: 3 } }, relations: ['Estado'] });
+    
+  }
+
   async getOne(id: number) {
     const repo = await this.sugerenciaRepository.findOne({ where: { Id_Sugerencia: id }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Sugerencia con id ${id} no encontrada`);
@@ -53,7 +58,7 @@ export class SugerenciaService {
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
     const sugerenciaData = {
-      Mensaje: dto.Mensaje,
+      Mensaje: dto.Descripcion,
       Correo: dto.Correo,
       Estado: estado,
     };
@@ -79,7 +84,7 @@ export class SugerenciaService {
         try {
           await this.emailService.enviarEmailSugerencia({
             Correo: dto.Correo,
-            Mensaje: dto.Mensaje,
+            Mensaje: dto.Descripcion,
             adjuntos: adjuntoUrls,
           });
         } catch (error) {

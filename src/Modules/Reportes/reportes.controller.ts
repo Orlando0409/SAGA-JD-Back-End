@@ -16,6 +16,11 @@ export class ReportesController {
     return this.reportesService.getAll();
   }
 
+  @Get('archivados')
+  getArchivados() {
+    return this.reportesService.getAllArchivados();
+  }
+
   @Get(':id')
   getOne(@Param('id', NumericParamPipe) id: number) {
     return this.reportesService.getOne(id);

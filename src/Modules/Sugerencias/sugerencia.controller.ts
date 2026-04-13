@@ -14,8 +14,13 @@ export class SugerenciaController {
   ) { }
 
   @Get()
-  getAll() {
+  getAll() { 
     return this.sugerenciaService.getAll();
+  }
+
+  @Get('archivados')
+  getArchivados() {
+    return this.sugerenciaService.getAllArchivados();
   }
 
   @Get(':id')
