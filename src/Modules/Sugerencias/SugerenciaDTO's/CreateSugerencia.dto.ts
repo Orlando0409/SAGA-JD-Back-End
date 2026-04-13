@@ -1,16 +1,17 @@
-import { IsNotEmpty, IsOptional, IsString, MaxLength, IsEmail } from 'class-validator';
+import { IsNotEmpty, IsString, MaxLength, IsEmail, IsDefined } from 'class-validator';
 
 export class CreateSugerenciaDto {
-  @IsNotEmpty({ message: 'Mensaje es requerido' })
+ @IsDefined({ message: 'La descripción es requerida' })
   @IsString()
-  @MaxLength(500)
-  Mensaje: string;
+  @IsNotEmpty({ message: 'La descripción no puede estar vacía' })
+  @MaxLength(200, { message: 'La descripción no puede tener más de 200 caracteres' })
+  Descripcion: string;
 
-  @IsNotEmpty({ message: 'Correo es requerido' })
-  @IsEmail({}, { message: 'Formato de correo inválido' })
-  @MaxLength(100)
+  @IsDefined({ message: 'El correo es requerido' })
+  @IsString()
+  @IsNotEmpty({ message: 'El correo no puede estar vacío' })
+  @MaxLength(100, { message: 'El correo no puede tener más de 100 caracteres' })
+  @IsEmail({}, { message: 'El correo electrónico debe ser válido' })
   Correo: string;
 
-  @IsOptional()
-  Adjunto?: any;
 }

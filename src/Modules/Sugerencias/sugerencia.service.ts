@@ -58,7 +58,7 @@ export class SugerenciaService {
     if (!estado) throw new BadRequestException('Estado por defecto no encontrado');
 
     const sugerenciaData = {
-      Mensaje: dto.Mensaje,
+      Mensaje: dto.Descripcion,
       Correo: dto.Correo,
       Estado: estado,
     };
@@ -84,7 +84,7 @@ export class SugerenciaService {
         try {
           await this.emailService.enviarEmailSugerencia({
             Correo: dto.Correo,
-            Mensaje: dto.Mensaje,
+            Mensaje: dto.Descripcion,
             adjuntos: adjuntoUrls,
           });
         } catch (error) {
