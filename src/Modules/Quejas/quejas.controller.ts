@@ -16,6 +16,11 @@ export class QuejasController {
     return this.quejasService.getAll();
   }
 
+  @Get('archivados')
+  getArchivados() {
+    return this.quejasService.getAllArchivados();
+  }
+
   @Get(':id')
   getOne(@Param('id', NumericParamPipe) id: number) {
     return this.quejasService.getOne(id);
