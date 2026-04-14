@@ -232,8 +232,9 @@ export class UsuariosService {
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
-        const user = await this.usuarioRepository.findOne({ where: { Id_Usuario: id }, relations: ['Rol'] });
+        const user = await this.usuarioRepository.findOne({ where: { Id_Usuario: id }, relations: ['Rol'], withDeleted: true });
         if (!user) throw new NotFoundException('Usuario no encontrado.');
+
 
         if (!user.Fecha_Eliminacion) throw new BadRequestException('El usuario no estaba inactivo.');
 
