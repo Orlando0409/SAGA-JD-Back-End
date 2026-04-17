@@ -21,6 +21,16 @@ export class ReportesController {
     return this.reportesService.getAllArchivados();
   }
 
+  @Get('pendientes')
+  getPendientes() {
+    return this.reportesService.getAllPendientes();
+  }
+
+  @Get('contestadas')
+  getContestadas() {
+    return this.reportesService.getAllContestadas();
+  }
+
   @Get(':id')
   getOne(@Param('id', NumericParamPipe) id: number) {
     return this.reportesService.getOne(id);

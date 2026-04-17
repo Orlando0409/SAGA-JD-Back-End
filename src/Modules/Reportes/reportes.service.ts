@@ -47,6 +47,14 @@ export class ReportesService {
     return this.reportesRepository.find({ where: { Estado: { Id_Estado_Reporte: 3 } }, relations: ['Estado'] });
   }
 
+  async getAllPendientes(){
+    return this.reportesRepository.find({ where: { Estado: { Id_Estado_Reporte: 1 } }, relations: ['Estado'] });
+  }
+
+  async getAllContestadas(){
+    return this.reportesRepository.find({ where: { Estado: { Id_Estado_Reporte: 2 } }, relations: ['Estado'] });
+  }
+
   async getOne(id: number) {
     const repo = await this.reportesRepository.findOne({ where: { Id_Reporte: id }, relations: ['Estado'] });
     if (!repo) throw new BadRequestException(`Reporte con id ${id} no encontrado`);

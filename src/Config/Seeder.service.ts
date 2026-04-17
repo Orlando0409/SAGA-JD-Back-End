@@ -406,8 +406,7 @@ export class SeederService implements OnModuleInit {
         const estados = [
             { Id_Estado_Sugerencia: 1, Estado_Sugerencia: 'Pendiente' },
             { Id_Estado_Sugerencia: 2, Estado_Sugerencia: 'Contestado' },
-            { Id_Estado_Sugerencia: 3, Estado_Sugerencia: 'Archivado' },
-            { Id_Estado_Sugerencia: 3, Estado_Sugerencia: 'Archivado' },
+            { Id_Estado_Sugerencia: 3, Estado_Sugerencia: 'Archivado' }
         ];
 
         for (const estado of estados) {
