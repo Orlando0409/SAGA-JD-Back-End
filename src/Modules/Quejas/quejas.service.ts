@@ -53,6 +53,14 @@ export class QuejasService {
     return this.quejasRepository.find({ where: { Estado: { Id_Estado_Queja: 3 } }, relations: ['Estado'] });
   }
 
+  async getAllPendientes(){
+    return this.quejasRepository.find({ where: { Estado: { Id_Estado_Queja: 1 } }, relations: ['Estado'] });
+  }
+
+  async getAllContestadas(){
+    return this.quejasRepository.find({ where: { Estado: { Id_Estado_Queja: 2 } }, relations: ['Estado'] });
+  }
+
 
   async create(dto: CreateQuejaDto, files?: QuejaFiles) {
     const estado = await this.estadoQuejaRepository.findOne({ where: { Id_Estado_Queja: 1 } });
