@@ -7,9 +7,14 @@ import { ConsultaJuridicaDTO } from "./ConsultaPagoDTO'S/consultaJuridica.dto";
 import { Response } from "express";
 import { GenerarFacturaConsultaDTO } from "./ConsultaPagoDTO'S/generarFacturaConsulta.dto";
 import { ConsultaPagosPdfService } from "./consultaPagosPdf.service";
-import { FacturaPdfInput, ConsultaMedidor, ConsultaAfiliadoFisico, ConsultaAfiliadoJuridico } from "./ConsultaPagoDTO'S/ConsultaTypes";
-
-
+import { FacturaPdfInput } from "./ConsultaPagoDTO'S/ConsultaTypes";
+import { 
+    ConsultaPorMedidorResponseDTO, 
+    ConsultaAfiliadoFisicoResponseDTO, 
+    ConsultaAfiliadoJuridicoResponseDTO,
+    MedidorConFacturasDTO,
+    FacturaDetalleDTO
+} from "./ConsultaPagoDTO'S/ConsultaFacturaResponse.dto";
 
 @Controller('consulta-pagos')
 export class PagosController {
@@ -54,136 +59,165 @@ export class PagosController {
         @Body() dto: GenerarFacturaConsultaDTO,
         @Res() res: Response
     ) {
-        const facturas: FacturaPdfInput[] = [];
+        const facturasPdf: FacturaPdfInput[] = [];
 
         if (dto.Numero_Medidor) {
-            const consulta = await this.pagosService.getConsultaPagosByMedidor(dto.Numero_Medidor) as ConsultaMedidor;
-            facturas.push(this.mapConsultaAFactura(
-                consulta,
-                dto.Numero_Medidor,
-                dto.Identificacion || 'No disponible',
-                'Afiliado'
-            ));
+            const consulta = await this.pagosService.getConsultaPagosByMedidor(dto.Numero_Medidor) as ConsultaPorMedidorResponseDTO;
+            
+            if (consulta.Facturas.length > 0) {
+                const ultimaFactura = consulta.Facturas[0]; // La más reciente
+                facturasPdf.push(this.mapFacturaAPdf(
+                    ultimaFactura,
+                    consulta.Numero_Medidor,
+                    dto.Identificacion || 'No disponible',
+                    'Afiliado'
+                ));
+            }
         } else if (dto.Tipo_Identificacion && dto.Identificacion) {
             const consultaFisica = await this.pagosService.getConsultaPagosByAfiliadoFisico({
                 Tipo_Identificacion: dto.Tipo_Identificacion,
                 Identificacion: dto.Identificacion,
-            }) as ConsultaAfiliadoFisico | ConsultaMedidor;
+            });
 
-            if (this.isConsultaAgrupadaFisica(consultaFisica)) {
+            if (this.isConsultaAfiliadoFisico(consultaFisica)) {
                 consultaFisica.Medidores.forEach((medidor) => {
-                    facturas.push(this.mapConsultaAFactura(
-                        medidor,
-                        medidor.Numero_Medidor,
-                        consultaFisica.Afiliado.Identificacion,
-                        consultaFisica.Afiliado.Nombre,
-                    ));
+                    if (this.tieneMedidorFacturas(medidor) && medidor.Facturas.length > 0) {
+                        const ultimaFactura = medidor.Facturas[0];
+                        facturasPdf.push(this.mapFacturaSimpleAPdf(
+                            ultimaFactura,
+                            medidor.Numero_Medidor,
+                            consultaFisica.Afiliado.Identificacion,
+                            consultaFisica.Afiliado.Nombre
+                        ));
+                    }
                 });
             } else {
-                facturas.push(this.mapConsultaAFactura(
-                    consultaFisica,
-                    consultaFisica.Numero_Medidor,
-                    dto.Identificacion,
-                    'Afiliado Fisico',
-                ));
+                // Caso individual con número de medidor
+                const consultaIndividual = consultaFisica as ConsultaPorMedidorResponseDTO;
+                if (consultaIndividual.Facturas.length > 0) {
+                    const ultimaFactura = consultaIndividual.Facturas[0];
+                    facturasPdf.push(this.mapFacturaAPdf(
+                        ultimaFactura,
+                        consultaIndividual.Numero_Medidor,
+                        dto.Identificacion,
+                        'Afiliado Fisico'
+                    ));
+                }
             }
         } else if (dto.Cedula_Juridica) {
             const consultaJuridica = await this.pagosService.getConsultaPagosByAfiliadoJuridico({
                 Cedula_Juridica: dto.Cedula_Juridica,
-            }) as ConsultaAfiliadoJuridico | ConsultaMedidor;
+            });
 
-            if (this.isConsultaAgrupadaJuridica(consultaJuridica)) {
+            if (this.isConsultaAfiliadoJuridico(consultaJuridica)) {
                 consultaJuridica.Medidores.forEach((medidor) => {
-                    facturas.push(this.mapConsultaAFactura(
-                        medidor,
-                        medidor.Numero_Medidor,
-                        consultaJuridica.Afiliado.Cedula_Juridica,
-                        consultaJuridica.Afiliado.Razon_Social,
-                    ));
+                    if (this.tieneMedidorFacturas(medidor) && medidor.Facturas.length > 0) {
+                        const ultimaFactura = medidor.Facturas[0];
+                        facturasPdf.push(this.mapFacturaSimpleAPdf(
+                            ultimaFactura,
+                            medidor.Numero_Medidor,
+                            consultaJuridica.Afiliado.Cedula_Juridica,
+                            consultaJuridica.Afiliado.Razon_Social
+                        ));
+                    }
                 });
             } else {
-                facturas.push(this.mapConsultaAFactura(
-                    consultaJuridica,
-                    consultaJuridica.Numero_Medidor,
-                    dto.Cedula_Juridica,
-                    'Afiliado Juridico',
-                ));
+                // Caso individual con número de medidor
+                const consultaIndividual = consultaJuridica as ConsultaPorMedidorResponseDTO;
+                if (consultaIndividual.Facturas.length > 0) {
+                    const ultimaFactura = consultaIndividual.Facturas[0];
+                    facturasPdf.push(this.mapFacturaAPdf(
+                        ultimaFactura,
+                        consultaIndividual.Numero_Medidor,
+                        dto.Cedula_Juridica,
+                        'Afiliado Juridico'
+                    ));
+                }
             }
         } else {
             throw new BadRequestException('Debe enviar Numero_Medidor, Tipo_Identificacion + Identificacion, o Cedula_Juridica.');
         }
 
-        if (facturas.length === 0) {
-            throw new BadRequestException('No se encontraron medidores con datos de factura para generar el PDF.');
+        if (facturasPdf.length === 0) {
+            throw new BadRequestException('No se encontraron facturas para generar el PDF.');
         }
 
-        await this.consultaPagosPdfService.generarFacturasDesdeConsultas(facturas, res);
+        await this.consultaPagosPdfService.generarFacturasDesdeConsultas(facturasPdf, res);
     }
 
-    private mapConsultaAFactura(
-        consulta: ConsultaMedidor,
+    /**
+     * Mapea una factura detallada (con todos los campos) a formato PDF
+     */
+    private mapFacturaAPdf(
+        factura: FacturaDetalleDTO,
         numeroMedidor: number,
         identificacion: string,
         nombreCliente: string
     ): FacturaPdfInput {
-        const calculoFinal = consulta?.['Calculo final'];
-        const totalPagar = typeof calculoFinal === 'number'
-            ? calculoFinal
-            : Number(calculoFinal?.Total_A_Pagar || 0);
-        const detalles = typeof calculoFinal === 'object' && calculoFinal !== null
-            ? calculoFinal.Detalles
-            : undefined;
+        // Extraer valores numéricos de los strings formateados (₡1,500.00 -> 1500.00)
+        const parseMontoColones = (monto: string): number => {
+            return Number(monto.replace('₡', '').replace(/,/g, '')) || 0;
+        };
 
-        const historial = Array.isArray(consulta?.['Historial de lecturas'])
-            ? consulta['Historial de lecturas']
-            : [];
-
-        const ultimaLectura = historial[0] || {};
-        const afiliado = ultimaLectura?.Afiliado || {};
-
-        const identificacionFinal = afiliado?.Identificacion
-            || afiliado?.Cedula_Juridica
-            || identificacion
-            || 'No disponible';
-
-        const nombreFinal = afiliado?.Nombre
-            ? `${afiliado?.Nombre || ''} ${afiliado?.Primer_Apellido || ''} ${afiliado?.Segundo_Apellido || ''}`.trim()
-            : (afiliado?.Razon_Social || nombreCliente || 'Afiliado');
-
-        const consumoM3 = Number(
-            ultimaLectura?.Consumo_Calculado_M3
-            || detalles?.Consumo_M3
-            || 0
-        );
-
-        const tipoTarifa = ultimaLectura?.Tipo_Tarifa?.Nombre_Tipo_Tarifa
-            || ultimaLectura?.Tipo_Tarifa?.Nombre_Tipo_Tarifa_Lectura
-            || ultimaLectura?.['Tipo de Tarifa']?.Nombre_Tipo_Tarifa
-            || ultimaLectura?.['Tipo de Tarifa']?.Nombre
-            || 'No definida';
-
-        const costoPorM3 = Number(detalles?.Costo_Por_M3 || 0);
-        const cargoFijo = Number(detalles?.Cargo_Fijo || 0);
+        const totalPagar = parseMontoColones(factura.Total);
+        const cargoFijo = parseMontoColones(factura.Cargo_Fijo);
+        const cargoConsumo = parseMontoColones(factura.Cargo_Consumo);
+        
+        // Calcular costo por M³ aproximado (si hay consumo)
+        const costoPorM3 = factura.Consumo_M3 > 0 
+            ? cargoConsumo / factura.Consumo_M3 
+            : 0;
 
         return {
-            numeroMedidor: Number(numeroMedidor),
-            identificacion: identificacionFinal,
-            nombreCliente: nombreFinal,
-            consumoM3,
+            numeroMedidor,
+            identificacion,
+            nombreCliente,
+            consumoM3: factura.Consumo_M3,
             costoPorM3,
             cargoFijo,
             totalPagar,
-            tipoTarifa,
-            fechaEmision: new Date(),
-            historialLecturas: historial,
+            tipoTarifa: factura.Tipo_Tarifa,
+            fechaEmision: factura.Fecha_Emision,
+            historialLecturas: [], // Las facturas ya no tienen historial de lecturas
         };
     }
 
-    private isConsultaAgrupadaFisica(value: ConsultaAfiliadoFisico | ConsultaMedidor): value is ConsultaAfiliadoFisico {
-        return 'Medidores' in value && 'Afiliado' in value;
+    /**
+     * Mapea una factura simple (sin desglose de cargos) a formato PDF
+     */
+    private mapFacturaSimpleAPdf(
+        factura: { Numero_Factura: string; Fecha_Emision: Date; Total: string },
+        numeroMedidor: number,
+        identificacion: string,
+        nombreCliente: string
+    ): FacturaPdfInput {
+        const parseMontoColones = (monto: string): number => {
+            return Number(monto.replace('₡', '').replace(/,/g, '')) || 0;
+        };
+
+        return {
+            numeroMedidor,
+            identificacion,
+            nombreCliente,
+            consumoM3: 0, // No disponible en facturas simples
+            costoPorM3: 0,
+            cargoFijo: 0,
+            totalPagar: parseMontoColones(factura.Total),
+            tipoTarifa: 'No especificada',
+            fechaEmision: factura.Fecha_Emision,
+            historialLecturas: [],
+        };
     }
 
-    private isConsultaAgrupadaJuridica(value: ConsultaAfiliadoJuridico | ConsultaMedidor): value is ConsultaAfiliadoJuridico {
-        return 'Medidores' in value && 'Afiliado' in value;
+    private isConsultaAfiliadoFisico(value: any): value is ConsultaAfiliadoFisicoResponseDTO {
+        return 'Medidores' in value && 'Afiliado' in value && 'Identificacion' in value.Afiliado;
+    }
+
+    private isConsultaAfiliadoJuridico(value: any): value is ConsultaAfiliadoJuridicoResponseDTO {
+        return 'Medidores' in value && 'Afiliado' in value && 'Cedula_Juridica' in value.Afiliado;
+    }
+
+    private tieneMedidorFacturas(medidor: any): medidor is MedidorConFacturasDTO {
+        return 'Facturas' in medidor && Array.isArray(medidor.Facturas);
     }
 }

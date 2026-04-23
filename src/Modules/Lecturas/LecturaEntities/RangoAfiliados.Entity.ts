@@ -1,5 +1,6 @@
+
+import { TarifaLecturaConSello } from "src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaLecturaConSello.Entity";
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { TipoTarifaLectura } from "./TipoTarifaLectura.Entity";
 
 // Tabla para definir rangos de afiliados con sus costos base directos
 @Entity('rango_afiliados')
@@ -7,9 +8,9 @@ export class RangoAfiliados {
     @PrimaryGeneratedColumn()
     Id_Rango_Afiliados: number;
 
-    @ManyToOne(() => TipoTarifaLectura, { nullable: false })
-    @JoinColumn({ name: 'Id_Tipo_Tarifa_Lectura' })
-    Tipo_Tarifa: TipoTarifaLectura;
+    @ManyToOne(() => TarifaLecturaConSello, { nullable: false })
+    @JoinColumn({ name: 'Id_Tarifa_Lectura' })
+    Tipo_Tarifa: TarifaLecturaConSello;
 
     @Column({ type: 'int', nullable: false })
     Minimo_Afiliados: number;

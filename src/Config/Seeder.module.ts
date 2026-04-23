@@ -15,19 +15,67 @@ import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/Unidad
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
 import { SeederService } from './Seeder.service';
 import { EstadoMedidor } from 'src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
-import { TipoTarifaLectura } from 'src/Modules/Lecturas/LecturaEntities/TipoTarifaLectura.Entity';
-import { TipoTarifaServiciosFijos } from 'src/Modules/Lecturas/LecturaEntities/TipoTarifaServiciosFijos.Entity';
-import { TipoTarifaVentaAgua } from 'src/Modules/Lecturas/LecturaEntities/TipoTarifaVentaAgua.Entity';
 import { RangoAfiliados } from 'src/Modules/Lecturas/LecturaEntities/RangoAfiliados.Entity';
 import { RangoConsumo } from 'src/Modules/Lecturas/LecturaEntities/RangoConsumo.Entity';
 import { EstadoReporte } from 'src/Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
 import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
 import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
-import { TipoTarifaCargoFijo } from 'src/Modules/Lecturas/LecturaEntities/TipoTarifaCargoFijo.Entity';
-import { CargoFijoTarifas } from 'src/Modules/Lecturas/LecturaEntities/CargoFijoTarifas.Entity';
+import { EstadoFactura } from 'src/Modules/Facturas/FacturaEntities/EstadoFactura.Entity';
+import { TipoTarifaServiciosFijosConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaServiciosFijos.Entity';
+import { AplicarSelloCalidad } from 'src/Modules/Lecturas/LecturaEntities/AplicarSelloCalidad.Entity';
+import { TarifaLecturaConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaLecturaConSello.Entity';
+import { TipoTarifaCargoFijoConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TipoTarifaCargoFijoConSello.Entity';
+import { CargoFijoTarifasConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/CargoFijoTarifasConSello.Entity';
+import { TipoTarifaVentaAguaConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaVentaAgua.Entity';
+import { TarifaLecturaSinSello } from 'src/Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/TarifaLecturaSinSello.Entity';
+import { RangoAfiliadosSinSello } from 'src/Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RangoAfiliadosSinSello.Entity';
+import { RangoConsumoSinSello } from 'src/Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RangoConsumoSinSello.Entity';
+import { CargoFijoTarifasSinSello } from 'src/Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/CargoFijoTarifasSinSello.Entity';
+import { PrecioBloqueConsumoSinSello } from 'src/Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/PrecioBloqueConsumoSinSello.Entity';
+import { RecursoHidricoSinSello } from 'src/Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RecursoHidricoSinSello.Entity';
+import { BloqueRecursoHidricoSinSello } from 'src/Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/BloqueRecursoHidricoSinSello.Entity';
+import { PrecioRecursoHidricoSinSello } from 'src/Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/PrecioRecursoHidricoSinSello.Entity';
+import { TarifaHidranteSinSello } from 'src/Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/TarifaHidranteSinSello.Entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Usuario, UsuarioRol, Permiso, EstadoProveedor, EstadoProyecto, EstadoSolicitud, EstadoAfiliado, TipoAfiliado, EstadoMaterial, Categoria, EstadoCategoria, EstadoUnidadMedicion, UnidadMedicion, EstadoReporte, EstadoSugerencia, EstadoQueja, EstadoMedidor, TipoTarifaLectura, TipoTarifaCargoFijo, CargoFijoTarifas, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, RangoAfiliados, RangoConsumo])],
+    imports: [TypeOrmModule.forFeature([
+        Usuario, 
+        UsuarioRol, 
+        Permiso, 
+        EstadoProveedor, 
+        EstadoProyecto, 
+        EstadoSolicitud, 
+        EstadoAfiliado, 
+        TipoAfiliado, 
+        EstadoMaterial, 
+        Categoria, 
+        EstadoCategoria, 
+        EstadoUnidadMedicion, 
+        UnidadMedicion, 
+        EstadoReporte, 
+        EstadoSugerencia, 
+        EstadoQueja, 
+        EstadoFactura,
+        EstadoMedidor, 
+        TarifaLecturaConSello, 
+        TipoTarifaCargoFijoConSello, 
+        CargoFijoTarifasConSello, 
+        TipoTarifaServiciosFijosConSello, 
+        TipoTarifaVentaAguaConSello, 
+        RangoAfiliados, 
+        RangoConsumo, 
+        AplicarSelloCalidad,
+        // Entidades Sin Sello
+        TarifaLecturaSinSello,
+        RangoAfiliadosSinSello,
+        RangoConsumoSinSello,
+        CargoFijoTarifasSinSello,
+        PrecioBloqueConsumoSinSello,
+        RecursoHidricoSinSello,
+        BloqueRecursoHidricoSinSello,
+        PrecioRecursoHidricoSinSello,
+        TarifaHidranteSinSello
+    ])],
     providers: [SeederService],
     exports: [SeederService]
 })
