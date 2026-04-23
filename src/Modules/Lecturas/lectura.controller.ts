@@ -8,7 +8,6 @@ import { GetUser } from "../auth/Decorator/GetUser.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiProperty } from "@nestjs/swagger";
-import { getTotalPorM3DTO } from "./LecturaDTO'S/getTotalPorM3.dto";
 
 @Controller('lecturas')
 @UseGuards(JwtAuthGuard)
@@ -84,6 +83,14 @@ export class LecturaController {
         @GetUser() usuario: Usuario
     ) {
         return this.lecturaService.updateLectura(dto, idLectura, usuario.Id_Usuario);
+    }
+
+    @Post('Aplicar-sello-calidad')
+    @ApiProperty({ description: 'Alterna el estado del sello de calidad en las lecturas (activar/desactivar automáticamente).' })
+    aplicarSelloCalidad(
+        @GetUser() usuario: Usuario
+    ) {
+        return this.lecturaService.APlicarSelloALecturas(usuario.Id_Usuario);
     }
 
 

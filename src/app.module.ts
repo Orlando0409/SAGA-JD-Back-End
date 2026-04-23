@@ -57,9 +57,6 @@ import { Sugerencia } from './Modules/Sugerencias/SugerenciaEntities/Sugerencia.
 import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity'; 
 import { Lectura } from './Modules/Lecturas/LecturaEntities/Lectura.Entity';
 import { LecturaModule } from './Modules/Lecturas/lectura.module';
-import { TipoTarifaLectura } from './Modules/Lecturas/LecturaEntities/TipoTarifaLectura.Entity';
-import { TipoTarifaServiciosFijos } from './Modules/Lecturas/LecturaEntities/TipoTarifaServiciosFijos.Entity';
-import { TipoTarifaVentaAgua } from './Modules/Lecturas/LecturaEntities/TipoTarifaVentaAgua.Entity';
 import { ImagenEntity } from './Modules/Imagenes/ImagenesEntity/Imagen.Entity';
 import { ImagenesModule } from './Modules/Imagenes/Imagenes.module';
 import { ManualModule } from './Modules/ManualdeUsuario/manual.module';
@@ -69,10 +66,25 @@ import { RangoConsumo } from './Modules/Lecturas/LecturaEntities/RangoConsumo.En
 import { EstadoReporte } from './Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
 import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
 import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
-import { TipoTarifaCargoFijo } from './Modules/Lecturas/LecturaEntities/TipoTarifaCargoFijo.Entity';
-import { CargoFijoTarifas } from './Modules/Lecturas/LecturaEntities/CargoFijoTarifas.Entity';
 import { ConsultaPago } from './Modules/ConsultaPagos/ConsultaPagoEntities/ConsultaPago.entity';
 import { PagosModule } from './Modules/ConsultaPagos/consultaPagos.module';
+import { Factura } from './Modules/Facturas/FacturaEntities/Factura.Entity';
+import { EstadoFactura } from './Modules/Facturas/FacturaEntities/EstadoFactura.Entity';
+import { AplicarSelloCalidad } from './Modules/Lecturas/LecturaEntities/AplicarSelloCalidad.Entity';
+import { TarifaLecturaConSello } from './Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaLecturaConSello.Entity';
+import { TipoTarifaVentaAguaConSello } from './Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaVentaAgua.Entity';
+import { TipoTarifaServiciosFijosConSello } from './Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaServiciosFijos.Entity';
+import { TipoTarifaCargoFijoConSello } from './Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TipoTarifaCargoFijoConSello.Entity';
+import { CargoFijoTarifasConSello } from './Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/CargoFijoTarifasConSello.Entity';
+import { TarifaLecturaSinSello } from './Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/TarifaLecturaSinSello.Entity';
+import { TarifaHidranteSinSello } from './Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/TarifaHidranteSinSello.Entity';
+import { CargoFijoTarifasSinSello } from './Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/CargoFijoTarifasSinSello.Entity';
+import { PrecioBloqueConsumoSinSello } from './Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/PrecioBloqueConsumoSinSello.Entity';
+import { RecursoHidricoSinSello } from './Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RecursoHidricoSinSello.Entity';
+import { BloqueRecursoHidricoSinSello } from './Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/BloqueRecursoHidricoSinSello.Entity';
+import { RangoAfiliadosSinSello } from './Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RangoAfiliadosSinSello.Entity';
+import { RangoConsumoSinSello } from './Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RangoConsumoSinSello.Entity';
+import { PrecioRecursoHidricoSinSello } from './Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/PrecioRecursoHidricoSinSello.Entity';
 
 @Module({
   imports: [
@@ -110,10 +122,14 @@ import { PagosModule } from './Modules/ConsultaPagos/consultaPagos.module';
           FAQEntity,
           Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
           Auditoria,
-          Lectura, TipoTarifaLectura, TipoTarifaCargoFijo, CargoFijoTarifas, TipoTarifaServiciosFijos, TipoTarifaVentaAgua,
+          Lectura, RangoAfiliados, RangoConsumo,
+          TarifaLecturaConSello, TipoTarifaCargoFijoConSello, CargoFijoTarifasConSello, TipoTarifaServiciosFijosConSello, TipoTarifaVentaAguaConSello,
+          TarifaLecturaSinSello, RangoAfiliadosSinSello, RangoConsumoSinSello, CargoFijoTarifasSinSello, PrecioBloqueConsumoSinSello, RecursoHidricoSinSello, BloqueRecursoHidricoSinSello, PrecioRecursoHidricoSinSello, TarifaHidranteSinSello, 
+          AplicarSelloCalidad,
           ImagenEntity,
-          ManualEntity, RangoAfiliados, RangoConsumo,
-          ConsultaPago
+          ManualEntity,
+          ConsultaPago,
+          Factura, EstadoFactura
         ],
         synchronize: false,
         dropSchema: false,

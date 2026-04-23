@@ -3,29 +3,28 @@ import { Afiliado } from 'src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity
 import { InjectRepository } from "@nestjs/typeorm";
 import { Lectura } from "./LecturaEntities/Lectura.Entity";
 import { Repository } from "typeorm";
-import { TipoTarifaLectura } from "./LecturaEntities/TipoTarifaLectura.Entity";
-import { TipoTarifaServiciosFijos } from "./LecturaEntities/TipoTarifaServiciosFijos.Entity";
-import { TipoTarifaVentaAgua } from "./LecturaEntities/TipoTarifaVentaAgua.Entity";
 import { EstadoAfiliado } from '../Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
-import { getTotalPorM3DTO } from './LecturaDTO\'S/getTotalPorM3.dto';
 import { RangoConsumo } from './LecturaEntities/RangoConsumo.Entity';
-import { CargoFijoTarifas } from './LecturaEntities/CargoFijoTarifas.Entity';
-import { TipoTarifaCargoFijo } from './LecturaEntities/TipoTarifaCargoFijo.Entity';
 import { LecturaService } from './lectura.service';
+import { TarifaLecturaConSello } from '../Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaLecturaConSello.Entity';
+import { TipoTarifaServiciosFijosConSello } from '../Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaServiciosFijos.Entity';
+import { TipoTarifaVentaAguaConSello } from '../Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaVentaAgua.Entity';
+import { TipoTarifaCargoFijoConSello } from '../Tarifas/Con Sello Calidad/TarifaConSelloEntities/TipoTarifaCargoFijoConSello.Entity';
+import { CargoFijoTarifasConSello } from '../Tarifas/Con Sello Calidad/TarifaConSelloEntities/CargoFijoTarifasConSello.Entity';
 
 export class totalLecturasService {
     constructor(
         @InjectRepository(Lectura)
         private readonly lecturaRepository: Repository<Lectura>,
 
-        @InjectRepository(TipoTarifaLectura)
-        private readonly tipoTarifaRepository: Repository<TipoTarifaLectura>,
+        @InjectRepository(TarifaLecturaConSello)
+        private readonly tipoTarifaRepository: Repository<TarifaLecturaConSello>,
 
-        @InjectRepository(TipoTarifaServiciosFijos)
-        private readonly tipoTarifaServiciosFijosRepository: Repository<TipoTarifaServiciosFijos>,
+        @InjectRepository(TipoTarifaServiciosFijosConSello)
+        private readonly tipoTarifaServiciosFijosRepository: Repository<TipoTarifaServiciosFijosConSello>,
 
-        @InjectRepository(TipoTarifaVentaAgua)
-        private readonly tipoTarifaVentaAguaRepository: Repository<TipoTarifaVentaAgua>,
+        @InjectRepository(TipoTarifaVentaAguaConSello)
+        private readonly tipoTarifaVentaAguaRepository: Repository<TipoTarifaVentaAguaConSello>,
 
         @InjectRepository(RangoConsumo)
         private readonly rangoConsumoRepository: Repository<RangoConsumo>,
@@ -33,11 +32,11 @@ export class totalLecturasService {
         @InjectRepository(RangoAfiliados)
         private readonly rangoAfiliadosRepository: Repository<RangoAfiliados>,
 
-        @InjectRepository(CargoFijoTarifas)
-        private readonly cargoFijoTarifasRepository: Repository<CargoFijoTarifas>,
+        @InjectRepository(CargoFijoTarifasConSello)
+        private readonly cargoFijoTarifasRepository: Repository<CargoFijoTarifasConSello>,
 
-        @InjectRepository(TipoTarifaCargoFijo)
-        private readonly tipoTarifaCargoFijoRepository: Repository<TipoTarifaCargoFijo>,
+        @InjectRepository(TipoTarifaCargoFijoConSello)
+        private readonly tipoTarifaCargoFijoRepository: Repository<TipoTarifaCargoFijoConSello>,
 
         @InjectRepository(Afiliado)
         private readonly afiliadoRepository: Repository<Afiliado>,
@@ -56,10 +55,10 @@ export class totalLecturasService {
     }
 
     // Metodo para obtener el cargo fijo según el tipo de tarifa y el rango de afiliados
-    async getCargoFijo(idTipoTarifa: number, idRangoAfiliados: number): Promise<CargoFijoTarifas> {
+    async getCargoFijo(idTipoTarifa: number, idRangoAfiliados: number): Promise<CargoFijoTarifasConSello> {
         const relacion = await this.tipoTarifaCargoFijoRepository.findOne({
             where: {
-                Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: idTipoTarifa },
+                Tipo_Tarifa: { Id_Tarifa_Lectura: idTipoTarifa },
                 Rango_Afiliados: { Id_Rango_Afiliados: idRangoAfiliados }
             },
             relations: ['Cargo_Fijo']
@@ -72,7 +71,7 @@ export class totalLecturasService {
     // Metodo para obtener los rangos de afiliados filtrado por tarifa (minimo, maximo, costo por M3 y el ID)
     async getRangoAfiliados(idTipoTarifa: number) {
         const Rangos = await this.rangoAfiliadosRepository.find({
-            where: { Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: idTipoTarifa } },
+            where: { Tipo_Tarifa: { Id_Tarifa_Lectura: idTipoTarifa } },
             relations: ['Tipo_Tarifa']
         });
 
@@ -87,7 +86,7 @@ export class totalLecturasService {
     // Metodo para obtener los bloques de consumo filtrado por tarifa
     async getRangoConsumo(idTipoTarifa: number) {
         const Rangos = await this.rangoConsumoRepository.find({
-            where: { Tipo_Tarifa: { Id_Tipo_Tarifa_Lectura: idTipoTarifa } },
+            where: { Tipo_Tarifa: { Id_Tarifa_Lectura: idTipoTarifa } },
             relations: ['Tipo_Tarifa']
         });
 
@@ -110,7 +109,7 @@ export class totalLecturasService {
         */
 
         // Para identificar el tipo de tarifa, se jala la tarifa usando el ID que se recibe por parametro
-        const tipoTarifa = await this.tipoTarifaRepository.findOne({ where: { Id_Tipo_Tarifa_Lectura: idTipoTarifa } });
+        const tipoTarifa = await this.tipoTarifaRepository.findOne({ where: { Id_Tarifa_Lectura: idTipoTarifa } });
         if (!tipoTarifa) throw new Error('Tipo de tarifa no encontrado');
 
         // Obtiene la cantidad de afiliados activos

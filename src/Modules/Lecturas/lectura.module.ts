@@ -15,21 +15,24 @@ import { InventarioModule } from "../Inventario/inventario.module";
 import { AfiliadosModule } from "../Afiliados/afiliados.module";
 import { EstadoAfiliado } from "../Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
 import { totalLecturasService } from "./totalLecturas.service";
-import { TipoTarifaLectura } from "./LecturaEntities/TipoTarifaLectura.Entity";
-import { TipoTarifaVentaAgua } from "./LecturaEntities/TipoTarifaVentaAgua.Entity";
-import { TipoTarifaServiciosFijos } from "./LecturaEntities/TipoTarifaServiciosFijos.Entity";
 import { RangoAfiliados } from "./LecturaEntities/RangoAfiliados.Entity";
 import { RangoConsumo } from "./LecturaEntities/RangoConsumo.Entity";
-import { CargoFijoTarifas } from "./LecturaEntities/CargoFijoTarifas.Entity";
-import { TipoTarifaCargoFijo } from "./LecturaEntities/TipoTarifaCargoFijo.Entity";
+import { AplicarSelloCalidad } from './LecturaEntities/AplicarSelloCalidad.Entity';
+import { CargoFijoTarifasConSello } from '../Tarifas/Con Sello Calidad/TarifaConSelloEntities/CargoFijoTarifasConSello.Entity';
+import { TarifaLecturaConSello } from '../Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaLecturaConSello.Entity';
+import { TipoTarifaServiciosFijosConSello } from '../Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaServiciosFijos.Entity';
+import { TipoTarifaVentaAguaConSello } from '../Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaVentaAgua.Entity';
+import { TipoTarifaCargoFijoConSello } from '../Tarifas/Con Sello Calidad/TarifaConSelloEntities/TipoTarifaCargoFijoConSello.Entity';
+import { FacturaModule } from '../Facturas/factura.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Lectura, TipoTarifaLectura, TipoTarifaCargoFijo, TipoTarifaServiciosFijos, TipoTarifaVentaAgua, CargoFijoTarifas, RangoAfiliados, RangoConsumo, Usuario, Medidor, EstadoMedidor, Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado]), 
+        TypeOrmModule.forFeature([Lectura, TarifaLecturaConSello, CargoFijoTarifasConSello, TipoTarifaServiciosFijosConSello, TipoTarifaVentaAguaConSello, TipoTarifaCargoFijoConSello, RangoAfiliados, RangoConsumo, Usuario, Medidor, EstadoMedidor, Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, AplicarSelloCalidad]), 
         forwardRef(() => UsuariosModule),
         forwardRef(() => AuditoriaModule),
         forwardRef(() => InventarioModule),
-        forwardRef(() => AfiliadosModule)
+        forwardRef(() => AfiliadosModule),
+        forwardRef(() => FacturaModule)
     ],
     controllers: [LecturaController],
     providers: [LecturaService, totalLecturasService],
