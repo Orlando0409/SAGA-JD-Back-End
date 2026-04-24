@@ -9,7 +9,7 @@ import { FacturaPDF, type FacturaInput } from './Template/FacturaPDF';
 @Injectable()
 export class ConsultaPagosPdfService implements OnApplicationShutdown {
     private browser: Browser | null = null;
-  private logoDataUri: string | null = null;
+    private logoDataUri: string | null = null;
 
     private async getBrowser(): Promise<Browser> {
         if (this.browser) {
@@ -30,20 +30,20 @@ export class ConsultaPagosPdfService implements OnApplicationShutdown {
     }
 
     async generarFacturasDesdeConsultas(
-      inputs: FacturaInput[],
+        inputs: FacturaInput[],
         res: Response,
     ): Promise<void> {
-      if (!Array.isArray(inputs) || inputs.length === 0) {
-        throw new BadRequestException('No hay datos para generar la factura.');
+        if (!Array.isArray(inputs) || inputs.length === 0) {
+            throw new BadRequestException('No hay datos para generar la factura.');
         }
 
-      inputs.forEach((input) => {
-        if (!input.numeroMedidor) {
-          throw new BadRequestException('No se pudo determinar el numero de medidor para generar la factura.');
-        }
-      });
+        inputs.forEach((input) => {
+            if (!input.numeroMedidor) {
+                throw new BadRequestException('No se pudo determinar el numero de medidor para generar la factura.');
+            }
+        });
 
-      const html = FacturaPDF(inputs, this.getLogoDataUri());
+        const html = FacturaPDF(inputs, this.getLogoDataUri());
         const browser = await this.getBrowser();
         const page = await browser.newPage();
 
@@ -57,18 +57,18 @@ export class ConsultaPagosPdfService implements OnApplicationShutdown {
             });
 
             const filename = inputs.length === 1
-              ? `Factura_${inputs[0].numeroMedidor}_${Date.now()}.pdf`
-              : `Facturas_${Date.now()}.pdf`;
+                ? `Factura_${inputs[0].numeroMedidor}_${Date.now()}.pdf`
+                : `Facturas_${Date.now()}.pdf`;
 
             res.set({
                 'Content-Type': 'application/pdf',
-              'Content-Disposition': `attachment; filename="${filename}"`,
+                'Content-Disposition': `attachment; filename="${filename}"`,
                 'Content-Length': String(pdfBuffer.length),
             });
 
             res.send(pdfBuffer);
         } finally {
-            await page.close().catch(() => {});
+            await page.close().catch(() => { });
         }
     }
 
@@ -89,7 +89,7 @@ export class ConsultaPagosPdfService implements OnApplicationShutdown {
 
     async onApplicationShutdown(): Promise<void> {
         if (this.browser) {
-            await this.browser.close().catch(() => {});
+            await this.browser.close().catch(() => { });
             this.browser = null;
         }
     }

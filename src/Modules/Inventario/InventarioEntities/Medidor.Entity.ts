@@ -67,6 +67,10 @@ export class Medidor {
     @BeforeInsert()
     @BeforeUpdate()
     setEstadoPagoLibreSiNoTieneAfiliado() {
+        if (this.Estado_Pago === EstadoPagoMedidor.Pagado || this.Estado_Pago === EstadoPagoMedidor.Pendiente) {
+            return;
+        }
+
         // Solo forzar Libre cuando el medidor realmente esta sin asignar,
         // es decir, sin afiliado y sin solicitud en proceso.
         if (!this.Afiliado && !this.Id_Solicitud) {

@@ -1,15 +1,15 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { TipoTarifaLectura } from "./TipoTarifaLectura.Entity";
+import { TarifaLecturaConSello } from "./TarifaLecturaConSello.Entity";
 
 // Tabla para almacenar los cargos fijos mensuales por servicios según tipo de tarifa y rango de afiliados
-@Entity('tipo_tarifa_servicios_fijos')
-export class TipoTarifaServiciosFijos {
+@Entity('tipo_tarifa_servicios_fijos_con_sello')
+export class TipoTarifaServiciosFijosConSello {
     @PrimaryGeneratedColumn()
-    Id_Tipo_Tarifa_Servicios_Fijos: number;
+    Id_Tarifa_Servicios_Fijos: number;
 
-    @ManyToOne(() => TipoTarifaLectura, { nullable: false })
-    @JoinColumn({ name: 'Id_Tipo_Tarifa_Lectura' })
-    Tipo_Tarifa: TipoTarifaLectura;
+    @ManyToOne(() => TarifaLecturaConSello, { nullable: false })
+    @JoinColumn({ name: 'Id_Tarifa_Lectura' })
+    Tipo_Tarifa: TarifaLecturaConSello;
 
     @Column({ type: 'int', nullable: false })
     Minimo_Afiliados: number;

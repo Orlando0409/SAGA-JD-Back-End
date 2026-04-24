@@ -5,6 +5,7 @@ import { TipoIdentificacion } from "src/Common/Enums/TipoIdentificacion.enum";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
 import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
+import { Factura } from "src/Modules/Facturas/FacturaEntities/Factura.Entity";
 
 @Entity('afiliado')
 export abstract class Afiliado {
@@ -45,6 +46,9 @@ export abstract class Afiliado {
 
     @OneToMany(() => Medidor, (medidor) => medidor.Afiliado)
     Medidores: Medidor[];
+
+    @OneToMany(() => Factura, (factura) => factura.Afiliado)
+    Facturas: Factura[];
 
     @BeforeInsert()
     @BeforeUpdate()
