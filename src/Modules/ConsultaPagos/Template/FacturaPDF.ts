@@ -2,26 +2,30 @@ export type FacturaInput = {
 	numeroMedidor: number;
 	identificacion: string;
 	nombreCliente: string;
+	tipoTarifa: string;
+	fechaEmision: Date;
+	fechaVencimiento: Date;
+	historialLecturas: unknown[];
+	// Datos directos de la factura
 	consumoM3: number;
 	costoPorM3: number;
 	cargoFijo: number;
+	cargoConsumo: number;
+	cargoRecursoHidrico: number;
+	otrosCargos: number;
+	subtotal: number;
+	impuestos: number;
 	totalPagar: number;
-	tipoTarifa: string;
-	fechaEmision: Date;
-	historialLecturas: unknown[];
+	estadoFactura: string;
+	numeroFactura: string;
 };
 
 export function FacturaPDF(inputs: FacturaInput[], logo: string | null): string {
 	const sections = inputs.map((input, index) => {
 		const fecha = input.fechaEmision.toLocaleDateString('es-CR');
-		const vencimiento = new Date(input.fechaEmision);
-		vencimiento.setDate(vencimiento.getDate() + 15);
-		const fechaVenc = vencimiento.toLocaleDateString('es-CR');
+		const fechaVenc = input.fechaVencimiento.toLocaleDateString('es-CR');
 		const pageBreakClass = index < inputs.length - 1 ? 'page-break' : '';
-		const montoConsumo = input.costoPorM3 > 0 ? input.costoPorM3 * input.consumoM3 : input.totalPagar - input.cargoFijo;
 		const consumosRows = buildConsumoRows(input.historialLecturas);
-		const montoConsumoFinal = Math.max(montoConsumo, 0);
-		const facturaNumero = `${input.numeroMedidor}${String(input.fechaEmision.getTime()).slice(-4)}`;
 		const fechaImpresion = new Date().toLocaleString('es-CR');
 
 		return `
@@ -34,65 +38,85 @@ export function FacturaPDF(inputs: FacturaInput[], logo: string | null): string 
 				<div class="org">
 					<div class="org-title">SAGA-JD</div>
 					<div class="org-sub">Sistema de Agua Potable de la ASADA de Juan Díaz</div>
-					<div class="org-sub">Facturacion de Servicios</div>
+					<div class="org-sub">Facturación de Servicios</div>
 				</div>
 				<div class="meta">
-					<div><strong>Emision:</strong> ${fecha}</div>
+					<div><strong>Emisión:</strong> ${fecha}</div>
 					<div><strong>Vencimiento:</strong> ${fechaVenc}</div>
 					<div><strong>Medidor:</strong> ${input.numeroMedidor}</div>
-					<div><strong>Estado:</strong> PENDIENTE</div>
+					<div><strong>Estado:</strong> ${escapeHtml(input.estadoFactura)}</div>
 				</div>
 			</div>
 
 			<div class="status-bar">
 				<div><strong>RESUMEN DE CONSUMO</strong></div>
-				<div><strong>ESTADO:</strong> PENDIENTE</div>
-				<div><strong>FECHA DE IMPRESION:</strong> ${fechaImpresion}</div>
+				<div><strong>ESTADO:</strong> ${escapeHtml(input.estadoFactura)}</div>
+				<div><strong>FECHA DE IMPRESIÓN:</strong> ${fechaImpresion}</div>
 			</div>
 
-			<div class="title-bar">FACTURA N ${facturaNumero}</div>
+			<div class="title-bar">FACTURA N° ${escapeHtml(input.numeroFactura)}</div>
 
 			<div class="info-grid two-col">
 				<div class="cell"><span>NIS o Abonado:</span><strong>${input.numeroMedidor}</strong></div>
 				<div class="cell"><span>Cliente:</span><strong>${escapeHtml(input.nombreCliente)}</strong></div>
-				<div class="cell"><span>Identificacion:</span><strong>${escapeHtml(input.identificacion)}</strong></div>
+				<div class="cell"><span>Identificación:</span><strong>${escapeHtml(input.identificacion)}</strong></div>
 				<div class="cell"><span>Tarifa:</span><strong>${escapeHtml(input.tipoTarifa)}</strong></div>
-				<div class="cell"><span>Hidrometro:</span><strong>${input.numeroMedidor}</strong></div>
-				<div class="cell"><span>Consumo mts. cub.:</span><strong>${input.consumoM3}</strong></div>
+				<div class="cell"><span>Hidrómetro:</span><strong>${input.numeroMedidor}</strong></div>
+				<div class="cell"><span>Consumo mts. cúb.:</span><strong>${input.consumoM3}</strong></div>
 				<div class="cell"><span>Fecha lectura:</span><strong>${fecha}</strong></div>
 				<div class="cell"><span>Vencimiento:</span><strong>${fechaVenc}</strong></div>
 			</div>
 
-		<table class="main-table">
-			<thead>
-				<tr>
-					<th>Concepto</th>
-					<th class="right">Detalle</th>
-					<th class="right">Monto</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td>Servicio de agua potable</td>
-					<td class="right">${input.consumoM3} x ${input.costoPorM3.toLocaleString('es-CR')}</td>
-					<td class="right">CRC ${montoConsumoFinal.toLocaleString('es-CR')}</td>
-				</tr>
-				<tr>
-					<td>Cargo fijo</td>
-					<td class="right">-</td>
-					<td class="right">CRC ${input.cargoFijo.toLocaleString('es-CR')}</td>
-				</tr>
-				<tr>
-					<td>Lecturas registradas</td>
-					<td class="right">-</td>
-					<td class="right">${Array.isArray(input.historialLecturas) ? input.historialLecturas.length : 0}</td>
-				</tr>
-			</tbody>
-		</table>
+			<table class="main-table">
+				<thead>
+					<tr>
+						<th>Concepto</th>
+						<th class="right">Detalle</th>
+						<th class="right">Monto</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>Servicio de agua potable (consumo)</td>
+						<td class="right">${input.consumoM3} m³ × ₡${input.costoPorM3.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
+						<td class="right">₡${input.cargoConsumo.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
+					</tr>
+					<tr>
+						<td>Cargo fijo</td>
+						<td class="right">-</td>
+						<td class="right">₡${input.cargoFijo.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
+					</tr>
+					<tr>
+						<td>Cargo recurso hídrico</td>
+						<td class="right">-</td>
+						<td class="right">₡${input.cargoRecursoHidrico.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
+					</tr>
+					<tr>
+						<td>Otros cargos</td>
+						<td class="right">-</td>
+						<td class="right">₡${input.otrosCargos.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
+					</tr>
+					<tr>
+						<td>Subtotal</td>
+						<td class="right">-</td>
+						<td class="right">₡${input.subtotal.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
+					</tr>
+					<tr>
+						<td>Impuestos</td>
+						<td class="right">-</td>
+						<td class="right">₡${input.impuestos.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
+					</tr>
+					<tr>
+						<td>Lecturas registradas en historial</td>
+						<td class="right">-</td>
+						<td class="right">${Array.isArray(input.historialLecturas) ? input.historialLecturas.length : 0}</td>
+					</tr>
+				</tbody>
+			</table>
 
 			<div class="split-row">
 				<div class="panel">
-					<div class="panel-title">HISTORICO DE CONSUMO</div>
+					<div class="panel-title">HISTÓRICO DE CONSUMO</div>
 					<table class="small-table">
 						<thead>
 							<tr>
@@ -116,19 +140,27 @@ export function FacturaPDF(inputs: FacturaInput[], logo: string | null): string 
 							</tr>
 							<tr>
 								<td>CARGO FIJO</td>
-								<td class="right">CRC ${input.cargoFijo.toLocaleString('es-CR')}</td>
+								<td class="right">₡${input.cargoFijo.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
 							</tr>
 							<tr>
-								<td>CONSUMO M3</td>
+								<td>CONSUMO M³</td>
 								<td class="right">${input.consumoM3}</td>
 							</tr>
 							<tr>
-								<td>COSTO POR M3</td>
-								<td class="right">CRC ${input.costoPorM3.toLocaleString('es-CR')}</td>
+								<td>COSTO POR M³</td>
+								<td class="right">₡${input.costoPorM3.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
 							</tr>
 							<tr>
-								<td>MONTO CONSUMO</td>
-								<td class="right">CRC ${montoConsumoFinal.toLocaleString('es-CR')}</td>
+								<td>CARGO CONSUMO</td>
+								<td class="right">₡${input.cargoConsumo.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
+							</tr>
+							<tr>
+								<td>RECURSO HÍDRICO</td>
+								<td class="right">₡${input.cargoRecursoHidrico.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
+							</tr>
+							<tr>
+								<td>IMPUESTOS</td>
+								<td class="right">₡${input.impuestos.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
 							</tr>
 						</tbody>
 					</table>
@@ -137,16 +169,32 @@ export function FacturaPDF(inputs: FacturaInput[], logo: string | null): string 
 
 			<div class="summary">
 				<div class="sum-row">
-					<span>Subtotal consumo</span>
-					<span>CRC ${montoConsumoFinal.toLocaleString('es-CR')}</span>
+					<span>Cargo consumo</span>
+					<span>₡${input.cargoConsumo.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
 				</div>
 				<div class="sum-row">
 					<span>Cargo fijo</span>
-					<span>CRC ${input.cargoFijo.toLocaleString('es-CR')}</span>
+					<span>₡${input.cargoFijo.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
+				</div>
+				<div class="sum-row">
+					<span>Recurso hídrico</span>
+					<span>₡${input.cargoRecursoHidrico.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
+				</div>
+				<div class="sum-row">
+					<span>Otros cargos</span>
+					<span>₡${input.otrosCargos.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
+				</div>
+				<div class="sum-row">
+					<span>Subtotal</span>
+					<span>₡${input.subtotal.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
+				</div>
+				<div class="sum-row">
+					<span>Impuestos</span>
+					<span>₡${input.impuestos.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
 				</div>
 				<div class="sum-row final">
 					<span>Total a pagar</span>
-					<span>CRC ${input.totalPagar.toLocaleString('es-CR')}</span>
+					<span>₡${input.totalPagar.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
 				</div>
 			</div>
 
@@ -162,14 +210,14 @@ export function FacturaPDF(inputs: FacturaInput[], logo: string | null): string 
 	<meta charset="UTF-8" />
 	<style>
 	body { font-family: Arial, sans-serif; color: #111827; margin: 0; padding: 10px; }
-		.factura { width: 100%; }
-		.page-break { page-break-after: always; }
+	.factura { width: 100%; }
+	.page-break { page-break-after: always; }
 	.sheet { border: 1px solid #4b5563; padding: 8px; }
 	.top { display: grid; grid-template-columns: 100px 1fr auto; gap: 10px; align-items: center; padding-bottom: 8px; border-bottom: 1px solid #4b5563; }
 	.logo-wrap { width: 92px; height: 92px; display: flex; align-items: center; justify-content: center; }
 	.logo { width: 88px; height: 88px; object-fit: contain; }
-		.logo-placeholder { width: 90px; height: 90px; border: 1px dashed #64748b; display:flex; align-items:center; justify-content:center; font-size: 11px; color:#64748b; }
-		.org { text-align: center; }
+	.logo-placeholder { width: 90px; height: 90px; border: 1px dashed #64748b; display:flex; align-items:center; justify-content:center; font-size: 11px; color:#64748b; }
+	.org { text-align: center; }
 	.org-title { font-size: 24px; font-weight: 700; }
 	.org-sub { font-size: 12px; margin-top: 2px; }
 	.meta { font-size: 11px; line-height: 1.45; text-align: right; }
@@ -180,11 +228,11 @@ export function FacturaPDF(inputs: FacturaInput[], logo: string | null): string 
 	.cell { display: flex; justify-content: space-between; gap: 10px; padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 12px; border-right: 1px solid #e5e7eb; }
 	.info-grid.two-col .cell:nth-child(2n) { border-right: none; }
 	.info-grid.two-col .cell:nth-last-child(-n + 2) { border-bottom: none; }
-		.cell span { color: #475569; }
+	.cell span { color: #475569; }
 	table { width: 100%; border-collapse: collapse; margin-top: 8px; }
 	th { background: #111827; color: #fff; font-size: 11px; padding: 7px; text-align: left; }
 	td { border-bottom: 1px solid #e5e7eb; padding: 7px; font-size: 11px; }
-		.right { text-align: right; }
+	.right { text-align: right; }
 	.split-row { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 	.panel { border: 1px solid #d1d5db; }
 	.panel-title { background: #d1d5db; font-weight: 700; font-size: 11px; padding: 5px 7px; }
@@ -225,7 +273,8 @@ function getMes(m: number): string {
 }
 
 function escapeHtml(value: string): string {
-	return value
+	if (!value) return '';
+	return String(value)
 		.replaceAll('&', '&amp;')
 		.replaceAll('<', '&lt;')
 		.replaceAll('>', '&gt;')

@@ -89,6 +89,21 @@ export class FacturaService {
         return Promise.all(facturas.map(factura => this.formatearFacturaParaResponse(factura)));
     }
 
+    async getFacturasFormateadasByMedidor(numeroMedidor: number): Promise<ConsultaPagoResponseDTO[]> {
+        const facturas = await this.facturaRepository
+            .createQueryBuilder('factura')
+            .leftJoinAndSelect('factura.Lectura', 'lectura')
+            .leftJoinAndSelect('lectura.Medidor', 'medidor')
+            .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipo_tarifa')
+            .leftJoinAndSelect('factura.Estado', 'estado')
+            .leftJoinAndSelect('factura.Afiliado', 'afiliado')
+            .where('medidor.Numero_Medidor = :numeroMedidor', { numeroMedidor })
+            .orderBy('factura.Fecha_Emision', 'DESC')
+            .getMany();
+
+        return Promise.all(facturas.map(f => this.formatearFacturaParaConsulta(f)));
+    }
+
     // ====================================
     // MÉTODOS AUXILIARES DE FORMATEO
     // ====================================

@@ -82,7 +82,7 @@ export class ConsultaPorMedidorResponseDTO {
     };
     Historial_Lecturas?: any[];
     Total_Facturas: number;
-    Facturas: ConsultaPagoResponseSimpleDTO[];
+    Facturas: ConsultaPagoResponseDTO[];
 }
 
 // DTO para medidor con facturas (usado en consultas de múltiples medidores)
@@ -90,12 +90,12 @@ export class MedidorConFacturasDTO {
     Numero_Medidor: number;
     Historial_Lecturas?: any[];
     Total_Facturas?: number;
-    Facturas?: ConsultaPagoResponseSimpleDTO[];
+    Facturas?: ConsultaPagoResponseDTO[];
     Error?: string;
 }
 
 // Alias para FacturaDetalleDTO (mismo que ConsultaPagoResponseDTO)
-export class FacturaDetalleDTO extends ConsultaPagoResponseSimpleDTO {}
+export class FacturaDetalleDTO extends ConsultaPagoResponseDTO {}
 
 // DTO para consulta de afiliado físico con múltiples medidores
 export class ConsultaAfiliadoFisicoResponseDTO {
