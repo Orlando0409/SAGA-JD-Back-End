@@ -51,20 +51,16 @@ export class PagosService {
             relations: ['Estado_Medidor', 'Afiliado']
         });
 
-        if (!medidor) {
-            throw new BadRequestException('No se encontró un medidor con el número proporcionado.');
-        }
+        if (!medidor) throw new BadRequestException('No se encontró un medidor con el número proporcionado.');
 
         const estadoMedidor = medidor.Estado_Medidor.Id_Estado_Medidor;
-        if (estadoMedidor === 1 || estadoMedidor === 3) {
-            throw new BadRequestException('El medidor está inactivo o suspendido.');
-        }
+        if (estadoMedidor === 1 || estadoMedidor === 3) throw new BadRequestException('El medidor está inactivo o suspendido.');
 
         // 2. Obtener información del afiliado (físico o jurídico)
         let afiliadoInfo: any = null;
         if (medidor.Afiliado) {
             const tipoAfiliado = medidor.Afiliado.Tipo_Entidad;
-            
+
             if (tipoAfiliado === 1) { // Afiliado Físico
                 const afiliadoFisico = await this.afiliadoFisicoRepository.findOne({
                     where: { Id_Afiliado: medidor.Afiliado.Id_Afiliado }
@@ -90,14 +86,11 @@ export class PagosService {
 
         // 3. Obtener la última lectura para conocer el tipo de tarifa actual
         const ultimaLectura = await this.lecturaService.getHistorialLecturasByMedidor(numeroMedidor);
-        const tipoTarifaActual = ultimaLectura.length > 0 && ultimaLectura[0].Tipo_Tarifa 
-            ? ultimaLectura[0].Tipo_Tarifa.Nombre_Tipo_Tarifa 
-            : 'No especificada';
 
-        // 5. Historial de lecturas (últimas 5)
+        // 4. Historial de lecturas (últimas 5)
         const historialLecturas = ultimaLectura;
 
-        // 6. Obtener facturas con cálculos
+        // 5. Obtener facturas con cálculos
         const facturas = await this.facturaRepository
             .createQueryBuilder('factura')
             .leftJoinAndSelect('factura.Lectura', 'lectura')
@@ -107,9 +100,7 @@ export class PagosService {
             .orderBy('factura.Fecha_Emision', 'DESC')
             .getMany();
 
-        if (!facturas || facturas.length === 0) {
-            throw new BadRequestException('No se encontraron facturas para el medidor proporcionado.');
-        }
+        if (!facturas || facturas.length === 0) throw new BadRequestException('No se encontraron facturas para el medidor proporcionado.');
 
         // Mapear la información de las facturas con los cálculos
         const facturasCalculos = facturas.map(factura => ({
@@ -146,54 +137,6 @@ export class PagosService {
         };
     }
 
-    // ====================================
-    // MÉTODO AUXILIAR DE FORMATEO
-    // ====================================
-
-    // Formatea una factura existente al DTO de respuesta con toda la información
-    private async formatearFacturaParaConsulta(factura: Factura): Promise<ConsultaPagoResponseDTO> {
-        const tipoAfiliado = factura.Afiliado.Tipo_Entidad;
-        const nombreCompleto = factura.Nombre_Completo_Afiliado || '';
-        const identificacion = factura.Identificacion_Afiliado || '';
-
-        return {
-            Id_Factura: factura.Id_Factura,
-            Numero_Factura: factura.Numero_Factura,
-            Afiliado: tipoAfiliado === 1 ? {
-                Id_Afiliado: factura.Afiliado.Id_Afiliado,
-                Nombre_Completo: nombreCompleto,
-                Identificacion: identificacion
-            } : {
-                Id_Afiliado: factura.Afiliado.Id_Afiliado,
-                Razon_Social: nombreCompleto,
-                Cedula_Juridica: identificacion
-            },
-            Lectura: {
-                Id_Lectura: factura.Lectura.Id_Lectura,
-                Numero_Medidor: factura.Lectura.Medidor.Numero_Medidor,
-                Fecha_Lectura: factura.Lectura.Fecha_Lectura,
-                Valor_Lectura_Anterior: Number(factura.Lectura.Valor_Lectura_Anterior),
-                Valor_Lectura_Actual: Number(factura.Lectura.Valor_Lectura_Actual)
-            },
-            Consumo_M3: Number(factura.Consumo_M3),
-            Cargo_Fijo: `₡${Number(factura.Cargo_Fijo).toFixed(2)}`,
-            Cargo_Consumo: `₡${Number(factura.Cargo_Consumo).toFixed(2)}`,
-            Cargo_Recurso_Hidrico: `₡${Number(factura.Cargo_Recurso_Hidrico || 0).toFixed(2)}`,
-            Otros_Cargos: `₡${Number(factura.Otros_Cargos || 0).toFixed(2)}`,
-            Subtotal: `₡${Number(factura.Subtotal).toFixed(2)}`,
-            Impuestos: `₡${Number(factura.Impuestos).toFixed(2)}`,
-            Total: `₡${Number(factura.Total).toFixed(2)}`,
-            Fecha_Emision: factura.Fecha_Emision,
-            Fecha_Vencimiento: factura.Fecha_Vencimiento,
-            Estado: {
-                Id_Estado_Factura: factura.Estado.Id_Estado_Factura,
-                Nombre_Estado: factura.Estado.Nombre_Estado
-            },
-            Tipo_Tarifa_Aplicada: factura.Tipo_Tarifa_Aplicada,
-            Observaciones: factura.Observaciones
-        };
-    }
-
     async getConsultaPagosByAfiliadoFisico(dto: ConsultaFisicaDTO): Promise<ConsultaAfiliadoFisicoResponseDTO | ConsultaPorMedidorResponseDTO> {
         // Caso 1: Solo tipo de identificación + identificación (sin número de medidor)
         // Devuelve información de TODOS los medidores asociados
@@ -225,16 +168,18 @@ export class PagosService {
             const medidoresInfo = await Promise.all(
                 afiliado.Medidores.map(async (medidor) => {
                     try {
+                        // Obtener historial de lecturas
+                        const historialLecturas = await this.lecturaService.getHistorialLecturasByMedidor(medidor.Numero_Medidor);
+
                         // Buscar facturas del medidor
-                        const facturas = await this.facturaRepository.find({
-                            where: { 
-                                Lectura: { 
-                                    Medidor: { Numero_Medidor: medidor.Numero_Medidor } 
-                                } 
-                            },
-                            relations: ['Estado', 'Lectura', 'Lectura.Medidor', 'Afiliado'],
-                            order: { Fecha_Emision: 'DESC' }
-                        });
+                        const facturas = await this.facturaRepository
+                            .createQueryBuilder('factura')
+                            .leftJoinAndSelect('factura.Lectura', 'lectura')
+                            .leftJoinAndSelect('lectura.Medidor', 'medidor')
+                            .leftJoinAndSelect('factura.Estado', 'estado')
+                            .where('medidor.Numero_Medidor = :numeroMedidor', { numeroMedidor: medidor.Numero_Medidor })
+                            .orderBy('factura.Fecha_Emision', 'DESC')
+                            .getMany();
 
                         // Registrar consulta para cada medidor
                         const ConsultaPago = this.consultaPagoRepository.create({
@@ -244,18 +189,36 @@ export class PagosService {
                         });
                         await this.consultaPagoRepository.save(ConsultaPago);
 
-                        const facturasFormateadas = await Promise.all(
-                            facturas.map(factura => this.formatearFacturaParaConsulta(factura))
-                        );
+                        // Mapear facturas con cálculos detallados
+                        const facturasCalculos = facturas.map(factura => ({
+                            Numero_Factura: factura.Numero_Factura,
+                            Fecha_Emision: factura.Fecha_Emision,
+                            Fecha_Vencimiento: factura.Fecha_Vencimiento,
+                            Calculos: {
+                                Cargo_Fijo: `₡${Number(factura.Cargo_Fijo).toFixed(2)}`,
+                                Cargo_Consumo: `₡${Number(factura.Cargo_Consumo).toFixed(2)}`,
+                                Cargo_Recurso_Hidrico: `₡${Number(factura.Cargo_Recurso_Hidrico || 0).toFixed(2)}`,
+                                Otros_Cargos: `₡${Number(factura.Otros_Cargos || 0).toFixed(2)}`,
+                                Subtotal: `₡${Number(factura.Subtotal).toFixed(2)}`,
+                                Impuestos: `₡${Number(factura.Impuestos).toFixed(2)}`,
+                                Total: `₡${Number(factura.Total).toFixed(2)}`
+                            },
+                            Estado_Factura: {
+                                Id_Estado: factura.Estado.Id_Estado_Factura,
+                                Nombre_Estado: factura.Estado.Nombre_Estado
+                            },
+                        }));
 
                         return {
                             Numero_Medidor: medidor.Numero_Medidor,
+                            Historial_Lecturas: historialLecturas,
                             Total_Facturas: facturas.length,
-                            Facturas: facturasFormateadas
+                            Facturas: facturasCalculos
                         };
                     } catch (error: any) {
                         return {
                             Numero_Medidor: medidor.Numero_Medidor,
+                            Historial_Lecturas: [],
                             Total_Facturas: 0,
                             Facturas: [],
                             Error: `No se pudo obtener información: ${error?.message || 'Error desconocido'}`
@@ -338,15 +301,42 @@ export class PagosService {
 
         else throw new BadRequestException('Debe proporcionar: (1) Tipo de identificación + Identificación, (2) Número de medidor, o (3) Los tres datos.');
 
+        // Obtener historial de lecturas
+        const historialLecturas = await this.lecturaService.getHistorialLecturasByMedidor(numeroMedidor);
+
         // Buscar facturas del medidor
-        const facturas = await this.facturaRepository.find({
-            where: { Lectura: { Medidor: { Numero_Medidor: numeroMedidor } } },
-            relations: ['Estado', 'Lectura', 'Lectura.Medidor', 'Afiliado'],
-            order: { Fecha_Emision: 'DESC' }
-        });
+        const facturas = await this.facturaRepository
+            .createQueryBuilder('factura')
+            .leftJoinAndSelect('factura.Lectura', 'lectura')
+            .leftJoinAndSelect('lectura.Medidor', 'medidor')
+            .leftJoinAndSelect('factura.Estado', 'estado')
+            .where('medidor.Numero_Medidor = :numeroMedidor', { numeroMedidor })
+            .orderBy('factura.Fecha_Emision', 'DESC')
+            .getMany();
 
         if (!facturas || facturas.length === 0) throw new BadRequestException('No se encontraron facturas para el medidor proporcionado.');
 
+        // Mapear la información de las facturas con los cálculos
+        const facturasCalculos = facturas.map(factura => ({
+            Numero_Factura: factura.Numero_Factura,
+            Fecha_Emision: factura.Fecha_Emision,
+            Fecha_Vencimiento: factura.Fecha_Vencimiento,
+            Calculos: {
+                Cargo_Fijo: `₡${Number(factura.Cargo_Fijo).toFixed(2)}`,
+                Cargo_Consumo: `₡${Number(factura.Cargo_Consumo).toFixed(2)}`,
+                Cargo_Recurso_Hidrico: `₡${Number(factura.Cargo_Recurso_Hidrico || 0).toFixed(2)}`,
+                Otros_Cargos: `₡${Number(factura.Otros_Cargos || 0).toFixed(2)}`,
+                Subtotal: `₡${Number(factura.Subtotal).toFixed(2)}`,
+                Impuestos: `₡${Number(factura.Impuestos).toFixed(2)}`,
+                Total: `₡${Number(factura.Total).toFixed(2)}`
+            },
+            Estado_Factura: {
+                Id_Estado: factura.Estado.Id_Estado_Factura,
+                Nombre_Estado: factura.Estado.Nombre_Estado
+            },
+        }));
+
+        // Registrar consulta
         const ConsultaPago = this.consultaPagoRepository.create({
             Tipo_Identificacion: dto.Tipo_Identificacion,
             Identificacion: dto.Identificacion,
@@ -354,19 +344,18 @@ export class PagosService {
         });
         await this.consultaPagoRepository.save(ConsultaPago);
 
-        const facturasFormateadas = await Promise.all(
-            facturas.map(factura => this.formatearFacturaParaConsulta(factura))
-        );
-
         return {
             Numero_Medidor: numeroMedidor,
             Afiliado: afiliadoInfo,
+            Historial_Lecturas: historialLecturas,
             Total_Facturas: facturas.length,
-            Facturas: facturasFormateadas
+            Facturas: facturasCalculos
         };
     }
 
     async getConsultaPagosByAfiliadoJuridico(dto: ConsultaJuridicaDTO): Promise<ConsultaAfiliadoJuridicoResponseDTO | ConsultaPorMedidorResponseDTO> {
+        // Caso 1: Solo cédula jurídica (sin número de medidor)
+        // Devuelve información de TODOS los medidores asociados
         if (dto.Cedula_Juridica && !dto.Numero_Medidor) {
             const afiliado = await this.afiliadoJuridicoRepository.findOne({
                 where: { Cedula_Juridica: dto.Cedula_Juridica },
@@ -378,16 +367,18 @@ export class PagosService {
             const medidoresInfo = await Promise.all(
                 afiliado.Medidores.map(async (medidor) => {
                     try {
+                        // Obtener historial de lecturas
+                        const historialLecturas = await this.lecturaService.getHistorialLecturasByMedidor(medidor.Numero_Medidor);
+
                         // Buscar facturas del medidor
-                        const facturas = await this.facturaRepository.find({
-                            where: { 
-                                Lectura: { 
-                                    Medidor: { Numero_Medidor: medidor.Numero_Medidor } 
-                                } 
-                            },
-                            relations: ['Estado', 'Lectura', 'Lectura.Medidor', 'Afiliado'],
-                            order: { Fecha_Emision: 'DESC' }
-                        });
+                        const facturas = await this.facturaRepository
+                            .createQueryBuilder('factura')
+                            .leftJoinAndSelect('factura.Lectura', 'lectura')
+                            .leftJoinAndSelect('lectura.Medidor', 'medidor')
+                            .leftJoinAndSelect('factura.Estado', 'estado')
+                            .where('medidor.Numero_Medidor = :numeroMedidor', { numeroMedidor: medidor.Numero_Medidor })
+                            .orderBy('factura.Fecha_Emision', 'DESC')
+                            .getMany();
 
                         // Registrar consulta para cada medidor
                         const ConsultaPago = this.consultaPagoRepository.create({
@@ -396,18 +387,36 @@ export class PagosService {
                         });
                         await this.consultaPagoRepository.save(ConsultaPago);
 
-                        const facturasFormateadas = await Promise.all(
-                            facturas.map(factura => this.formatearFacturaParaConsulta(factura))
-                        );
+                        // Mapear facturas con cálculos detallados
+                        const facturasCalculos = facturas.map(factura => ({
+                            Numero_Factura: factura.Numero_Factura,
+                            Fecha_Emision: factura.Fecha_Emision,
+                            Fecha_Vencimiento: factura.Fecha_Vencimiento,
+                            Calculos: {
+                                Cargo_Fijo: `₡${Number(factura.Cargo_Fijo).toFixed(2)}`,
+                                Cargo_Consumo: `₡${Number(factura.Cargo_Consumo).toFixed(2)}`,
+                                Cargo_Recurso_Hidrico: `₡${Number(factura.Cargo_Recurso_Hidrico || 0).toFixed(2)}`,
+                                Otros_Cargos: `₡${Number(factura.Otros_Cargos || 0).toFixed(2)}`,
+                                Subtotal: `₡${Number(factura.Subtotal).toFixed(2)}`,
+                                Impuestos: `₡${Number(factura.Impuestos).toFixed(2)}`,
+                                Total: `₡${Number(factura.Total).toFixed(2)}`
+                            },
+                            Estado_Factura: {
+                                Id_Estado: factura.Estado.Id_Estado_Factura,
+                                Nombre_Estado: factura.Estado.Nombre_Estado
+                            },
+                        }));
 
                         return {
                             Numero_Medidor: medidor.Numero_Medidor,
+                            Historial_Lecturas: historialLecturas,
                             Total_Facturas: facturas.length,
-                            Facturas: facturasFormateadas
+                            Facturas: facturasCalculos
                         };
                     } catch (error: any) {
                         return {
                             Numero_Medidor: medidor.Numero_Medidor,
+                            Historial_Lecturas: [],
                             Total_Facturas: 0,
                             Facturas: [],
                             Error: `No se pudo obtener información: ${error?.message || 'Error desconocido'}`
@@ -426,6 +435,7 @@ export class PagosService {
             };
         }
 
+        // Caso 2: Solo número de medidor (sin cédula jurídica)
         let numeroMedidor: number;
         let afiliadoInfo: any = null;
 
@@ -452,6 +462,7 @@ export class PagosService {
             numeroMedidor = dto.Numero_Medidor;
         }
 
+        // Caso 3: Cédula jurídica + número de medidor
         else if (dto.Cedula_Juridica && dto.Numero_Medidor) {
             const afiliado = await this.afiliadoJuridicoRepository.findOne({
                 where: { Cedula_Juridica: dto.Cedula_Juridica },
@@ -472,30 +483,56 @@ export class PagosService {
 
         else throw new BadRequestException('Debe proporcionar: (1) Cédula jurídica, (2) Número de medidor, o (3) Ambos datos.');
 
+        // Obtener historial de lecturas
+        const historialLecturas = await this.lecturaService.getHistorialLecturasByMedidor(numeroMedidor);
+
         // Buscar facturas del medidor
-        const facturas = await this.facturaRepository.find({
-            where: { 
-                Lectura: { 
-                    Medidor: { Numero_Medidor: numeroMedidor } 
-                } 
-            },
-            relations: ['Estado', 'Lectura', 'Lectura.Medidor', 'Afiliado'],
-            order: { Fecha_Emision: 'DESC' }
-        });
+        const facturas = await this.facturaRepository
+            .createQueryBuilder('factura')
+            .leftJoinAndSelect('factura.Lectura', 'lectura')
+            .leftJoinAndSelect('lectura.Medidor', 'medidor')
+            .leftJoinAndSelect('factura.Estado', 'estado')
+            .where('medidor.Numero_Medidor = :numeroMedidor', { numeroMedidor })
+            .orderBy('factura.Fecha_Emision', 'DESC')
+            .getMany();
 
         if (!facturas || facturas.length === 0) {
             throw new BadRequestException('No se encontraron facturas para el medidor proporcionado.');
         }
 
-        const facturasFormateadas = await Promise.all(
-            facturas.map(factura => this.formatearFacturaParaConsulta(factura))
-        );
+        // Mapear la información de las facturas con los cálculos
+        const facturasCalculos = facturas.map(factura => ({
+            Numero_Factura: factura.Numero_Factura,
+            Fecha_Emision: factura.Fecha_Emision,
+            Fecha_Vencimiento: factura.Fecha_Vencimiento,
+            Calculos: {
+                Cargo_Fijo: `₡${Number(factura.Cargo_Fijo).toFixed(2)}`,
+                Cargo_Consumo: `₡${Number(factura.Cargo_Consumo).toFixed(2)}`,
+                Cargo_Recurso_Hidrico: `₡${Number(factura.Cargo_Recurso_Hidrico || 0).toFixed(2)}`,
+                Otros_Cargos: `₡${Number(factura.Otros_Cargos || 0).toFixed(2)}`,
+                Subtotal: `₡${Number(factura.Subtotal).toFixed(2)}`,
+                Impuestos: `₡${Number(factura.Impuestos).toFixed(2)}`,
+                Total: `₡${Number(factura.Total).toFixed(2)}`
+            },
+            Estado_Factura: {
+                Id_Estado: factura.Estado.Id_Estado_Factura,
+                Nombre_Estado: factura.Estado.Nombre_Estado
+            },
+        }));
+
+        // Registrar consulta
+        const ConsultaPago = this.consultaPagoRepository.create({
+            Cedula_Juridica: dto.Cedula_Juridica,
+            Numero_Medidor: numeroMedidor
+        });
+        await this.consultaPagoRepository.save(ConsultaPago);
 
         return {
             Numero_Medidor: numeroMedidor,
             Afiliado: afiliadoInfo,
+            Historial_Lecturas: historialLecturas,
             Total_Facturas: facturas.length,
-            Facturas: facturasFormateadas
+            Facturas: facturasCalculos
         };
     }
 }
