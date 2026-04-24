@@ -57,6 +57,12 @@ export class Factura {
     @Column({ type: 'varchar', length: 255, nullable: true, comment: 'Tipo de tarifa aplicada en el momento de facturación' })
     Tipo_Tarifa_Aplicada?: string;
 
+    @Column({ type: 'varchar', length: 255, nullable: true, comment: 'Nombre completo o razón social del afiliado al momento de facturación' })
+    Nombre_Completo_Afiliado?: string;
+
+    @Column({ type: 'varchar', length: 50, nullable: true, comment: 'Identificación o cédula jurídica del afiliado al momento de facturación' })
+    Identificacion_Afiliado?: string;
+
     @Column({ type: 'text', nullable: true, comment: 'Observaciones o notas adicionales' })
     Observaciones?: string;
 }

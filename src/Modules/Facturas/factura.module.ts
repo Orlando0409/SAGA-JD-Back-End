@@ -8,7 +8,7 @@ import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 import { UsuariosModule } from '../Usuarios/Modules/usuarios.module';
 import { AuditoriaModule } from '../Auditoria/auditoria.module';
 import { Lectura } from '../Lecturas/LecturaEntities/Lectura.Entity';
-import { Afiliado } from '../Afiliados/AfiliadoEntities/Afiliado.Entity';
+import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from '../Afiliados/AfiliadoEntities/Afiliado.Entity';
 import { TarifaLecturaSinSello } from '../Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/TarifaLecturaSinSello.Entity';
 import { RangoAfiliadosSinSello } from '../Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RangoAfiliadosSinSello.Entity';
 import { RangoConsumoSinSello } from '../Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RangoConsumoSinSello.Entity';
@@ -27,6 +27,8 @@ import { TarifaHidranteSinSello } from '../Tarifas/Sin Sello Calidad/TarifaSinSe
       Usuario,
       Lectura,
       Afiliado,
+      AfiliadoFisico,
+      AfiliadoJuridico,
       TarifaLecturaSinSello,
       RangoAfiliadosSinSello,
       RangoConsumoSinSello,

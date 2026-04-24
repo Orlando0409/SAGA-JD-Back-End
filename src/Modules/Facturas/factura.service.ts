@@ -4,7 +4,8 @@ import { Repository } from 'typeorm';
 import { Factura } from './FacturaEntities/Factura.Entity';
 import { EstadoFactura } from './FacturaEntities/EstadoFactura.Entity';
 import { Lectura } from '../Lecturas/LecturaEntities/Lectura.Entity';
-import { Afiliado } from '../Afiliados/AfiliadoEntities/Afiliado.Entity';
+import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from '../Afiliados/AfiliadoEntities/Afiliado.Entity';
+import { FacturaGeneradaResponseDTO } from './FacturaDTO\'s/FacturaResponse.dto';
 import { TarifaLecturaSinSello } from '../Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/TarifaLecturaSinSello.Entity';
 import { RangoAfiliadosSinSello } from '../Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RangoAfiliadosSinSello.Entity';
 import { RangoConsumoSinSello } from '../Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RangoConsumoSinSello.Entity';
@@ -29,6 +30,12 @@ export class FacturaService {
 
         @InjectRepository(Afiliado)
         private afiliadoRepository: Repository<Afiliado>,
+
+        @InjectRepository(AfiliadoFisico)
+        private afiliadoFisicoRepository: Repository<AfiliadoFisico>,
+
+        @InjectRepository(AfiliadoJuridico)
+        private afiliadoJuridicoRepository: Repository<AfiliadoJuridico>,
 
         @InjectRepository(TarifaLecturaSinSello)
         private tarifaLecturaSinSelloRepository: Repository<TarifaLecturaSinSello>,
@@ -62,12 +69,72 @@ export class FacturaService {
     // MÉTODOS DE CONSULTA BÁSICOS
     // ====================================
 
-    async getAllFacturas(): Promise<Factura[]> {
-        return this.facturaRepository.find();
+    async getAllFacturas(): Promise<FacturaGeneradaResponseDTO[]> {
+        const facturas = await this.facturaRepository.find({
+            relations: ['Estado', 'Afiliado', 'Lectura', 'Lectura.Medidor'],
+            order: { Fecha_Emision: 'DESC' }
+        });
+
+        return Promise.all(facturas.map(factura => this.formatearFacturaParaResponse(factura)));
     }
 
-    async getFacturaByAfiliado(idAfiliado: number): Promise<Factura[]> {
-        return this.facturaRepository.find({ where: { Afiliado: { Id_Afiliado: idAfiliado } } });
+    async getFacturaByAfiliado(idAfiliado: number): Promise<FacturaGeneradaResponseDTO[]> {
+        const facturas = await this.facturaRepository.find({ 
+            where: { Afiliado: { Id_Afiliado: idAfiliado } },
+            relations: ['Estado', 'Afiliado', 'Lectura', 'Lectura.Medidor'],
+            order: { Fecha_Emision: 'DESC' }
+        });
+
+        return Promise.all(facturas.map(factura => this.formatearFacturaParaResponse(factura)));
+    }
+
+    // ====================================
+    // MÉTODOS AUXILIARES DE FORMATEO
+    // ====================================
+
+    // Formatea una factura existente al DTO de respuesta con toda la información
+    private async formatearFacturaParaResponse(factura: Factura): Promise<FacturaGeneradaResponseDTO> {
+        // Determinar si el afiliado es físico o jurídico
+        const tipoAfiliado = factura.Afiliado.Tipo_Entidad;
+        const nombreCompleto = factura.Nombre_Completo_Afiliado || '';
+        const identificacion = factura.Identificacion_Afiliado || '';
+
+        return {
+            Id_Factura: factura.Id_Factura,
+            Numero_Factura: factura.Numero_Factura,
+            Afiliado: tipoAfiliado === 1 ? {
+                Id_Afiliado: factura.Afiliado.Id_Afiliado,
+                Nombre_Completo: nombreCompleto,
+                Identificacion: identificacion
+            } : {
+                Id_Afiliado: factura.Afiliado.Id_Afiliado,
+                Razon_Social: nombreCompleto,
+                Cedula_Juridica: identificacion
+            },
+            Lectura: {
+                Id_Lectura: factura.Lectura.Id_Lectura,
+                Numero_Medidor: factura.Lectura.Medidor.Numero_Medidor,
+                Fecha_Lectura: factura.Lectura.Fecha_Lectura,
+                Valor_Lectura_Anterior: factura.Lectura.Valor_Lectura_Anterior,
+                Valor_Lectura_Actual: factura.Lectura.Valor_Lectura_Actual,
+            },
+            Consumo_M3: Number(factura.Consumo_M3),
+            Cargo_Fijo: `₡${Number(factura.Cargo_Fijo).toFixed(2)}`,
+            Cargo_Consumo: `₡${Number(factura.Cargo_Consumo).toFixed(2)}`,
+            Cargo_Recurso_Hidrico: `₡${Number(factura.Cargo_Recurso_Hidrico || 0).toFixed(2)}`,
+            Otros_Cargos: `₡${Number(factura.Otros_Cargos || 0).toFixed(2)}`,
+            Subtotal: `₡${Number(factura.Subtotal).toFixed(2)}`,
+            Impuestos: `₡${Number(factura.Impuestos).toFixed(2)}`,
+            Total: `₡${Number(factura.Total).toFixed(2)}`,
+            Fecha_Emision: factura.Fecha_Emision,
+            Fecha_Vencimiento: factura.Fecha_Vencimiento,
+            Estado: {
+                Id_Estado_Factura: factura.Estado.Id_Estado_Factura,
+                Nombre_Estado: factura.Estado.Nombre_Estado
+            },
+            Tipo_Tarifa_Aplicada: factura.Tipo_Tarifa_Aplicada,
+            Observaciones: factura.Observaciones
+        };
     }
 
     // ====================================
@@ -284,7 +351,7 @@ export class FacturaService {
     // ====================================
     // MÉTODO PRINCIPAL: GENERAR FACTURA
     // ====================================
-    async generarFacturaDesdeLectura(idLectura: number): Promise<Factura> {
+    async generarFacturaDesdeLectura(idLectura: number): Promise<FacturaGeneradaResponseDTO> {
         console.log('\n🧾 ========== GENERANDO FACTURA ==========');
 
         // 1. Obtener la lectura con sus relaciones
@@ -386,9 +453,36 @@ export class FacturaService {
         const fechaVencimiento = new Date();
         fechaVencimiento.setDate(fechaVencimiento.getDate() + 15); // 15 días para pagar
 
+        // 7. OBTENER INFORMACIÓN DEL AFILIADO
+        let nombreCompletoAfiliado = '';
+        let identificacionAfiliado = '';
+
+        const tipoAfiliado = afiliado.Tipo_Entidad;
+        if (tipoAfiliado === 1) { // Afiliado Físico
+            const afiliadoFisico = await this.afiliadoFisicoRepository.findOne({
+                where: { Id_Afiliado: afiliado.Id_Afiliado }
+            });
+            if (afiliadoFisico) {
+                nombreCompletoAfiliado = `${afiliadoFisico.Nombre} ${afiliadoFisico.Apellido1} ${afiliadoFisico.Apellido2 || ''}`.trim();
+                identificacionAfiliado = afiliadoFisico.Identificacion;
+                console.log(`👤 Afiliado Físico: ${nombreCompletoAfiliado} - ${identificacionAfiliado}`);
+            }
+        } else if (tipoAfiliado === 2) { // Afiliado Jurídico
+            const afiliadoJuridico = await this.afiliadoJuridicoRepository.findOne({
+                where: { Id_Afiliado: afiliado.Id_Afiliado }
+            });
+            if (afiliadoJuridico) {
+                nombreCompletoAfiliado = afiliadoJuridico.Razon_Social;
+                identificacionAfiliado = afiliadoJuridico.Cedula_Juridica;
+                console.log(`🏢 Afiliado Jurídico: ${nombreCompletoAfiliado} - ${identificacionAfiliado}`);
+            }
+        }
+
         const factura = this.facturaRepository.create({
             Numero_Factura: numeroFactura,
             Afiliado: afiliado,
+            Nombre_Completo_Afiliado: nombreCompletoAfiliado,
+            Identificacion_Afiliado: identificacionAfiliado,
             Lectura: lectura,
             Consumo_M3: consumoM3,
             Cargo_Fijo: cargoFijo,
@@ -409,6 +503,47 @@ export class FacturaService {
             ].join('\n')
         });
 
-        return this.facturaRepository.save(factura);
+        const facturaSaved = await this.facturaRepository.save(factura);
+
+        // 8. FORMATEAR RESPUESTA CON SOLO INFORMACIÓN ESENCIAL
+        const response: FacturaGeneradaResponseDTO = {
+            Id_Factura: facturaSaved.Id_Factura,
+            Numero_Factura: facturaSaved.Numero_Factura,
+            Afiliado: tipoAfiliado === 1 ? {
+                Id_Afiliado: afiliado.Id_Afiliado,
+                Nombre_Completo: nombreCompletoAfiliado,
+                Identificacion: identificacionAfiliado
+            } : {
+                Id_Afiliado: afiliado.Id_Afiliado,
+                Razon_Social: nombreCompletoAfiliado,
+                Cedula_Juridica: identificacionAfiliado
+            },
+            Lectura: {
+                Id_Lectura: lectura.Id_Lectura,
+                Numero_Medidor: lectura.Medidor.Numero_Medidor,
+                Fecha_Lectura: lectura.Fecha_Lectura,
+                Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
+                Valor_Lectura_Actual: lectura.Valor_Lectura_Actual,
+            },
+            Consumo_M3: Number(consumoM3),
+            Cargo_Fijo: `₡${cargoFijo.toFixed(2)}`,
+            Cargo_Consumo: `₡${resultadoConsumo.cargo.toFixed(2)}`,
+            Cargo_Recurso_Hidrico: `₡${resultadoRecursoHidrico.cargo.toFixed(2)}`,
+            Otros_Cargos: `₡${resultadoHidrantes.cargo.toFixed(2)}`,
+            Subtotal: `₡${subtotal.toFixed(2)}`,
+            Impuestos: `₡${impuestos.toFixed(2)}`,
+            Total: `₡${total.toFixed(2)}`,
+            Fecha_Emision: fechaEmision,
+            Fecha_Vencimiento: fechaVencimiento,
+            Estado: {
+                Id_Estado_Factura: estadoPendiente.Id_Estado_Factura,
+                Nombre_Estado: estadoPendiente.Nombre_Estado
+            },
+            Tipo_Tarifa_Aplicada: tipoTarifa.Nombre_Tipo_Tarifa,
+            Observaciones: facturaSaved.Observaciones
+        };
+
+        console.log('✅ Factura generada exitosamente');
+        return response;
     }
 }
