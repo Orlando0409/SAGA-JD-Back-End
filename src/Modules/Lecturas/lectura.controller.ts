@@ -55,6 +55,11 @@ export class LecturaController {
     ) {
         return this.lecturaService.getLecturasEntreFechas(fechaInicio, fechaFin);
     }
+    @Get('/sello-calidad')
+    @ApiProperty({description: 'Obtiene el estado actual del sello de calidad en las lecturas (activado/desactivado).'})
+    getSelloCalidad() {
+        return this.lecturaService.getSelloCalidad();
+    }
 
     @Post('/cargar-csv')
     @ApiProperty({ description: 'Carga un archivo CSV con las lecturas.' })
