@@ -117,6 +117,12 @@ export class AfiliadosService {
         return false;
     }
 
+    private resolverEstadoPago(dto: CreateAfiliadoFisicoDto | CreateAfiliadoJuridicoDto): EstadoPagoMedidor {
+        return dto.Estado_Pago_Medidor === EstadoPagoMedidor.Pagado || dto.Estado_Pago_Medidor === EstadoPagoMedidor.Pendiente
+            ? dto.Estado_Pago_Medidor
+            : EstadoPagoMedidor.Pendiente;
+    }
+
     async asignarMedidorExistenteAAfiliadoDesdeModuloAfiliados(
         dto: AsignarMedidorExistenteAfiliadoDto,
         idUsuario: number,
@@ -648,7 +654,7 @@ export class AfiliadosService {
             medidorExistente.Certificacion_Literal = escrituraRes.url;
             medidorExistente.Afiliado = afiliadoGuardado;
             medidorExistente.Estado_Medidor = estadoInstalado;
-            medidorExistente.Estado_Pago = EstadoPagoMedidor.Pendiente;
+            medidorExistente.Estado_Pago = this.resolverEstadoPago(dto);
 
             medidorAsignado = await this.medidorRepository.save(medidorExistente);
 
@@ -678,7 +684,7 @@ export class AfiliadosService {
                 Numero_Medidor: dto.Numero_Medidor!,
                 Afiliado: afiliadoGuardado,
                 Estado_Medidor: estadoInstalado,
-                Estado_Pago: EstadoPagoMedidor.Pendiente,
+                Estado_Pago: this.resolverEstadoPago(dto),
                 Usuario: usuario,
                 Planos_Terreno: planoRes.url,
                 Certificacion_Literal: escrituraRes.url
@@ -867,7 +873,7 @@ export class AfiliadosService {
             medidorExistente.Certificacion_Literal = escrituraRes.url;
             medidorExistente.Afiliado = afiliadoGuardado;
             medidorExistente.Estado_Medidor = estadoInstalado;
-            medidorExistente.Estado_Pago = EstadoPagoMedidor.Pendiente;
+            medidorExistente.Estado_Pago = this.resolverEstadoPago(dto);
 
             medidorAsignado = await this.medidorRepository.save(medidorExistente);
 
@@ -897,7 +903,7 @@ export class AfiliadosService {
                 Numero_Medidor: dto.Numero_Medidor!,
                 Afiliado: afiliadoGuardado,
                 Estado_Medidor: estadoInstalado,
-                Estado_Pago: EstadoPagoMedidor.Pendiente,
+                Estado_Pago: this.resolverEstadoPago(dto),
                 Usuario: usuario,
                 Planos_Terreno: planoRes.url,
                 Certificacion_Literal: escrituraRes.url

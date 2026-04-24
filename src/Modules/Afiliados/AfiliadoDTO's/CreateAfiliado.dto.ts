@@ -6,8 +6,10 @@ import { IsIdentificacionValida } from 'src/Validations/DTO Validators/Identific
 import { IsTelefonoValido } from 'src/Validations/DTO Validators/NumeroTelefono.validator';
 import { IsCedulaJuridicaValida } from 'src/Validations/DTO Validators/CedulaJuridica.validator';
 import { OpcionMedidor } from 'src/Common/Enums/OpcionMedidor.enum';
+import { EstadoPagoMedidor } from 'src/Common/Enums/EstadoPagoMedidor.enum';
 
-// Función helper para capitalizar cada palabra
+
+
 const capitalizarCadaPalabra = (value: string): string => {
   if (!value) return value;
   return value
@@ -26,6 +28,18 @@ export class CreateAfiliadoDto {
   @MaxLength(100, { message: 'El correo no puede tener más de 100 caracteres' })
   @Matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, { message: 'El formato del correo electrónico no es válido' })
   Correo: string;
+
+  @ApiProperty({
+    example: EstadoPagoMedidor.Pendiente,
+    enum: [EstadoPagoMedidor.Pagado, EstadoPagoMedidor.Pendiente],
+    required: false,
+    })
+  @IsOptional()
+  @IsEnum(EstadoPagoMedidor, {
+    message: 'Estado_Pago_Medidor debe ser "Pagado" o "Pendiente"',
+  })
+  Estado_Pago_Medidor?: EstadoPagoMedidor;
+
 
   @ApiProperty({ example: '+506-8888-7777' })
   @Transform(({ value }) => value?.trim())
