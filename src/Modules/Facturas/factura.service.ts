@@ -15,6 +15,7 @@ import { RecursoHidricoSinSello } from '../Tarifas/Sin Sello Calidad/TarifaSinSe
 import { BloqueRecursoHidricoSinSello } from '../Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/BloqueRecursoHidricoSinSello.Entity';
 import { PrecioRecursoHidricoSinSello } from '../Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/PrecioRecursoHidricoSinSello.Entity';
 import { TarifaHidranteSinSello } from '../Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/TarifaHidranteSinSello.Entity';
+import { ConsultaPagoResponseDTO } from '../ConsultaPagos/ConsultaPagoDTO\'S/ConsultaFacturaResponse.dto';
 
 @Injectable()
 export class FacturaService {
@@ -79,7 +80,7 @@ export class FacturaService {
     }
 
     async getFacturaByAfiliado(idAfiliado: number): Promise<FacturaGeneradaResponseDTO[]> {
-        const facturas = await this.facturaRepository.find({ 
+        const facturas = await this.facturaRepository.find({
             where: { Afiliado: { Id_Afiliado: idAfiliado } },
             relations: ['Estado', 'Afiliado', 'Lectura', 'Lectura.Medidor'],
             order: { Fecha_Emision: 'DESC' }
@@ -373,16 +374,16 @@ export class FacturaService {
         // 2. Determinar tipo de tarifa Sin Sello
         // Por defecto usa Domipre (residencial), pero se puede personalizar según el afiliado
         let tipoTarifa: TarifaLecturaSinSello | null = null;
-        
+
         // Intentar determinar por tipo de afiliado o usar Domipre por defecto
         const tipoAfiliadoNombre = afiliado.Tipo_Afiliado?.Nombre_Tipo_Afiliado?.toLowerCase();
-        
+
         if (tipoAfiliadoNombre?.includes('empresarial') || tipoAfiliadoNombre?.includes('comercial')) {
             tipoTarifa = await this.tarifaLecturaSinSelloRepository.findOne({
                 where: { Nombre_Tipo_Tarifa: 'Emprego', Activa: true }
             });
         }
-        
+
         // Si no se encontró Emprego o el tipo de afiliado no es empresarial, usar Domipre
         if (!tipoTarifa) {
             tipoTarifa = await this.tarifaLecturaSinSelloRepository.findOne({
@@ -499,7 +500,7 @@ export class FacturaService {
             Observaciones: [
                 ...resultadoConsumo.detalles,
                 ...resultadoRecursoHidrico.detalles,
-                resultadoHidrantes.detalles
+                ...resultadoHidrantes.detalles
             ].join('\n')
         });
 
@@ -545,5 +546,48 @@ export class FacturaService {
 
         console.log('✅ Factura generada exitosamente');
         return response;
+    }
+
+    public async formatearFacturaParaConsulta(factura: Factura): Promise<ConsultaPagoResponseDTO> {
+        const tipoAfiliado = factura.Afiliado.Tipo_Entidad;
+        const nombreCompleto = factura.Nombre_Completo_Afiliado || '';
+        const identificacion = factura.Identificacion_Afiliado || '';
+
+        return {
+            Id_Factura: factura.Id_Factura,
+            Numero_Factura: factura.Numero_Factura,
+            Afiliado: tipoAfiliado === 1 ? {
+                Id_Afiliado: factura.Afiliado.Id_Afiliado,
+                Nombre_Completo: nombreCompleto,
+                Identificacion: identificacion
+            } : {
+                Id_Afiliado: factura.Afiliado.Id_Afiliado,
+                Razon_Social: nombreCompleto,
+                Cedula_Juridica: identificacion
+            },
+            Lectura: {
+                Id_Lectura: factura.Lectura.Id_Lectura,
+                Numero_Medidor: factura.Lectura.Medidor.Numero_Medidor,
+                Fecha_Lectura: factura.Lectura.Fecha_Lectura,
+                Valor_Lectura_Anterior: Number(factura.Lectura.Valor_Lectura_Anterior),
+                Valor_Lectura_Actual: Number(factura.Lectura.Valor_Lectura_Actual)
+            },
+            Consumo_M3: Number(factura.Consumo_M3),
+            Cargo_Fijo: `₡${Number(factura.Cargo_Fijo).toFixed(2)}`,
+            Cargo_Consumo: `₡${Number(factura.Cargo_Consumo).toFixed(2)}`,
+            Cargo_Recurso_Hidrico: `₡${Number(factura.Cargo_Recurso_Hidrico || 0).toFixed(2)}`,
+            Otros_Cargos: `₡${Number(factura.Otros_Cargos || 0).toFixed(2)}`,
+            Subtotal: `₡${Number(factura.Subtotal).toFixed(2)}`,
+            Impuestos: `₡${Number(factura.Impuestos).toFixed(2)}`,
+            Total: `₡${Number(factura.Total).toFixed(2)}`,
+            Fecha_Emision: factura.Fecha_Emision,
+            Fecha_Vencimiento: factura.Fecha_Vencimiento,
+            Estado: {
+                Id_Estado_Factura: factura.Estado.Id_Estado_Factura,
+                Nombre_Estado: factura.Estado.Nombre_Estado
+            },
+            Tipo_Tarifa_Aplicada: factura.Tipo_Tarifa_Aplicada,
+            Observaciones: factura.Observaciones
+        };
     }
 }
