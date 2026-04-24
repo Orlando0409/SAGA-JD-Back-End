@@ -520,7 +520,7 @@ export class LecturaService {
         const infoAfiliado = this.afiliadosService.identificarAfiliado(afiliadoIdentificado);
 
         if (await this.getSelloCalidad() == true) {
-
+            
         }
 
         else if (await this.getSelloCalidad() == false) {
