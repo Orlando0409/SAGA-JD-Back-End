@@ -1,5 +1,5 @@
 import { totalLecturasService } from './totalLecturas.service';
-import { Body, Controller, Get, Param, Post, Put, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Put, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { LecturaService } from "./lectura.service";
 import { CreateLecturaDTO } from "./LecturaDTO'S/CreateLectura.dto";
 import { UpdateLecturaDTO } from "./LecturaDTO'S/UpdateLectura.dto";
@@ -85,7 +85,7 @@ export class LecturaController {
         return this.lecturaService.updateLectura(dto, idLectura, usuario.Id_Usuario);
     }
 
-    @Post('Aplicar-sello-calidad')
+    @Patch('Aplicar-sello-calidad')
     @ApiProperty({ description: 'Alterna el estado del sello de calidad en las lecturas (activar/desactivar automáticamente).' })
     aplicarSelloCalidad(
         @GetUser() usuario: Usuario
