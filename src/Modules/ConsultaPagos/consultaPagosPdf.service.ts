@@ -5,11 +5,15 @@ import type { Browser } from 'puppeteer';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { FacturaPDF, type FacturaInput } from './Template/FacturaPDF';
+import pLimit from 'p-limit'; 
 
 @Injectable()
 export class ConsultaPagosPdfService implements OnApplicationShutdown {
     private browser: Browser | null = null;
     private logoDataUri: string | null = null;
+
+    //  LIMITE DE CONCURRENCIA DE 2 FACTURAS AL MISMO TIEMPO
+    private limit = pLimit(2);
 
     private async getBrowser(): Promise<Browser> {
         if (this.browser) {
@@ -23,6 +27,8 @@ export class ConsultaPagosPdfService implements OnApplicationShutdown {
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
                 '--disable-gpu',
+                '--single-process',     //  mejora estabilidad
+                '--no-zygote',          //  evita procesos extra
             ],
         });
 
@@ -33,43 +39,55 @@ export class ConsultaPagosPdfService implements OnApplicationShutdown {
         inputs: FacturaInput[],
         res: Response,
     ): Promise<void> {
-        if (!Array.isArray(inputs) || inputs.length === 0) {
-            throw new BadRequestException('No hay datos para generar la factura.');
-        }
 
-        inputs.forEach((input) => {
-            if (!input.numeroMedidor) {
-                throw new BadRequestException('No se pudo determinar el numero de medidor para generar la factura.');
+        //  ENVOLVEMOS TODO EN EL LIMIT
+        return this.limit(async () => {
+
+            if (!Array.isArray(inputs) || inputs.length === 0) {
+                throw new BadRequestException('No hay datos para generar la factura.');
+            }
+
+            inputs.forEach((input) => {
+                if (!input.numeroMedidor) {
+                    throw new BadRequestException('No se pudo determinar el numero de medidor para generar la factura.');
+                }
+            });
+
+            const html = FacturaPDF(inputs, this.getLogoDataUri());
+            const browser = await this.getBrowser();
+
+            // 🔥 LIMPIEZA PREVENTIVA
+            const pages = await browser.pages();
+            if (pages.length > 5) {
+                await Promise.all(pages.map(p => p.close().catch(() => {})));
+            }
+
+            const page = await browser.newPage();
+
+            try {
+                await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 30000 });
+
+                const pdfBuffer = await page.pdf({
+                    format: 'A4',
+                    printBackground: true,
+                    margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' },
+                });
+
+                const filename = inputs.length === 1
+                    ? `Factura_${inputs[0].numeroMedidor}_${Date.now()}.pdf`
+                    : `Facturas_${Date.now()}.pdf`;
+
+                res.set({
+                    'Content-Type': 'application/pdf',
+                    'Content-Disposition': `attachment; filename="${filename}"`,
+                    'Content-Length': String(pdfBuffer.length),
+                });
+
+                res.send(pdfBuffer);
+            } finally {
+                await page.close().catch(() => { });
             }
         });
-
-        const html = FacturaPDF(inputs, this.getLogoDataUri());
-        const browser = await this.getBrowser();
-        const page = await browser.newPage();
-
-        try {
-            await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 30000 });
-
-            const pdfBuffer = await page.pdf({
-                format: 'A4',
-                printBackground: true,
-                margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' },
-            });
-
-            const filename = inputs.length === 1
-                ? `Factura_${inputs[0].numeroMedidor}_${Date.now()}.pdf`
-                : `Facturas_${Date.now()}.pdf`;
-
-            res.set({
-                'Content-Type': 'application/pdf',
-                'Content-Disposition': `attachment; filename="${filename}"`,
-                'Content-Length': String(pdfBuffer.length),
-            });
-
-            res.send(pdfBuffer);
-        } finally {
-            await page.close().catch(() => { });
-        }
     }
 
     private getLogoDataUri(): string | null {
