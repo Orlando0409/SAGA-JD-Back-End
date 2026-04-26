@@ -5,15 +5,33 @@ import type { Browser } from 'puppeteer';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { FacturaPDF, type FacturaInput } from './Template/FacturaPDF';
-import pLimit from 'p-limit'; 
 
 @Injectable()
 export class ConsultaPagosPdfService implements OnApplicationShutdown {
     private browser: Browser | null = null;
     private logoDataUri: string | null = null;
 
-    //  LIMITE DE CONCURRENCIA DE 2 FACTURAS AL MISMO TIEMPO
-    private limit = pLimit(2);
+    //  CONTROL DE CONCURRENCIA PARA EVITAR SOBRECARGA DE PUPPETEER
+    private activeTasks = 0;
+    private queue: (() => void)[] = [];
+    private readonly MAX_CONCURRENT = 2;
+
+    private async runLimited<T>(task: () => Promise<T>): Promise<T> {
+        if (this.activeTasks >= this.MAX_CONCURRENT) {
+            await new Promise<void>((resolve) => this.queue.push(resolve));
+        }
+
+        this.activeTasks++;
+
+        try {
+            return await task();
+        } finally {
+            this.activeTasks--;
+
+            const next = this.queue.shift();
+            if (next) next();
+        }
+    }
 
     private async getBrowser(): Promise<Browser> {
         if (this.browser) {
@@ -27,8 +45,8 @@ export class ConsultaPagosPdfService implements OnApplicationShutdown {
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
                 '--disable-gpu',
-                '--single-process',     //  mejora estabilidad
-                '--no-zygote',          //  evita procesos extra
+                '--single-process',
+                '--no-zygote',
             ],
         });
 
@@ -40,8 +58,7 @@ export class ConsultaPagosPdfService implements OnApplicationShutdown {
         res: Response,
     ): Promise<void> {
 
-        //  ENVOLVEMOS TODO EN EL LIMIT
-        return this.limit(async () => {
+        return this.runLimited(async () => {
 
             if (!Array.isArray(inputs) || inputs.length === 0) {
                 throw new BadRequestException('No hay datos para generar la factura.');
@@ -56,7 +73,7 @@ export class ConsultaPagosPdfService implements OnApplicationShutdown {
             const html = FacturaPDF(inputs, this.getLogoDataUri());
             const browser = await this.getBrowser();
 
-            // 🔥 LIMPIEZA PREVENTIVA
+            //  LIMPIEZA PREVENTIVA
             const pages = await browser.pages();
             if (pages.length > 5) {
                 await Promise.all(pages.map(p => p.close().catch(() => {})));
@@ -65,12 +82,20 @@ export class ConsultaPagosPdfService implements OnApplicationShutdown {
             const page = await browser.newPage();
 
             try {
-                await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 30000 });
+                await page.setContent(html, {
+                    waitUntil: 'domcontentloaded',
+                    timeout: 30000
+                });
 
                 const pdfBuffer = await page.pdf({
                     format: 'A4',
                     printBackground: true,
-                    margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' },
+                    margin: {
+                        top: '20px',
+                        right: '20px',
+                        bottom: '20px',
+                        left: '20px'
+                    },
                 });
 
                 const filename = inputs.length === 1
@@ -84,8 +109,9 @@ export class ConsultaPagosPdfService implements OnApplicationShutdown {
                 });
 
                 res.send(pdfBuffer);
+
             } finally {
-                await page.close().catch(() => { });
+                await page.close().catch(() => {});
             }
         });
     }
@@ -95,19 +121,28 @@ export class ConsultaPagosPdfService implements OnApplicationShutdown {
             return this.logoDataUri;
         }
 
-        const logoPath = join(process.cwd(), 'src', 'Modules', 'Emails', 'Logo', 'logo.jpeg');
+        const logoPath = join(
+            process.cwd(),
+            'src',
+            'Modules',
+            'Emails',
+            'Logo',
+            'logo.jpeg'
+        );
+
         if (!existsSync(logoPath)) {
             return null;
         }
 
         const image = readFileSync(logoPath);
         this.logoDataUri = `data:image/jpeg;base64,${image.toString('base64')}`;
+
         return this.logoDataUri;
     }
 
     async onApplicationShutdown(): Promise<void> {
         if (this.browser) {
-            await this.browser.close().catch(() => { });
+            await this.browser.close().catch(() => {});
             this.browser = null;
         }
     }
