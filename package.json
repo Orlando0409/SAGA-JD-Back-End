@@ -51,7 +51,6 @@
     "libphonenumber-js": "^1.12.18",
     "multer": "^2.0.2",
     "mysql2": "^3.14.3",
-    "p-limit": "^3.1.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pdfkit": "^0.17.2",
