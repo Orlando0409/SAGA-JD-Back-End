@@ -214,7 +214,14 @@ export class SolicitudesFisicasService {
 
         const planoFile = files?.Planos_Terreno?.[0];
         const escrituraFile = files?.Certificacion_Literal?.[0];
-        const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
+
+        const afiliado = await this.afiliadoFisicoRepository.findOne({
+            where: { Identificacion: dto.Identificacion }
+        });
+
+        if (!afiliado) throw new BadRequestException(`No existe un afiliado físico con la identificación ${dto.Identificacion}`);
+
+        const nombre = `${afiliado.Nombre} ${afiliado.Apellido1 ?? ''} ${afiliado.Apellido2 ?? ''}`.trim();
 
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Desconexion', 'Fisicas', dto.Identificacion, nombre) : null;
         const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Desconexion', 'Fisicas', dto.Identificacion, nombre) : null;
@@ -222,8 +229,8 @@ export class SolicitudesFisicasService {
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
             Tipo_Entidad: 1, // Física
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 2, // Desconexión
         });
         const solicitudGuardada = await this.solicitudRepository.save(solicitudBase);
@@ -232,14 +239,14 @@ export class SolicitudesFisicasService {
         const solicitudFisica = this.solicitudFisicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
             Tipo_Entidad: 1, // Física
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 2,
-            Tipo_Identificacion: dto.Tipo_Identificacion,
-            Identificacion: dto.Identificacion,
-            Nombre: dto.Nombre,
-            Apellido1: dto.Apellido1,
-            Apellido2: dto.Apellido2,
+            Tipo_Identificacion: afiliado.Tipo_Identificacion,
+            Identificacion: afiliado.Identificacion,
+            Nombre: afiliado.Nombre,
+            Apellido1: afiliado.Apellido1,
+            Apellido2: afiliado.Apellido2,
         });
         await this.solicitudFisicaRepository.save(solicitudFisica);
 
@@ -247,15 +254,15 @@ export class SolicitudesFisicasService {
         const solicitudDesconexion = this.solicitudDesconexionFisicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
             Tipo_Entidad: 1, // Física
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 2,
-            Tipo_Identificacion: dto.Tipo_Identificacion,
-            Identificacion: dto.Identificacion,
-            Nombre: dto.Nombre,
-            Apellido1: dto.Apellido1,
-            Apellido2: dto.Apellido2,
-            Direccion_Exacta: dto.Direccion_Exacta,
+            Tipo_Identificacion: afiliado.Tipo_Identificacion,
+            Identificacion: afiliado.Identificacion,
+            Nombre: afiliado.Nombre,
+            Apellido1: afiliado.Apellido1,
+            Apellido2: afiliado.Apellido2,
+            Direccion_Exacta: afiliado.Direccion_Exacta,
             Motivo_Solicitud: dto.Motivo_Solicitud,
             Planos_Terreno: planoRes?.url || '',
             Certificacion_Literal: escrituraRes?.url || '',
@@ -263,7 +270,7 @@ export class SolicitudesFisicasService {
         });
         const solicitudFinal = await this.solicitudDesconexionFisicaRepository.save(solicitudDesconexion);
 
-        await this.emailService.enviarEmailSolicitudCreada(dto.Correo, 'Desconexión', nombre);
+        await this.emailService.enviarEmailSolicitudCreada(afiliado.Correo, 'Desconexión', nombre);
         return solicitudFinal;
     }
 
@@ -306,8 +313,8 @@ export class SolicitudesFisicasService {
             Correo: afiliado.Correo,
             Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 3,
-            Tipo_Identificacion: dto.Tipo_Identificacion,
-            Identificacion: dto.Identificacion,
+            Tipo_Identificacion: afiliado.Tipo_Identificacion,
+            Identificacion: afiliado.Identificacion,
             Nombre: afiliado.Nombre,
             Apellido1: afiliado.Apellido1,
             Apellido2: afiliado.Apellido2,

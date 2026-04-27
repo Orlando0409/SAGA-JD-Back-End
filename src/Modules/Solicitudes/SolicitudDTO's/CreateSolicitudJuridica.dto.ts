@@ -63,7 +63,7 @@ export class CreateSolicitudAfiliacionJuridicaDto extends CreateSolicitudJuridic
   Direccion_Exacta: string;
 }
 
-export class CreateSolicitudDesconexionJuridicaDto extends CreateSolicitudJuridicaDto {
+export class CreateSolicitudDesconexionJuridicaDto {
   @ApiProperty({ example: '200 metros del centro comercial' })
   @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'La dirección debe ser un string' })
@@ -91,9 +91,17 @@ export class CreateSolicitudDesconexionJuridicaDto extends CreateSolicitudJuridi
   @IsPositive({ message: 'El Id del medidor debe ser positivo' })
   @Min(1, { message: 'El Id del medidor debe ser mayor a 0' })
   Id_Medidor: number;
+
+   @ApiProperty({ example: '3101234567' })
+  @Transform(({ value }) => value?.trim())
+  @IsString({ message: 'La cédula jurídica debe ser un string' })
+  @IsDefined({ message: 'La cédula jurídica no puede estar vacía' })
+  @IsNotEmpty({ message: 'La cédula jurídica no puede estar vacía' })
+  @IsCedulaJuridicaValida()
+  Cedula_Juridica: string;
 }
 
-export class CreateSolicitudCambioMedidorJuridicaDto extends CreateSolicitudJuridicaDto {
+export class CreateSolicitudCambioMedidorJuridicaDto {
   @ApiProperty({ example: '200 metros del centro comercial' })
   @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'La dirección debe ser un string' })
@@ -128,9 +136,17 @@ export class CreateSolicitudCambioMedidorJuridicaDto extends CreateSolicitudJuri
   @IsPositive({ message: 'El Id del nuevo medidor debe ser positivo' })
   @Min(1, { message: 'El Id del nuevo medidor debe ser mayor a 0' })
   Id_Nuevo_Medidor?: number;
+
+   @ApiProperty({ example: '3101234567' })
+  @Transform(({ value }) => value?.trim())
+  @IsString({ message: 'La cédula jurídica debe ser un string' })
+  @IsDefined({ message: 'La cédula jurídica no puede estar vacía' })
+  @IsNotEmpty({ message: 'La cédula jurídica no puede estar vacía' })
+  @IsCedulaJuridicaValida()
+  Cedula_Juridica: string;
 }
 
-export class CreateSolicitudAsociadoJuridicaDto extends CreateSolicitudJuridicaDto {
+export class CreateSolicitudAsociadoJuridicaDto  {
   @ApiProperty({ example: 'Queremos ser parte de la asociación para contribuir al desarrollo comunitario' })
   @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'El motivo de la solicitud debe ser un string' })
@@ -140,6 +156,14 @@ export class CreateSolicitudAsociadoJuridicaDto extends CreateSolicitudJuridicaD
   @MaxLength(500, { message: 'El motivo de la solicitud no puede tener más de 500 caracteres' })
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,!?¿¡()-]+$/, { message: 'El motivo de la solicitud solo puede contener letras, números, espacios y los caracteres .,!?¿¡()-' })
   Motivo_Solicitud: string;
+
+   @ApiProperty({ example: '3101234567' })
+  @Transform(({ value }) => value?.trim())
+  @IsString({ message: 'La cédula jurídica debe ser un string' })
+  @IsDefined({ message: 'La cédula jurídica no puede estar vacía' })
+  @IsNotEmpty({ message: 'La cédula jurídica no puede estar vacía' })
+  @IsCedulaJuridicaValida()
+  Cedula_Juridica: string;
 }
 
 export class CreateSolicitudAgregarMedidorJuridicaDto extends CreateSolicitudJuridicaDto {

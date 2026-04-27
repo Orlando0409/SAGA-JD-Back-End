@@ -15,6 +15,24 @@ const capitalizarCadaPalabra = (value: string): string => {
     .join(' ');
 };
 
+//Esta la heredan desconexion,cambio de medidor, agregar y asociado.
+export class CreateSolicitudDto{
+
+  @ApiProperty({ example: 'Cedula' })
+  @Transform(({ value }) => value?.trim())
+  @IsEnum(TipoIdentificacion, { message: `El tipo de identificación debe ser uno de los siguientes: ${Object.values(TipoIdentificacion).join(', ')}` })
+  @IsDefined({ message: 'El tipo de identificación no puede estar vacío' })
+  Tipo_Identificacion: TipoIdentificacion;
+
+  @ApiProperty({ example: '123456789' })
+  @Transform(({ value }) => value?.trim().toUpperCase())
+  @IsDefined({ message: 'La identificación no puede estar vacía' })
+  @IsNotEmpty({ message: 'La identificación no puede estar vacía' })
+  @IsString({ message: 'La identificación debe ser un string' })
+  @IsIdentificacionValida()
+  Identificacion: string;
+}
+
 export class CreateSolicitudFisicaDto {
   @ApiProperty({ example: 'Cedula' })
   @Transform(({ value }) => value?.trim())
@@ -99,7 +117,7 @@ export class CreateSolicitudAfiliacionFisicaDto extends CreateSolicitudFisicaDto
   Edad: number;
 }
 
-export class CreateSolicitudDesconexionFisicaDto extends CreateSolicitudFisicaDto {
+export class CreateSolicitudDesconexionFisicaDto extends CreateSolicitudDto {
   @ApiProperty({ example: '200 metros del perro echado' })
   @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'La dirección debe ser un string' })
@@ -129,21 +147,7 @@ export class CreateSolicitudDesconexionFisicaDto extends CreateSolicitudFisicaDt
   Id_Medidor: number;
 }
 
-export class CreateSolicitudCambioMedidorFisicaDto {
-  @ApiProperty({ example: 'Cedula' })
-  @Transform(({ value }) => value?.trim())
-  @IsEnum(TipoIdentificacion, { message: `El tipo de identificación debe ser uno de los siguientes: ${Object.values(TipoIdentificacion).join(', ')}` })
-  @IsDefined({ message: 'El tipo de identificación no puede estar vacío' })
-  Tipo_Identificacion: TipoIdentificacion;
-
-  @ApiProperty({ example: '123456789' })
-  @Transform(({ value }) => value?.trim().toUpperCase())
-  @IsDefined({ message: 'La identificación no puede estar vacía' })
-  @IsNotEmpty({ message: 'La identificación no puede estar vacía' })
-  @IsString({ message: 'La identificación debe ser un string' })
-  @IsIdentificacionValida()
-  Identificacion: string;
-
+export class CreateSolicitudCambioMedidorFisicaDto extends CreateSolicitudDto {
   @ApiProperty({ example: 1 })
   @IsInt({ message: 'El Id del medidor debe ser un número entero' })
   @IsDefined({ message: 'El Id del medidor no puede estar vacío' })
@@ -163,21 +167,7 @@ export class CreateSolicitudCambioMedidorFisicaDto {
   Motivo_Solicitud: string;
 }
 
-export class CreateSolicitudAsociadoFisicaDto {
-  @ApiProperty({ example: 'Cedula' })
-  @Transform(({ value }) => value?.trim())
-  @IsEnum(TipoIdentificacion, { message: `El tipo de identificación debe ser uno de los siguientes: ${Object.values(TipoIdentificacion).join(', ')}` })
-  @IsDefined({ message: 'El tipo de identificación no puede estar vacío' })
-  Tipo_Identificacion: TipoIdentificacion;
-
-  @ApiProperty({ example: '123456789' })
-  @Transform(({ value }) => value?.trim().toUpperCase())
-  @IsDefined({ message: 'La identificación no puede estar vacía' })
-  @IsNotEmpty({ message: 'La identificación no puede estar vacía' })
-  @IsString({ message: 'La identificación debe ser un string' })
-  @IsIdentificacionValida()
-  Identificacion: string;
-
+export class CreateSolicitudAsociadoFisicaDto  extends CreateSolicitudDto {
   @ApiProperty({ example: 'Para mi casa de campo nueva' })
   @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'El motivo de la solicitud debe ser un string' })
@@ -189,7 +179,7 @@ export class CreateSolicitudAsociadoFisicaDto {
   Motivo_Solicitud: string;
 }
 
-export class CreateSolicitudAgregarMedidorFisicaDto extends CreateSolicitudFisicaDto {
+export class CreateSolicitudAgregarMedidorFisicaDto extends CreateSolicitudDto {
   @ApiProperty({ example: '200 metros del perro echado' })
   @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'La dirección debe ser un string' })
