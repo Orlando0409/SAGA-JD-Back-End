@@ -280,7 +280,12 @@ export class SolicitudesFisicasService {
         const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado físico con la identificación ${dto.Identificacion}`);
 
-        const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
+        const afiliado = await this.afiliadoFisicoRepository.findOne({
+            where: { Identificacion: dto.Identificacion }
+        });
+        if (!afiliado) throw new BadRequestException(`No existe un afiliado físico con la identificación ${dto.Identificacion}`);
+
+        const nombre = `${afiliado.Nombre} ${afiliado.Apellido1 ?? ''} ${afiliado.Apellido2 ?? ''}`.trim();
 
         const planoRes = await this.dropboxFilesService.uploadFile(files.Planos_Terreno[0], 'Solicitudes-CambioMedidor', 'Fisicas', dto.Identificacion, nombre);
         const escrituraRes = await this.dropboxFilesService.uploadFile(files.Certificacion_Literal[0], 'Solicitudes-CambioMedidor', 'Fisicas', dto.Identificacion, nombre);
@@ -288,8 +293,8 @@ export class SolicitudesFisicasService {
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
             Tipo_Entidad: 1, // Física
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 3, // Cambio de Medidor
         });
         const solicitudGuardada = await this.solicitudRepository.save(solicitudBase);
@@ -298,14 +303,14 @@ export class SolicitudesFisicasService {
         const solicitudFisica = this.solicitudFisicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
             Tipo_Entidad: 1, // Física
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 3,
             Tipo_Identificacion: dto.Tipo_Identificacion,
             Identificacion: dto.Identificacion,
-            Nombre: dto.Nombre,
-            Apellido1: dto.Apellido1,
-            Apellido2: dto.Apellido2,
+            Nombre: afiliado.Nombre,
+            Apellido1: afiliado.Apellido1,
+            Apellido2: afiliado.Apellido2,
         });
         await this.solicitudFisicaRepository.save(solicitudFisica);
 
@@ -313,15 +318,15 @@ export class SolicitudesFisicasService {
         const solicitudCambioMedidor = this.solicitudCambioMedidorFisicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
             Tipo_Entidad: 1,
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 3,
             Tipo_Identificacion: dto.Tipo_Identificacion,
             Identificacion: dto.Identificacion,
-            Nombre: dto.Nombre,
-            Apellido1: dto.Apellido1,
-            Apellido2: dto.Apellido2,
-            Direccion_Exacta: dto.Direccion_Exacta,
+            Nombre: afiliado.Nombre,
+            Apellido1: afiliado.Apellido1,
+            Apellido2: afiliado.Apellido2,
+            Direccion_Exacta: afiliado.Direccion_Exacta,
             Motivo_Solicitud: dto.Motivo_Solicitud,
             Id_Medidor: dto.Id_Medidor,
             Planos_Terreno: planoRes.url,
@@ -329,7 +334,7 @@ export class SolicitudesFisicasService {
         });
         const solicitudFinal = await this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
 
-        await this.emailService.enviarEmailSolicitudCreada(dto.Correo, 'Cambio de Medidor', nombre);
+        await this.emailService.enviarEmailSolicitudCreada(afiliado.Correo, 'Cambio de Medidor', nombre);
         return solicitudFinal;
     }
 
@@ -346,15 +351,21 @@ export class SolicitudesFisicasService {
         if (!planoFile) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para la solicitud de asociado');
         if (!escrituraFile) throw new BadRequestException('El archivo Escrituras_Terreno es obligatorio para la solicitud de asociado');
 
-        const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
+        const afiliado = await this.afiliadoFisicoRepository.findOne({
+            where: { Identificacion: dto.Identificacion }
+        });
+        if (!afiliado) throw new BadRequestException(`No existe un afiliado físico con la identificación ${dto.Identificacion}`);
+
+        const nombre = `${afiliado.Nombre} ${afiliado.Apellido1 ?? ''} ${afiliado.Apellido2 ?? ''}`.trim();
+
         const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Asociado', 'Fisicas', dto.Identificacion, nombre);
         const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Asociado', 'Fisicas', dto.Identificacion, nombre);
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
             Tipo_Entidad: 1, // Física
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 4, // Asociado
         });
         const solicitudGuardada = await this.solicitudRepository.save(solicitudBase);
@@ -363,14 +374,14 @@ export class SolicitudesFisicasService {
         const solicitudFisica = this.solicitudFisicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
             Tipo_Entidad: 1, // Física
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 4,
             Tipo_Identificacion: dto.Tipo_Identificacion,
             Identificacion: dto.Identificacion,
-            Nombre: dto.Nombre,
-            Apellido1: dto.Apellido1,
-            Apellido2: dto.Apellido2,
+            Nombre: afiliado.Nombre,
+            Apellido1: afiliado.Apellido1,
+            Apellido2: afiliado.Apellido2,
         });
         await this.solicitudFisicaRepository.save(solicitudFisica);
 
@@ -378,21 +389,21 @@ export class SolicitudesFisicasService {
         const solicitudAsociado = this.solicitudAsociadoFisicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
             Tipo_Entidad: 1, // Física
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 4,
             Tipo_Identificacion: dto.Tipo_Identificacion,
             Identificacion: dto.Identificacion,
-            Nombre: dto.Nombre,
-            Apellido1: dto.Apellido1,
-            Apellido2: dto.Apellido2,
+            Nombre: afiliado.Nombre,
+            Apellido1: afiliado.Apellido1,
+            Apellido2: afiliado.Apellido2,
             Motivo_Solicitud: dto.Motivo_Solicitud,
             Planos_Terreno: planoRes.url,
             Escrituras_Terreno: escrituraRes.url,
         });
         const solicitudFinal = await this.solicitudAsociadoFisicaRepository.save(solicitudAsociado);
 
-        await this.emailService.enviarEmailSolicitudCreada(dto.Correo, 'Asociación', nombre);
+        await this.emailService.enviarEmailSolicitudCreada(afiliado.Correo, 'Asociación', nombre);
         return solicitudFinal;
     }
 
@@ -560,15 +571,10 @@ export class SolicitudesFisicasService {
         };
 
         // 4. Actualizar campos específicos de SolicitudCambioMedidorFisica
-        solicitudCambioMedidor.Nombre = dto.Nombre ?? solicitudCambioMedidor.Nombre;
-        solicitudCambioMedidor.Apellido1 = dto.Apellido1 ?? solicitudCambioMedidor.Apellido1;
-        solicitudCambioMedidor.Apellido2 = dto.Apellido2 ?? solicitudCambioMedidor.Apellido2;
-        solicitudCambioMedidor.Numero_Telefono = dto.Numero_Telefono ?? solicitudCambioMedidor.Numero_Telefono;
-        solicitudCambioMedidor.Correo = dto.Correo ?? solicitudCambioMedidor.Correo;
-        solicitudCambioMedidor.Direccion_Exacta = dto.Direccion_Exacta ?? solicitudCambioMedidor.Direccion_Exacta;
+
+
         solicitudCambioMedidor.Motivo_Solicitud = dto.Motivo_Solicitud ?? solicitudCambioMedidor.Motivo_Solicitud;
         solicitudCambioMedidor.Id_Medidor = dto.Id_Medidor ?? solicitudCambioMedidor.Id_Medidor;
-        solicitudCambioMedidor.Id_Nuevo_Medidor = dto.Id_Nuevo_Medidor ?? solicitudCambioMedidor.Id_Nuevo_Medidor;
 
         // 5. Guardar cambios
         const resultado = await this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
@@ -630,11 +636,6 @@ export class SolicitudesFisicasService {
         };
 
         // 4. Actualizar campos específicos de SolicitudAsociadoFisica
-        solicitudAsociado.Nombre = dto.Nombre ?? solicitudAsociado.Nombre;
-        solicitudAsociado.Apellido1 = dto.Apellido1 ?? solicitudAsociado.Apellido1;
-        solicitudAsociado.Apellido2 = dto.Apellido2 ?? solicitudAsociado.Apellido2;
-        solicitudAsociado.Numero_Telefono = dto.Numero_Telefono ?? solicitudAsociado.Numero_Telefono;
-        solicitudAsociado.Correo = dto.Correo ?? solicitudAsociado.Correo;
         solicitudAsociado.Motivo_Solicitud = dto.Motivo_Solicitud ?? solicitudAsociado.Motivo_Solicitud;
 
         // 5. Guardar cambios
@@ -866,16 +867,16 @@ export class SolicitudesFisicasService {
 
         // Estado 3 = Aprobada y en espera
         if (idNuevoEstado === 3) {
-             
-            if (ocupaPago){
 
-                if (montoCambio && motivoCobro)  await this.emailService.enviarEmailCambioMedidorAprobadaConCosto(solicitudCambioMedidor.Correo, nombre, montoCambio, motivoCobro);
+            if (ocupaPago) {
+
+                if (montoCambio && motivoCobro) await this.emailService.enviarEmailCambioMedidorAprobadaConCosto(solicitudCambioMedidor.Correo, nombre, montoCambio, motivoCobro);
 
                 else throw new BadRequestException('Debe proporcionar el monto y el motivo del cambio de medidor para enviar el correo correspondiente');
-            } 
-        
+            }
+
             else await this.emailService.enviarEmailActualizacionEstado(solicitudCambioMedidor.Correo, 'Cambio de Medidor', 'Aprobada y en espera', nombre);
-        } 
+        }
 
         // Estado 4 = Completada
         if (idNuevoEstado === 4) {
