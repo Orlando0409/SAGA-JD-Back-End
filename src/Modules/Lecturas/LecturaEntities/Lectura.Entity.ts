@@ -1,7 +1,8 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
-import { TipoTarifaLectura } from "./TipoTarifaLectura.Entity";
+import { TarifaLecturaConSello } from "src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaLecturaConSello.Entity";
+import { Factura } from "src/Modules/Facturas/FacturaEntities/Factura.Entity";
 
 @Entity('lectura')
 export class Lectura {
@@ -12,9 +13,9 @@ export class Lectura {
     @JoinColumn({ name: 'Id_Medidor' })
     Medidor: Medidor;
 
-    @ManyToOne(() => TipoTarifaLectura, tipoTarifa => tipoTarifa.Lectura, { nullable: false })
-    @JoinColumn({ name: 'Id_Tipo_Tarifa_Lectura' })
-    Tipo_Tarifa: TipoTarifaLectura;
+    @ManyToOne(() => TarifaLecturaConSello, tipoTarifa => tipoTarifa.Lectura, { nullable: false })
+    @JoinColumn({ name: 'Id_Tarifa_Lectura' })
+    Tipo_Tarifa: TarifaLecturaConSello;
 
     @Column({ type: 'float', nullable: false, default: 0, comment: 'Lectura anterior del medidor' })
     Valor_Lectura_Anterior: number;
@@ -25,13 +26,13 @@ export class Lectura {
     @Column({ type: 'float', nullable: false, comment: 'Consumo calculado (diferencia entre lectura actual y anterior)' })
     Consumo_Calculado_M3: number;
 
-    @Column({ type: 'int', nullable: false })
-    Total_A_Pagar: number;
-
     @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', precision: 0 })
     Fecha_Lectura: Date;
 
     @ManyToOne(() => Usuario, usuario => usuario.Id_Usuario, { eager: true })
     @JoinColumn({ name: 'Id_Usuario' })
     Usuario: Usuario;
+
+    @OneToOne(() => Factura, factura => factura.Lectura, { nullable: true })
+    Factura?: Factura;
 }

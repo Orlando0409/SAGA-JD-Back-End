@@ -103,3 +103,25 @@ SELECT * FROM rango_consumo;
 SELECT * FROM cargo_fijo_tarifas;
 
 SELECT * FROM tipo_tarifa_cargo_fijo;
+
+select * from aplicar_sello_calidad;
+
+select * from tarifa_lectura_sin_sello;
+
+select * from rango_afiliados_sin_sello;
+
+select * from rango_consumo_sin_sello;
+
+select * from cargo_fijo_tarifas_sin_sello;
+
+select * from precio_bloque_consumo_sin_sello;
+
+select * from recurso_hidrico_sin_sello;
+
+select * from bloque_recurso_hidrico_sin_sello;
+
+select * from precio_recurso_hidrico_sin_sello;
+
+select * from tarifa_hidrante_sin_sello;
+
+select * from factura;

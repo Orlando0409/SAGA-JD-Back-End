@@ -4,7 +4,7 @@ import { Lectura } from "./LecturaEntities/Lectura.Entity";
 import { Repository } from "typeorm";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { UsuariosService } from "../Usuarios/Services/usuarios.service";
-import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from "../Afiliados/AfiliadoEntities/Afiliado.Entity";
+import { Afiliado } from "../Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { CreateLecturaDTO } from "./LecturaDTO'S/CreateLectura.dto";
 import { EstadoMedidor } from "../Inventario/InventarioEntities/EstadoMedidor.Entity";
 import { Medidor } from "../Inventario/InventarioEntities/Medidor.Entity";
@@ -12,12 +12,12 @@ import { AuditoriaService } from "../Auditoria/auditoria.service";
 import { UpdateLecturaDTO } from "./LecturaDTO'S/UpdateLectura.dto";
 import { MedidorService } from "../Inventario/Services/medidor.service";
 import { AfiliadosService } from "../Afiliados/afiliados.service";
-import { TipoTarifaLectura } from "./LecturaEntities/TipoTarifaLectura.Entity";
-import { TipoTarifaServiciosFijos } from "./LecturaEntities/TipoTarifaServiciosFijos.Entity";
-import { TipoTarifaVentaAgua } from "./LecturaEntities/TipoTarifaVentaAgua.Entity";
-import { TipoEntidad } from "src/Common/Enums/TipoEntidad.enum";
 import { Readable } from "stream";
 import * as csvParser from "csv-parser";
+import { AplicarSelloCalidad } from "./LecturaEntities/AplicarSelloCalidad.Entity";
+import { TarifaLecturaConSello } from "../Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaLecturaConSello.Entity";
+import { CargoFijoTarifasConSello } from "../Tarifas/Con Sello Calidad/TarifaConSelloEntities/CargoFijoTarifasConSello.Entity";
+import { FacturaService } from "../Facturas/factura.service";
 
 @Injectable()
 export class LecturaService {
@@ -34,14 +34,17 @@ export class LecturaService {
         @InjectRepository(EstadoMedidor)
         private readonly estadoMedidorRepository: Repository<EstadoMedidor>,
 
-        @InjectRepository(TipoTarifaLectura)
-        private readonly tipoTarifaLecturaRepository: Repository<TipoTarifaLectura>,
+        @InjectRepository(TarifaLecturaConSello)
+        private readonly tipoTarifaLecturaRepository: Repository<TarifaLecturaConSello>,
 
-        @InjectRepository(TipoTarifaServiciosFijos)
-        private readonly tipoTarifaServiciosFijosRepository: Repository<TipoTarifaServiciosFijos>,
+        @InjectRepository(CargoFijoTarifasConSello)
+        private readonly tipoTarifaServiciosFijosRepository: Repository<CargoFijoTarifasConSello>,
 
-        @InjectRepository(TipoTarifaVentaAgua)
-        private readonly tipoTarifaVentaAguaRepository: Repository<TipoTarifaVentaAgua>,
+        @InjectRepository(TarifaLecturaConSello)
+        private readonly tipoTarifaVentaAguaRepository: Repository<TarifaLecturaConSello>,
+
+        @InjectRepository(AplicarSelloCalidad)
+        private readonly aplicarSelloCalidadRepository: Repository<AplicarSelloCalidad>,
 
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
@@ -57,6 +60,9 @@ export class LecturaService {
 
         @Inject(forwardRef(() => AfiliadosService))
         private readonly afiliadosService: AfiliadosService,
+
+        @Inject(forwardRef(() => FacturaService))
+        private readonly facturaService: FacturaService,
     ) { }
 
     async getAllLecturas() {
@@ -73,7 +79,7 @@ export class LecturaService {
         return Promise.all(lecturas.map(async lectura => ({
             Id_Lectura: lectura.Id_Lectura,
             Tipo_Tarifa: lectura.Tipo_Tarifa ? {
-                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Id_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tarifa_Lectura,
                 Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
             } : null,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
@@ -103,7 +109,7 @@ export class LecturaService {
         return Promise.all(lecturas.map(async lectura => ({
             Id_Lectura: lectura.Id_Lectura,
             Tipo_Tarifa: lectura.Tipo_Tarifa ? {
-                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Id_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tarifa_Lectura,
                 Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
             } : null,
             Consumo_Calculado_M3: lectura.Consumo_Calculado_M3,
@@ -150,7 +156,7 @@ export class LecturaService {
         return Promise.all(lecturas.map(async lectura => ({
             Id_Lectura: lectura.Id_Lectura,
             Tipo_Tarifa: lectura.Tipo_Tarifa ? {
-                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Id_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tarifa_Lectura,
                 Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
             } : null,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
@@ -178,7 +184,7 @@ export class LecturaService {
         return Promise.all(lecturas.map(async lectura => ({
             Id_Lectura: lectura.Id_Lectura,
             Tipo_Tarifa: lectura.Tipo_Tarifa ? {
-                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Id_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tarifa_Lectura,
                 Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
             } : null,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
@@ -206,7 +212,7 @@ export class LecturaService {
         return Promise.all(lecturas.map(async lectura => ({
             Id_Lectura: lectura.Id_Lectura,
             Tipo_Tarifa: lectura.Tipo_Tarifa ? {
-                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Id_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tarifa_Lectura,
                 Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
             } : null,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
@@ -246,7 +252,7 @@ export class LecturaService {
         return Promise.all(lecturas.map(async lectura => ({
             Id_Lectura: lectura.Id_Lectura,
             Tipo_Tarifa: lectura.Tipo_Tarifa ? {
-                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Id_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tarifa_Lectura,
                 Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
             } : null,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
@@ -276,7 +282,7 @@ export class LecturaService {
         return Promise.all(lecturas.map(async lectura => ({
             Id_Lectura: lectura.Id_Lectura,
             Tipo_Tarifa: lectura.Tipo_Tarifa ? {
-                Id_Tipo_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Id_Tarifa_Lectura: lectura.Tipo_Tarifa.Id_Tarifa_Lectura,
                 Nombre_Tipo_Tarifa: lectura.Tipo_Tarifa.Nombre_Tipo_Tarifa,
             } : null,
             Valor_Lectura_Anterior: lectura.Valor_Lectura_Anterior,
@@ -399,25 +405,14 @@ export class LecturaService {
                                     }
                                 }
 
-                                // Obtener o calcular Total_A_Pagar
-                                let totalAPagar = 0;
-                                if (row.Total_A_Pagar) {
-                                    const totalParsed = Number(row.Total_A_Pagar);
-                                    if (!isNaN(totalParsed) && totalParsed >= 0) {
-                                        totalAPagar = totalParsed;
-                                    } else {
-                                        advertencias.push(`Fila ${lineNumber}: Total_A_Pagar inválido, usando 0`);
-                                    }
-                                }
-
                                 // Obtener la tarifa (usar la primera disponible o una específica del CSV)
-                                let tipoTarifa: TipoTarifaLectura | null = null;
+                                let tipoTarifa: TarifaLecturaConSello | null = null;
 
                                 if (row.Id_Tipo_Tarifa_Lectura) {
                                     const idTarifa = Number(row.Id_Tipo_Tarifa_Lectura);
                                     if (!isNaN(idTarifa)) {
                                         tipoTarifa = await this.tipoTarifaLecturaRepository.findOne({
-                                            where: { Id_Tipo_Tarifa_Lectura: idTarifa }
+                                            where: { Id_Tarifa_Lectura: idTarifa }
                                         });
                                     }
                                 }
@@ -425,7 +420,7 @@ export class LecturaService {
                                 // Si no se especificó tarifa o no se encontró, usar la primera disponible
                                 if (!tipoTarifa) {
                                     tipoTarifa = await this.tipoTarifaLecturaRepository.findOne({
-                                        order: { Id_Tipo_Tarifa_Lectura: 'ASC' }
+                                        order: { Id_Tarifa_Lectura: 'ASC' }
                                     });
 
                                     if (!tipoTarifa) {
@@ -440,22 +435,21 @@ export class LecturaService {
                                     Valor_Lectura_Anterior: valorLecturaAnterior,
                                     Valor_Lectura_Actual: valorLecturaActual,
                                     Consumo_Calculado_M3: consumoCalculado,
-                                    Total_A_Pagar: totalAPagar,
                                     Fecha_Lectura: fechaLectura,
                                     Tipo_Tarifa: tipoTarifa,
                                     Usuario: usuario
                                 });
 
-                                await this.lecturaRepository.save(nuevaLectura);
+                                const lecturaGuardada = await this.lecturaRepository.save(nuevaLectura);
                                 lecturasCreadas++;
 
                                 // Registrar en auditoría
                                 try {
-                                    await this.auditoriaService.logCreacion('Lecturas', idUsuario, nuevaLectura.Id_Lectura, {
-                                        Lectura_Anterior: nuevaLectura.Valor_Lectura_Anterior,
-                                        Lectura_Actual: nuevaLectura.Valor_Lectura_Actual,
-                                        Consumo_Calculado_M3: nuevaLectura.Consumo_Calculado_M3,
-                                        Fecha_Lectura: nuevaLectura.Fecha_Lectura,
+                                    await this.auditoriaService.logCreacion('Lecturas', idUsuario, lecturaGuardada.Id_Lectura, {
+                                        Lectura_Anterior: lecturaGuardada.Valor_Lectura_Anterior,
+                                        Lectura_Actual: lecturaGuardada.Valor_Lectura_Actual,
+                                        Consumo_Calculado_M3: lecturaGuardada.Consumo_Calculado_M3,
+                                        Fecha_Lectura: lecturaGuardada.Fecha_Lectura,
                                         Numero_Medidor: medidor.Numero_Medidor,
                                         Id_Afiliado: infoAfiliado.id,
                                         Tipo_Afiliado: infoAfiliado.tipo,
@@ -468,8 +462,16 @@ export class LecturaService {
                                     console.error(`Error al registrar auditoría para lectura de medidor ${numeroMedidor}:`, error);
                                 }
 
-                            } catch (rowError) {
-                                errores.push(`Fila ${lineNumber}: Error procesando registro - ${rowError.message}`);
+                                // Intentar generar factura automáticamente
+                                try {
+                                    await this.facturaService.generarFacturaDesdeLectura(lecturaGuardada.Id_Lectura);
+                                    advertencias.push(`Línea ${lineNumber}: Lectura y factura creadas exitosamente para medidor ${numeroMedidor}`);
+                                } catch (facturaError: any) {
+                                    advertencias.push(`Línea ${lineNumber}: Lectura creada pero falló generación de factura para medidor ${numeroMedidor}: ${facturaError?.message || 'Error desconocido'}`);
+                                }
+
+                            } catch (rowError: any) {
+                                errores.push(`Fila ${lineNumber}: Error procesando registro - ${rowError?.message || 'Error desconocido'}`);
                                 console.error(`Error en fila ${lineNumber}:`, rowError);
                             }
                         }
@@ -485,9 +487,9 @@ export class LecturaService {
                                 'Detalles de Advertencias': advertencias.length > 0 ? advertencias : undefined
                             }
                         });
-                    } catch (error) {
+                    } catch (error: any) {
                         console.error('Error procesando archivo CSV:', error);
-                        reject(new BadRequestException(`Error procesando archivo CSV: ${error.message}`));
+                        reject(new BadRequestException(`Error procesando archivo CSV: ${error?.message || 'Error desconocido'}`));
                     }
                 })
                 .on('error', (error) => {
@@ -507,86 +509,99 @@ export class LecturaService {
             where: { Numero_Medidor: dto.Numero_Medidor },
             relations: ['Estado_Medidor', 'Afiliado', 'Afiliado.Tipo_Afiliado', 'Afiliado.Estado']
         });
-
         if (!medidor) throw new BadRequestException('El medidor especificado no existe.');
 
         // Validar que el medidor tenga un afiliado asociado
         if (!medidor.Afiliado) throw new BadRequestException(`El medidor ${dto.Numero_Medidor} no tiene un afiliado asociado. Debe asignar un afiliado al medidor antes de registrar lecturas.`);
-
         if (medidor.Estado_Medidor.Id_Estado_Medidor !== 2) throw new BadRequestException('El medidor no está en un estado válido para registrar lecturas.');
 
         // Identificar afiliado vinculado al medidor
         const afiliadoIdentificado = medidor.Afiliado;
         const infoAfiliado = this.afiliadosService.identificarAfiliado(afiliadoIdentificado);
 
-        console.log(`Lectura manual - Afiliado ${infoAfiliado.tipo} identificado: ID: ${infoAfiliado.id}, Identificación: ${infoAfiliado.identificacion}, Nombre/Razón Social: ${infoAfiliado.nombreCompleto}, Medidor: ${dto.Numero_Medidor}`);
-
-        const tipoTarifa = await this.tipoTarifaLecturaRepository.findOne({ where: { Id_Tipo_Tarifa_Lectura: dto.Id_Tipo_Tarifa } });
-        if (!tipoTarifa) throw new BadRequestException('La tarifa especificada no existe');
-
-        // Obtener la lectura anterior más reciente del mismo medidor (filtrando por Numero_Medidor)
-        const lecturaAnterior = await this.lecturaRepository.createQueryBuilder('lectura')
-            .leftJoin('lectura.Medidor', 'medidor')
-            .where('medidor.Numero_Medidor = :numeroMedidor', { numeroMedidor: dto.Numero_Medidor })
-            .orderBy('lectura.Fecha_Lectura', 'DESC')
-            .limit(1)
-            .getOne();
-
-        let valorLecturaAnterior = 0;
-        let consumoCalculado = dto.Valor_Lectura;
-
-        // Si existe una lectura anterior, calcular el consumo como la diferencia
-        if (lecturaAnterior) {
-            valorLecturaAnterior = lecturaAnterior.Valor_Lectura_Actual;
-            consumoCalculado = dto.Valor_Lectura - valorLecturaAnterior;
-
-            if (dto.Valor_Lectura < valorLecturaAnterior) throw new BadRequestException(`La lectura actual (${dto.Valor_Lectura}) no puede ser menor que la lectura anterior (${valorLecturaAnterior})`);
+        if (await this.getSelloCalidad() == true) {
+            
         }
 
-        const nuevaLectura = this.lecturaRepository.create({
-            Tipo_Tarifa: tipoTarifa,
-            Valor_Lectura_Anterior: valorLecturaAnterior,
-            Valor_Lectura_Actual: dto.Valor_Lectura,
-            Consumo_Calculado_M3: consumoCalculado,
-            Total_A_Pagar: 1000,                            // Valor por defecto, ajustar según sea necesario
-            Medidor: medidor,
-            Usuario: usuario,
-        });
+        else if (await this.getSelloCalidad() == false) {
+            const tipoTarifa = await this.tipoTarifaLecturaRepository.findOne({ where: { Id_Tarifa_Lectura: dto.Id_Tipo_Tarifa } });
+            if (!tipoTarifa) throw new BadRequestException('La tarifa especificada no existe');
 
-        const lecturaGuardada = await this.lecturaRepository.save(nuevaLectura);
+            // Obtener la lectura anterior más reciente del mismo medidor (filtrando por Numero_Medidor)
+            const lecturaAnterior = await this.lecturaRepository.createQueryBuilder('lectura')
+                .leftJoin('lectura.Medidor', 'medidor')
+                .where('medidor.Numero_Medidor = :numeroMedidor', { numeroMedidor: dto.Numero_Medidor })
+                .orderBy('lectura.Fecha_Lectura', 'DESC')
+                .limit(1)
+                .getOne();
 
-        // Registrar en auditoría
-        try {
-            await this.auditoriaService.logCreacion('Lecturas', idUsuario, lecturaGuardada.Id_Lectura, {
-                Lectura_Anterior: lecturaGuardada.Valor_Lectura_Anterior,
-                Lectura_Actual: lecturaGuardada.Valor_Lectura_Actual,
+            let valorLecturaAnterior = 0;
+            let consumoCalculado = dto.Valor_Lectura;
+
+            // Si existe una lectura anterior, calcular el consumo como la diferencia
+            if (lecturaAnterior) {
+                valorLecturaAnterior = lecturaAnterior.Valor_Lectura_Actual;
+                consumoCalculado = dto.Valor_Lectura - valorLecturaAnterior;
+
+                if (dto.Valor_Lectura < valorLecturaAnterior) throw new BadRequestException(`La lectura actual (${dto.Valor_Lectura}) no puede ser menor que la lectura anterior (${valorLecturaAnterior})`);
+            }
+
+            const nuevaLectura = this.lecturaRepository.create({
+                Tipo_Tarifa: tipoTarifa,
+                Valor_Lectura_Anterior: valorLecturaAnterior,
+                Valor_Lectura_Actual: dto.Valor_Lectura,
+                Consumo_Calculado_M3: consumoCalculado,
+                Medidor: medidor,
+                Usuario: usuario,
+            });
+
+            const lecturaGuardada = await this.lecturaRepository.save(nuevaLectura);
+
+            // Registrar en auditoría
+            try {
+                await this.auditoriaService.logCreacion('Lecturas', idUsuario, lecturaGuardada.Id_Lectura, {
+                    Lectura_Anterior: lecturaGuardada.Valor_Lectura_Anterior,
+                    Lectura_Actual: lecturaGuardada.Valor_Lectura_Actual,
+                    Consumo_Calculado_M3: lecturaGuardada.Consumo_Calculado_M3,
+                    Fecha_Lectura: lecturaGuardada.Fecha_Lectura,
+                    Numero_Medidor: medidor.Numero_Medidor,
+                    Id_Afiliado: infoAfiliado.id,
+                    Tipo_Afiliado: infoAfiliado.tipo,
+                    Identificacion_Afiliado: infoAfiliado.identificacion,
+                    Nombre_Afiliado: infoAfiliado.nombreCompleto,
+                    Detalles_Afiliado: infoAfiliado.detalles
+                });
+            } catch (error) {
+                console.error('Error al registrar auditoría de creación de lectura:', error);
+            }
+
+            // Generar factura automáticamente
+            try {
+                const facturaGenerada = await this.facturaService.generarFacturaDesdeLectura(lecturaGuardada.Id_Lectura);
+                console.log(`✅ Factura ${facturaGenerada.Numero_Factura} generada automáticamente para lectura ${lecturaGuardada.Id_Lectura}`);
+            } catch (facturaError: any) {
+                console.error(`⚠️ Error generando factura para lectura ${lecturaGuardada.Id_Lectura}:`, facturaError?.message || 'Error desconocido');
+                // No lanzar error, solo registrar advertencia
+            }
+
+            return {
+                Id_Lectura: lecturaGuardada.Id_Lectura,
+                Tipo_Tarifa: tipoTarifa ? {
+                    Id_Tarifa_Lectura: tipoTarifa.Id_Tarifa_Lectura,
+                    Nombre_Tipo_Tarifa: tipoTarifa.Nombre_Tipo_Tarifa,
+                } : null,
+                Valor_Lectura_Anterior: lecturaGuardada.Valor_Lectura_Anterior,
+                Valor_Lectura_Actual: lecturaGuardada.Valor_Lectura_Actual,
                 Consumo_Calculado_M3: lecturaGuardada.Consumo_Calculado_M3,
                 Fecha_Lectura: lecturaGuardada.Fecha_Lectura,
-                Numero_Medidor: medidor.Numero_Medidor,
-                Id_Afiliado: infoAfiliado.id,
-                Tipo_Afiliado: infoAfiliado.tipo,
-                Identificacion_Afiliado: infoAfiliado.identificacion,
-                Nombre_Afiliado: infoAfiliado.nombreCompleto,
-                Detalles_Afiliado: infoAfiliado.detalles
-            });
-        } catch (error) {
-            console.error('Error al registrar auditoría de creación de lectura:', error);
+                Medidor: this.medidorService.formatearMedidorResponse(medidor),
+                Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado),
+                Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario)
+            };
         }
 
-        return {
-            Id_Lectura: lecturaGuardada.Id_Lectura,
-            Tipo_Tarifa: tipoTarifa ? {
-                Id_Tipo_Tarifa_Lectura: tipoTarifa.Id_Tipo_Tarifa_Lectura,
-                Nombre_Tipo_Tarifa: tipoTarifa.Nombre_Tipo_Tarifa,
-            } : null,
-            Valor_Lectura_Anterior: lecturaGuardada.Valor_Lectura_Anterior,
-            Valor_Lectura_Actual: lecturaGuardada.Valor_Lectura_Actual,
-            Consumo_Calculado_M3: lecturaGuardada.Consumo_Calculado_M3,
-            Fecha_Lectura: lecturaGuardada.Fecha_Lectura,
-            Medidor: this.medidorService.formatearMedidorResponse(medidor),
-            Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado),
-            Usuario: await this.usuariosService.FormatearUsuarioResponse(usuario)
-        };
+        else throw new BadRequestException('Error al verificar el estado del sello de calidad. No se pudo determinar si el sello de calidad está activo o no.');
+
     }
 
     async updateLectura(dto: UpdateLecturaDTO, idLectura: number, idUsuario: number) {
@@ -643,7 +658,7 @@ export class LecturaService {
         return {
             Id_Lectura: lecturaCompleta.Id_Lectura,
             Tipo_Tarifa: lecturaCompleta.Tipo_Tarifa ? {
-                Id_Tipo_Tarifa_Lectura: lecturaCompleta.Tipo_Tarifa.Id_Tipo_Tarifa_Lectura,
+                Id_Tarifa_Lectura: lecturaCompleta.Tipo_Tarifa.Id_Tarifa_Lectura,
                 Nombre_Tipo_Tarifa: lecturaCompleta.Tipo_Tarifa.Nombre_Tipo_Tarifa,
             } : null,
             Valor_Lectura_Anterior: lecturaCompleta.Valor_Lectura_Anterior,
@@ -654,5 +669,27 @@ export class LecturaService {
             Afiliado: await this.afiliadosService.FormatearAfiliadoParaResponseSimple(lecturaCompleta.Medidor?.Afiliado),
             Usuario: await this.usuariosService.FormatearUsuarioResponse(lecturaCompleta.Usuario)
         };
+    }
+
+    async APlicarSelloALecturas(idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const Sello = await this.aplicarSelloCalidadRepository.findOne({ where: { Id_Aplicar_Sello_Calidad: 1 } });
+        if (!Sello) throw new BadRequestException('No se encontró la configuración para aplicar sello de calidad');
+
+        // Alternar el estado del sello (toggle)
+        Sello.Aplicar_Sello_Calidad = !Sello.Aplicar_Sello_Calidad;
+        await this.aplicarSelloCalidadRepository.save(Sello);
+
+        return Sello.Aplicar_Sello_Calidad
+            ? 'Sello de calidad aplicado a las lecturas'
+            : 'Sello de calidad removido de las lecturas';
+    }
+
+    async getSelloCalidad() {
+        const Sello = await this.aplicarSelloCalidadRepository.findOne({ where: { Id_Aplicar_Sello_Calidad: 1 } });
+        if (!Sello) throw new BadRequestException('No se encontró la configuración para aplicar sello de calidad');
+
+        return Sello.Aplicar_Sello_Calidad;
     }
 }

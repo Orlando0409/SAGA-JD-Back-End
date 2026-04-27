@@ -23,6 +23,16 @@ export class SugerenciaController {
     return this.sugerenciaService.getAllArchivados();
   }
 
+  @Get('pendientes')
+  getPendientes() {
+    return this.sugerenciaService.getAllPendientes();
+  }
+
+  @Get('contestadas')
+  getContestadas() {
+    return this.sugerenciaService.getAllContestadas();
+  }
+
   @Get(':id')
   getOne(
     @Param('id', NumericParamPipe) id: number

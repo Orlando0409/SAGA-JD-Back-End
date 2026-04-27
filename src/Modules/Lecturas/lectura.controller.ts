@@ -1,5 +1,5 @@
 import { totalLecturasService } from './totalLecturas.service';
-import { Body, Controller, Get, Param, Post, Put, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Put, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { LecturaService } from "./lectura.service";
 import { CreateLecturaDTO } from "./LecturaDTO'S/CreateLectura.dto";
 import { UpdateLecturaDTO } from "./LecturaDTO'S/UpdateLectura.dto";
@@ -8,7 +8,6 @@ import { GetUser } from "../auth/Decorator/GetUser.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiProperty } from "@nestjs/swagger";
-import { getTotalPorM3DTO } from "./LecturaDTO'S/getTotalPorM3.dto";
 
 @Controller('lecturas')
 @UseGuards(JwtAuthGuard)
@@ -56,6 +55,11 @@ export class LecturaController {
     ) {
         return this.lecturaService.getLecturasEntreFechas(fechaInicio, fechaFin);
     }
+    @Get('/sello-calidad')
+    @ApiProperty({description: 'Obtiene el estado actual del sello de calidad en las lecturas (activado/desactivado).'})
+    getSelloCalidad() {
+        return this.lecturaService.getSelloCalidad();
+    }
 
     @Post('/cargar-csv')
     @ApiProperty({ description: 'Carga un archivo CSV con las lecturas.' })
@@ -84,6 +88,14 @@ export class LecturaController {
         @GetUser() usuario: Usuario
     ) {
         return this.lecturaService.updateLectura(dto, idLectura, usuario.Id_Usuario);
+    }
+
+    @Patch('Aplicar-sello-calidad')
+    @ApiProperty({ description: 'Alterna el estado del sello de calidad en las lecturas (activar/desactivar automáticamente).' })
+    aplicarSelloCalidad(
+        @GetUser() usuario: Usuario
+    ) {
+        return this.lecturaService.APlicarSelloALecturas(usuario.Id_Usuario);
     }
 
 

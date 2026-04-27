@@ -1,5 +1,5 @@
+import { TarifaLecturaConSello } from "src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaLecturaConSello.Entity";
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { TipoTarifaLectura } from "./TipoTarifaLectura.Entity";
 
 // Tabla para definir rangos de consumo y sus costos base por M3
 @Entity('rango_consumo')
@@ -7,9 +7,9 @@ export class RangoConsumo {
     @PrimaryGeneratedColumn()
     Id_Rango_Consumo: number;
 
-    @ManyToOne(() => TipoTarifaLectura, { nullable: false })
-    @JoinColumn({ name: 'Id_Tipo_Tarifa_Lectura' })
-    Tipo_Tarifa: TipoTarifaLectura;
+    @ManyToOne(() => TarifaLecturaConSello, { nullable: false })
+    @JoinColumn({ name: 'Id_Tarifa_Lectura' })
+    Tipo_Tarifa: TarifaLecturaConSello;
 
     @Column({ type: 'int', nullable: false })
     Minimo_M3: number;

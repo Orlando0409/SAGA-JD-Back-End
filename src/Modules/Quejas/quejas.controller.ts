@@ -21,6 +21,16 @@ export class QuejasController {
     return this.quejasService.getAllArchivados();
   }
 
+  @Get('pendientes')
+  getPendientes() {
+    return this.quejasService.getAllPendientes();
+  }
+
+  @Get('contestadas')
+  getContestadas() {
+    return this.quejasService.getAllContestadas();
+  }
+
   @Get(':id')
   getOne(@Param('id', NumericParamPipe) id: number) {
     return this.quejasService.getOne(id);
