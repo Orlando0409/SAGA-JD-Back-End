@@ -1,5 +1,4 @@
 import { Min } from 'class-validator';
-import { TipoTarifaServiciosFijosConSello } from '../Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaServiciosFijos.Entity';
 import { TarifaLecturaSinSello } from '../Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/TarifaLecturaSinSello.Entity';
 import { RangoAfiliadosSinSello } from '../Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RangoAfiliadosSinSello.Entity';
 import { RangoConsumoSinSello } from '../Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RangoConsumoSinSello.Entity';
@@ -27,17 +26,10 @@ import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/
 import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
 import { EstadoMedidor } from 'src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
-import { RangoAfiliados } from 'src/Modules/Lecturas/LecturaEntities/RangoAfiliados.Entity';
-import { RangoConsumo } from 'src/Modules/Lecturas/LecturaEntities/RangoConsumo.Entity';
 import { EstadoReporte } from 'src/Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
 import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
 import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
 import { EstadoFactura } from 'src/Modules/Facturas/FacturaEntities/EstadoFactura.Entity';
-import { AplicarSelloCalidad } from 'src/Modules/Lecturas/LecturaEntities/AplicarSelloCalidad.Entity';
-import { TarifaLecturaConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaLecturaConSello.Entity';
-import { CargoFijoTarifasConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/CargoFijoTarifasConSello.Entity';
-import { TipoTarifaCargoFijoConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TipoTarifaCargoFijoConSello.Entity';
-import { TipoTarifaVentaAguaConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaVentaAgua.Entity';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -96,30 +88,6 @@ export class SeederService implements OnModuleInit {
         @InjectRepository(EstadoMedidor)
         private readonly estadoMedidorRepository: Repository<EstadoMedidor>,
 
-        @InjectRepository(TarifaLecturaConSello)
-        private readonly tipoTarifaLecturaRepository: Repository<TarifaLecturaConSello>,
-
-        @InjectRepository(TipoTarifaServiciosFijosConSello)
-        private readonly tipoTarifaServiciosFijosRepository: Repository<TipoTarifaServiciosFijosConSello>,
-
-        @InjectRepository(CargoFijoTarifasConSello)
-        private readonly cargoFijoTarifasRepository: Repository<CargoFijoTarifasConSello>,
-
-        @InjectRepository(TipoTarifaCargoFijoConSello)
-        private readonly tipoTarifaCargoFijoRepository: Repository<TipoTarifaCargoFijoConSello>,
-
-        @InjectRepository(TipoTarifaVentaAguaConSello)
-        private readonly tipoTarifaVentaAguaRepository: Repository<TipoTarifaVentaAguaConSello>,
-
-        @InjectRepository(RangoAfiliados)
-        private readonly rangoAfiliadosRepository: Repository<RangoAfiliados>,
-
-        @InjectRepository(RangoConsumo)
-        private readonly rangoConsumoRepository: Repository<RangoConsumo>,
-
-        @InjectRepository(AplicarSelloCalidad)
-        private readonly aplicarSelloCalidadRepository: Repository<AplicarSelloCalidad>,
-
         // Repositorios para entidades Sin Sello
         @InjectRepository(TarifaLecturaSinSello)
         private readonly tarifaLecturaSinSelloRepository: Repository<TarifaLecturaSinSello>,
@@ -167,14 +135,6 @@ export class SeederService implements OnModuleInit {
             await this.createDefaultEstadosUnidadMedicion();
             await this.createDefaultUnidadesMedicion();
             await this.createDefaultEstadosMedidor();
-            await this.createDefaultTiposTarifaLectura();
-            await this.createDefaultCargosFijosTarifas();
-            await this.createRangosAfiliados();
-            await this.createDefaultTipoTarifaCargoFijo();
-            await this.createDefaultTiposTarifaServiciosFijos();
-            await this.createDefaultTiposTarifaVentaAgua();
-            await this.createRangosConsumo();
-            await this.createDefaultAplicarSelloCalidad();
 
             // Seeders para entidades Sin Sello
             await this.createTarifasLecturaSinSello();
@@ -517,387 +477,22 @@ export class SeederService implements OnModuleInit {
         }
     }
 
-    private async createDefaultAplicarSelloCalidad() {
-        const sello = [
-            { Id_Aplicar_Sello_Calidad: 1, Aplicar_Sello_Calidad: false },
-        ];
-
-        for (const item of sello) {
-            const existe = await this.aplicarSelloCalidadRepository.findOne({
-                where: { Id_Aplicar_Sello_Calidad: item.Id_Aplicar_Sello_Calidad }
-            });
-            if (!existe) {
-                const nuevo = this.aplicarSelloCalidadRepository.create(item);
-                await this.aplicarSelloCalidadRepository.save(nuevo);
-            }
-        }
-    }
-
-    private async createDefaultCargosFijosTarifas() {
-        const cargos = [
-            { Id_Cargo_Fijo_Tarifa: 1, Cargo_Fijo_Por_Mes: 3100 },
-            { Id_Cargo_Fijo_Tarifa: 2, Cargo_Fijo_Por_Mes: 3100 },
-            { Id_Cargo_Fijo_Tarifa: 3, Cargo_Fijo_Por_Mes: 2800 },
-            { Id_Cargo_Fijo_Tarifa: 4, Cargo_Fijo_Por_Mes: 2800 },
-        ];
-
-        for (const cargo of cargos) {
-            const existe = await this.cargoFijoTarifasRepository.findOne({
-                where: { Id_Cargo_Fijo_Tarifa: cargo.Id_Cargo_Fijo_Tarifa }
-            });
-            if (!existe) {
-                const nuevo = this.cargoFijoTarifasRepository.create(cargo);
-                await this.cargoFijoTarifasRepository.save(nuevo);
-            }
-        }
-    }
-
-    private async createDefaultTipoTarifaCargoFijo() {
-        const tipos = [
-            { Id_Tipo_Tarifa_Lectura: 1, Id_Cargo_Fijo_Tarifa: 1, Id_Rango_Afiliados: 1 },
-            { Id_Tipo_Tarifa_Lectura: 1, Id_Cargo_Fijo_Tarifa: 2, Id_Rango_Afiliados: 2 },
-            { Id_Tipo_Tarifa_Lectura: 1, Id_Cargo_Fijo_Tarifa: 3, Id_Rango_Afiliados: 3 },
-            { Id_Tipo_Tarifa_Lectura: 1, Id_Cargo_Fijo_Tarifa: 4, Id_Rango_Afiliados: 4 },
-
-            { Id_Tipo_Tarifa_Lectura: 2, Id_Cargo_Fijo_Tarifa: 1, Id_Rango_Afiliados: 5 },
-            { Id_Tipo_Tarifa_Lectura: 2, Id_Cargo_Fijo_Tarifa: 2, Id_Rango_Afiliados: 6 },
-            { Id_Tipo_Tarifa_Lectura: 2, Id_Cargo_Fijo_Tarifa: 3, Id_Rango_Afiliados: 7 },
-            { Id_Tipo_Tarifa_Lectura: 2, Id_Cargo_Fijo_Tarifa: 4, Id_Rango_Afiliados: 8 },
-
-            { Id_Tipo_Tarifa_Lectura: 3, Id_Cargo_Fijo_Tarifa: 1, Id_Rango_Afiliados: 9 },
-            { Id_Tipo_Tarifa_Lectura: 3, Id_Cargo_Fijo_Tarifa: 2, Id_Rango_Afiliados: 10 },
-            { Id_Tipo_Tarifa_Lectura: 3, Id_Cargo_Fijo_Tarifa: 3, Id_Rango_Afiliados: 11 },
-            { Id_Tipo_Tarifa_Lectura: 3, Id_Cargo_Fijo_Tarifa: 4, Id_Rango_Afiliados: 12 },
-
-            { Id_Tipo_Tarifa_Lectura: 4, Id_Cargo_Fijo_Tarifa: 1, Id_Rango_Afiliados: 13 },
-            { Id_Tipo_Tarifa_Lectura: 4, Id_Cargo_Fijo_Tarifa: 2, Id_Rango_Afiliados: 14 },
-            { Id_Tipo_Tarifa_Lectura: 4, Id_Cargo_Fijo_Tarifa: 3, Id_Rango_Afiliados: 15 },
-            { Id_Tipo_Tarifa_Lectura: 4, Id_Cargo_Fijo_Tarifa: 4, Id_Rango_Afiliados: 16 },
-
-            { Id_Tipo_Tarifa_Lectura: 5, Id_Cargo_Fijo_Tarifa: 1, Id_Rango_Afiliados: 17 },
-            { Id_Tipo_Tarifa_Lectura: 5, Id_Cargo_Fijo_Tarifa: 2, Id_Rango_Afiliados: 18 },
-            { Id_Tipo_Tarifa_Lectura: 5, Id_Cargo_Fijo_Tarifa: 3, Id_Rango_Afiliados: 19 },
-            { Id_Tipo_Tarifa_Lectura: 5, Id_Cargo_Fijo_Tarifa: 4, Id_Rango_Afiliados: 20 },
-
-            { Id_Tipo_Tarifa_Lectura: 6, Id_Cargo_Fijo_Tarifa: 1, Id_Rango_Afiliados: 21 },
-            { Id_Tipo_Tarifa_Lectura: 6, Id_Cargo_Fijo_Tarifa: 2, Id_Rango_Afiliados: 22 },
-            { Id_Tipo_Tarifa_Lectura: 6, Id_Cargo_Fijo_Tarifa: 3, Id_Rango_Afiliados: 23 },
-            { Id_Tipo_Tarifa_Lectura: 6, Id_Cargo_Fijo_Tarifa: 4, Id_Rango_Afiliados: 24 },
-
-            { Id_Tipo_Tarifa_Lectura: 7, Id_Cargo_Fijo_Tarifa: 1, Id_Rango_Afiliados: 25 },
-            { Id_Tipo_Tarifa_Lectura: 7, Id_Cargo_Fijo_Tarifa: 2, Id_Rango_Afiliados: 26 },
-            { Id_Tipo_Tarifa_Lectura: 7, Id_Cargo_Fijo_Tarifa: 3, Id_Rango_Afiliados: 27 },
-            { Id_Tipo_Tarifa_Lectura: 7, Id_Cargo_Fijo_Tarifa: 4, Id_Rango_Afiliados: 28 },
-
-            { Id_Tipo_Tarifa_Lectura: 8, Id_Cargo_Fijo_Tarifa: 1, Id_Rango_Afiliados: 29 },
-            { Id_Tipo_Tarifa_Lectura: 8, Id_Cargo_Fijo_Tarifa: 2, Id_Rango_Afiliados: 30 },
-            { Id_Tipo_Tarifa_Lectura: 8, Id_Cargo_Fijo_Tarifa: 3, Id_Rango_Afiliados: 31 },
-            { Id_Tipo_Tarifa_Lectura: 8, Id_Cargo_Fijo_Tarifa: 4, Id_Rango_Afiliados: 32 },
-        ];
-
-        for (const tipo of tipos) {
-            const existe = await this.tipoTarifaCargoFijoRepository.findOne({
-                where: {
-                    Tipo_Tarifa: { Id_Tarifa_Lectura: tipo.Id_Tipo_Tarifa_Lectura },
-                    Cargo_Fijo: { Id_Cargo_Fijo_Tarifa: tipo.Id_Cargo_Fijo_Tarifa },
-                    Rango_Afiliados: { Id_Rango_Afiliados: tipo.Id_Rango_Afiliados },
-                }
-            });
-            if (!existe) {
-                const nuevo = this.tipoTarifaCargoFijoRepository.create({
-                    Tipo_Tarifa: { Id_Tarifa_Lectura: tipo.Id_Tipo_Tarifa_Lectura },
-                    Cargo_Fijo: { Id_Cargo_Fijo_Tarifa: tipo.Id_Cargo_Fijo_Tarifa },
-                    Rango_Afiliados: { Id_Rango_Afiliados: tipo.Id_Rango_Afiliados },
-                });
-                await this.tipoTarifaCargoFijoRepository.save(nuevo);
-            }
-        }
-    }
-
-    // VALORES FIJOS PARA TARIFAS DEL 10/26/2025
-    private async createDefaultTiposTarifaLectura() {
-        const tipos = [
-            { Id_Tipo_Tarifa_Lectura: 1, Nombre_Tipo_Tarifa: 'Domipre' },
-            { Id_Tipo_Tarifa_Lectura: 2, Nombre_Tipo_Tarifa: 'Comercio y Servicios' },
-            { Id_Tipo_Tarifa_Lectura: 3, Nombre_Tipo_Tarifa: 'Industrial' },
-            { Id_Tipo_Tarifa_Lectura: 4, Nombre_Tipo_Tarifa: 'Preferencial' },
-            { Id_Tipo_Tarifa_Lectura: 5, Nombre_Tipo_Tarifa: 'Grandes Consumidores' },
-            { Id_Tipo_Tarifa_Lectura: 6, Nombre_Tipo_Tarifa: 'Residencial Pobreza Basica' },
-            { Id_Tipo_Tarifa_Lectura: 7, Nombre_Tipo_Tarifa: 'Residencial Pobreza Extrema' },
-            { Id_Tipo_Tarifa_Lectura: 8, Nombre_Tipo_Tarifa: 'Grandes Consumidores Residenciales Bien Social' },
-        ];
-
-        for (const tipo of tipos) {
-            const existe = await this.tipoTarifaLecturaRepository.findOne({
-                where: { Id_Tarifa_Lectura: tipo.Id_Tipo_Tarifa_Lectura }
-            });
-            if (!existe) {
-                const nuevo = this.tipoTarifaLecturaRepository.create({
-                    Id_Tarifa_Lectura: tipo.Id_Tipo_Tarifa_Lectura,
-                    Nombre_Tipo_Tarifa: tipo.Nombre_Tipo_Tarifa
-                });
-                await this.tipoTarifaLecturaRepository.save(nuevo);
-            }
-        }
-    }
-
-    private async createDefaultTiposTarifaServiciosFijos() {
-        const tipos = [
-            // RESIDENCIA (Tarifa 1)
-            { Id_Tipo_Tarifa: 1, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 7535 },
-            { Id_Tipo_Tarifa: 1, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 6228 },
-            { Id_Tipo_Tarifa: 1, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 5132 },
-            { Id_Tipo_Tarifa: 1, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 3772 },
-
-            // COMERCIO Y SERVICIOS (Tarifa 2)
-            { Id_Tipo_Tarifa: 2, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 9110 },
-            { Id_Tipo_Tarifa: 2, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 5919 },
-            { Id_Tipo_Tarifa: 2, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 4815 },
-            { Id_Tipo_Tarifa: 2, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 3564 },
-
-            // INDUSTRIAL (Tarifa 3)
-            { Id_Tipo_Tarifa: 3, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 51554 },
-            { Id_Tipo_Tarifa: 3, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 34545 },
-            { Id_Tipo_Tarifa: 3, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 27771 },
-            { Id_Tipo_Tarifa: 3, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 20327 },
-
-            // PREFERENCIAL (Tarifa 4)
-            { Id_Tipo_Tarifa: 4, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 49405 },
-            { Id_Tipo_Tarifa: 4, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 32145 },
-            { Id_Tipo_Tarifa: 4, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 26488 },
-            { Id_Tipo_Tarifa: 4, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 19469 },
-
-            // GRANDES CONSUMIDORES (Tarifa 5)
-            { Id_Tipo_Tarifa: 5, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 384754 },
-            { Id_Tipo_Tarifa: 5, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 251052 },
-            { Id_Tipo_Tarifa: 5, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 203833 },
-            { Id_Tipo_Tarifa: 5, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 151001 },
-
-            // RESIDENCIAL POBREZA BÁSICA (Tarifa 6)
-            { Id_Tipo_Tarifa: 6, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 6185 },
-            { Id_Tipo_Tarifa: 6, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 5112 },
-            { Id_Tipo_Tarifa: 6, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 4212 },
-            { Id_Tipo_Tarifa: 6, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 3096 },
-
-            // RESIDENCIAL POBREZA EXTREMA (Tarifa 7)
-            { Id_Tipo_Tarifa: 7, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 4834 },
-            { Id_Tipo_Tarifa: 7, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 3995 },
-            { Id_Tipo_Tarifa: 7, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 3292 },
-            { Id_Tipo_Tarifa: 7, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 2420 },
-
-            // GC BIEN SOCIAL (Tarifa 8)
-            { Id_Tipo_Tarifa: 8, Minimo: 1, Maximo: 100, Nombre_Rango: '1-100', Cargo_Base: 305518 },
-            { Id_Tipo_Tarifa: 8, Minimo: 101, Maximo: 300, Nombre_Rango: '101-300', Cargo_Base: 199763 },
-            { Id_Tipo_Tarifa: 8, Minimo: 301, Maximo: 1000, Nombre_Rango: '301-1000', Cargo_Base: 163616 },
-            { Id_Tipo_Tarifa: 8, Minimo: 1001, Maximo: 999999, Nombre_Rango: '1000+', Cargo_Base: 120598 },
-        ];
-
-        for (const tipo of tipos) {
-            const existe = await this.tipoTarifaServiciosFijosRepository.findOne({
-                where: {
-                    Tipo_Tarifa: { Id_Tarifa_Lectura: tipo.Id_Tipo_Tarifa },
-                    Minimo_Afiliados: tipo.Minimo,
-                }
-            });
-            if (!existe) {
-                const nuevo = this.tipoTarifaServiciosFijosRepository.create({
-                    Tipo_Tarifa: { Id_Tarifa_Lectura: tipo.Id_Tipo_Tarifa },
-                    Minimo_Afiliados: tipo.Minimo,
-                    Maximo_Afiliados: tipo.Maximo,
-                    Nombre_Rango: tipo.Nombre_Rango,
-                    Cargo_Base: tipo.Cargo_Base,
-                });
-                await this.tipoTarifaServiciosFijosRepository.save(nuevo);
-            }
-        }
-    }
-
-    private async createDefaultTiposTarifaVentaAgua() {
-        const tipos = [
-            // CONDUCCIÓN por rango de afiliados
-            { Nombre: 'Conducción', Minimo: 1, Maximo: 100, Rango: '1-100', Cargo_Por_M3: 159 },
-            { Nombre: 'Conducción', Minimo: 101, Maximo: 300, Rango: '101-300', Cargo_Por_M3: 122 },
-            { Nombre: 'Conducción', Minimo: 301, Maximo: 1000, Rango: '301-1000', Cargo_Por_M3: 101 },
-            { Nombre: 'Conducción', Minimo: 1001, Maximo: 999999, Rango: '1000+', Cargo_Por_M3: 74 },
-
-            // POTABILIZACIÓN por rango de afiliados
-            { Nombre: 'Potabilización', Minimo: 1, Maximo: 100, Rango: '1-100', Cargo_Por_M3: 48 },
-            { Nombre: 'Potabilización', Minimo: 101, Maximo: 300, Rango: '101-300', Cargo_Por_M3: 37 },
-            { Nombre: 'Potabilización', Minimo: 301, Maximo: 1000, Rango: '301-1000', Cargo_Por_M3: 30 },
-            { Nombre: 'Potabilización', Minimo: 1001, Maximo: 999999, Rango: '1000+', Cargo_Por_M3: 22 },
-
-            // DISTRIBUCIÓN por rango de afiliados
-            { Nombre: 'Distribución', Minimo: 1, Maximo: 100, Rango: '1-100', Cargo_Por_M3: 238 },
-            { Nombre: 'Distribución', Minimo: 101, Maximo: 300, Rango: '101-300', Cargo_Por_M3: 183 },
-            { Nombre: 'Distribución', Minimo: 301, Maximo: 1000, Rango: '301-1000', Cargo_Por_M3: 151 },
-            { Nombre: 'Distribución', Minimo: 1001, Maximo: 999999, Rango: '1000+', Cargo_Por_M3: 111 },
-        ];
-
-        for (const tipo of tipos) {
-            const existe = await this.tipoTarifaVentaAguaRepository.findOne({
-                where: {
-                    Nombre_Tipo_Tarifa: tipo.Nombre,
-                    Minimo_Afiliados: tipo.Minimo,
-                }
-            });
-            if (!existe) {
-                const nuevo = this.tipoTarifaVentaAguaRepository.create({
-                    Nombre_Tipo_Tarifa: tipo.Nombre,
-                    Minimo_Afiliados: tipo.Minimo,
-                    Maximo_Afiliados: tipo.Maximo,
-                    Nombre_Rango: tipo.Rango,
-                    Cargo_Por_M3: tipo.Cargo_Por_M3,
-                });
-                await this.tipoTarifaVentaAguaRepository.save(nuevo);
-            }
-        }
-    }
-
-    private async createRangosAfiliados() {
-        const rangos = [
-            // ==================== RESIDENCIAL (Tarifa 1) ====================
-            { Id_Tipo_Tarifa: 1, Minimo: 1, Maximo: 100, Nombre: '1-100', Costo_Por_M3: 360 },
-            { Id_Tipo_Tarifa: 1, Minimo: 101, Maximo: 300, Nombre: '101-300', Costo_Por_M3: 298 },
-            { Id_Tipo_Tarifa: 1, Minimo: 301, Maximo: 1000, Nombre: '301-1000', Costo_Por_M3: 245 },
-            { Id_Tipo_Tarifa: 1, Minimo: 1001, Maximo: 999999, Nombre: '1000+', Costo_Por_M3: 180 },
-
-            // ==================== COMERCIO Y SERVICIOS (Tarifa 2) ====================
-            { Id_Tipo_Tarifa: 2, Minimo: 1, Maximo: 100, Nombre: '1-100', Costo_Por_M3: 508 },
-            { Id_Tipo_Tarifa: 2, Minimo: 101, Maximo: 300, Nombre: '101-300', Costo_Por_M3: 330 },
-            { Id_Tipo_Tarifa: 2, Minimo: 301, Maximo: 1000, Nombre: '301-1000', Costo_Por_M3: 269 },
-            { Id_Tipo_Tarifa: 2, Minimo: 1001, Maximo: 999999, Nombre: '1000+', Costo_Por_M3: 199 },
-
-            // ==================== INDUSTRIAL (Tarifa 3) ====================
-            { Id_Tipo_Tarifa: 3, Minimo: 1, Maximo: 100, Nombre: '1-100', Costo_Por_M3: 536 },
-            { Id_Tipo_Tarifa: 3, Minimo: 101, Maximo: 300, Nombre: '101-300', Costo_Por_M3: 359 },
-            { Id_Tipo_Tarifa: 3, Minimo: 301, Maximo: 1000, Nombre: '301-1000', Costo_Por_M3: 289 },
-            { Id_Tipo_Tarifa: 3, Minimo: 1001, Maximo: 999999, Nombre: '1000+', Costo_Por_M3: 211 },
-
-            // ==================== PREFERENCIAL (Tarifa 4) ====================
-            { Id_Tipo_Tarifa: 4, Minimo: 1, Maximo: 100, Nombre: '1-100', Costo_Por_M3: 480 },
-            { Id_Tipo_Tarifa: 4, Minimo: 101, Maximo: 300, Nombre: '101-300', Costo_Por_M3: 313 },
-            { Id_Tipo_Tarifa: 4, Minimo: 301, Maximo: 1000, Nombre: '301-1000', Costo_Por_M3: 258 },
-            { Id_Tipo_Tarifa: 4, Minimo: 1001, Maximo: 999999, Nombre: '1000+', Costo_Por_M3: 189 },
-
-            // ==================== GRANDES CONSUMIDORES (Tarifa 5) ====================
-            { Id_Tipo_Tarifa: 5, Minimo: 1, Maximo: 100, Nombre: '1-100', Costo_Por_M3: 513 },
-            { Id_Tipo_Tarifa: 5, Minimo: 101, Maximo: 300, Nombre: '101-300', Costo_Por_M3: 333 },
-            { Id_Tipo_Tarifa: 5, Minimo: 301, Maximo: 1000, Nombre: '301-1000', Costo_Por_M3: 271 },
-            { Id_Tipo_Tarifa: 5, Minimo: 1001, Maximo: 999999, Nombre: '1000+', Costo_Por_M3: 201 },
-
-            // ==================== RESIDENCIAL POBREZA BÁSICA (Tarifa 6) ====================
-            { Id_Tipo_Tarifa: 6, Minimo: 1, Maximo: 100, Nombre: '1-100', Costo_Por_M3: 360 },
-            { Id_Tipo_Tarifa: 6, Minimo: 101, Maximo: 300, Nombre: '101-300', Costo_Por_M3: 298 },
-            { Id_Tipo_Tarifa: 6, Minimo: 301, Maximo: 1000, Nombre: '301-1000', Costo_Por_M3: 245 },
-            { Id_Tipo_Tarifa: 6, Minimo: 1001, Maximo: 999999, Nombre: '1000+', Costo_Por_M3: 180 },
-
-            // ==================== RESIDENCIAL POBREZA EXTREMA (Tarifa 7) ====================
-            { Id_Tipo_Tarifa: 7, Minimo: 1, Maximo: 100, Nombre: '1-100', Costo_Por_M3: 180 },
-            { Id_Tipo_Tarifa: 7, Minimo: 101, Maximo: 300, Nombre: '101-300', Costo_Por_M3: 149 },
-            { Id_Tipo_Tarifa: 7, Minimo: 301, Maximo: 1000, Nombre: '301-1000', Costo_Por_M3: 123 },
-            { Id_Tipo_Tarifa: 7, Minimo: 1001, Maximo: 999999, Nombre: '1000+', Costo_Por_M3: 90 },
-
-            // ==================== GC BIEN SOCIAL (Tarifa 8) ====================
-            { Id_Tipo_Tarifa: 8, Minimo: 1, Maximo: 100, Nombre: '1-100', Costo_Por_M3: 360 },
-            { Id_Tipo_Tarifa: 8, Minimo: 101, Maximo: 300, Nombre: '101-300', Costo_Por_M3: 234 },
-            { Id_Tipo_Tarifa: 8, Minimo: 301, Maximo: 1000, Nombre: '301-1000', Costo_Por_M3: 193 },
-            { Id_Tipo_Tarifa: 8, Minimo: 1001, Maximo: 999999, Nombre: '1000+', Costo_Por_M3: 142 },
-        ];
-
-        for (const rango of rangos) {
-            const existe = await this.rangoAfiliadosRepository.findOne({
-                where: {
-                    Tipo_Tarifa: { Id_Tarifa_Lectura: rango.Id_Tipo_Tarifa },
-                    Minimo_Afiliados: rango.Minimo,
-                }
-            });
-
-            if (!existe) {
-                const nuevo = this.rangoAfiliadosRepository.create({
-                    Tipo_Tarifa: { Id_Tarifa_Lectura: rango.Id_Tipo_Tarifa },
-                    Minimo_Afiliados: rango.Minimo,
-                    Maximo_Afiliados: rango.Maximo,
-                    Nombre_Rango: rango.Nombre,
-                    Costo_Por_M3: rango.Costo_Por_M3,
-                });
-                await this.rangoAfiliadosRepository.save(nuevo);
-            }
-        }
-    }
-
-    private async createRangosConsumo() {
-        const rangos = [
-            // ==================== RESIDENCIAL (Tarifa 1) - 4 bloques ====================
-            { Id_Tipo_Tarifa: 1, Minimo_M3: 0, Maximo_M3: 15, Costo_Por_M3: 360 },
-            { Id_Tipo_Tarifa: 1, Minimo_M3: 16, Maximo_M3: 30, Costo_Por_M3: 416 },
-            { Id_Tipo_Tarifa: 1, Minimo_M3: 31, Maximo_M3: 60, Costo_Por_M3: 486 },
-            { Id_Tipo_Tarifa: 1, Minimo_M3: 61, Maximo_M3: 999999, Costo_Por_M3: 540 },
-
-            // ==================== COMERCIO Y SERVICIOS (Tarifa 2) - 3 bloques ====================
-            { Id_Tipo_Tarifa: 2, Minimo_M3: 0, Maximo_M3: 20, Costo_Por_M3: 508 },
-            { Id_Tipo_Tarifa: 2, Minimo_M3: 21, Maximo_M3: 65, Costo_Por_M3: 582 },
-            { Id_Tipo_Tarifa: 2, Minimo_M3: 66, Maximo_M3: 999999, Costo_Por_M3: 762 },
-
-            // ==================== INDUSTRIAL (Tarifa 3) - 2 bloques ====================
-            { Id_Tipo_Tarifa: 3, Minimo_M3: 0, Maximo_M3: 120, Costo_Por_M3: 536 },
-            { Id_Tipo_Tarifa: 3, Minimo_M3: 121, Maximo_M3: 999999, Costo_Por_M3: 832 },
-
-            // ==================== PREFERENCIAL (Tarifa 4) - 2 bloques ====================
-            { Id_Tipo_Tarifa: 4, Minimo_M3: 0, Maximo_M3: 120, Costo_Por_M3: 480 },
-            { Id_Tipo_Tarifa: 4, Minimo_M3: 121, Maximo_M3: 999999, Costo_Por_M3: 709 },
-
-            // ==================== GRANDES CONSUMIDORES (Tarifa 5) - 3 bloques ====================
-            { Id_Tipo_Tarifa: 5, Minimo_M3: 0, Maximo_M3: 2500, Costo_Por_M3: 513 },
-            { Id_Tipo_Tarifa: 5, Minimo_M3: 2501, Maximo_M3: 6000, Costo_Por_M3: 663 },
-            { Id_Tipo_Tarifa: 5, Minimo_M3: 6001, Maximo_M3: 999999, Costo_Por_M3: 787 },
-
-            // ==================== RESIDENCIAL POBREZA BÁSICA (Tarifa 6) - 4 bloques ====================
-            { Id_Tipo_Tarifa: 6, Minimo_M3: 0, Maximo_M3: 15, Costo_Por_M3: 360 },
-            { Id_Tipo_Tarifa: 6, Minimo_M3: 16, Maximo_M3: 30, Costo_Por_M3: 416 },
-            { Id_Tipo_Tarifa: 6, Minimo_M3: 31, Maximo_M3: 60, Costo_Por_M3: 486 },
-            { Id_Tipo_Tarifa: 6, Minimo_M3: 61, Maximo_M3: 999999, Costo_Por_M3: 540 },
-
-            // ==================== RESIDENCIAL POBREZA EXTREMA (Tarifa 7) - 4 bloques ====================
-            { Id_Tipo_Tarifa: 7, Minimo_M3: 0, Maximo_M3: 15, Costo_Por_M3: 180 },
-            { Id_Tipo_Tarifa: 7, Minimo_M3: 16, Maximo_M3: 30, Costo_Por_M3: 416 },
-            { Id_Tipo_Tarifa: 7, Minimo_M3: 31, Maximo_M3: 60, Costo_Por_M3: 486 },
-            { Id_Tipo_Tarifa: 7, Minimo_M3: 61, Maximo_M3: 999999, Costo_Por_M3: 540 },
-
-            // ==================== GC BIEN SOCIAL (Tarifa 8) - 3 bloques ====================
-            { Id_Tipo_Tarifa: 8, Minimo_M3: 0, Maximo_M3: 2500, Costo_Por_M3: 360 },
-            { Id_Tipo_Tarifa: 8, Minimo_M3: 2501, Maximo_M3: 6000, Costo_Por_M3: 663 },
-            { Id_Tipo_Tarifa: 8, Minimo_M3: 6001, Maximo_M3: 999999, Costo_Por_M3: 787 },
-        ];
-
-        for (const rango of rangos) {
-            const existe = await this.rangoConsumoRepository.findOne({
-                where: {
-                    Tipo_Tarifa: { Id_Tarifa_Lectura: rango.Id_Tipo_Tarifa },
-                    Minimo_M3: rango.Minimo_M3,
-                }
-            });
-
-            if (!existe) {
-                const nuevo = this.rangoConsumoRepository.create({
-                    Tipo_Tarifa: { Id_Tarifa_Lectura: rango.Id_Tipo_Tarifa },
-                    Minimo_M3: rango.Minimo_M3,
-                    Maximo_M3: rango.Maximo_M3,
-                    Costo_Por_M3: rango.Costo_Por_M3,
-                });
-                await this.rangoConsumoRepository.save(nuevo);
-            }
-        }
-    }
 
     // ============================================
     // ENTIDADES SIN SELLO
     // ============================================
 
-    // Los tipos de tarifa (2)
+    // Los 8 tipos de tarifa sin sello (Residencial, Comercio, Industrial, Preferencial, GC, Pobreza Básica/Extrema, GC Bien Social)
     private async createTarifasLecturaSinSello() {
         const tarifas = [
-            { Nombre_Tipo_Tarifa: 'Domipre', Descripcion: 'Tarifa para uso residencial sin sello de calidad', Activa: true },
-            { Nombre_Tipo_Tarifa: 'Emprego', Descripcion: 'Tarifa para uso empresarial sin sello de calidad', Activa: true }
+            { Nombre_Tipo_Tarifa: 'Residencial', Descripcion: 'Tarifa Residencial sin sello de calidad', Activa: true },
+            { Nombre_Tipo_Tarifa: 'Comercio y Servicios', Descripcion: 'Tarifa Comercio y Servicios sin sello de calidad', Activa: true },
+            { Nombre_Tipo_Tarifa: 'Industrial', Descripcion: 'Tarifa Industrial sin sello de calidad', Activa: true },
+            { Nombre_Tipo_Tarifa: 'Preferencial', Descripcion: 'Tarifa Preferencial sin sello de calidad', Activa: true },
+            { Nombre_Tipo_Tarifa: 'Grandes Consumidores', Descripcion: 'Tarifa Grandes Consumidores sin sello de calidad', Activa: true },
+            { Nombre_Tipo_Tarifa: 'Residencial Pobreza Basica', Descripcion: 'Tarifa Residencial Pobreza Básica sin sello de calidad', Activa: true },
+            { Nombre_Tipo_Tarifa: 'Residencial Pobreza Extrema', Descripcion: 'Tarifa Residencial Pobreza Extrema sin sello de calidad', Activa: true },
+            { Nombre_Tipo_Tarifa: 'Grandes Consumidores Residenciales Bien Social', Descripcion: 'Tarifa GC Bien Social sin sello de calidad', Activa: true },
         ];
 
         for (const tarifa of tarifas) {
@@ -912,22 +507,18 @@ export class SeederService implements OnModuleInit {
         }
     }
 
-    // Los rangos especiales para tarifas sin sello (7 rangos de afiliados)
+    // Los 4 rangos de abonados para tarifas sin sello
     private async createRangosAfiliadosSinSello() {
         const rangos = [
-            { Nombre_Rango: '1-50', Minimo_Afiliados: 1, Maximo_Afiliados: 50 },
-            { Nombre_Rango: '51-100', Minimo_Afiliados: 51, Maximo_Afiliados: 100 },
-            { Nombre_Rango: '101-150', Minimo_Afiliados: 101, Maximo_Afiliados: 150 },
-            { Nombre_Rango: '151-300', Minimo_Afiliados: 151, Maximo_Afiliados: 300 },
-            { Nombre_Rango: '301-500', Minimo_Afiliados: 301, Maximo_Afiliados: 500 },
-            { Nombre_Rango: '501-1000', Minimo_Afiliados: 501, Maximo_Afiliados: 1000 },
-            { Nombre_Rango: '+1000', Minimo_Afiliados: 1001, Maximo_Afiliados: 9999999 },
+            { Nombre_Rango: '1-100', Minimo_Afiliados: 1, Maximo_Afiliados: 100 },
+            { Nombre_Rango: '101-300', Minimo_Afiliados: 101, Maximo_Afiliados: 300 },
+            { Nombre_Rango: '301-1000', Minimo_Afiliados: 301, Maximo_Afiliados: 1000 },
+            { Nombre_Rango: '1001+', Minimo_Afiliados: 1001, Maximo_Afiliados: 9999999 },
         ];
 
         for (const rango of rangos) {
             const existe = await this.rangoAfiliadosSinSelloRepository.findOne({
                 where: {
-                    Nombre_Rango: rango.Nombre_Rango,
                     Minimo_Afiliados: rango.Minimo_Afiliados,
                     Maximo_Afiliados: rango.Maximo_Afiliados
                 }
@@ -940,380 +531,193 @@ export class SeederService implements OnModuleInit {
         }
     }
 
-    // Los rangos de consumo para tarifas sin sello (4 rangos de consumo por cada tarifa)
+    // Bloques de consumo M³ por cada tipo de tarifa sin sello (escalonado)
     private async createRangosConsumoSinSello() {
-        const tarifaDomipre = await this.tarifaLecturaSinSelloRepository.findOne({
-            where: { Nombre_Tipo_Tarifa: 'Domipre' }
-        });
-
-        const tarifaEmprego = await this.tarifaLecturaSinSelloRepository.findOne({
-            where: { Nombre_Tipo_Tarifa: 'Emprego' }
-        });
-
-        if (!tarifaDomipre || !tarifaEmprego) {
-            console.log('⚠️ No se encontraron las tarifas Domipre o Emprego Sin Sello');
-            return;
-        }
-
-        const rangos = [
-            // Rangos para Domipre Sin Sello
-            { Tipo_Tarifa: tarifaDomipre, Minimo_M3: 1, Maximo_M3: 10, Orden: 1 },
-            { Tipo_Tarifa: tarifaDomipre, Minimo_M3: 11, Maximo_M3: 30, Orden: 2 },
-            { Tipo_Tarifa: tarifaDomipre, Minimo_M3: 31, Maximo_M3: 60, Orden: 3 },
-            { Tipo_Tarifa: tarifaDomipre, Minimo_M3: 61, Maximo_M3: 999999, Orden: 4 },
-
-            // Rangos para Emprego Sin Sello
-            { Tipo_Tarifa: tarifaEmprego, Minimo_M3: 1, Maximo_M3: 10, Orden: 1 },
-            { Tipo_Tarifa: tarifaEmprego, Minimo_M3: 11, Maximo_M3: 30, Orden: 2 },
-            { Tipo_Tarifa: tarifaEmprego, Minimo_M3: 31, Maximo_M3: 60, Orden: 3 },
-            { Tipo_Tarifa: tarifaEmprego, Minimo_M3: 61, Maximo_M3: 999999, Orden: 4 },
+        const bloquesPorTipo: { tipo: string; bloques: [number, number][] }[] = [
+            { tipo: 'Residencial', bloques: [[1, 15], [16, 30], [31, 60], [61, 999999]] },
+            { tipo: 'Comercio y Servicios', bloques: [[1, 20], [21, 65], [66, 999999]] },
+            { tipo: 'Industrial', bloques: [[1, 120], [121, 999999]] },
+            { tipo: 'Preferencial', bloques: [[1, 120], [121, 999999]] },
+            { tipo: 'Grandes Consumidores', bloques: [[1, 2500], [2501, 6000], [6001, 999999]] },
+            { tipo: 'Residencial Pobreza Basica', bloques: [[1, 15], [16, 30], [31, 60], [61, 999999]] },
+            { tipo: 'Residencial Pobreza Extrema', bloques: [[1, 15], [16, 30], [31, 60], [61, 999999]] },
+            { tipo: 'Grandes Consumidores Residenciales Bien Social', bloques: [[1, 2500], [2501, 6000], [6001, 999999]] },
         ];
 
-        for (const rango of rangos) {
-            const existe = await this.rangoConsumoSinSelloRepository.findOne({
-                where: {
-                    Tipo_Tarifa: { Id_Tarifa_Lectura: rango.Tipo_Tarifa.Id_Tarifa_Lectura },
-                    Minimo_M3: rango.Minimo_M3,
-                    Maximo_M3: rango.Maximo_M3
-                }
+        for (const item of bloquesPorTipo) {
+            const tarifa = await this.tarifaLecturaSinSelloRepository.findOne({
+                where: { Nombre_Tipo_Tarifa: item.tipo }
             });
-
-            if (!existe) {
-                const nuevoRango = this.rangoConsumoSinSelloRepository.create(rango);
-                await this.rangoConsumoSinSelloRepository.save(nuevoRango);
-                const nombreTarifa = rango.Tipo_Tarifa.Id_Tarifa_Lectura === tarifaDomipre.Id_Tarifa_Lectura ? 'Domipre' : 'Emprego';
-                console.log(`✅ Rango Consumo Sin Sello ${nombreTarifa} creado: ${rango.Minimo_M3}-${rango.Maximo_M3} M³`);
-            }
-        }
-    }
-
-    // Los cargos fijos para tarifas sin sello (7 rangos de afiliados por cada tarifa)
-    private async createCargosFijosSinSello() {
-        const tarifaDomipre = await this.tarifaLecturaSinSelloRepository.findOne({
-            where: { Nombre_Tipo_Tarifa: 'Domipre' }
-        });
-
-        const tarifaEmprego = await this.tarifaLecturaSinSelloRepository.findOne({
-            where: { Nombre_Tipo_Tarifa: 'Emprego' }
-        });
-
-        if (!tarifaDomipre || !tarifaEmprego) {
-            console.log('⚠️ No se encontraron las tarifas Domipre o Emprego Sin Sello');
-            return;
-        }
-
-
-
-        const rangoAfiliados1 = await this.rangoAfiliadosSinSelloRepository.findOne({
-            where: { Minimo_Afiliados: 1, Maximo_Afiliados: 50 }
-        });
-
-        const rangoAfiliados2 = await this.rangoAfiliadosSinSelloRepository.findOne({
-            where: { Minimo_Afiliados: 51, Maximo_Afiliados: 100 }
-        });
-
-        const rangoAfiliados3 = await this.rangoAfiliadosSinSelloRepository.findOne({
-            where: { Minimo_Afiliados: 101, Maximo_Afiliados: 150 }
-        });
-
-        const rangoAfiliados4 = await this.rangoAfiliadosSinSelloRepository.findOne({
-            where: { Minimo_Afiliados: 151, Maximo_Afiliados: 300 }
-        });
-
-        const rangoAfiliados5 = await this.rangoAfiliadosSinSelloRepository.findOne({
-            where: { Minimo_Afiliados: 301, Maximo_Afiliados: 500 }
-        });
-
-        const rangoAfiliados6 = await this.rangoAfiliadosSinSelloRepository.findOne({
-            where: { Minimo_Afiliados: 501, Maximo_Afiliados: 1000 }
-        });
-
-        const rangoAfiliados7 = await this.rangoAfiliadosSinSelloRepository.findOne({
-            where: { Minimo_Afiliados: 1001, Maximo_Afiliados: 9999999 }
-        });
-
-        if (!rangoAfiliados1 || !rangoAfiliados2 || !rangoAfiliados3 || !rangoAfiliados4 || !rangoAfiliados5 || !rangoAfiliados6 || !rangoAfiliados7) {
-            console.log('⚠️ No se encontraron todos los rangos de afiliados Sin Sello');
-            return;
-        }
-
-        const configuracionCargosFijos = [
-            // Cargos fijos para Domipre
-            { Tipo_Tarifa: tarifaDomipre, afiliados: rangoAfiliados1, Cargo_Fijo_Por_Mes: 3409 },
-            { Tipo_Tarifa: tarifaDomipre, afiliados: rangoAfiliados2, Cargo_Fijo_Por_Mes: 3398 },
-            { Tipo_Tarifa: tarifaDomipre, afiliados: rangoAfiliados3, Cargo_Fijo_Por_Mes: 3384 },
-            { Tipo_Tarifa: tarifaDomipre, afiliados: rangoAfiliados4, Cargo_Fijo_Por_Mes: 3360 },
-            { Tipo_Tarifa: tarifaDomipre, afiliados: rangoAfiliados5, Cargo_Fijo_Por_Mes: 3312 },
-            { Tipo_Tarifa: tarifaDomipre, afiliados: rangoAfiliados6, Cargo_Fijo_Por_Mes: 3233 },
-            { Tipo_Tarifa: tarifaDomipre, afiliados: rangoAfiliados7, Cargo_Fijo_Por_Mes: 2883 },
-
-            // Cargos fijos para Emprego
-            { Tipo_Tarifa: tarifaEmprego, afiliados: rangoAfiliados1, Cargo_Fijo_Por_Mes: 3409 },
-            { Tipo_Tarifa: tarifaEmprego, afiliados: rangoAfiliados2, Cargo_Fijo_Por_Mes: 3398 },
-            { Tipo_Tarifa: tarifaEmprego, afiliados: rangoAfiliados3, Cargo_Fijo_Por_Mes: 3384 },
-            { Tipo_Tarifa: tarifaEmprego, afiliados: rangoAfiliados4, Cargo_Fijo_Por_Mes: 3360 },
-            { Tipo_Tarifa: tarifaEmprego, afiliados: rangoAfiliados5, Cargo_Fijo_Por_Mes: 3312 },
-            { Tipo_Tarifa: tarifaEmprego, afiliados: rangoAfiliados6, Cargo_Fijo_Por_Mes: 3233 },
-            { Tipo_Tarifa: tarifaEmprego, afiliados: rangoAfiliados7, Cargo_Fijo_Por_Mes: 2883 },
-        ];
-
-        for (const config of configuracionCargosFijos) {
-            // Buscar el rango de afiliados correspondiente
-            const rangoAfiliados = await this.rangoAfiliadosSinSelloRepository.findOne({
-                where: {
-                    Minimo_Afiliados: config.afiliados.Minimo_Afiliados,
-                    Maximo_Afiliados: config.afiliados.Maximo_Afiliados
-                }
-            });
-
-            if (!rangoAfiliados) {
-                console.log(`⚠️ Rango de afiliados no encontrado para ${config.afiliados.Minimo_Afiliados}-${config.afiliados.Maximo_Afiliados} afiliados`);
-                continue; // Saltar esta configuración y continuar con la siguiente
+            if (!tarifa) {
+                console.log(`⚠️ Tarifa Sin Sello no encontrada: ${item.tipo}`);
+                continue;
             }
 
-            // Verificar si el cargo fijo ya existe en la BD
-            const existe = await this.cargoFijoTarifasSinSelloRepository.findOne({
-                where: {
-                    Tipo_Tarifa: { Id_Tarifa_Lectura: config.Tipo_Tarifa.Id_Tarifa_Lectura },
-                    Rango_Afiliados: { Id_Rango_Afiliados: rangoAfiliados.Id_Rango_Afiliados }
-                }
-            });
-
-            // Si no existe, crearlo
-            if (!existe) {
-                const nuevoCargoFijo = this.cargoFijoTarifasSinSelloRepository.create({
-                    Tipo_Tarifa: config.Tipo_Tarifa,
-                    Rango_Afiliados: rangoAfiliados,
-                    Cargo_Fijo_Por_Mes: config.Cargo_Fijo_Por_Mes,
-                    Activo: true
+            let orden = 1;
+            for (const [min, max] of item.bloques) {
+                const existe = await this.rangoConsumoSinSelloRepository.findOne({
+                    where: {
+                        Tipo_Tarifa: { Id_Tarifa_Lectura: tarifa.Id_Tarifa_Lectura },
+                        Minimo_M3: min,
+                        Maximo_M3: max
+                    }
                 });
-                await this.cargoFijoTarifasSinSelloRepository.save(nuevoCargoFijo);
-                console.log(`✅ Cargo fijo creado para ${config.Tipo_Tarifa.Nombre_Tipo_Tarifa} con ${config.afiliados.Minimo_Afiliados}-${config.afiliados.Maximo_Afiliados} afiliados: ₡${config.Cargo_Fijo_Por_Mes}`);
+
+                if (!existe) {
+                    const nuevoRango = this.rangoConsumoSinSelloRepository.create({
+                        Tipo_Tarifa: tarifa,
+                        Minimo_M3: min,
+                        Maximo_M3: max,
+                        Orden: orden
+                    });
+                    await this.rangoConsumoSinSelloRepository.save(nuevoRango);
+                    console.log(`✅ Rango Consumo Sin Sello ${item.tipo} creado: ${min}-${max} M³`);
+                }
+                orden++;
             }
         }
     }
 
-    // Los precios por bloque de consumo para tarifas sin sello (7 rangos de afiliados por cada tarifa y 4 bloques de consumo por cada tarifa) ESTAS UNICAMENTE BOMBEO MIXTO, NO POR GRAVEDAD
+    // Cargos fijos sin sello: 3100 para rangos 1-100 y 101-300; 2800 para 301-1000 y 1001+
+    private async createCargosFijosSinSello() {
+        const cargoPorRango: Record<string, number> = {
+            '1-100': 3100,
+            '101-300': 3100,
+            '301-1000': 2800,
+            '1001+': 2800,
+        };
+
+        const tarifas = await this.tarifaLecturaSinSelloRepository.find();
+        const rangos = await this.rangoAfiliadosSinSelloRepository.find();
+
+        if (tarifas.length === 0 || rangos.length === 0) {
+            console.log('⚠️ Tarifas o rangos de abonados Sin Sello no encontrados');
+            return;
+        }
+
+        for (const tarifa of tarifas) {
+            for (const rango of rangos) {
+                const cargo = cargoPorRango[rango.Nombre_Rango];
+                if (cargo === undefined) continue;
+
+                const existe = await this.cargoFijoTarifasSinSelloRepository.findOne({
+                    where: {
+                        Tipo_Tarifa: { Id_Tarifa_Lectura: tarifa.Id_Tarifa_Lectura },
+                        Rango_Afiliados: { Id_Rango_Afiliados: rango.Id_Rango_Afiliados }
+                    }
+                });
+
+                if (!existe) {
+                    const nuevoCargoFijo = this.cargoFijoTarifasSinSelloRepository.create({
+                        Tipo_Tarifa: tarifa,
+                        Rango_Afiliados: rango,
+                        Cargo_Fijo_Por_Mes: cargo,
+                        Activo: true
+                    });
+                    await this.cargoFijoTarifasSinSelloRepository.save(nuevoCargoFijo);
+                    console.log(`✅ Cargo fijo Sin Sello: ${tarifa.Nombre_Tipo_Tarifa} / ${rango.Nombre_Rango} = ₡${cargo}`);
+                }
+            }
+        }
+    }
+
+    // Matriz precios por bloque consumo * rango abonados para los 8 tipos sin sello (cálculo escalonado)
     private async createPreciosBloqueConsumoSinSello() {
-        const tarifaDomipre = await this.tarifaLecturaSinSelloRepository.findOne({
-            where: { Nombre_Tipo_Tarifa: 'Domipre' }
-        });
+        type FilaMatriz = { tipo: string; bloque: [number, number]; precios: Record<string, number> };
 
-        const tarifaEmprego = await this.tarifaLecturaSinSelloRepository.findOne({
-            where: { Nombre_Tipo_Tarifa: 'Emprego' }
-        });
+        const matriz: FilaMatriz[] = [
+            // Residencial
+            { tipo: 'Residencial', bloque: [1, 15], precios: { '1-100': 360, '101-300': 298, '301-1000': 245, '1001+': 180 } },
+            { tipo: 'Residencial', bloque: [16, 30], precios: { '1-100': 416, '101-300': 344, '301-1000': 283, '1001+': 208 } },
+            { tipo: 'Residencial', bloque: [31, 60], precios: { '1-100': 486, '101-300': 402, '301-1000': 331, '1001+': 243 } },
+            { tipo: 'Residencial', bloque: [61, 999999], precios: { '1-100': 540, '101-300': 447, '301-1000': 368, '1001+': 270 } },
 
-        if (!tarifaDomipre || !tarifaEmprego) {
-            console.log('⚠️ Tarifa Domipre o Emprego no encontrada');
-            return;
-        }
+            // Comercio y Servicios
+            { tipo: 'Comercio y Servicios', bloque: [1, 20], precios: { '1-100': 508, '101-300': 330, '301-1000': 269, '1001+': 199 } },
+            { tipo: 'Comercio y Servicios', bloque: [21, 65], precios: { '1-100': 582, '101-300': 388, '301-1000': 315, '1001+': 236 } },
+            { tipo: 'Comercio y Servicios', bloque: [66, 999999], precios: { '1-100': 762, '101-300': 506, '301-1000': 410, '1001+': 302 } },
 
+            // Industrial
+            { tipo: 'Industrial', bloque: [1, 120], precios: { '1-100': 536, '101-300': 359, '301-1000': 289, '1001+': 211 } },
+            { tipo: 'Industrial', bloque: [121, 999999], precios: { '1-100': 832, '101-300': 548, '301-1000': 447, '1001+': 328 } },
 
+            // Preferencial
+            { tipo: 'Preferencial', bloque: [1, 120], precios: { '1-100': 480, '101-300': 313, '301-1000': 258, '1001+': 189 } },
+            { tipo: 'Preferencial', bloque: [121, 999999], precios: { '1-100': 709, '101-300': 461, '301-1000': 380, '1001+': 279 } },
 
-        const rangoConsumoDomipre1 = await this.rangoConsumoSinSelloRepository.findOne({
-            where: { Tipo_Tarifa: { Id_Tarifa_Lectura: tarifaDomipre.Id_Tarifa_Lectura }, Minimo_M3: 1, Maximo_M3: 10 }
-        });
+            // Grandes Consumidores
+            { tipo: 'Grandes Consumidores', bloque: [1, 2500], precios: { '1-100': 513, '101-300': 333, '301-1000': 271, '1001+': 201 } },
+            { tipo: 'Grandes Consumidores', bloque: [2501, 6000], precios: { '1-100': 663, '101-300': 437, '301-1000': 355, '1001+': 263 } },
+            { tipo: 'Grandes Consumidores', bloque: [6001, 999999], precios: { '1-100': 787, '101-300': 522, '301-1000': 423, '1001+': 313 } },
 
-        const rangoConsumoDomipre2 = await this.rangoConsumoSinSelloRepository.findOne({
-            where: { Tipo_Tarifa: { Id_Tarifa_Lectura: tarifaDomipre.Id_Tarifa_Lectura }, Minimo_M3: 11, Maximo_M3: 30 }
-        });
+            // Residencial Pobreza Básica
+            { tipo: 'Residencial Pobreza Basica', bloque: [1, 15], precios: { '1-100': 270, '101-300': 223, '301-1000': 184, '1001+': 135 } },
+            { tipo: 'Residencial Pobreza Basica', bloque: [16, 30], precios: { '1-100': 416, '101-300': 344, '301-1000': 283, '1001+': 208 } },
+            { tipo: 'Residencial Pobreza Basica', bloque: [31, 60], precios: { '1-100': 486, '101-300': 402, '301-1000': 331, '1001+': 243 } },
+            { tipo: 'Residencial Pobreza Basica', bloque: [61, 999999], precios: { '1-100': 540, '101-300': 447, '301-1000': 368, '1001+': 270 } },
 
-        const rangoConsumoDomipre3 = await this.rangoConsumoSinSelloRepository.findOne({
-            where: { Tipo_Tarifa: { Id_Tarifa_Lectura: tarifaDomipre.Id_Tarifa_Lectura }, Minimo_M3: 31, Maximo_M3: 60 }
-        });
+            // Residencial Pobreza Extrema
+            { tipo: 'Residencial Pobreza Extrema', bloque: [1, 15], precios: { '1-100': 180, '101-300': 149, '301-1000': 123, '1001+': 90 } },
+            { tipo: 'Residencial Pobreza Extrema', bloque: [16, 30], precios: { '1-100': 416, '101-300': 344, '301-1000': 283, '1001+': 208 } },
+            { tipo: 'Residencial Pobreza Extrema', bloque: [31, 60], precios: { '1-100': 486, '101-300': 402, '301-1000': 331, '1001+': 243 } },
+            { tipo: 'Residencial Pobreza Extrema', bloque: [61, 999999], precios: { '1-100': 540, '101-300': 447, '301-1000': 368, '1001+': 270 } },
 
-        const rangoConsumoDomipre4 = await this.rangoConsumoSinSelloRepository.findOne({
-            where: { Tipo_Tarifa: { Id_Tarifa_Lectura: tarifaDomipre.Id_Tarifa_Lectura }, Minimo_M3: 61, Maximo_M3: 999999 }
-        });
-
-        if (!rangoConsumoDomipre1 || !rangoConsumoDomipre2 || !rangoConsumoDomipre3 || !rangoConsumoDomipre4) {
-            console.log('⚠️ Uno o más rangos de consumo para Domipre Sin Sello no encontrados');
-            return;
-        }
-
-
-
-        const rangoConsumoEmprego1 = await this.rangoConsumoSinSelloRepository.findOne({
-            where: { Tipo_Tarifa: { Id_Tarifa_Lectura: tarifaEmprego.Id_Tarifa_Lectura }, Minimo_M3: 1, Maximo_M3: 10 }
-        });
-
-        const rangoConsumoEmprego2 = await this.rangoConsumoSinSelloRepository.findOne({
-            where: { Tipo_Tarifa: { Id_Tarifa_Lectura: tarifaEmprego.Id_Tarifa_Lectura }, Minimo_M3: 11, Maximo_M3: 30 }
-        });
-
-        const rangoConsumoEmprego3 = await this.rangoConsumoSinSelloRepository.findOne({
-            where: { Tipo_Tarifa: { Id_Tarifa_Lectura: tarifaEmprego.Id_Tarifa_Lectura }, Minimo_M3: 31, Maximo_M3: 60 }
-        });
-
-        const rangoConsumoEmprego4 = await this.rangoConsumoSinSelloRepository.findOne({
-            where: { Tipo_Tarifa: { Id_Tarifa_Lectura: tarifaEmprego.Id_Tarifa_Lectura }, Minimo_M3: 61, Maximo_M3: 999999 }
-        });
-
-        if (!rangoConsumoEmprego1 || !rangoConsumoEmprego2 || !rangoConsumoEmprego3 || !rangoConsumoEmprego4) {
-            console.log('⚠️ Uno o más rangos de consumo para Emprego Sin Sello no encontrados');
-            return;
-        }
-
-
-
-        const rangoAfiliados1 = await this.rangoAfiliadosSinSelloRepository.findOne({
-            where: { Minimo_Afiliados: 1, Maximo_Afiliados: 50 }
-        });
-
-        const rangoAfiliados2 = await this.rangoAfiliadosSinSelloRepository.findOne({
-            where: { Minimo_Afiliados: 51, Maximo_Afiliados: 100 }
-        });
-
-        const rangoAfiliados3 = await this.rangoAfiliadosSinSelloRepository.findOne({
-            where: { Minimo_Afiliados: 101, Maximo_Afiliados: 150 }
-        });
-
-        const rangoAfiliados4 = await this.rangoAfiliadosSinSelloRepository.findOne({
-            where: { Minimo_Afiliados: 151, Maximo_Afiliados: 300 }
-        });
-
-        const rangoAfiliados5 = await this.rangoAfiliadosSinSelloRepository.findOne({
-            where: { Minimo_Afiliados: 301, Maximo_Afiliados: 500 }
-        });
-
-        const rangoAfiliados6 = await this.rangoAfiliadosSinSelloRepository.findOne({
-            where: { Minimo_Afiliados: 501, Maximo_Afiliados: 1000 }
-        });
-
-        const rangoAfiliados7 = await this.rangoAfiliadosSinSelloRepository.findOne({
-            where: { Minimo_Afiliados: 1001, Maximo_Afiliados: 9999999 }
-        });
-
-        if (!rangoAfiliados1 || !rangoAfiliados2 || !rangoAfiliados3 || !rangoAfiliados4 || !rangoAfiliados5 || !rangoAfiliados6 || !rangoAfiliados7) {
-            console.log('⚠️ Uno o más rangos de afiliados no encontrados');
-            return;
-        }
-
-
-
-        const configuracionPrecios = [
-            // Bloques para Domipre Sin Sello por bombeo mixto
-            // Rango 0-10 M³
-            { consumo: rangoConsumoDomipre1, afiliados: rangoAfiliados1, precio: 398 },
-            { consumo: rangoConsumoDomipre1, afiliados: rangoAfiliados2, precio: 363 },
-            { consumo: rangoConsumoDomipre1, afiliados: rangoAfiliados3, precio: 287 },
-            { consumo: rangoConsumoDomipre1, afiliados: rangoAfiliados4, precio: 273 },
-            { consumo: rangoConsumoDomipre1, afiliados: rangoAfiliados5, precio: 210 },
-            { consumo: rangoConsumoDomipre1, afiliados: rangoAfiliados6, precio: 209 },
-            { consumo: rangoConsumoDomipre1, afiliados: rangoAfiliados7, precio: 136 },
-
-            // Rango 11-30 M³
-            { consumo: rangoConsumoDomipre2, afiliados: rangoAfiliados1, precio: 458 },
-            { consumo: rangoConsumoDomipre2, afiliados: rangoAfiliados2, precio: 417 },
-            { consumo: rangoConsumoDomipre2, afiliados: rangoAfiliados3, precio: 330 },
-            { consumo: rangoConsumoDomipre2, afiliados: rangoAfiliados4, precio: 314 },
-            { consumo: rangoConsumoDomipre2, afiliados: rangoAfiliados5, precio: 241 },
-            { consumo: rangoConsumoDomipre2, afiliados: rangoAfiliados6, precio: 241 },
-            { consumo: rangoConsumoDomipre2, afiliados: rangoAfiliados7, precio: 156 },
-
-            // Rango 31-60 M³
-            { consumo: rangoConsumoDomipre3, afiliados: rangoAfiliados1, precio: 573 },
-            { consumo: rangoConsumoDomipre3, afiliados: rangoAfiliados2, precio: 521 },
-            { consumo: rangoConsumoDomipre3, afiliados: rangoAfiliados3, precio: 413 },
-            { consumo: rangoConsumoDomipre3, afiliados: rangoAfiliados4, precio: 392 },
-            { consumo: rangoConsumoDomipre3, afiliados: rangoAfiliados5, precio: 302 },
-            { consumo: rangoConsumoDomipre3, afiliados: rangoAfiliados6, precio: 301 },
-            { consumo: rangoConsumoDomipre3, afiliados: rangoAfiliados7, precio: 195 },
-
-            // Rango 61+ M³
-            { consumo: rangoConsumoDomipre4, afiliados: rangoAfiliados1, precio: 850 },
-            { consumo: rangoConsumoDomipre4, afiliados: rangoAfiliados2, precio: 782 },
-            { consumo: rangoConsumoDomipre4, afiliados: rangoAfiliados3, precio: 619 },
-            { consumo: rangoConsumoDomipre4, afiliados: rangoAfiliados4, precio: 588 },
-            { consumo: rangoConsumoDomipre4, afiliados: rangoAfiliados5, precio: 453 },
-            { consumo: rangoConsumoDomipre4, afiliados: rangoAfiliados6, precio: 452 },
-            { consumo: rangoConsumoDomipre4, afiliados: rangoAfiliados7, precio: 293 },
-
-
-
-            // Bloques para Emprego Sin Sello
-            // Rango 0-10 M³
-            { consumo: rangoConsumoEmprego1, afiliados: rangoAfiliados1, precio: 598 },
-            { consumo: rangoConsumoEmprego1, afiliados: rangoAfiliados2, precio: 544 },
-            { consumo: rangoConsumoEmprego1, afiliados: rangoAfiliados3, precio: 431 },
-            { consumo: rangoConsumoEmprego1, afiliados: rangoAfiliados4, precio: 409 },
-            { consumo: rangoConsumoEmprego1, afiliados: rangoAfiliados5, precio: 315 },
-            { consumo: rangoConsumoEmprego1, afiliados: rangoAfiliados6, precio: 314 },
-            { consumo: rangoConsumoEmprego1, afiliados: rangoAfiliados7, precio: 204 },
-
-            // Rango 11-30 M³
-            { consumo: rangoConsumoEmprego2, afiliados: rangoAfiliados1, precio: 687 },
-            { consumo: rangoConsumoEmprego2, afiliados: rangoAfiliados2, precio: 626 },
-            { consumo: rangoConsumoEmprego2, afiliados: rangoAfiliados3, precio: 495 },
-            { consumo: rangoConsumoEmprego2, afiliados: rangoAfiliados4, precio: 471 },
-            { consumo: rangoConsumoEmprego2, afiliados: rangoAfiliados5, precio: 362 },
-            { consumo: rangoConsumoEmprego2, afiliados: rangoAfiliados6, precio: 361 },
-            { consumo: rangoConsumoEmprego2, afiliados: rangoAfiliados7, precio: 234 },
-
-            // Rango 31-60 M³
-            { consumo: rangoConsumoEmprego3, afiliados: rangoAfiliados1, precio: 859 },
-            { consumo: rangoConsumoEmprego3, afiliados: rangoAfiliados2, precio: 782 },
-            { consumo: rangoConsumoEmprego3, afiliados: rangoAfiliados3, precio: 619 },
-            { consumo: rangoConsumoEmprego3, afiliados: rangoAfiliados4, precio: 588 },
-            { consumo: rangoConsumoEmprego3, afiliados: rangoAfiliados5, precio: 453 },
-            { consumo: rangoConsumoEmprego3, afiliados: rangoAfiliados6, precio: 452 },
-            { consumo: rangoConsumoEmprego3, afiliados: rangoAfiliados7, precio: 293 },
-
-            // Rango 61+ M³
-            { consumo: rangoConsumoEmprego4, afiliados: rangoAfiliados1, precio: 859 },
-            { consumo: rangoConsumoEmprego4, afiliados: rangoAfiliados2, precio: 782 },
-            { consumo: rangoConsumoEmprego4, afiliados: rangoAfiliados3, precio: 619 },
-            { consumo: rangoConsumoEmprego4, afiliados: rangoAfiliados4, precio: 588 },
-            { consumo: rangoConsumoEmprego4, afiliados: rangoAfiliados5, precio: 453 },
-            { consumo: rangoConsumoEmprego4, afiliados: rangoAfiliados6, precio: 452 },
-            { consumo: rangoConsumoEmprego4, afiliados: rangoAfiliados7, precio: 293 },
+            // GC Bien Social
+            { tipo: 'Grandes Consumidores Residenciales Bien Social', bloque: [1, 2500], precios: { '1-100': 360, '101-300': 234, '301-1000': 193, '1001+': 142 } },
+            { tipo: 'Grandes Consumidores Residenciales Bien Social', bloque: [2501, 6000], precios: { '1-100': 663, '101-300': 437, '301-1000': 355, '1001+': 263 } },
+            { tipo: 'Grandes Consumidores Residenciales Bien Social', bloque: [6001, 999999], precios: { '1-100': 787, '101-300': 522, '301-1000': 423, '1001+': 313 } },
         ];
 
-        // Iterar sobre cada configuración
-        for (const config of configuracionPrecios) {
-            // Buscar el rango de consumo correspondiente
+        const rangosAbonados = await this.rangoAfiliadosSinSelloRepository.find();
+        const rangosAbonadosMap = new Map(rangosAbonados.map(r => [r.Nombre_Rango, r]));
+
+        for (const fila of matriz) {
+            const tarifa = await this.tarifaLecturaSinSelloRepository.findOne({
+                where: { Nombre_Tipo_Tarifa: fila.tipo }
+            });
+            if (!tarifa) {
+                console.log(`⚠️ Tarifa Sin Sello no encontrada: ${fila.tipo}`);
+                continue;
+            }
+
             const rangoConsumo = await this.rangoConsumoSinSelloRepository.findOne({
                 where: {
-                    Tipo_Tarifa: { Id_Tarifa_Lectura: tarifaDomipre.Id_Tarifa_Lectura },
-                    Minimo_M3: config.consumo.Minimo_M3,
-                    Maximo_M3: config.consumo.Maximo_M3
+                    Tipo_Tarifa: { Id_Tarifa_Lectura: tarifa.Id_Tarifa_Lectura },
+                    Minimo_M3: fila.bloque[0],
+                    Maximo_M3: fila.bloque[1]
                 }
             });
-
-            // Buscar el rango de afiliados correspondiente
-            const rangoAfiliados = await this.rangoAfiliadosSinSelloRepository.findOne({
-                where: {
-                    Minimo_Afiliados: config.afiliados.Minimo_Afiliados,
-                    Maximo_Afiliados: config.afiliados.Maximo_Afiliados
-                }
-            });
-
-            // Validar que ambos rangos existan
-            if (!rangoConsumo || !rangoAfiliados) {
-                console.log(`⚠️ Rango no encontrado: ${config.consumo.Minimo_M3}-${config.consumo.Maximo_M3} M³ / ${config.afiliados.Minimo_Afiliados}-${config.afiliados.Maximo_Afiliados} afiliados`);
-                continue; // Saltar esta configuración y continuar con la siguiente
+            if (!rangoConsumo) {
+                console.log(`⚠️ Rango consumo no encontrado: ${fila.tipo} ${fila.bloque[0]}-${fila.bloque[1]} M³`);
+                continue;
             }
 
-            // Verificar si el precio ya existe en la BD
-            const existe = await this.precioBloqueConsumoSinSelloRepository.findOne({
-                where: {
-                    Tipo_Tarifa: { Id_Tarifa_Lectura: tarifaDomipre.Id_Tarifa_Lectura },
-                    Rango_Consumo: { Id_Rango_Consumo: rangoConsumo.Id_Rango_Consumo },
-                    Rango_Afiliados: { Id_Rango_Afiliados: rangoAfiliados.Id_Rango_Afiliados }
+            for (const [nombreRango, precio] of Object.entries(fila.precios)) {
+                const rangoAbonados = rangosAbonadosMap.get(nombreRango);
+                if (!rangoAbonados) {
+                    console.log(`⚠️ Rango abonados no encontrado: ${nombreRango}`);
+                    continue;
                 }
-            });
 
-            // Si no existe, crearlo
-            if (!existe) {
-                const nuevoPrecio = this.precioBloqueConsumoSinSelloRepository.create({
-                    Tipo_Tarifa: tarifaDomipre,
-                    Rango_Consumo: rangoConsumo,
-                    Rango_Afiliados: rangoAfiliados,
-                    Precio_Por_M3: config.precio,
-                    Activo: true
+                const existe = await this.precioBloqueConsumoSinSelloRepository.findOne({
+                    where: {
+                        Tipo_Tarifa: { Id_Tarifa_Lectura: tarifa.Id_Tarifa_Lectura },
+                        Rango_Consumo: { Id_Rango_Consumo: rangoConsumo.Id_Rango_Consumo },
+                        Rango_Afiliados: { Id_Rango_Afiliados: rangoAbonados.Id_Rango_Afiliados }
+                    }
                 });
-                await this.precioBloqueConsumoSinSelloRepository.save(nuevoPrecio);
-                console.log(`✅ Precio creado: ${config.consumo.Minimo_M3}-${config.consumo.Maximo_M3} M³ * ${config.afiliados.Minimo_Afiliados}-${config.afiliados.Maximo_Afiliados} afiliados = ₡${config.precio}/M³`);
+
+                if (!existe) {
+                    const nuevoPrecio = this.precioBloqueConsumoSinSelloRepository.create({
+                        Tipo_Tarifa: tarifa,
+                        Rango_Consumo: rangoConsumo,
+                        Rango_Afiliados: rangoAbonados,
+                        Precio_Por_M3: precio,
+                        Activo: true
+                    });
+                    await this.precioBloqueConsumoSinSelloRepository.save(nuevoPrecio);
+                    console.log(`✅ Precio Sin Sello: ${fila.tipo} / ${fila.bloque[0]}-${fila.bloque[1]} M³ / ${nombreRango} abonados = ₡${precio}/M³`);
+                }
             }
         }
     }
@@ -1324,46 +728,58 @@ export class SeederService implements OnModuleInit {
     // ENTIDADES RELACIONADAS CON RECURSOS HÍDRICOS SIN SELLO
     // ======================================================================
     private async createRecursosHidricosSinSello() {
-        const recursos = [
-            { Nombre: 'Recurso Hidrico Domipre', Activo: true },
-            { Nombre: 'Recurso Hidrico Emprego', Activo: true }
-        ];
+        const NOMBRE_NUEVO = 'Tarifa Recurso Hidrico';
 
-        for (const recurso of recursos) {
-            const existe = await this.recursoHidricoSinSelloRepository.findOne({
-                where: { Nombre: recurso.Nombre }
+        // Renombrar entrada legacy "Recurso Hidrico Domipre" si existe
+        const legacyDomipre = await this.recursoHidricoSinSelloRepository.findOne({
+            where: { Nombre: 'Recurso Hidrico Domipre' }
+        });
+        if (legacyDomipre) {
+            legacyDomipre.Nombre = NOMBRE_NUEVO;
+            await this.recursoHidricoSinSelloRepository.save(legacyDomipre);
+        }
+
+        // Eliminar entrada legacy "Recurso Hidrico Emprego" (incluyendo sus bloques y precios)
+        const legacyEmprego = await this.recursoHidricoSinSelloRepository.findOne({
+            where: { Nombre: 'Recurso Hidrico Emprego' }
+        });
+        if (legacyEmprego) {
+            const bloquesEmprego = await this.bloqueRecursoHidricoSinSelloRepository.find({
+                where: { Recurso_Hidrico: { Id_Recurso_Hidrico: legacyEmprego.Id_Recurso_Hidrico } }
             });
-
-            if (!existe) {
-                const nuevoRecurso = this.recursoHidricoSinSelloRepository.create(recurso);
-                await this.recursoHidricoSinSelloRepository.save(nuevoRecurso);
+            for (const bloque of bloquesEmprego) {
+                await this.precioRecursoHidricoSinSelloRepository.delete({
+                    Bloque_Recurso_Hidrico: { Id_Bloque_Recurso_Hidrico: bloque.Id_Bloque_Recurso_Hidrico }
+                });
+                await this.bloqueRecursoHidricoSinSelloRepository.delete({ Id_Bloque_Recurso_Hidrico: bloque.Id_Bloque_Recurso_Hidrico });
             }
+            await this.recursoHidricoSinSelloRepository.delete({ Id_Recurso_Hidrico: legacyEmprego.Id_Recurso_Hidrico });
+        }
+
+        const existe = await this.recursoHidricoSinSelloRepository.findOne({
+            where: { Nombre: NOMBRE_NUEVO }
+        });
+        if (!existe) {
+            const nuevo = this.recursoHidricoSinSelloRepository.create({ Nombre: NOMBRE_NUEVO, Activo: true });
+            await this.recursoHidricoSinSelloRepository.save(nuevo);
         }
     }
 
     private async createBloquesRecursoHidricoSinSello() {
-        const recursoHidricoDomipre = await this.recursoHidricoSinSelloRepository.findOne({
-            where: { Nombre: 'Recurso Hidrico Domipre' }
+        const recursoHidrico = await this.recursoHidricoSinSelloRepository.findOne({
+            where: { Nombre: 'Tarifa Recurso Hidrico' }
         });
 
-        const recursoHidricoEmprego = await this.recursoHidricoSinSelloRepository.findOne({
-            where: { Nombre: 'Recurso Hidrico Emprego' }
-        });
-
-        if (!recursoHidricoDomipre || !recursoHidricoEmprego) {
-            console.log('⚠️ No se encontró el Recurso Hidrico Sin Sello');
+        if (!recursoHidrico) {
+            console.log('⚠️ No se encontró Tarifa Recurso Hidrico');
             return;
         }
 
         const bloques = [
-            { Recurso_Hidrico: recursoHidricoDomipre, Minimo_M3: 1, Maximo_M3: 15, Orden: 1 },
-            { Recurso_Hidrico: recursoHidricoDomipre, Minimo_M3: 16, Maximo_M3: 30, Orden: 2 },
-            { Recurso_Hidrico: recursoHidricoDomipre, Minimo_M3: 31, Maximo_M3: 60, Orden: 3 },
-            { Recurso_Hidrico: recursoHidricoDomipre, Minimo_M3: 61, Maximo_M3: 999999, Orden: 4 },
-
-            { Recurso_Hidrico: recursoHidricoEmprego, Minimo_M3: 1, Maximo_M3: 20, Orden: 1 },
-            { Recurso_Hidrico: recursoHidricoEmprego, Minimo_M3: 21, Maximo_M3: 65, Orden: 2 },
-            { Recurso_Hidrico: recursoHidricoEmprego, Minimo_M3: 66, Maximo_M3: 999999, Orden: 3 },
+            { Recurso_Hidrico: recursoHidrico, Minimo_M3: 1, Maximo_M3: 15, Orden: 1 },
+            { Recurso_Hidrico: recursoHidrico, Minimo_M3: 16, Maximo_M3: 30, Orden: 2 },
+            { Recurso_Hidrico: recursoHidrico, Minimo_M3: 31, Maximo_M3: 60, Orden: 3 },
+            { Recurso_Hidrico: recursoHidrico, Minimo_M3: 61, Maximo_M3: 999999, Orden: 4 },
         ];
 
         for (const bloque of bloques) {
@@ -1383,126 +799,44 @@ export class SeederService implements OnModuleInit {
     }
 
     private async createPreciosRecursoHidricoSinSello() {
-        // Primero buscar los recursos hídricos por nombre
-        const recursoHidricoDomipre = await this.recursoHidricoSinSelloRepository.findOne({
-            where: { Nombre: 'Recurso Hidrico Domipre' }
+        const recursoHidrico = await this.recursoHidricoSinSelloRepository.findOne({
+            where: { Nombre: 'Tarifa Recurso Hidrico' }
         });
 
-        const recursoHidricoEmprego = await this.recursoHidricoSinSelloRepository.findOne({
-            where: { Nombre: 'Recurso Hidrico Emprego' }
-        });
-
-        if (!recursoHidricoDomipre || !recursoHidricoEmprego) {
-            console.log('⚠️ No se encontraron los Recursos Hídricos Sin Sello');
+        if (!recursoHidrico) {
+            console.log('⚠️ No se encontró Tarifa Recurso Hidrico');
             return;
         }
 
-        // Buscar bloques usando el ID del recurso hídrico y cargar las relaciones
-        const bloqueRecursoHidricoDomipre1 = await this.bloqueRecursoHidricoSinSelloRepository.findOne({
-            where: { 
-                Recurso_Hidrico: { Id_Recurso_Hidrico: recursoHidricoDomipre.Id_Recurso_Hidrico }, 
-                Minimo_M3: 1, 
-                Maximo_M3: 15 
-            },
-            relations: ['Recurso_Hidrico']
-        });
+        const preciosPorBloque: { min: number; max: number; precio: number }[] = [
+            { min: 1, max: 15, precio: 42 },
+            { min: 16, max: 30, precio: 45 },
+            { min: 31, max: 60, precio: 50 },
+            { min: 61, max: 999999, precio: 57 },
+        ];
 
-        const bloqueRecursoHidricoDomipre2 = await this.bloqueRecursoHidricoSinSelloRepository.findOne({
-            where: { 
-                Recurso_Hidrico: { Id_Recurso_Hidrico: recursoHidricoDomipre.Id_Recurso_Hidrico }, 
-                Minimo_M3: 16, 
-                Maximo_M3: 30 
-            },
-            relations: ['Recurso_Hidrico']
-        });
-
-        const bloqueRecursoHidricoDomipre3 = await this.bloqueRecursoHidricoSinSelloRepository.findOne({
-            where: { 
-                Recurso_Hidrico: { Id_Recurso_Hidrico: recursoHidricoDomipre.Id_Recurso_Hidrico }, 
-                Minimo_M3: 31, 
-                Maximo_M3: 60 
-            },
-            relations: ['Recurso_Hidrico']
-        });
-
-        const bloqueRecursoHidricoDomipre4 = await this.bloqueRecursoHidricoSinSelloRepository.findOne({
-            where: { 
-                Recurso_Hidrico: { Id_Recurso_Hidrico: recursoHidricoDomipre.Id_Recurso_Hidrico }, 
-                Minimo_M3: 61, 
-                Maximo_M3: 999999 
-            },
-            relations: ['Recurso_Hidrico']
-        });
-
-        if (!bloqueRecursoHidricoDomipre1 || !bloqueRecursoHidricoDomipre2 || !bloqueRecursoHidricoDomipre3 || !bloqueRecursoHidricoDomipre4) {
-            console.log('⚠️ No se encontraron todos los bloques de Domipre para Precio Recurso Hídrico Sin Sello');
-            return;
-        }
-
-
-
-        const bloqueRecursoHidricoEmprego1 = await this.bloqueRecursoHidricoSinSelloRepository.findOne({
-            where: { 
-                Recurso_Hidrico: { Id_Recurso_Hidrico: recursoHidricoEmprego.Id_Recurso_Hidrico }, 
-                Minimo_M3: 1,
-                Maximo_M3: 20 
-            },
-            relations: ['Recurso_Hidrico']
-        });
-
-        const bloqueRecursoHidricoEmprego2 = await this.bloqueRecursoHidricoSinSelloRepository.findOne({
-            where: { 
-                Recurso_Hidrico: { Id_Recurso_Hidrico: recursoHidricoEmprego.Id_Recurso_Hidrico }, 
-                Minimo_M3: 21, 
-                Maximo_M3: 65 
-            },
-            relations: ['Recurso_Hidrico']
-        });
-
-        const bloqueRecursoHidricoEmprego3 = await this.bloqueRecursoHidricoSinSelloRepository.findOne({
-            where: { 
-                Recurso_Hidrico: { Id_Recurso_Hidrico: recursoHidricoEmprego.Id_Recurso_Hidrico }, 
-                Minimo_M3: 66, 
-                Maximo_M3: 999999 
-            },
-            relations: ['Recurso_Hidrico']
-        });
-
-        if (!bloqueRecursoHidricoEmprego1 || !bloqueRecursoHidricoEmprego2 || !bloqueRecursoHidricoEmprego3) {
-            console.log('⚠️ No se encontraron todos los bloques de Emprego para Precio Recurso Hídrico Sin Sello');
-            return;
-        }
-
-        const precios = [
-            // Precios por M3 de recurso hídrico para Domipre Sin Sello por bombeo mixto
-            { Bloque_Recurso_Hidrico: bloqueRecursoHidricoDomipre1, Precio_Por_M3: 42, Activo: true },
-            { Bloque_Recurso_Hidrico: bloqueRecursoHidricoDomipre2, Precio_Por_M3: 45, Activo: true },
-            { Bloque_Recurso_Hidrico: bloqueRecursoHidricoDomipre3, Precio_Por_M3: 50, Activo: true },
-            { Bloque_Recurso_Hidrico: bloqueRecursoHidricoDomipre4, Precio_Por_M3: 57, Activo: true },
-
-            // Precios por M3 de recurso hídrico para Emprego Sin Sello por bombeo mixto
-            { Bloque_Recurso_Hidrico: bloqueRecursoHidricoEmprego1, Precio_Por_M3: 42, Activo: true },
-            { Bloque_Recurso_Hidrico: bloqueRecursoHidricoEmprego2, Precio_Por_M3: 49, Activo: true },
-            { Bloque_Recurso_Hidrico: bloqueRecursoHidricoEmprego3, Precio_Por_M3: 58, Activo: true },
-        ]
-
-        for (const precio of precios) {
-            const existe = await this.precioRecursoHidricoSinSelloRepository.findOne({
+        for (const item of preciosPorBloque) {
+            const bloque = await this.bloqueRecursoHidricoSinSelloRepository.findOne({
                 where: {
-                    Bloque_Recurso_Hidrico: { Id_Bloque_Recurso_Hidrico: precio.Bloque_Recurso_Hidrico.Id_Bloque_Recurso_Hidrico },
-                    Precio_Por_M3: precio.Precio_Por_M3
+                    Recurso_Hidrico: { Id_Recurso_Hidrico: recursoHidrico.Id_Recurso_Hidrico },
+                    Minimo_M3: item.min,
+                    Maximo_M3: item.max
                 }
+            });
+            if (!bloque) continue;
+
+            const existe = await this.precioRecursoHidricoSinSelloRepository.findOne({
+                where: { Bloque_Recurso_Hidrico: { Id_Bloque_Recurso_Hidrico: bloque.Id_Bloque_Recurso_Hidrico } }
             });
 
             if (!existe) {
-                const nuevoPrecio = this.precioRecursoHidricoSinSelloRepository.create(precio);
-                await this.precioRecursoHidricoSinSelloRepository.save(nuevoPrecio);
-
-                if (precio.Bloque_Recurso_Hidrico.Recurso_Hidrico.Nombre === 'Recurso Hidrico Domipre') {
-                    console.log(`✅ Precio Recurso Hidrico Domipre Sin Sello creado: ₡${precio.Precio_Por_M3}/M³`);
-                } else if (precio.Bloque_Recurso_Hidrico.Recurso_Hidrico.Nombre === 'Recurso Hidrico Emprego') {
-                    console.log(`✅ Precio Recurso Hidrico Emprego Sin Sello creado: ₡${precio.Precio_Por_M3}/M³`);
-                }
+                const nuevo = this.precioRecursoHidricoSinSelloRepository.create({
+                    Bloque_Recurso_Hidrico: bloque,
+                    Precio_Por_M3: item.precio,
+                    Activo: true
+                });
+                await this.precioRecursoHidricoSinSelloRepository.save(nuevo);
+                console.log(`✅ Precio Tarifa Recurso Hidrico: ${item.min}-${item.max} M³ = ₡${item.precio}/M³`);
             }
         }
     }

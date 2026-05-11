@@ -1,5 +1,4 @@
-import { totalLecturasService } from './totalLecturas.service';
-import { Body, Controller, Get, Param, Patch, Post, Put, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Put, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { LecturaService } from "./lectura.service";
 import { CreateLecturaDTO } from "./LecturaDTO'S/CreateLectura.dto";
 import { UpdateLecturaDTO } from "./LecturaDTO'S/UpdateLectura.dto";
@@ -13,7 +12,6 @@ import { ApiProperty } from "@nestjs/swagger";
 @UseGuards(JwtAuthGuard)
 export class LecturaController {
     constructor(
-        private readonly totalLecturasService: totalLecturasService,
         private readonly lecturaService: LecturaService
     ) { }
 
@@ -55,12 +53,6 @@ export class LecturaController {
     ) {
         return this.lecturaService.getLecturasEntreFechas(fechaInicio, fechaFin);
     }
-    @Get('/sello-calidad')
-    @ApiProperty({description: 'Obtiene el estado actual del sello de calidad en las lecturas (activado/desactivado).'})
-    getSelloCalidad() {
-        return this.lecturaService.getSelloCalidad();
-    }
-
     @Post('/cargar-csv')
     @ApiProperty({ description: 'Carga un archivo CSV con las lecturas.' })
     @UseInterceptors(FileInterceptor('CSV'))
@@ -90,22 +82,4 @@ export class LecturaController {
         return this.lecturaService.updateLectura(dto, idLectura, usuario.Id_Usuario);
     }
 
-    @Patch('Aplicar-sello-calidad')
-    @ApiProperty({ description: 'Alterna el estado del sello de calidad en las lecturas (activar/desactivar automáticamente).' })
-    aplicarSelloCalidad(
-        @GetUser() usuario: Usuario
-    ) {
-        return this.lecturaService.APlicarSelloALecturas(usuario.Id_Usuario);
-    }
-
-
-
-    @Post('por-pagar/:idTipoTarifa')
-    @ApiProperty({ description: 'Calcula el total a pagar por una lectura específica.' })
-    calcularTotalAPagar(
-        @Param('consumo') consumo: number,
-        @Param('idTipoTarifa') idTipoTarifa: number
-    ) {
-        return this.totalLecturasService.CalcularTotalAPagar(consumo, idTipoTarifa);
-    }
 }

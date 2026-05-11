@@ -14,20 +14,12 @@ import { UsuariosModule } from "../Usuarios/Modules/usuarios.module";
 import { InventarioModule } from "../Inventario/inventario.module";
 import { AfiliadosModule } from "../Afiliados/afiliados.module";
 import { EstadoAfiliado } from "../Afiliados/AfiliadoEntities/EstadoAfiliado.Entity";
-import { totalLecturasService } from "./totalLecturas.service";
-import { RangoAfiliados } from "./LecturaEntities/RangoAfiliados.Entity";
-import { RangoConsumo } from "./LecturaEntities/RangoConsumo.Entity";
-import { AplicarSelloCalidad } from './LecturaEntities/AplicarSelloCalidad.Entity';
-import { CargoFijoTarifasConSello } from '../Tarifas/Con Sello Calidad/TarifaConSelloEntities/CargoFijoTarifasConSello.Entity';
-import { TarifaLecturaConSello } from '../Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaLecturaConSello.Entity';
-import { TipoTarifaServiciosFijosConSello } from '../Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaServiciosFijos.Entity';
-import { TipoTarifaVentaAguaConSello } from '../Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaVentaAgua.Entity';
-import { TipoTarifaCargoFijoConSello } from '../Tarifas/Con Sello Calidad/TarifaConSelloEntities/TipoTarifaCargoFijoConSello.Entity';
+import { TarifaLecturaSinSello } from '../Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/TarifaLecturaSinSello.Entity';
 import { FacturaModule } from '../Facturas/factura.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Lectura, TarifaLecturaConSello, CargoFijoTarifasConSello, TipoTarifaServiciosFijosConSello, TipoTarifaVentaAguaConSello, TipoTarifaCargoFijoConSello, RangoAfiliados, RangoConsumo, Usuario, Medidor, EstadoMedidor, Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado, AplicarSelloCalidad]), 
+        TypeOrmModule.forFeature([Lectura, TarifaLecturaSinSello, Usuario, Medidor, EstadoMedidor, Afiliado, AfiliadoFisico, AfiliadoJuridico, EstadoAfiliado]),
         forwardRef(() => UsuariosModule),
         forwardRef(() => AuditoriaModule),
         forwardRef(() => InventarioModule),
@@ -35,7 +27,7 @@ import { FacturaModule } from '../Facturas/factura.module';
         forwardRef(() => FacturaModule)
     ],
     controllers: [LecturaController],
-    providers: [LecturaService, totalLecturasService],
-    exports: [LecturaService, totalLecturasService],
+    providers: [LecturaService],
+    exports: [LecturaService],
 })
 export class LecturaModule { }

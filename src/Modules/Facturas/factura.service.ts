@@ -206,13 +206,15 @@ export class FacturaService {
         return Number(cargoFijo.Cargo_Fijo_Por_Mes);
     }
 
-    // Calcula el cargo por consumo de agua según rangos progresivos (similar a impuestos)
+    // Calcula el cargo por consumo de agua según rangos progresivos (cálculo escalonado).
+    // Si esResidencialExento === true: los primeros 30 M³ están exentos de IVA, el resto paga 13%.
+    // Si esResidencialExento === false (tarifa comercial/industrial/etc.): IVA aplica desde el primer M³.
     private async calcularCargoConsumo(
         consumoM3: number,
         idTipoTarifa: number,
-        idRangoAfiliados: number
-    ): Promise<{ cargo: number; detalles: string[] }> {
-        // Obtener TODOS los rangos de consumo para este tipo de tarifa, ordenados
+        idRangoAfiliados: number,
+        esResidencialExento: boolean
+    ): Promise<{ cargo: number; iva: number; detalles: string[] }> {
         const rangosConsumo = await this.rangoConsumoSinSelloRepository.find({
             where: { Tipo_Tarifa: { Id_Tarifa_Lectura: idTipoTarifa } },
             order: { Minimo_M3: 'ASC' }
@@ -224,15 +226,18 @@ export class FacturaService {
             );
         }
 
+        const TASA_IVA = 0.13;
+        const UMBRAL_EXENCION = 30;
+
         let totalCargo = 0;
+        let cargoSujetoIva = 0;
         let consumoRestante = consumoM3;
+        let consumoAcumulado = 0;
         const detalles: string[] = [];
 
-        // Calcular cargo progresivo por cada rango
         for (const rango of rangosConsumo) {
             if (consumoRestante <= 0) break;
 
-            // Obtener el precio para este rango específico
             const precioBloque = await this.precioBloqueConsumoSinSelloRepository.findOne({
                 where: {
                     Tipo_Tarifa: { Id_Tarifa_Lectura: idTipoTarifa },
@@ -244,12 +249,27 @@ export class FacturaService {
 
             if (!precioBloque) continue;
 
-            // Calcular cuántos M³ caen en este rango
             const rangoBloque = rango.Maximo_M3 - rango.Minimo_M3 + 1;
             const m3EnRango = Math.min(consumoRestante, rangoBloque);
 
             const cargoRango = m3EnRango * precioBloque.Precio_Por_M3;
             totalCargo += cargoRango;
+
+            // M³ sujetos a IVA dentro de este bloque
+            let m3SujetosIva = 0;
+            if (!esResidencialExento) {
+                m3SujetosIva = m3EnRango;
+            } else if (consumoAcumulado + m3EnRango > UMBRAL_EXENCION) {
+                // Si la porción del bloque cae después del umbral, solo lo que excede paga IVA
+                const inicioPorcionIva = Math.max(consumoAcumulado, UMBRAL_EXENCION);
+                m3SujetosIva = (consumoAcumulado + m3EnRango) - inicioPorcionIva;
+            }
+
+            if (m3SujetosIva > 0) {
+                cargoSujetoIva += m3SujetosIva * precioBloque.Precio_Por_M3;
+            }
+
+            consumoAcumulado += m3EnRango;
             consumoRestante -= m3EnRango;
 
             const detalle = `  Rango ${rango.Minimo_M3}-${rango.Maximo_M3} M³: ${m3EnRango} M³ * ₡${precioBloque.Precio_Por_M3}/M³ = ₡${cargoRango.toFixed(2)}`;
@@ -257,29 +277,25 @@ export class FacturaService {
             console.log(detalle);
         }
 
-        console.log(`💧 Cargo Consumo Total: ₡${totalCargo.toFixed(2)}`);
-        return { cargo: totalCargo, detalles };
+        const iva = cargoSujetoIva * TASA_IVA;
+
+        console.log(`💧 Cargo Consumo Total: ₡${totalCargo.toFixed(2)} | IVA: ₡${iva.toFixed(2)}`);
+        return { cargo: totalCargo, iva, detalles };
     }
 
     /**
-     * Calcula el cargo por recurso hídrico usando bloques progresivos
-     * (Similar a impuestos progresivos: cada bloque de consumo tiene su propio precio)
+     * Calcula el cargo por recurso hídrico usando bloques progresivos.
+     * Tarifa única para todos los tipos de tarifa.
      */
     private async calcularCargoRecursoHidrico(
-        consumoM3: number,
-        nombreTipoTarifa: string
+        consumoM3: number
     ): Promise<{ cargo: number; detalles: string[] }> {
-        // Determinar el recurso hídrico según el tipo de tarifa
-        const nombreRecurso = nombreTipoTarifa.includes('Domipre')
-            ? 'Recurso Hidrico Domipre'
-            : 'Recurso Hidrico Emprego';
-
         const recursoHidrico = await this.recursoHidricoSinSelloRepository.findOne({
-            where: { Nombre: nombreRecurso, Activo: true }
+            where: { Nombre: 'Tarifa Recurso Hidrico', Activo: true }
         });
 
         if (!recursoHidrico) {
-            throw new NotFoundException(`No se encontró el recurso hídrico: ${nombreRecurso}`);
+            throw new NotFoundException('No se encontró Tarifa Recurso Hidrico');
         }
 
         // Obtener todos los bloques del recurso hídrico ordenados
@@ -386,23 +402,12 @@ export class FacturaService {
         console.log(`📊 Lectura #${idLectura} - Afiliado ID: ${afiliado.Id_Afiliado}`);
         console.log(`📏 Consumo: ${consumoM3} M³`);
 
-        // 2. Determinar tipo de tarifa Sin Sello
-        // Por defecto usa Domipre (residencial), pero se puede personalizar según el afiliado
-        let tipoTarifa: TarifaLecturaSinSello | null = null;
+        // 2. Tipo de tarifa Sin Sello — viene directo de la lectura (FK ManyToOne SinSello).
+        let tipoTarifa: TarifaLecturaSinSello | null = lectura.Tipo_Tarifa ?? null;
 
-        // Intentar determinar por tipo de afiliado o usar Domipre por defecto
-        const tipoAfiliadoNombre = afiliado.Tipo_Afiliado?.Nombre_Tipo_Afiliado?.toLowerCase();
-
-        if (tipoAfiliadoNombre?.includes('empresarial') || tipoAfiliadoNombre?.includes('comercial')) {
+        if (!tipoTarifa || !tipoTarifa.Activa) {
             tipoTarifa = await this.tarifaLecturaSinSelloRepository.findOne({
-                where: { Nombre_Tipo_Tarifa: 'Emprego', Activa: true }
-            });
-        }
-
-        // Si no se encontró Emprego o el tipo de afiliado no es empresarial, usar Domipre
-        if (!tipoTarifa) {
-            tipoTarifa = await this.tarifaLecturaSinSelloRepository.findOne({
-                where: { Nombre_Tipo_Tarifa: 'Domipre', Activa: true }
+                where: { Nombre_Tipo_Tarifa: 'Residencial', Activa: true }
             });
         }
 
@@ -425,25 +430,31 @@ export class FacturaService {
         );
         console.log(`🏠 Cargo Fijo: ₡${cargoFijo.toFixed(2)}`);
 
-        // Cargo Consumo
+        // Determinar si la tarifa es residencial (primeros 30 M³ exentos de IVA)
+        const tiposResidencialesExentos = [
+            'Residencial',
+            'Residencial Pobreza Basica',
+            'Residencial Pobreza Extrema',
+        ];
+        const esResidencialExento = tiposResidencialesExentos.includes(tipoTarifa.Nombre_Tipo_Tarifa);
+
+        // Cargo Consumo (incluye cálculo de IVA según regla residencial / comercial)
         const resultadoConsumo = await this.calcularCargoConsumo(
             consumoM3,
             tipoTarifa.Id_Tarifa_Lectura,
-            rangoAfiliados.Id_Rango_Afiliados
+            rangoAfiliados.Id_Rango_Afiliados,
+            esResidencialExento
         );
 
-        // Cargo Recurso Hídrico
-        const resultadoRecursoHidrico = await this.calcularCargoRecursoHidrico(
-            consumoM3,
-            tipoTarifa.Nombre_Tipo_Tarifa
-        );
+        // Cargo Recurso Hídrico (tarifa única para todos los tipos)
+        const resultadoRecursoHidrico = await this.calcularCargoRecursoHidrico(consumoM3);
 
         // Cargo Hidrantes
         const resultadoHidrantes = await this.calcularCargoHidrantes(consumoM3);
 
         // 5. CALCULAR TOTALES
         const subtotal = cargoFijo + resultadoConsumo.cargo + resultadoRecursoHidrico.cargo + resultadoHidrantes.cargo;
-        const impuestos = 0; // Ajusta si aplica IVA
+        const impuestos = resultadoConsumo.iva;
         const total = subtotal + impuestos;
 
         console.log('\n💵 ========== RESUMEN ==========');
@@ -451,6 +462,7 @@ export class FacturaService {
         console.log(`   Cargo Consumo:      ₡${resultadoConsumo.cargo.toFixed(2)}`);
         console.log(`   Recurso Hídrico:    ₡${resultadoRecursoHidrico.cargo.toFixed(2)}`);
         console.log(`   Hidrantes:          ₡${resultadoHidrantes.cargo.toFixed(2)}`);
+        console.log(`   IVA (13%):          ₡${impuestos.toFixed(2)}`);
         console.log(`   --------------------------------`);
         console.log(`   TOTAL:              ₡${total.toFixed(2)}`);
         console.log('====================================\n');
@@ -465,9 +477,15 @@ export class FacturaService {
             throw new NotFoundException('No se encontró el estado "Pendiente" para facturas');
         }
 
-        const fechaEmision = new Date();
-        const fechaVencimiento = new Date();
-        fechaVencimiento.setDate(fechaVencimiento.getDate() + 15); // 15 días para pagar
+        // Fechas según calendario operativo:
+        //   - Lectura: día 20 del mes corriente
+        //   - Emisión: último día del mes de la lectura (30 o 31)
+        //   - Vencimiento: día 5 del mes siguiente
+        const fechaLectura = new Date(lectura.Fecha_Lectura);
+        const añoLectura = fechaLectura.getFullYear();
+        const mesLectura = fechaLectura.getMonth();
+        const fechaEmision = new Date(añoLectura, mesLectura + 1, 0); // día 0 del mes siguiente = último día del mes actual
+        const fechaVencimiento = new Date(añoLectura, mesLectura + 1, 5);
 
         // 7. OBTENER INFORMACIÓN DEL AFILIADO
         let nombreCompletoAfiliado = '';
