@@ -118,16 +118,7 @@ export class CreateSolicitudAfiliacionFisicaDto extends CreateSolicitudFisicaDto
 }
 
 export class CreateSolicitudDesconexionFisicaDto extends CreateSolicitudDto {
-  @ApiProperty({ example: '200 metros del perro echado' })
-  @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
-  @IsString({ message: 'La dirección debe ser un string' })
-  @IsDefined({ message: 'La dirección no puede estar vacía' })
-  @IsNotEmpty({ message: 'La dirección no puede estar vacía' })
-  @MinLength(10, { message: 'La dirección debe tener al menos 10 caracteres' })
-  @MaxLength(255, { message: 'La dirección no puede tener más de 255 caracteres' })
-  @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#-]+$/, { message: 'La dirección solo puede contener letras, números, espacios y los caracteres .,-#' })
-  Direccion_Exacta: string;
-
+ 
   @ApiProperty({ example: 'Para mi casa de campo nueva' })
   @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'El motivo de la solicitud debe ser un string' })
@@ -196,6 +187,8 @@ export class CreateSolicitudAgregarMedidorFisicaDto extends CreateSolicitudDto {
   @IsPositive({ message: 'El Id del nuevo medidor debe ser positivo' })
   @Min(1, { message: 'El Id del nuevo medidor debe ser mayor a 0' })
   Id_Nuevo_Medidor?: number;
+
+  
 }
 
 export class CreateAfiliacionFisicaDto extends CreateSolicitudAfiliacionFisicaDto { }

@@ -293,8 +293,6 @@ export class AfiliadosService {
 
 
 
-    //METODOS PUBLICOS PARA LOS MEDIDORES EN SOLICITUDES 
-
     //FISICOS
     async getMedidoresbyIdentificacion(identificacion: string) {
         const afiliado = await this.afiliadoFisicoRepository.findOne({
@@ -315,7 +313,6 @@ export class AfiliadosService {
             })) ?? []
         }
     }
-
     //JURIDICOS
     async getMedidoresbyCedulaJuridica(cedulaJuridica: string) {
         const afiliado = await this.afiliadoJuridicoRepository.findOne({
@@ -337,7 +334,55 @@ export class AfiliadosService {
         }
     }
 
+    async getInfoAfiliadoFisicoByCedula(identificacion: string) {
+        const afiliado = await this.afiliadoFisicoRepository.createQueryBuilder('afiliado')
+            .leftJoinAndSelect('afiliado.Estado', 'estado')
+            .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
+            .leftJoinAndSelect('afiliado.Medidores', 'medidores')
+            .leftJoinAndSelect('medidores.Estado_Medidor', 'estadoMedidor')
+            .where('afiliado.Identificacion = :identificacion', { identificacion })
+            .getOne();
 
+        if (!afiliado) throw new BadRequestException(`Afiliado físico con identificación ${identificacion} no encontrado`);
+
+        return {
+            ...afiliado,
+            Medidores: afiliado.Medidores?.map(m => ({
+                Id_Medidor: m.Id_Medidor,
+                Numero_Medidor: m.Numero_Medidor,
+                Estado_Pago: m.Estado_Pago ?? 'Libre',
+                Estado: {
+                    Id_Estado: m.Estado_Medidor?.Id_Estado_Medidor ?? null,
+                    Nombre_Estado: m.Estado_Medidor?.Nombre_Estado_Medidor ?? 'Sin estado'
+                }
+            })) ?? [],
+        };
+    }
+
+    async getInfoAfiliadoJuridicoByCedula(cedulaJuridica: string) {
+        const afiliado = await this.afiliadoJuridicoRepository.createQueryBuilder('afiliado')
+            .leftJoinAndSelect('afiliado.Estado', 'estado')
+            .leftJoinAndSelect('afiliado.Tipo_Afiliado', 'tipoAfiliado')
+            .leftJoinAndSelect('afiliado.Medidores', 'medidores')
+            .leftJoinAndSelect('medidores.Estado_Medidor', 'estadoMedidor')
+            .where('afiliado.Cedula_Juridica = :cedulaJuridica', { cedulaJuridica })
+            .getOne();
+
+        if (!afiliado) throw new BadRequestException(`Afiliado jurídico con cédula ${cedulaJuridica} no encontrado`);
+
+        return {
+            ...afiliado,
+            Medidores: afiliado.Medidores?.map(m => ({
+                Id_Medidor: m.Id_Medidor,
+                Numero_Medidor: m.Numero_Medidor,
+                Estado_Pago: m.Estado_Pago ?? 'Libre',
+                Estado: {
+                    Id_Estado: m.Estado_Medidor?.Id_Estado_Medidor ?? null,
+                    Nombre_Estado: m.Estado_Medidor?.Nombre_Estado_Medidor ?? 'Sin estado'
+                }
+            })) ?? [],
+        };
+    }
 
     async getAfiliados() {
         const afiliados = await this.afiliadoRepository.createQueryBuilder('afiliado')

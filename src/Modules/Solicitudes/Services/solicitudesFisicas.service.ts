@@ -1103,16 +1103,18 @@ export class SolicitudesFisicasService {
 
         const planoFile = files?.Planos_Terreno?.[0];
         const escrituraFile = files?.Certificacion_Literal?.[0];
-        const nombre = `${dto.Nombre} ${dto.Apellido1 ?? ''} ${dto.Apellido2 ?? ''}`.trim();
+        
+        const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: dto.Identificacion } });
+        if(!afiliado) throw new BadRequestException(`Afiliado físico con identificación ${dto.Identificacion} no encontrado`);
 
-        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-AgregarMedidor', 'Fisicas', dto.Identificacion, nombre) : null;
-        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-AgregarMedidor', 'Fisicas', dto.Identificacion, nombre) : null;
+        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-AgregarMedidor', 'Fisicas', dto.Identificacion, afiliado.Nombre) : null;
+        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-AgregarMedidor', 'Fisicas', dto.Identificacion, afiliado.Nombre) : null;
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
             Tipo_Entidad: 1, // Física
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 5, // Agregar Medidor
         });
         const solicitudGuardada = await this.solicitudRepository.save(solicitudBase);
@@ -1121,14 +1123,14 @@ export class SolicitudesFisicasService {
         const solicitudFisica = this.solicitudFisicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
             Tipo_Entidad: 1,
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 5,
             Tipo_Identificacion: dto.Tipo_Identificacion,
             Identificacion: dto.Identificacion,
-            Nombre: dto.Nombre,
-            Apellido1: dto.Apellido1,
-            Apellido2: dto.Apellido2,
+            Nombre: afiliado.Nombre,
+            Apellido1: afiliado.Apellido1,
+            Apellido2: afiliado.Apellido2,
         });
         await this.solicitudFisicaRepository.save(solicitudFisica);
 
@@ -1136,14 +1138,14 @@ export class SolicitudesFisicasService {
         const solicitudAgregarMedidor = this.solicitudAgregarMedidorFisicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
             Tipo_Entidad: 1,
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 5,
             Tipo_Identificacion: dto.Tipo_Identificacion,
             Identificacion: dto.Identificacion,
-            Nombre: dto.Nombre,
-            Apellido1: dto.Apellido1,
-            Apellido2: dto.Apellido2,
+            Nombre: afiliado.Nombre,
+            Apellido1: afiliado.Apellido1,
+            Apellido2: afiliado.Apellido2,
             Direccion_Exacta: dto.Direccion_Exacta,
             Planos_Terreno: planoRes?.url || '',
             Certificacion_Literal: escrituraRes?.url || '',
@@ -1151,7 +1153,7 @@ export class SolicitudesFisicasService {
         });
         const solicitudFinal = await this.solicitudAgregarMedidorFisicaRepository.save(solicitudAgregarMedidor);
 
-        await this.emailService.enviarEmailSolicitudCreada(dto.Correo, 'Agregar Medidor', nombre);
+        await this.emailService.enviarEmailSolicitudCreada(afiliado.Correo, 'Agregar Medidor', afiliado.Nombre);
         return solicitudFinal;
     }
 
@@ -1185,11 +1187,6 @@ export class SolicitudesFisicasService {
             Id_Nuevo_Medidor: solicitudAgregarMedidor.Id_Nuevo_Medidor
         };
 
-        solicitudAgregarMedidor.Nombre = dto.Nombre ?? solicitudAgregarMedidor.Nombre;
-        solicitudAgregarMedidor.Apellido1 = dto.Apellido1 ?? solicitudAgregarMedidor.Apellido1;
-        solicitudAgregarMedidor.Apellido2 = dto.Apellido2 ?? solicitudAgregarMedidor.Apellido2;
-        solicitudAgregarMedidor.Numero_Telefono = dto.Numero_Telefono ?? solicitudAgregarMedidor.Numero_Telefono;
-        solicitudAgregarMedidor.Correo = dto.Correo ?? solicitudAgregarMedidor.Correo;
         solicitudAgregarMedidor.Direccion_Exacta = dto.Direccion_Exacta ?? solicitudAgregarMedidor.Direccion_Exacta;
         solicitudAgregarMedidor.Id_Nuevo_Medidor = dto.Id_Nuevo_Medidor ?? solicitudAgregarMedidor.Id_Nuevo_Medidor;
 
