@@ -56,9 +56,10 @@ export type FacturaPdfInput = {
     tipoTarifa: string;
     fechaEmision: Date;
     fechaVencimiento: Date;
+    fechaLectura: Date;
     historialLecturas: unknown[];
     consumoM3: number;
-    costoPorM3: number;
+    costoPromedioPorM3: number;
     cargoFijo: number;
     cargoConsumo: number;
     cargoRecursoHidrico: number;

@@ -34,23 +34,33 @@ export class ConsultaPagosPdfService implements OnApplicationShutdown {
     }
 
     private async getBrowser(): Promise<Browser> {
-        if (this.browser) {
+        if (this.browser && this.browser.connected) {
             return this.browser;
         }
 
-        this.browser = await puppeteer.launch({
+        if (this.browser) {
+            await this.browser.close().catch(() => {});
+            this.browser = null;
+        }
+
+        const browser = await puppeteer.launch({
             headless: true,
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
                 '--disable-gpu',
-                '--single-process',
-                '--no-zygote',
             ],
         });
 
-        return this.browser;
+        browser.on('disconnected', () => {
+            if (this.browser === browser) {
+                this.browser = null;
+            }
+        });
+
+        this.browser = browser;
+        return browser;
     }
 
     async generarFacturasDesdeConsultas(
@@ -71,48 +81,56 @@ export class ConsultaPagosPdfService implements OnApplicationShutdown {
             });
 
             const html = FacturaPDF(inputs, this.getLogoDataUri());
-            const browser = await this.getBrowser();
 
-            //  LIMPIEZA PREVENTIVA
-            const pages = await browser.pages();
-            if (pages.length > 5) {
-                await Promise.all(pages.map(p => p.close().catch(() => {})));
-            }
+            const generarPdf = async (): Promise<Buffer> => {
+                const browser = await this.getBrowser();
+                const page = await browser.newPage();
+                try {
+                    await page.setContent(html, {
+                        waitUntil: 'domcontentloaded',
+                        timeout: 30000
+                    });
 
-            const page = await browser.newPage();
+                    return Buffer.from(await page.pdf({
+                        format: 'A4',
+                        printBackground: true,
+                        margin: {
+                            top: '20px',
+                            right: '20px',
+                            bottom: '20px',
+                            left: '20px'
+                        },
+                    }));
+                } finally {
+                    await page.close().catch(() => {});
+                }
+            };
 
+            let pdfBuffer: Buffer;
             try {
-                await page.setContent(html, {
-                    waitUntil: 'domcontentloaded',
-                    timeout: 30000
-                });
+                pdfBuffer = await generarPdf();
+            } catch (err: any) {
+                const isTargetClosed = err?.name === 'TargetCloseError' || /Target closed|Protocol error/i.test(err?.message ?? '');
+                if (!isTargetClosed) throw err;
 
-                const pdfBuffer = await page.pdf({
-                    format: 'A4',
-                    printBackground: true,
-                    margin: {
-                        top: '20px',
-                        right: '20px',
-                        bottom: '20px',
-                        left: '20px'
-                    },
-                });
-
-                const filename = inputs.length === 1
-                    ? `Factura_${inputs[0].numeroMedidor}_${Date.now()}.pdf`
-                    : `Facturas_${Date.now()}.pdf`;
-
-                res.set({
-                    'Content-Type': 'application/pdf',
-                    'Content-Disposition': `attachment; filename="${filename}"`,
-                    'Content-Length': String(pdfBuffer.length),
-                });
-
-                res.send(pdfBuffer);
-
-            } finally {
-                await page.close().catch(() => {});
+                if (this.browser) {
+                    await this.browser.close().catch(() => {});
+                    this.browser = null;
+                }
+                pdfBuffer = await generarPdf();
             }
+
+            const filename = inputs.length === 1
+                ? `Factura_${inputs[0].numeroMedidor}_${Date.now()}.pdf`
+                : `Facturas_${Date.now()}.pdf`;
+
+            res.set({
+                'Content-Type': 'application/pdf',
+                'Content-Disposition': `attachment; filename="${filename}"`,
+                'Content-Length': String(pdfBuffer.length),
+            });
+
+            res.send(pdfBuffer);
         });
     }
 

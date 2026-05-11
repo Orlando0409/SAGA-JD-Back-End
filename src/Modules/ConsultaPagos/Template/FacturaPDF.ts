@@ -5,10 +5,11 @@ export type FacturaInput = {
 	tipoTarifa: string;
 	fechaEmision: Date;
 	fechaVencimiento: Date;
+	fechaLectura: Date;
 	historialLecturas: unknown[];
 	// Datos directos de la factura
 	consumoM3: number;
-	costoPorM3: number;
+	costoPromedioPorM3: number;
 	cargoFijo: number;
 	cargoConsumo: number;
 	cargoRecursoHidrico: number;
@@ -24,9 +25,11 @@ export function FacturaPDF(inputs: FacturaInput[], logo: string | null): string 
 	const sections = inputs.map((input, index) => {
 		const fecha = input.fechaEmision.toLocaleDateString('es-CR');
 		const fechaVenc = input.fechaVencimiento.toLocaleDateString('es-CR');
+		const fechaLect = input.fechaLectura.toLocaleDateString('es-CR');
 		const pageBreakClass = index < inputs.length - 1 ? 'page-break' : '';
 		const consumosRows = buildConsumoRows(input.historialLecturas);
 		const fechaImpresion = new Date().toLocaleString('es-CR');
+		const consumoFmt = formatM3(input.consumoM3);
 
 		return `
 	<section class="factura ${pageBreakClass}">
@@ -41,7 +44,7 @@ export function FacturaPDF(inputs: FacturaInput[], logo: string | null): string 
 					<div class="org-sub">Facturación de Servicios</div>
 				</div>
 				<div class="meta">
-					<div><strong>Emisión:</strong> ${fecha}</div>
+					<div><strong>Fecha lectura:</strong> ${fechaLect}</div>
 					<div><strong>Vencimiento:</strong> ${fechaVenc}</div>
 					<div><strong>Medidor:</strong> ${input.numeroMedidor}</div>
 					<div><strong>Estado:</strong> ${escapeHtml(input.estadoFactura)}</div>
@@ -62,8 +65,8 @@ export function FacturaPDF(inputs: FacturaInput[], logo: string | null): string 
 				<div class="cell"><span>Identificación:</span><strong>${escapeHtml(input.identificacion)}</strong></div>
 				<div class="cell"><span>Tarifa:</span><strong>${escapeHtml(input.tipoTarifa)}</strong></div>
 				<div class="cell"><span>Hidrómetro:</span><strong>${input.numeroMedidor}</strong></div>
-				<div class="cell"><span>Consumo mts. cúb.:</span><strong>${input.consumoM3}</strong></div>
-				<div class="cell"><span>Fecha lectura:</span><strong>${fecha}</strong></div>
+				<div class="cell"><span>Consumo mts. cúb.:</span><strong>${consumoFmt}</strong></div>
+				<div class="cell"><span>Fecha lectura:</span><strong>${fechaLect}</strong></div>
 				<div class="cell"><span>Vencimiento:</span><strong>${fechaVenc}</strong></div>
 			</div>
 
@@ -78,7 +81,7 @@ export function FacturaPDF(inputs: FacturaInput[], logo: string | null): string 
 				<tbody>
 					<tr>
 						<td>Servicio de agua potable (consumo)</td>
-						<td class="right">${input.consumoM3} m³ × ₡${input.costoPorM3.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
+						<td class="right">${consumoFmt} m³ (escalonado)</td>
 						<td class="right">₡${input.cargoConsumo.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
 					</tr>
 					<tr>
@@ -92,7 +95,7 @@ export function FacturaPDF(inputs: FacturaInput[], logo: string | null): string 
 						<td class="right">₡${input.cargoRecursoHidrico.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
 					</tr>
 					<tr>
-						<td>Otros cargos</td>
+						<td>Hidrantes</td>
 						<td class="right">-</td>
 						<td class="right">₡${input.otrosCargos.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
 					</tr>
@@ -102,7 +105,7 @@ export function FacturaPDF(inputs: FacturaInput[], logo: string | null): string 
 						<td class="right">₡${input.subtotal.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
 					</tr>
 					<tr>
-						<td>Impuestos</td>
+						<td>IVA (13%)</td>
 						<td class="right">-</td>
 						<td class="right">₡${input.impuestos.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
 					</tr>
@@ -144,11 +147,11 @@ export function FacturaPDF(inputs: FacturaInput[], logo: string | null): string 
 							</tr>
 							<tr>
 								<td>CONSUMO M³</td>
-								<td class="right">${input.consumoM3}</td>
+								<td class="right">${consumoFmt}</td>
 							</tr>
 							<tr>
-								<td>COSTO POR M³</td>
-								<td class="right">₡${input.costoPorM3.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
+								<td>COSTO PROMEDIO POR M³</td>
+								<td class="right">₡${input.costoPromedioPorM3.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
 							</tr>
 							<tr>
 								<td>CARGO CONSUMO</td>
@@ -159,7 +162,7 @@ export function FacturaPDF(inputs: FacturaInput[], logo: string | null): string 
 								<td class="right">₡${input.cargoRecursoHidrico.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
 							</tr>
 							<tr>
-								<td>IMPUESTOS</td>
+								<td>IVA (13%)</td>
 								<td class="right">₡${input.impuestos.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</td>
 							</tr>
 						</tbody>
@@ -181,7 +184,7 @@ export function FacturaPDF(inputs: FacturaInput[], logo: string | null): string 
 					<span>₡${input.cargoRecursoHidrico.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
 				</div>
 				<div class="sum-row">
-					<span>Otros cargos</span>
+					<span>Hidrantes</span>
 					<span>₡${input.otrosCargos.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
 				</div>
 				<div class="sum-row">
@@ -189,7 +192,7 @@ export function FacturaPDF(inputs: FacturaInput[], logo: string | null): string 
 					<span>₡${input.subtotal.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
 				</div>
 				<div class="sum-row">
-					<span>Impuestos</span>
+					<span>IVA (13%)</span>
 					<span>₡${input.impuestos.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
 				</div>
 				<div class="sum-row final">
@@ -261,10 +264,17 @@ function buildConsumoRows(historialLecturas: unknown[]): string {
 			const fechaLectura = row?.Fecha_Lectura ? new Date(row.Fecha_Lectura) : null;
 			const mes = fechaLectura ? getMes(fechaLectura.getMonth()) : '-';
 			const anio = fechaLectura ? fechaLectura.getFullYear() : '-';
-			const consumo = Number(row?.Consumo_Calculado_M3 || 0);
+			const consumo = formatM3(Number(row?.Consumo_Calculado_M3 || 0));
 			return `<tr><td>${mes}</td><td>${anio}</td><td class="right">${consumo}</td></tr>`;
 		})
 		.join('');
+}
+
+function formatM3(value: number): string {
+	if (!Number.isFinite(value)) return '0';
+	return Number.isInteger(value)
+		? String(value)
+		: value.toLocaleString('es-CR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function getMes(m: number): string {
