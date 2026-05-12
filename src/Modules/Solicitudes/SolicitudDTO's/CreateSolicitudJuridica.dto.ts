@@ -80,7 +80,7 @@ export class CreateSolicitudDesconexionJuridicaDto {
   @MinLength(10, { message: 'El motivo de la solicitud debe tener al menos 10 caracteres' })
   @MaxLength(500, { message: 'El motivo de la solicitud no puede tener más de 500 caracteres' })
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,!?¿¡()-]+$/, { message: 'El motivo de la solicitud solo puede contener letras, números, espacios y los caracteres .,!?¿¡()-' })
-  Motivo_Solicitud: string;
+  Motivo_Desconexion: string;
 
   @ApiProperty({ example: 1 })
   @IsInt({ message: 'El Id del medidor debe ser un número entero' })

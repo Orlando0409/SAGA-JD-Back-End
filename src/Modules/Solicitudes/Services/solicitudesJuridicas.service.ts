@@ -198,7 +198,7 @@ export class SolicitudesJuridicasService {
         return solicitudFinal;
     }
 
-    async createSolicitudDesconexion(dto: CreateSolicitudDesconexionJuridicaDto, files: any) {
+    async createSolicitudDesconexion(dto: CreateSolicitudDesconexionJuridicaDto) {
         const solicitudActiva = await this.validationsService.validarSolicitudesJuridicasActivas(dto.Cedula_Juridica);
         if (solicitudActiva) throw new BadRequestException(solicitudActiva);
 
@@ -206,18 +206,12 @@ export class SolicitudesJuridicasService {
         const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(dto.Cedula_Juridica);
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}`);
 
-        const planoFile = files?.Planos_Terreno?.[0];
-        const escrituraFile = files?.Certificacion_Literal?.[0];
-
         const afiliado = await this.afiliadoJuridicoRepository.findOne({
             where: { Cedula_Juridica: dto.Cedula_Juridica }
         });
         if (!afiliado) throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}`);
 
         const razonSocial = afiliado.Razon_Social;
-
-        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Desconexion', 'Juridicas', dto.Cedula_Juridica, razonSocial) : null;
-        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Desconexion', 'Juridicas', dto.Cedula_Juridica, razonSocial) : null;
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
@@ -250,9 +244,9 @@ export class SolicitudesJuridicasService {
             Cedula_Juridica: afiliado.Cedula_Juridica,
             Razon_Social: afiliado.Razon_Social,
             Direccion_Exacta: afiliado.Direccion_Exacta,
-            Motivo_Solicitud: dto.Motivo_Solicitud,
-            Planos_Terreno: planoRes?.url || '',
-            Certificacion_Literal: escrituraRes?.url || '',
+            Motivo_Solicitud: dto.Motivo_Desconexion,
+            Planos_Terreno: afiliado.Planos_Terreno || '',
+            Certificacion_Literal: afiliado.Escrituras_Terreno || '',
             Id_Medidor: dto.Id_Medidor,
         });
         const solicitudFinal = await this.solicitudDesconexionRepository.save(solicitudDesconexion);
@@ -485,7 +479,7 @@ export class SolicitudesJuridicasService {
         solicitudDesconexion.Numero_Telefono = dto.Numero_Telefono ?? solicitudDesconexion.Numero_Telefono;
         solicitudDesconexion.Correo = dto.Correo ?? solicitudDesconexion.Correo;
         solicitudDesconexion.Direccion_Exacta = dto.Direccion_Exacta ?? solicitudDesconexion.Direccion_Exacta;
-        solicitudDesconexion.Motivo_Solicitud = dto.Motivo_Solicitud ?? solicitudDesconexion.Motivo_Solicitud;
+        solicitudDesconexion.Motivo_Solicitud = dto.Motivo_Desconexion ?? solicitudDesconexion.Motivo_Solicitud;
         solicitudDesconexion.Id_Medidor = dto.Id_Medidor ?? solicitudDesconexion.Id_Medidor;
 
         // 5. Guardar cambios

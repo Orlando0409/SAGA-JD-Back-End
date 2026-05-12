@@ -118,7 +118,7 @@ export class CreateSolicitudAfiliacionFisicaDto extends CreateSolicitudFisicaDto
 }
 
 export class CreateSolicitudDesconexionFisicaDto extends CreateSolicitudDto {
- 
+
   @ApiProperty({ example: 'Para mi casa de campo nueva' })
   @Transform(({ value }) => value?.trim().toUpperCase()[0] + value.trim().slice(1).toLowerCase())
   @IsString({ message: 'El motivo de la solicitud debe ser un string' })
@@ -127,7 +127,7 @@ export class CreateSolicitudDesconexionFisicaDto extends CreateSolicitudDto {
   @MinLength(10, { message: 'El motivo de la solicitud debe tener al menos 10 caracteres' })
   @MaxLength(500, { message: 'El motivo de la solicitud no puede tener más de 500 caracteres' })
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,!?¿¡()-]+$/, { message: 'El motivo de la solicitud solo puede contener letras, números, espacios y los caracteres .,!?¿¡()-' })
-  Motivo_Solicitud: string;
+  Motivo_Desconexion: string;
 
   @ApiProperty({ example: 1 })
   @IsInt({ message: 'El Id del medidor debe ser un número entero' })
@@ -188,7 +188,7 @@ export class CreateSolicitudAgregarMedidorFisicaDto extends CreateSolicitudDto {
   @Min(1, { message: 'El Id del nuevo medidor debe ser mayor a 0' })
   Id_Nuevo_Medidor?: number;
 
-  
+
 }
 
 export class CreateAfiliacionFisicaDto extends CreateSolicitudAfiliacionFisicaDto { }

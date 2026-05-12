@@ -204,7 +204,7 @@ export class SolicitudesFisicasService {
         return solicitudFinal;
     }
 
-    async createSolicitudDesconexion(dto: CreateSolicitudDesconexionFisicaDto, files: any) {
+    async createSolicitudDesconexion(dto: CreateSolicitudDesconexionFisicaDto) {
         const solicitudActiva = await this.validationsService.validarSolicitudesFisicasActivas(dto.Identificacion);
         if (solicitudActiva) throw new BadRequestException(solicitudActiva);
 
@@ -212,10 +212,7 @@ export class SolicitudesFisicasService {
         const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoFisico(dto.Identificacion);
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado físico con la identificación ${dto.Identificacion}`);
 
-        const planoFile = files?.Planos_Terreno?.[0];
-        const escrituraFile = files?.Certificacion_Literal?.[0];
-
-        const afiliado = await this.afiliadoFisicoRepository.findOne({
+     const afiliado = await this.afiliadoFisicoRepository.findOne({
             where: { Identificacion: dto.Identificacion }
         });
 
@@ -223,8 +220,6 @@ export class SolicitudesFisicasService {
 
         const nombre = `${afiliado.Nombre} ${afiliado.Apellido1 ?? ''} ${afiliado.Apellido2 ?? ''}`.trim();
 
-        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Desconexion', 'Fisicas', dto.Identificacion, nombre) : null;
-        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Desconexion', 'Fisicas', dto.Identificacion, nombre) : null;
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
@@ -263,9 +258,9 @@ export class SolicitudesFisicasService {
             Apellido1: afiliado.Apellido1,
             Apellido2: afiliado.Apellido2,
             Direccion_Exacta: afiliado.Direccion_Exacta,
-            Motivo_Solicitud: dto.Motivo_Solicitud,
-            Planos_Terreno: planoRes?.url || '',
-            Certificacion_Literal: escrituraRes?.url || '',
+            Motivo_Solicitud: dto.Motivo_Desconexion,
+            Planos_Terreno: afiliado.Planos_Terreno || '',
+            Certificacion_Literal: afiliado.Escrituras_Terreno || '',
             Id_Medidor: dto.Id_Medidor,
         });
         const solicitudFinal = await this.solicitudDesconexionFisicaRepository.save(solicitudDesconexion);
@@ -516,7 +511,7 @@ export class SolicitudesFisicasService {
         solicitudDesconexion.Numero_Telefono = dto.Numero_Telefono ?? solicitudDesconexion.Numero_Telefono;
         solicitudDesconexion.Correo = dto.Correo ?? solicitudDesconexion.Correo;
         solicitudDesconexion.Direccion_Exacta = dto.Direccion_Exacta ?? solicitudDesconexion.Direccion_Exacta;
-        solicitudDesconexion.Motivo_Solicitud = dto.Motivo_Solicitud ?? solicitudDesconexion.Motivo_Solicitud;
+        solicitudDesconexion.Motivo_Solicitud = dto.Motivo_Desconexion ?? solicitudDesconexion.Motivo_Solicitud;
         solicitudDesconexion.Id_Medidor = dto.Id_Medidor ?? solicitudDesconexion.Id_Medidor;
 
         // 5. Guardar cambios

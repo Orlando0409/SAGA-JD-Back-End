@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, Put, Request, UploadedFiles, UseInterceptors } from "@nestjs/common";
 import { SolicitudesJuridicasService } from "../Services/solicitudesJuridicas.service";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
-import { FileFieldsInterceptor } from "@nestjs/platform-express";
+import { FileFieldsInterceptor, NoFilesInterceptor } from "@nestjs/platform-express";
 import { ApiOperation } from "@nestjs/swagger";
 import { CreateSolicitudAfiliacionJuridicaDto, CreateSolicitudAgregarMedidorJuridicaDto, CreateSolicitudAsociadoJuridicaDto, CreateSolicitudCambioMedidorJuridicaDto, CreateSolicitudDesconexionJuridicaDto } from "../SolicitudDTO's/CreateSolicitudJuridica.dto";
 import { UpdateSolicitudAfiliacionJuridicaDto, UpdateSolicitudAgregarMedidorJuridicaDto, UpdateSolicitudAsociadoJuridicaDto, UpdateSolicitudCambioMedidorJuridicaDto, UpdateSolicitudDesconexionJuridicaDto } from "../SolicitudDTO's/UpdateSolicitudJuridica.dto";
@@ -66,14 +66,11 @@ export class SolicitudesJuridicasController {
     @Public()
     @Post('/create/desconexion')
     @ApiOperation({ summary: 'Crear una nueva solicitud de desconexión jurídica' })
-    @UseInterceptors(FileFieldsInterceptor([
-        { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Certificacion_Literal', maxCount: 1 },
-    ]),)
+    @UseInterceptors(NoFilesInterceptor())
     async createSolicitudDesconexion(
         @Body() solicitudDesconexion: CreateSolicitudDesconexionJuridicaDto,
-        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Certificacion_Literal: Express.Multer.File[]; }) {
-        return this.solicitudesJuridicasService.createSolicitudDesconexion(solicitudDesconexion, files);
+    ) {
+       return this.solicitudesJuridicasService.createSolicitudDesconexion(solicitudDesconexion);
     }
 
     @Public()
@@ -82,7 +79,7 @@ export class SolicitudesJuridicasController {
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
         { name: 'Certificacion_Literal', maxCount: 1 },
-    ]))
+    ]),)
     async createSolicitudCambioMedidor(
         @Body() solicitudCambioMedidor: CreateSolicitudCambioMedidorJuridicaDto,
         @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Certificacion_Literal: Express.Multer.File[] }

@@ -1,7 +1,7 @@
 import { CreateSolicitudAfiliacionFisicaDto, CreateSolicitudAgregarMedidorFisicaDto, CreateSolicitudAsociadoFisicaDto, CreateSolicitudCambioMedidorFisicaDto, CreateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/CreateSolicitudFisica.dto"; import { Body, Controller, Get, Param, Patch, Post, UploadedFiles, UseInterceptors, Request, Put } from "@nestjs/common";
 import { SolicitudesFisicasService } from "../Services/solicitudesFisicas.service";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
-import { FileFieldsInterceptor } from "@nestjs/platform-express";
+import { FileFieldsInterceptor, NoFilesInterceptor } from "@nestjs/platform-express";
 import { ApiOperation } from "@nestjs/swagger";
 import { UpdateSolicitudAfiliacionFisicaDto, UpdateSolicitudAgregarMedidorFisicaDto, UpdateSolicitudAsociadoFisicaDto, UpdateSolicitudCambioMedidorFisicaDto, UpdateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/UpdateSolicitudFisica.dto";
 import { RechazarSolicitudDto } from "../SolicitudDTO's/RechazarSolicitud.dto";
@@ -66,14 +66,11 @@ export class SolicitudesFisicasController {
     @Public()
     @Post('/create/desconexion')
     @ApiOperation({ summary: 'Crear una nueva solicitud de desconexion fisica' })
-    @UseInterceptors(FileFieldsInterceptor([
-        { name: 'Planos_Terreno', maxCount: 1 },
-        { name: 'Certificacion_Literal', maxCount: 1 },
-    ]),)
+    @UseInterceptors(NoFilesInterceptor())
     async createSolicitudDesconexion(
-        @Body() solicitudDesconexion: CreateSolicitudDesconexionFisicaDto,
-        @UploadedFiles() files: { Planos_Terreno: Express.Multer.File[]; Certificacion_Literal: Express.Multer.File[]; }) {
-        return this.solicitudesFisicasService.createSolicitudDesconexion(solicitudDesconexion, files);
+        @Body() solicitudDesconexion: CreateSolicitudDesconexionFisicaDto,)
+        {
+        return this.solicitudesFisicasService.createSolicitudDesconexion(solicitudDesconexion);
     }
 
     @Public()
