@@ -32,6 +32,12 @@ export class SolicitudesJuridicasController {
         return this.solicitudesJuridicasService.getAllSolicitudesDesconexion();
     }
 
+    @Get('/desconexion/medidores')
+    @ApiOperation({ summary: 'Obtener medidores de solicitudes de desconexión jurídicas' })
+    getMedidoresDesconexion() {
+        return this.solicitudesJuridicasService.getMedidoresDesconexion();
+    }
+
     @Get('/cambio-medidor')
     @ApiOperation({ summary: 'Obtener todas las solicitudes de cambio de medidor jurídica' })
     getAllSolicitudesCambioMedidor() {

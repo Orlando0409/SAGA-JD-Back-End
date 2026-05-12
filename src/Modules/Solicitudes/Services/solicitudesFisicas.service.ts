@@ -92,6 +92,19 @@ export class SolicitudesFisicasService {
         return this.solicitudDesconexionFisicaRepository.find({ relations: ['Estado'] });
     }
 
+    async getMedidoresDesconexion() {
+        const solicitudes = await this.solicitudDesconexionFisicaRepository.find({
+            relations: ['Medidor'],
+        });
+
+        return solicitudes.map(item => ({
+            Id_Solicitud: item.Id_Solicitud,
+            Id_Medidor: item.Medidor?.Id_Medidor ?? null,
+            Numero_Medidor: item.Medidor?.Numero_Medidor ?? null,
+            Estado_Medidor: item.Medidor?.Estado_Medidor?.Nombre_Estado_Medidor ?? null,
+        }));
+    }
+
     async getAllSolicitudesCambioMedidor() {
         const solicitudes = await this.solicitudCambioMedidorFisicaRepository.find({
             relations: ['Estado', 'Medidor', 'Medidor.Estado_Medidor', 'Nuevo_Medidor', 'Nuevo_Medidor.Estado_Medidor']
@@ -788,17 +801,19 @@ export class SolicitudesFisicasService {
             await this.emailService.enviarEmailActualizacionEstado(solicitudDesconexion.Correo, 'Desconexión', 'Completada', nombre);
             console.log(`Estado de solicitud de desconexión ${idSolicitud} cambiado a 'Completada'`);
 
-            // Actualizar estado del afiliado a inactivo
-            const afiliado = await this.afiliadoFisicoRepository.findOne({ where: { Identificacion: solicitudDesconexion.Identificacion } });
-            if (afiliado) {
-                const estadoInactivo = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 2 } }); // 2 = Inactivo
-                if (estadoInactivo) {
-                    afiliado.Estado = estadoInactivo;
-                    await this.afiliadoFisicoRepository.save(afiliado);
+           const medidor = await this.medidorRepository.findOne({ where: { Id_Medidor: solicitudDesconexion.Id_Medidor } });
+            if (medidor) {
+                const estadoInactivoMedidor = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 4 } }); 
+                if (estadoInactivoMedidor) {
+                    medidor.Estado_Medidor = estadoInactivoMedidor;
+                    await this.medidorRepository.save(medidor);
                 }
-            } else if (!afiliado) {
-                console.warn(`Afiliado físico con identificación ${solicitudDesconexion.Identificacion} no encontrado para actualizar su estado a inactivo.`);
             }
+            else if (!medidor) {
+                console.warn(`Medidor con id ${solicitudDesconexion.Id_Medidor} no encontrado para actualizar su estado a inactivo.`);
+            }
+
+            
         }
 
         // Estado 5 = Rechazada

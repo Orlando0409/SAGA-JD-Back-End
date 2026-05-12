@@ -140,6 +140,19 @@ export class SolicitudesJuridicasService {
         return this.solicitudAsociadoRepository.find({ relations: ['Estado'] });
     }
 
+    async getMedidoresDesconexion() {
+        const solicitudes = await this.solicitudDesconexionRepository.find({
+            relations: ['Medidor'],
+        });
+
+        return solicitudes.map(item => ({
+            Id_Solicitud: item.Id_Solicitud,
+            Id_Medidor: item.Medidor?.Id_Medidor ?? null,
+            Numero_Medidor: item.Medidor?.Numero_Medidor ?? null,
+            Estado_Medidor: item.Medidor?.Estado_Medidor?.Nombre_Estado_Medidor ?? null,
+        }));
+    }
+
 
 
     // MÉTODOS PARA CREAR SOLICITUDES JURÍDICAS
@@ -751,15 +764,16 @@ export class SolicitudesJuridicasService {
             console.log(`Estado de solicitud de desconexión ${idSolicitud} cambiado a 'Completada'`);
 
             // Actualizar estado del afiliado a inactivo
-            const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: solicitudDesconexion.Cedula_Juridica } });
-            if (afiliado) {
-                const estadoInactivo = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 2 } }); // 2 = Inactivo
-                if (estadoInactivo) {
-                    afiliado.Estado = estadoInactivo;
-                    await this.afiliadoJuridicoRepository.save(afiliado);
+
+            const medidor = await this.medidorRepository.findOne({ where: { Id_Medidor: solicitudDesconexion.Id_Medidor } });
+            if(medidor) {
+                const estadoAveriado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 4 } }); 
+                if (estadoAveriado) {
+                    medidor.Estado_Medidor = estadoAveriado;
+                    await this.medidorRepository.save(medidor);
                 }
-            } else if (!afiliado) {
-                console.warn(`Afiliado jurídico con cédula ${solicitudDesconexion.Cedula_Juridica} no encontrado para actualizar su estado a inactivo.`);
+            } else if (!medidor) {
+                console.warn(`Medidor con id ${solicitudDesconexion.Id_Medidor} no encontrado para actualizar su estado a averiado.`);
             }
         }
 

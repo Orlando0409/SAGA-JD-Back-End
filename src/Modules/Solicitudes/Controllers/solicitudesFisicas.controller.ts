@@ -19,7 +19,7 @@ export class SolicitudesFisicasController {
     getAllSolicitudesFisicas() {
         return this.solicitudesFisicasService.getAllSolicitudesFisicas();
     }
-
+    
     @Get('/afiliacion')
     @ApiOperation({ summary: 'Obtener todas las solicitudes de afiliación' })
     getAllSolicitudesAfiliacion() {
@@ -30,6 +30,12 @@ export class SolicitudesFisicasController {
     @ApiOperation({ summary: 'Obtener todas las solicitudes de desconexión' })
     getAllSolicitudesDesconexion() {
         return this.solicitudesFisicasService.getAllSolicitudesDesconexion();
+    }
+
+    @Get('/desconexion/medidores')
+    @ApiOperation({ summary: 'Obtener medidores de solicitudes de desconexión físicas' })
+    getMedidoresDesconexion() {
+        return this.solicitudesFisicasService.getMedidoresDesconexion();
     }
 
     @Get('/cambio-medidor')
