@@ -156,6 +156,13 @@ export class CreateSolicitudCambioMedidorFisicaDto extends CreateSolicitudDto {
   @MaxLength(500, { message: 'El motivo de la solicitud no puede tener más de 500 caracteres' })
   @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,!?¿¡()-]+$/, { message: 'El motivo de la solicitud solo puede contener letras, números, espacios y los caracteres .,!?¿¡()-' })
   Motivo_Solicitud: string;
+
+  @ApiProperty({ example: 3, required: false, description: 'ID del nuevo medidor que se asignará al afiliado al completar la solicitud' })
+  @IsOptional()
+  @IsInt({ message: 'El Id del nuevo medidor debe ser un número entero' })
+  @IsPositive({ message: 'El Id del nuevo medidor debe ser positivo' })
+  @Min(1, { message: 'El Id del nuevo medidor debe ser mayor a 0' })
+  Id_Nuevo_Medidor?: number;
 }
 
 export class CreateSolicitudAsociadoFisicaDto  extends CreateSolicitudDto {

@@ -590,6 +590,7 @@ export class SolicitudesFisicasService {
 
         solicitudCambioMedidor.Motivo_Solicitud = dto.Motivo_Solicitud ?? solicitudCambioMedidor.Motivo_Solicitud;
         solicitudCambioMedidor.Id_Medidor = dto.Id_Medidor ?? solicitudCambioMedidor.Id_Medidor;
+        solicitudCambioMedidor.Id_Nuevo_Medidor = dto.Id_Nuevo_Medidor ?? solicitudCambioMedidor.Id_Nuevo_Medidor;
 
         // 5. Guardar cambios
         const resultado = await this.solicitudCambioMedidorFisicaRepository.save(solicitudCambioMedidor);
