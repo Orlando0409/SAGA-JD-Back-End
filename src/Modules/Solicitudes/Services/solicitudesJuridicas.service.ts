@@ -84,6 +84,7 @@ export class SolicitudesJuridicasService {
         };
     }
 
+
     async getAllSolicitudesAfiliacion() {
         return this.solicitudAfiliacionRepository.find({ relations: ['Estado'] });
     }
@@ -137,6 +138,19 @@ export class SolicitudesJuridicasService {
 
     async getAllSolicitudesAsociado() {
         return this.solicitudAsociadoRepository.find({ relations: ['Estado'] });
+    }
+
+    async getMedidoresDesconexion() {
+        const solicitudes = await this.solicitudDesconexionRepository.find({
+            relations: ['Medidor'],
+        });
+
+        return solicitudes.map(item => ({
+            Id_Solicitud: item.Id_Solicitud,
+            Id_Medidor: item.Medidor?.Id_Medidor ?? null,
+            Numero_Medidor: item.Medidor?.Numero_Medidor ?? null,
+            Estado_Medidor: item.Medidor?.Estado_Medidor?.Nombre_Estado_Medidor ?? null,
+        }));
     }
 
 
@@ -197,7 +211,7 @@ export class SolicitudesJuridicasService {
         return solicitudFinal;
     }
 
-    async createSolicitudDesconexion(dto: CreateSolicitudDesconexionJuridicaDto, files: any) {
+    async createSolicitudDesconexion(dto: CreateSolicitudDesconexionJuridicaDto) {
         const solicitudActiva = await this.validationsService.validarSolicitudesJuridicasActivas(dto.Cedula_Juridica);
         if (solicitudActiva) throw new BadRequestException(solicitudActiva);
 
@@ -205,18 +219,18 @@ export class SolicitudesJuridicasService {
         const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(dto.Cedula_Juridica);
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}`);
 
-        const planoFile = files?.Planos_Terreno?.[0];
-        const escrituraFile = files?.Certificacion_Literal?.[0];
-        const razonSocial = dto.Razon_Social;
+        const afiliado = await this.afiliadoJuridicoRepository.findOne({
+            where: { Cedula_Juridica: dto.Cedula_Juridica }
+        });
+        if (!afiliado) throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}`);
 
-        const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-Desconexion', 'Juridicas', dto.Cedula_Juridica, razonSocial) : null;
-        const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-Desconexion', 'Juridicas', dto.Cedula_Juridica, razonSocial) : null;
+        const razonSocial = afiliado.Razon_Social;
 
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
             Tipo_Entidad: 2, // Jurídica
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 2, // Desconexión
         });
         const solicitudGuardada = await this.solicitudRepository.save(solicitudBase);
@@ -225,11 +239,11 @@ export class SolicitudesJuridicasService {
         const solicitudJuridica = this.solicitudJuridicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
             Tipo_Entidad: 2, // Jurídica
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 2,
-            Cedula_Juridica: dto.Cedula_Juridica,
-            Razon_Social: dto.Razon_Social,
+            Cedula_Juridica: afiliado.Cedula_Juridica,
+            Razon_Social: afiliado.Razon_Social,
         });
         await this.solicitudJuridicaRepository.save(solicitudJuridica);
 
@@ -237,20 +251,20 @@ export class SolicitudesJuridicasService {
         const solicitudDesconexion = this.solicitudDesconexionRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
             Tipo_Entidad: 2, // Jurídica
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 2,
-            Cedula_Juridica: dto.Cedula_Juridica,
-            Razon_Social: dto.Razon_Social,
-            Direccion_Exacta: dto.Direccion_Exacta,
-            Motivo_Solicitud: dto.Motivo_Solicitud,
-            Planos_Terreno: planoRes?.url || '',
-            Certificacion_Literal: escrituraRes?.url || '',
+            Cedula_Juridica: afiliado.Cedula_Juridica,
+            Razon_Social: afiliado.Razon_Social,
+            Direccion_Exacta: afiliado.Direccion_Exacta,
+            Motivo_Solicitud: dto.Motivo_Desconexion,
+            Planos_Terreno: afiliado.Planos_Terreno || '',
+            Certificacion_Literal: afiliado.Escrituras_Terreno || '',
             Id_Medidor: dto.Id_Medidor,
         });
         const solicitudFinal = await this.solicitudDesconexionRepository.save(solicitudDesconexion);
 
-        await this.emailService.enviarEmailSolicitudCreada(dto.Correo, 'Desconexión', razonSocial);
+        await this.emailService.enviarEmailSolicitudCreada(afiliado.Correo, 'Desconexión', razonSocial);
         return solicitudFinal;
     }
 
@@ -267,7 +281,12 @@ export class SolicitudesJuridicasService {
         const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(dto.Cedula_Juridica);
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}`);
 
-        const razonSocial = dto.Razon_Social;
+        const afiliado = await this.afiliadoJuridicoRepository.findOne({
+            where: { Cedula_Juridica: dto.Cedula_Juridica }
+        });
+        if (!afiliado) throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}`);
+
+        const razonSocial = afiliado.Razon_Social;
 
         const planoRes = await this.dropboxFilesService.uploadFile(files.Planos_Terreno[0], 'Solicitudes-CambioMedidor', 'Juridicas', dto.Cedula_Juridica, razonSocial);
         const escrituraRes = await this.dropboxFilesService.uploadFile(files.Certificacion_Literal[0], 'Solicitudes-CambioMedidor', 'Juridicas', dto.Cedula_Juridica, razonSocial);
@@ -275,8 +294,8 @@ export class SolicitudesJuridicasService {
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
             Tipo_Entidad: 2, // Jurídica
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 3, // Cambio de Medidor
         });
         const solicitudGuardada = await this.solicitudRepository.save(solicitudBase);
@@ -285,11 +304,11 @@ export class SolicitudesJuridicasService {
         const solicitudJuridica = this.solicitudJuridicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
             Tipo_Entidad: 2, // Jurídica
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 3,
-            Cedula_Juridica: dto.Cedula_Juridica,
-            Razon_Social: dto.Razon_Social,
+            Cedula_Juridica: afiliado.Cedula_Juridica,
+            Razon_Social: afiliado.Razon_Social,
         });
         await this.solicitudJuridicaRepository.save(solicitudJuridica);
 
@@ -297,12 +316,12 @@ export class SolicitudesJuridicasService {
         const solicitudCambioMedidor = this.solicitudCambioMedidorRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
             Tipo_Entidad: 2,
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 3,
-            Cedula_Juridica: dto.Cedula_Juridica,
-            Razon_Social: dto.Razon_Social,
-            Direccion_Exacta: dto.Direccion_Exacta,
+            Cedula_Juridica: afiliado.Cedula_Juridica,
+            Razon_Social: afiliado.Razon_Social,
+            Direccion_Exacta: afiliado.Direccion_Exacta,
             Motivo_Solicitud: dto.Motivo_Solicitud,
             Id_Medidor: dto.Id_Medidor,
             Planos_Terreno: planoRes.url,
@@ -310,7 +329,7 @@ export class SolicitudesJuridicasService {
         });
         const solicitudFinal = await this.solicitudCambioMedidorRepository.save(solicitudCambioMedidor);
 
-        await this.emailService.enviarEmailSolicitudCreada(dto.Correo, 'Cambio de Medidor', razonSocial);
+        await this.emailService.enviarEmailSolicitudCreada(afiliado.Correo, 'Cambio de Medidor', razonSocial);
         return solicitudFinal;
     }
 
@@ -322,7 +341,12 @@ export class SolicitudesJuridicasService {
         const afiliadoExistente = await this.validationsService.validarExistenciaAfiliadoJuridico(dto.Cedula_Juridica);
         if (!afiliadoExistente) throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}. No se puede crear la solicitud de asociado.`);
 
-        const razonSocial = dto.Razon_Social;
+        const afiliado = await this.afiliadoJuridicoRepository.findOne({
+            where: { Cedula_Juridica: dto.Cedula_Juridica }
+        });
+        if (!afiliado) throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}`);
+
+        const razonSocial = afiliado.Razon_Social;
         const planoFile = files?.Planos_Terreno?.[0];
         const escrituraFile = files?.Escrituras_Terreno?.[0];
         if (!planoFile) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para la solicitud de asociado');
@@ -334,8 +358,8 @@ export class SolicitudesJuridicasService {
         // 1. Crear registro en tabla padre Solicitud
         const solicitudBase = this.solicitudRepository.create({
             Tipo_Entidad: 2, // Jurídica
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 4, // Asociado
         });
         const solicitudGuardada = await this.solicitudRepository.save(solicitudBase);
@@ -344,11 +368,11 @@ export class SolicitudesJuridicasService {
         const solicitudJuridica = this.solicitudJuridicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
             Tipo_Entidad: 2, // Jurídica
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 4,
-            Cedula_Juridica: dto.Cedula_Juridica,
-            Razon_Social: dto.Razon_Social,
+            Cedula_Juridica: afiliado.Cedula_Juridica,
+            Razon_Social: afiliado.Razon_Social,
         });
         await this.solicitudJuridicaRepository.save(solicitudJuridica);
 
@@ -356,18 +380,18 @@ export class SolicitudesJuridicasService {
         const solicitudAsociado = this.solicitudAsociadoRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
             Tipo_Entidad: 2, // Jurídica
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 4,
-            Cedula_Juridica: dto.Cedula_Juridica,
-            Razon_Social: dto.Razon_Social,
+            Cedula_Juridica: afiliado.Cedula_Juridica,
+            Razon_Social: afiliado.Razon_Social,
             Motivo_Solicitud: dto.Motivo_Solicitud,
             Planos_Terreno: planoRes.url,
             Escrituras_Terreno: escrituraRes.url,
         });
         const solicitudFinal = await this.solicitudAsociadoRepository.save(solicitudAsociado);
 
-        await this.emailService.enviarEmailSolicitudCreada(dto.Correo, 'Asociación', razonSocial);
+        await this.emailService.enviarEmailSolicitudCreada(afiliado.Correo, 'Asociación', razonSocial);
         return solicitudFinal;
     }
 
@@ -468,7 +492,7 @@ export class SolicitudesJuridicasService {
         solicitudDesconexion.Numero_Telefono = dto.Numero_Telefono ?? solicitudDesconexion.Numero_Telefono;
         solicitudDesconexion.Correo = dto.Correo ?? solicitudDesconexion.Correo;
         solicitudDesconexion.Direccion_Exacta = dto.Direccion_Exacta ?? solicitudDesconexion.Direccion_Exacta;
-        solicitudDesconexion.Motivo_Solicitud = dto.Motivo_Solicitud ?? solicitudDesconexion.Motivo_Solicitud;
+        solicitudDesconexion.Motivo_Solicitud = dto.Motivo_Desconexion ?? solicitudDesconexion.Motivo_Solicitud;
         solicitudDesconexion.Id_Medidor = dto.Id_Medidor ?? solicitudDesconexion.Id_Medidor;
 
         // 5. Guardar cambios
@@ -740,15 +764,16 @@ export class SolicitudesJuridicasService {
             console.log(`Estado de solicitud de desconexión ${idSolicitud} cambiado a 'Completada'`);
 
             // Actualizar estado del afiliado a inactivo
-            const afiliado = await this.afiliadoJuridicoRepository.findOne({ where: { Cedula_Juridica: solicitudDesconexion.Cedula_Juridica } });
-            if (afiliado) {
-                const estadoInactivo = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 2 } }); // 2 = Inactivo
-                if (estadoInactivo) {
-                    afiliado.Estado = estadoInactivo;
-                    await this.afiliadoJuridicoRepository.save(afiliado);
+
+            const medidor = await this.medidorRepository.findOne({ where: { Id_Medidor: solicitudDesconexion.Id_Medidor } });
+            if(medidor) {
+                const estadoAveriado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 4 } }); 
+                if (estadoAveriado) {
+                    medidor.Estado_Medidor = estadoAveriado;
+                    await this.medidorRepository.save(medidor);
                 }
-            } else if (!afiliado) {
-                console.warn(`Afiliado jurídico con cédula ${solicitudDesconexion.Cedula_Juridica} no encontrado para actualizar su estado a inactivo.`);
+            } else if (!medidor) {
+                console.warn(`Medidor con id ${solicitudDesconexion.Id_Medidor} no encontrado para actualizar su estado a averiado.`);
             }
         }
 
@@ -997,46 +1022,52 @@ export class SolicitudesJuridicasService {
 
         const planoFile = files?.Planos_Terreno?.[0];
         const escrituraFile = files?.Certificacion_Literal?.[0];
-        const razonSocial = dto.Razon_Social;
+
+        const afiliado = await this.afiliadoJuridicoRepository.findOne({
+            where: { Cedula_Juridica: dto.Cedula_Juridica }
+        });
+        if (!afiliado) throw new BadRequestException(`No existe un afiliado jurídico con la cédula ${dto.Cedula_Juridica}`);
+
+        const razonSocial = afiliado.Razon_Social;
 
         const planoRes = planoFile ? await this.dropboxFilesService.uploadFile(planoFile, 'Solicitudes-AgregarMedidor', 'Juridicas', dto.Cedula_Juridica, razonSocial) : null;
         const escrituraRes = escrituraFile ? await this.dropboxFilesService.uploadFile(escrituraFile, 'Solicitudes-AgregarMedidor', 'Juridicas', dto.Cedula_Juridica, razonSocial) : null;
 
         const solicitudBase = this.solicitudRepository.create({
-            Tipo_Entidad: 2, 
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
-            Id_Tipo_Solicitud: 5, 
+            Tipo_Entidad: 2,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
+            Id_Tipo_Solicitud: 5,
         });
         const solicitudGuardada = await this.solicitudRepository.save(solicitudBase);
 
         const solicitudJuridica = this.solicitudJuridicaRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
             Tipo_Entidad: 2,
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 5,
-            Cedula_Juridica: dto.Cedula_Juridica,
-            Razon_Social: dto.Razon_Social,
+            Cedula_Juridica: afiliado.Cedula_Juridica,
+            Razon_Social: afiliado.Razon_Social,
         });
         await this.solicitudJuridicaRepository.save(solicitudJuridica);
 
         const solicitudAgregarMedidor = this.solicitudAgregarMedidorRepository.create({
             Id_Solicitud: solicitudGuardada.Id_Solicitud,
             Tipo_Entidad: 2,
-            Correo: dto.Correo,
-            Numero_Telefono: dto.Numero_Telefono,
+            Correo: afiliado.Correo,
+            Numero_Telefono: afiliado.Numero_Telefono,
             Id_Tipo_Solicitud: 5,
-            Cedula_Juridica: dto.Cedula_Juridica,
-            Razon_Social: dto.Razon_Social,
-            Direccion_Exacta: dto.Direccion_Exacta,
+            Cedula_Juridica: afiliado.Cedula_Juridica,
+            Razon_Social: afiliado.Razon_Social,
+            Direccion_Exacta: afiliado.Direccion_Exacta,
             Planos_Terreno: planoRes?.url || '',
             Certificacion_Literal: escrituraRes?.url || '',
             ...(dto.Id_Nuevo_Medidor && { Id_Nuevo_Medidor: dto.Id_Nuevo_Medidor }),
         });
         const solicitudFinal = await this.solicitudAgregarMedidorRepository.save(solicitudAgregarMedidor);
 
-        await this.emailService.enviarEmailSolicitudCreada(dto.Correo, 'Agregar Medidor', razonSocial);
+        await this.emailService.enviarEmailSolicitudCreada(afiliado.Correo, 'Agregar Medidor', razonSocial);
         return solicitudFinal;
     }
 
@@ -1072,10 +1103,15 @@ export class SolicitudesJuridicasService {
         solicitudAgregarMedidor.Razon_Social = dto.Razon_Social ?? solicitudAgregarMedidor.Razon_Social;
         solicitudAgregarMedidor.Numero_Telefono = dto.Numero_Telefono ?? solicitudAgregarMedidor.Numero_Telefono;
         solicitudAgregarMedidor.Correo = dto.Correo ?? solicitudAgregarMedidor.Correo;
-        solicitudAgregarMedidor.Direccion_Exacta = dto.Direccion_Exacta ?? solicitudAgregarMedidor.Direccion_Exacta;
         solicitudAgregarMedidor.Id_Nuevo_Medidor = dto.Id_Nuevo_Medidor ?? solicitudAgregarMedidor.Id_Nuevo_Medidor;
 
-        const resultado = await this.solicitudAgregarMedidorRepository.save(solicitudAgregarMedidor);
+        await this.solicitudAgregarMedidorRepository.save(solicitudAgregarMedidor);
+
+        const resultado = await this.solicitudAgregarMedidorRepository.findOne({
+            where: { Id_Solicitud: idSolicitud },
+            relations: ['Estado', 'Nuevo_Medidor', 'Nuevo_Medidor.Estado_Medidor']
+        });
+        if (!resultado) throw new BadRequestException(`Solicitud de agregar medidor jurídica con id ${idSolicitud} no encontrada tras guardar`);
 
         try {
             await this.auditoriaService.logActualizacion('Solicitudes', idUsuario, idSolicitud, datosAnteriores, {

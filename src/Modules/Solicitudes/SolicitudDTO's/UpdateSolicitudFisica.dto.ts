@@ -1,4 +1,4 @@
-import { OmitType, PartialType } from "@nestjs/swagger";
+import { IntersectionType, OmitType, PartialType } from "@nestjs/swagger";
 import { CreateSolicitudAfiliacionFisicaDto, CreateSolicitudAgregarMedidorFisicaDto, CreateSolicitudAsociadoFisicaDto, CreateSolicitudCambioMedidorFisicaDto, CreateSolicitudDesconexionFisicaDto, CreateSolicitudFisicaDto } from "./CreateSolicitudFisica.dto";
 
 export class UpdateSolicitudFisicaDto extends PartialType(
@@ -14,7 +14,22 @@ export class UpdateSolicitudCambioMedidorFisicaDto extends PartialType(
 ) {}
 
 export class UpdateSolicitudDesconexionFisicaDto extends PartialType(
-    OmitType(CreateSolicitudDesconexionFisicaDto, ['Identificacion'])
+    IntersectionType(
+        IntersectionType(
+            OmitType(CreateSolicitudDesconexionFisicaDto, ['Identificacion']),
+            OmitType(CreateSolicitudFisicaDto, ['Identificacion', 'Tipo_Identificacion'])
+        ),
+        OmitType(CreateSolicitudAfiliacionFisicaDto, [
+            'Identificacion',
+            'Tipo_Identificacion',
+            'Nombre',
+            'Apellido1',
+            'Apellido2',
+            'Correo',
+            'Numero_Telefono',
+            'Edad'
+        ])
+    )
 ) {}
 
 export class UpdateSolicitudAsociadoFisicaDto extends PartialType(

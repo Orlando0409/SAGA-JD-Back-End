@@ -157,6 +157,48 @@ export class MedidorService {
         return this.formatearMedidoresConRelaciones(medidores);
     }
 
+    private async obtenerContextoCargaMedidor(idAfiliado: number, tipoEntidad: TipoEntidad) {
+        if (tipoEntidad === TipoEntidad.Física) {
+            const afiliadoFisico = await this.afiliadoFisicoRepository.findOne({ where: { Id_Afiliado: idAfiliado } });
+            if (!afiliadoFisico) throw new BadRequestException(`Afiliado fisico con ID ${idAfiliado} no encontrado`);
+            return {
+                subcarpeta: 'Fisicos',
+                identificador: afiliadoFisico.Identificacion,
+                nombreMostrar: `${afiliadoFisico.Nombre} ${afiliadoFisico.Apellido1 ?? ''} ${afiliadoFisico.Apellido2 ?? ''}`.trim(),
+            };
+        }
+        const afiliadoJuridico = await this.afiliadoJuridicoRepository.findOne({ where: { Id_Afiliado: idAfiliado } });
+        if (!afiliadoJuridico) throw new BadRequestException(`Afiliado juridico con ID ${idAfiliado} no encontrado`);
+        return {
+            subcarpeta: 'Juridicos',
+            identificador: afiliadoJuridico.Cedula_Juridica,
+            nombreMostrar: afiliadoJuridico.Razon_Social,
+        };
+    }
+
+    private async activarAfiliadoSiEstaEnEspera(idAfiliado: number, tipoEntidad: TipoEntidad) {
+        const estadoActivo = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 1 } });
+        if (!estadoActivo) throw new BadRequestException('Estado "Activo" no encontrado');
+
+        if (tipoEntidad === TipoEntidad.Física) {
+            const afiliadoFisico = await this.afiliadoFisicoRepository.findOne({ where: { Id_Afiliado: idAfiliado }, relations: ['Estado'] });
+            if (afiliadoFisico?.Estado?.Id_Estado_Afiliado === 3) {
+                afiliadoFisico.Estado = estadoActivo;
+                await this.afiliadoFisicoRepository.save(afiliadoFisico);
+                return true;
+            }
+            return false;
+        }
+
+        const afiliadoJuridico = await this.afiliadoJuridicoRepository.findOne({ where: { Id_Afiliado: idAfiliado }, relations: ['Estado'] });
+        if (afiliadoJuridico?.Estado?.Id_Estado_Afiliado === 3) {
+            afiliadoJuridico.Estado = estadoActivo;
+            await this.afiliadoJuridicoRepository.save(afiliadoJuridico);
+            return true;
+        }
+        return false;
+    }
+
     async asignarMedidorExistenteAAfiliado(
         dto: AsignarMedidorExistenteAAfiliado,
         idUsuario: number,
@@ -173,9 +215,8 @@ export class MedidorService {
         });
 
         if (!medidor) throw new BadRequestException(`Medidor con ID ${dto.Id_Medidor} no encontrado`);
-        if (medidor.Estado_Medidor.Id_Estado_Medidor === 3) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} está averiado y no puede ser asignado`);
+        if (medidor.Estado_Medidor?.Id_Estado_Medidor === 3) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} está averiado y no puede ser asignado`);
         if (medidor.Afiliado) throw new BadRequestException(`El medidor con ID ${dto.Id_Medidor} ya está asignado al afiliado con ID ${medidor.Afiliado.Id_Afiliado}`);
-        if (dto.Estado_Pago === EstadoPagoMedidor.Libre) throw new BadRequestException('No se puede asignar un medidor con Estado_Pago Libre');
 
         const afiliado = await this.afiliadoRepository.findOne({
             where: { Id_Afiliado: dto.Id_Afiliado },
@@ -186,80 +227,54 @@ export class MedidorService {
         const estadoInstalado = await this.estadoMedidorRepository.findOne({ where: { Id_Estado_Medidor: 2 } });
         if (!estadoInstalado) throw new BadRequestException('Estado "Instalado" no encontrado en la base de datos');
 
-        const estadoActivo = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 1 } });
-        if (!estadoActivo) throw new BadRequestException('Estado "Activo" no encontrado en la base de datos');
-
-        const estadoEnEspera = await this.estadoAfiliadoRepository.findOne({ where: { Id_Estado_Afiliado: 3 } });
-        if (!estadoEnEspera) throw new BadRequestException('Estado "En espera" no encontrado en la base de datos');
-
-        // Cambiar estado del afiliado de "En Espera" a "Activo" cuando se le asigna un medidor
-        if (afiliado.Tipo_Entidad === TipoEntidad.Física) {
-            const afiliadoFisico = await this.afiliadoFisicoRepository.findOne({
-                where: { Id_Afiliado: dto.Id_Afiliado },
-                relations: ['Estado']
-            });
-            
-            if (afiliadoFisico && afiliadoFisico.Estado?.Id_Estado_Afiliado === 3) {
-                afiliadoFisico.Estado = estadoActivo;
-                await this.afiliadoFisicoRepository.save(afiliadoFisico);
-            }
-        } else if (afiliado.Tipo_Entidad === TipoEntidad.Jurídica) {
-            const afiliadoJuridico = await this.afiliadoJuridicoRepository.findOne({
-                where: { Id_Afiliado: dto.Id_Afiliado },
-                relations: ['Estado']
-            });
-            
-            if (afiliadoJuridico && afiliadoJuridico.Estado?.Id_Estado_Afiliado === 3) {
-                afiliadoJuridico.Estado = estadoActivo;
-                await this.afiliadoJuridicoRepository.save(afiliadoJuridico);
-            }
-        }
-
         const datosAnteriores = {
             Numero_Medidor: medidor.Numero_Medidor,
             Estado_Anterior: medidor.Estado_Medidor.Nombre_Estado_Medidor,
             Afiliado_Anterior: null
         };
 
+        const contextoCarga = await this.obtenerContextoCargaMedidor(afiliado.Id_Afiliado, afiliado.Tipo_Entidad);
+
         const planoRes = await this.dropboxFilesService.uploadFile(
-            files.Planos_Terreno[0], 'Medidores', 'Archivos', String(dto.Id_Medidor), String(dto.Id_Afiliado)
+            files.Planos_Terreno[0], 'Medidores', contextoCarga.subcarpeta, contextoCarga.identificador, contextoCarga.nombreMostrar
         );
         const escrituraRes = await this.dropboxFilesService.uploadFile(
-            files.Certificacion_Literal[0], 'Medidores', 'Archivos', String(dto.Id_Medidor), String(dto.Id_Afiliado)
+            files.Certificacion_Literal[0], 'Medidores', contextoCarga.subcarpeta, contextoCarga.identificador, contextoCarga.nombreMostrar
         );
 
         medidor.Planos_Terreno = planoRes.url;
         medidor.Certificacion_Literal = escrituraRes.url;
         medidor.Afiliado = afiliado;
         medidor.Estado_Medidor = estadoInstalado;
-        medidor.Estado_Pago = dto.Estado_Pago;
-        await this.medidorRepository.save(medidor);
+        medidor.Estado_Pago = dto.Estado_Pago_Medidor;
+        const medidorGuardado = await this.medidorRepository.save(medidor);
+
+        const estadoActualizadoAActivo = await this.activarAfiliadoSiEstaEnEspera(afiliado.Id_Afiliado, afiliado.Tipo_Entidad);
 
         try {
             await this.auditoriaService.logActualizacion('Medidores', idUsuario, dto.Id_Medidor, datosAnteriores, {
-                'Número de Medidor': medidor.Numero_Medidor,
+                'Número de Medidor': medidorGuardado.Numero_Medidor,
                 'Estado del Medidor': 'Instalado',
-                'Afiliado Asignado': dto.Id_Afiliado,
-                'Estado Pago': medidor.Estado_Pago
+                'Afiliado Asignado': contextoCarga.nombreMostrar,
+                'Estado Pago': medidorGuardado.Estado_Pago
             });
         } catch (error) {
             console.error('Error al registrar auditoría de asignación de medidor a afiliado:', error);
         }
 
-        const medidorActualizado = await this.medidorRepository.createQueryBuilder('medidor')
-            .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
-            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
-            .leftJoinAndSelect('medidor.Usuario', 'usuario')
-            .leftJoinAndSelect('usuario.Rol', 'rol')
-            .where('medidor.Id_Medidor = :id', { id: dto.Id_Medidor })
-            .getOne();
-
-        if (!medidorActualizado) throw new BadRequestException('Error al recuperar el medidor actualizado');
-
         return {
-            ...medidorActualizado,
-            Afiliado: await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidorActualizado.Afiliado),
-            Usuario: medidorActualizado.Usuario ? await this.usuariosService.FormatearUsuarioResponse(medidorActualizado.Usuario) : null
+            Medidor_Asignado: {
+                Id_Medidor: medidorGuardado.Id_Medidor,
+                Numero_Medidor: medidorGuardado.Numero_Medidor,
+                Estado_Pago: medidorGuardado.Estado_Pago ?? 'Libre',
+                Planos_Terreno: medidorGuardado.Planos_Terreno,
+                Certificacion_Literal: medidorGuardado.Certificacion_Literal
+            },
+            Afiliado: {
+                Id_Afiliado: afiliado.Id_Afiliado,
+                Tipo_Entidad: afiliado.Tipo_Entidad,
+                Estado_Actualizado_A_Activo: estadoActualizadoAActivo
+            }
         };
     }
 

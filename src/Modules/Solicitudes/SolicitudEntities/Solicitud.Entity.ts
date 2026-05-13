@@ -176,6 +176,10 @@ export class SolicitudDesconexionFisica extends SolicitudFisica {
     @Column({ nullable: false })
     Id_Medidor: number;
 
+    @ManyToOne(() => Medidor, { nullable: true })
+    @JoinColumn({ name: 'Id_Medidor' })
+    Medidor: Medidor;
+
     @BeforeInsert()
     @BeforeUpdate()
     setNormalizarCampos() {
@@ -349,6 +353,10 @@ export class SolicitudDesconexionJuridica extends SolicitudJuridica {
 
     @Column({ nullable: false })
     Id_Medidor: number;
+
+    @ManyToOne(() => Medidor, { nullable: true })
+    @JoinColumn({ name: 'Id_Medidor' })
+    Medidor: Medidor;
 
     @BeforeInsert()
     @BeforeUpdate()
