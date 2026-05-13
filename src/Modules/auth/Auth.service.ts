@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,7 +7,8 @@ import * as bcrypt from 'bcrypt';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 import { LoginDto } from './DTO/LoginDto';
 import { v4 as uuidv4 } from 'uuid';
-import { ConfigService } from '@nestjs/config';
+import { ConfigService, ConfigType } from '@nestjs/config';
+import jwtConfig from '../../Config/jwt.config';
 import { EmailService } from '../Emails/email.service';
 import { ResetPasswordDto } from './DTO/ResetPasswordDto';
 import { ChangePasswordDTO } from './DTO/ChangePasswordDTO';
@@ -21,6 +22,9 @@ export class AuthService {
     private readonly userRepository: Repository<Usuario>,
 
     private readonly jwtService: JwtService,
+
+    @Inject(jwtConfig.KEY)
+    private readonly jwtCfg: ConfigType<typeof jwtConfig>,
 
     private readonly configService: ConfigService,
 
@@ -60,12 +64,12 @@ export class AuthService {
     };
 
     const accessToken = await this.jwtService.signAsync(payload, {
-      expiresIn: process.env.JWT_EXPIRES_IN
+      expiresIn: this.jwtCfg.expiresIn
     });
 
     const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN
+      secret: this.jwtCfg.refreshSecret,
+      expiresIn: this.jwtCfg.refreshExpiresIn
     });
 
     // Configurar cookies
@@ -98,7 +102,7 @@ export class AuthService {
     try {
       // Verificar y decodificar el refresh token
       const payload = await this.jwtService.verifyAsync(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET
+        secret: this.jwtCfg.refreshSecret
       });
 
       const usuario = await this.userRepository.findOne({
@@ -117,12 +121,12 @@ export class AuthService {
       };
 
       const newAccessToken = await this.jwtService.signAsync(newPayload, {
-        expiresIn: process.env.JWT_EXPIRES_IN
+        expiresIn: this.jwtCfg.expiresIn
       });
 
       const newRefreshToken = await this.jwtService.signAsync(newPayload, {
-        secret: process.env.JWT_REFRESH_SECRET,
-        expiresIn: process.env.JWT_REFRESH_EXPIRES_IN
+        secret: this.jwtCfg.refreshSecret,
+        expiresIn: this.jwtCfg.refreshExpiresIn
       });
 
       //  Actualizar ambas cookies

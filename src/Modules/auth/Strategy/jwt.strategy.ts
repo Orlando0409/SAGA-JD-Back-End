@@ -1,7 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config';
+import { ConfigType } from '@nestjs/config';
+import jwtConfig from '../../../Config/jwt.config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Usuario } from '../../Usuarios/UsuarioEntities/Usuario.Entity';
@@ -11,7 +12,8 @@ import { Request } from 'express';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(
-        private readonly configService: ConfigService,
+        @Inject(jwtConfig.KEY)
+        jwtCfg: ConfigType<typeof jwtConfig>,
         @InjectRepository(Usuario)
         private readonly userRepository: Repository<Usuario>
     ) {
@@ -23,7 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
                 },
             ]),
             ignoreExpiration: false,
-            secretOrKey: configService.get<string>('JWT_SECRET') || 'defaultSecret',
+            secretOrKey: jwtCfg.secret,
         });
     }
 
