@@ -15,18 +15,10 @@ import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/Unidad
 import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
 import { SeederService } from './Seeder.service';
 import { EstadoMedidor } from 'src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
-import { RangoAfiliados } from 'src/Modules/Lecturas/LecturaEntities/RangoAfiliados.Entity';
-import { RangoConsumo } from 'src/Modules/Lecturas/LecturaEntities/RangoConsumo.Entity';
 import { EstadoReporte } from 'src/Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
 import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
 import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
 import { EstadoFactura } from 'src/Modules/Facturas/FacturaEntities/EstadoFactura.Entity';
-import { TipoTarifaServiciosFijosConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaServiciosFijos.Entity';
-import { AplicarSelloCalidad } from 'src/Modules/Lecturas/LecturaEntities/AplicarSelloCalidad.Entity';
-import { TarifaLecturaConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaLecturaConSello.Entity';
-import { TipoTarifaCargoFijoConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TipoTarifaCargoFijoConSello.Entity';
-import { CargoFijoTarifasConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/CargoFijoTarifasConSello.Entity';
-import { TipoTarifaVentaAguaConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaVentaAgua.Entity';
 import { TarifaLecturaSinSello } from 'src/Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/TarifaLecturaSinSello.Entity';
 import { RangoAfiliadosSinSello } from 'src/Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RangoAfiliadosSinSello.Entity';
 import { RangoConsumoSinSello } from 'src/Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RangoConsumoSinSello.Entity';
@@ -56,15 +48,7 @@ import { TarifaHidranteSinSello } from 'src/Modules/Tarifas/Sin Sello Calidad/Ta
         EstadoSugerencia, 
         EstadoQueja, 
         EstadoFactura,
-        EstadoMedidor, 
-        TarifaLecturaConSello, 
-        TipoTarifaCargoFijoConSello, 
-        CargoFijoTarifasConSello, 
-        TipoTarifaServiciosFijosConSello, 
-        TipoTarifaVentaAguaConSello, 
-        RangoAfiliados, 
-        RangoConsumo, 
-        AplicarSelloCalidad,
+        EstadoMedidor,
         // Entidades Sin Sello
         TarifaLecturaSinSello,
         RangoAfiliadosSinSello,

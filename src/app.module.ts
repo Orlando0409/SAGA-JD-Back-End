@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ProyectoModule } from './Modules/Proyectos/proyecto.module';
 import { FacturaModule } from './Modules/Facturas/factura.module';
 import { InventarioModule } from './Modules/Inventario/inventario.module';
@@ -61,8 +62,6 @@ import { ImagenEntity } from './Modules/Imagenes/ImagenesEntity/Imagen.Entity';
 import { ImagenesModule } from './Modules/Imagenes/Imagenes.module';
 import { ManualModule } from './Modules/ManualdeUsuario/manual.module';
 import { ManualEntity } from './Modules/ManualdeUsuario/ManualEntities/Manual.Entity';
-import { RangoAfiliados } from './Modules/Lecturas/LecturaEntities/RangoAfiliados.Entity';
-import { RangoConsumo } from './Modules/Lecturas/LecturaEntities/RangoConsumo.Entity';
 import { EstadoReporte } from './Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
 import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
 import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
@@ -70,12 +69,6 @@ import { ConsultaPago } from './Modules/ConsultaPagos/ConsultaPagoEntities/Consu
 import { PagosModule } from './Modules/ConsultaPagos/consultaPagos.module';
 import { Factura } from './Modules/Facturas/FacturaEntities/Factura.Entity';
 import { EstadoFactura } from './Modules/Facturas/FacturaEntities/EstadoFactura.Entity';
-import { AplicarSelloCalidad } from './Modules/Lecturas/LecturaEntities/AplicarSelloCalidad.Entity';
-import { TarifaLecturaConSello } from './Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaLecturaConSello.Entity';
-import { TipoTarifaVentaAguaConSello } from './Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaVentaAgua.Entity';
-import { TipoTarifaServiciosFijosConSello } from './Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaServiciosFijos.Entity';
-import { TipoTarifaCargoFijoConSello } from './Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TipoTarifaCargoFijoConSello.Entity';
-import { CargoFijoTarifasConSello } from './Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/CargoFijoTarifasConSello.Entity';
 import { TarifaLecturaSinSello } from './Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/TarifaLecturaSinSello.Entity';
 import { TarifaHidranteSinSello } from './Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/TarifaHidranteSinSello.Entity';
 import { CargoFijoTarifasSinSello } from './Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/CargoFijoTarifasSinSello.Entity';
@@ -94,6 +87,8 @@ import { PrecioRecursoHidricoSinSello } from './Modules/Tarifas/Sin Sello Calida
         ? '.env.development'
         : '.env.production',
     }),
+
+    ScheduleModule.forRoot(),
 
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -122,10 +117,8 @@ import { PrecioRecursoHidricoSinSello } from './Modules/Tarifas/Sin Sello Calida
           FAQEntity,
           Material, EstadoMaterial, Categoria, EstadoCategoria, MaterialCategoria, UnidadMedicion, EstadoUnidadMedicion, MovimientoInventario, Medidor, EstadoMedidor,
           Auditoria,
-          Lectura, RangoAfiliados, RangoConsumo,
-          TarifaLecturaConSello, TipoTarifaCargoFijoConSello, CargoFijoTarifasConSello, TipoTarifaServiciosFijosConSello, TipoTarifaVentaAguaConSello,
-          TarifaLecturaSinSello, RangoAfiliadosSinSello, RangoConsumoSinSello, CargoFijoTarifasSinSello, PrecioBloqueConsumoSinSello, RecursoHidricoSinSello, BloqueRecursoHidricoSinSello, PrecioRecursoHidricoSinSello, TarifaHidranteSinSello, 
-          AplicarSelloCalidad,
+          Lectura,
+          TarifaLecturaSinSello, RangoAfiliadosSinSello, RangoConsumoSinSello, CargoFijoTarifasSinSello, PrecioBloqueConsumoSinSello, RecursoHidricoSinSello, BloqueRecursoHidricoSinSello, PrecioRecursoHidricoSinSello, TarifaHidranteSinSello,
           ImagenEntity,
           ManualEntity,
           ConsultaPago,

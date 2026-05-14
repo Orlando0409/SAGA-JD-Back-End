@@ -32,4 +32,7 @@ export class FacturaGeneradaResponseDTO {
     };
     Tipo_Tarifa_Aplicada?: string;
     Observaciones?: string;
+    Fecha_Pago?: Date;
+    Fecha_Anulacion?: Date;
+    Motivo_Anulacion?: string;
 }

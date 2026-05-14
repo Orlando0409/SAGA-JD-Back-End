@@ -466,10 +466,14 @@ export class PagosService {
             fechaVencimiento: factura?.Fecha_Vencimiento
                 ? new Date(factura.Fecha_Vencimiento)
                 : (() => { const d = new Date(factura?.Fecha_Emision || Date.now()); d.setDate(d.getDate() + 15); return d; })(),
+            fechaLectura: factura?.Lectura?.Fecha_Lectura
+                ? new Date(factura.Lectura.Fecha_Lectura)
+                : (factura?.Fecha_Emision ? new Date(factura.Fecha_Emision) : new Date()),
             historialLecturas,
             consumoM3:            Number(factura?.Consumo_M3 || 0),
             // Todos los montos vienen como "₡1234.00" desde formatearFacturaParaConsulta
-            costoPorM3:           this.parseMonto(factura?.Cargo_Consumo) / (Number(factura?.Consumo_M3) || 1),
+            // Costo promedio: cargo_consumo total / consumo. Real es escalonado por bloques.
+            costoPromedioPorM3:   this.parseMonto(factura?.Cargo_Consumo) / (Number(factura?.Consumo_M3) || 1),
             cargoFijo:            this.parseMonto(factura?.Cargo_Fijo),
             cargoConsumo:         this.parseMonto(factura?.Cargo_Consumo),
             cargoRecursoHidrico:  this.parseMonto(factura?.Cargo_Recurso_Hidrico),

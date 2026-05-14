@@ -1,5 +1,5 @@
-import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Lectura } from "src/Modules/Lecturas/LecturaEntities/Lectura.Entity";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('tarifa_lectura_sin_sello')
 export class TarifaLecturaSinSello {
@@ -15,9 +15,6 @@ export class TarifaLecturaSinSello {
     @Column({ nullable: false })
     Activa!: boolean;
 
-    // Relacion OneToOne con medidor
-    // @OneToOne(() => Medidor)
-    // @JoinColumn({ name: 'Id_Medidor' })
-    // Medidor: Medidor;
-
+    @OneToMany(() => Lectura, lectura => lectura.Tipo_Tarifa)
+    Lectura: Lectura[];
 }

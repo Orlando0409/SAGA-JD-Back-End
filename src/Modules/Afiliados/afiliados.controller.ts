@@ -49,6 +49,18 @@ export class AfiliadosController {
         return this.afiliadosService.getAfiliadosJuridicos();
     }
 
+    @Get('/fisico/info/:identificacion')
+    @ApiOperation({ summary: 'Obtener información completa de un afiliado físico por su cédula (para panel administrativo)' })
+    getInfoAfiliadoFisicoByCedula(@Param('identificacion') identificacion: string) {
+        return this.afiliadosService.getInfoAfiliadoFisicoByCedula(identificacion);
+    }
+
+    @Get('/juridico/info/:cedulaJuridica')
+    @ApiOperation({ summary: 'Obtener información completa de un afiliado jurídico por su cédula jurídica (para panel administrativo)' })
+    getInfoAfiliadoJuridicoByCedula(@Param('cedulaJuridica') cedulaJuridica: string) {
+        return this.afiliadosService.getInfoAfiliadoJuridicoByCedula(cedulaJuridica);
+    }
+
     @Get('/fisico/detail/:id')
     @ApiOperation({ summary: 'Obtener detalle completo de un afiliado físico incluyendo todos sus medidores' })
     getDetalleAfiliadoFisico(

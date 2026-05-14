@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Medidor } from "src/Modules/Inventario/InventarioEntities/Medidor.Entity";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
-import { TarifaLecturaConSello } from "src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaLecturaConSello.Entity";
+import { TarifaLecturaSinSello } from "src/Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/TarifaLecturaSinSello.Entity";
 import { Factura } from "src/Modules/Facturas/FacturaEntities/Factura.Entity";
 
 @Entity('lectura')
@@ -13,9 +13,9 @@ export class Lectura {
     @JoinColumn({ name: 'Id_Medidor' })
     Medidor: Medidor;
 
-    @ManyToOne(() => TarifaLecturaConSello, tipoTarifa => tipoTarifa.Lectura, { nullable: false })
+    @ManyToOne(() => TarifaLecturaSinSello, tipoTarifa => tipoTarifa.Lectura, { nullable: false })
     @JoinColumn({ name: 'Id_Tarifa_Lectura' })
-    Tipo_Tarifa: TarifaLecturaConSello;
+    Tipo_Tarifa: TarifaLecturaSinSello;
 
     @Column({ type: 'float', nullable: false, default: 0, comment: 'Lectura anterior del medidor' })
     Valor_Lectura_Anterior: number;

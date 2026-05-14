@@ -14,7 +14,7 @@ export class AsignarMedidorExistenteAAfiliado {
     Id_Afiliado: number;
 
     @ApiProperty({ example: EstadoPagoMedidor.Pagado, enum: [EstadoPagoMedidor.Pagado, EstadoPagoMedidor.Pendiente], description: 'Estado de pago del medidor al momento de asignarlo al afiliado' })
-    @IsDefined({ message: 'El Estado_Pago es obligatorio al asignar un medidor' })
-    @IsEnum(EstadoPagoMedidor, { message: 'Estado_Pago debe ser Pagado o Pendiente' })
-    Estado_Pago: EstadoPagoMedidor;
+    @IsDefined({ message: 'El Estado_Pago_Medidor es obligatorio al asignar un medidor' })
+    @IsEnum(EstadoPagoMedidor, { message: 'Estado_Pago_Medidor debe ser Pagado o Pendiente' })
+    Estado_Pago_Medidor: EstadoPagoMedidor;
 }
