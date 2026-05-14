@@ -423,10 +423,15 @@ export class SeederService implements OnModuleInit {
     }
 
     private async createDefaultEstadosFactura() {
+        // Flujo de estados:
+        //   1. Disponible — factura emitida, dentro del periodo de pago (entre Fecha_Emision y Fecha_Vencimiento).
+        //   2. Pagada     — pago confirmado.
+        //   3. Pendiente  — pasó la Fecha_Vencimiento sin pago.
+        //   4. Anulada    — factura anulada por corrección o cancelación.
         const estados = [
-            { Id_Estado_Factura: 1, Nombre_Estado: 'Pendiente', Descripcion: 'Factura emitida pendiente de pago' },
+            { Id_Estado_Factura: 1, Nombre_Estado: 'Disponible', Descripcion: 'Factura emitida y disponible para pago dentro del periodo de cobro' },
             { Id_Estado_Factura: 2, Nombre_Estado: 'Pagada', Descripcion: 'Factura pagada en su totalidad' },
-            { Id_Estado_Factura: 3, Nombre_Estado: 'Vencida', Descripcion: 'Factura no pagada después de la fecha de vencimiento' },
+            { Id_Estado_Factura: 3, Nombre_Estado: 'Pendiente', Descripcion: 'Factura vencida sin pago — pendiente de cobro' },
             { Id_Estado_Factura: 4, Nombre_Estado: 'Anulada', Descripcion: 'Factura anulada por corrección o cancelación' },
         ];
 
@@ -438,6 +443,12 @@ export class SeederService implements OnModuleInit {
                 const nuevo = this.estadoFacturaRepository.create(estado);
                 await this.estadoFacturaRepository.save(nuevo);
                 console.log(`✅ Estado de factura creado: ${estado.Nombre_Estado}`);
+            } else if (existe.Nombre_Estado !== estado.Nombre_Estado || existe.Descripcion !== estado.Descripcion) {
+                // Forzar update si el nombre/descripción cambió (migración semántica)
+                existe.Nombre_Estado = estado.Nombre_Estado;
+                existe.Descripcion = estado.Descripcion;
+                await this.estadoFacturaRepository.save(existe);
+                console.log(`🔄 Estado de factura actualizado: ${estado.Nombre_Estado}`);
             }
         }
     }
@@ -728,116 +739,172 @@ export class SeederService implements OnModuleInit {
     // ======================================================================
     // ENTIDADES RELACIONADAS CON RECURSOS HÍDRICOS SIN SELLO
     // ======================================================================
+    // ============================================================
+    // RECURSO HIDRICO (TPRH) — Tarifa de Protección del Recurso Hídrico
+    // ============================================================
+    // Modelo unificado: 1 RecursoHidricoSinSello por cada tipo de tarifa,
+    // con sus propios bloques. Los precios son únicos por bloque y NO
+    // varían por rango de abonados (estructura unificada según pliego
+    // ARESEP — Resolución RE-0008-IA-2025, Oficio OF-0252-IA-2026).
+    //
+    // Las categorías "Default" (Pobreza Básica/Extrema y Venta de Agua en
+    // Bloque) utilizan un único bloque con precio ₡42 hasta tener cifras
+    // oficiales.
+    private static readonly MATRIZ_RECURSO_HIDRICO: Array<{
+        tipoTarifa: string;
+        bloques: Array<{ min: number; max: number; precio: number }>;
+    }> = [
+        {
+            tipoTarifa: 'Residencial',
+            bloques: [
+                { min: 1, max: 15, precio: 42 },
+                { min: 16, max: 30, precio: 45 },
+                { min: 31, max: 60, precio: 50 },
+                { min: 61, max: 999999, precio: 57 },
+            ],
+        },
+        {
+            tipoTarifa: 'Comercio y Servicios',
+            bloques: [
+                { min: 1, max: 20, precio: 42 },
+                { min: 21, max: 65, precio: 49 },
+                { min: 66, max: 999999, precio: 58 },
+            ],
+        },
+        {
+            tipoTarifa: 'Industrial',
+            bloques: [
+                { min: 1, max: 120, precio: 42 },
+                { min: 121, max: 999999, precio: 60 },
+            ],
+        },
+        {
+            tipoTarifa: 'Preferencial',
+            bloques: [
+                { min: 1, max: 120, precio: 42 },
+                { min: 121, max: 999999, precio: 57 },
+            ],
+        },
+        {
+            tipoTarifa: 'Grandes Consumidores',
+            bloques: [
+                { min: 1, max: 2500, precio: 42 },
+                { min: 2501, max: 6000, precio: 50 },
+                { min: 6001, max: 999999, precio: 59 },
+            ],
+        },
+        {
+            tipoTarifa: 'Grandes Consumidores Residenciales Bien Social',
+            bloques: [
+                { min: 1, max: 2500, precio: 42 },
+                { min: 2501, max: 6000, precio: 50 },
+                { min: 6001, max: 999999, precio: 59 },
+            ],
+        },
+        // Default — un único bloque temporal hasta tener valores oficiales
+        {
+            tipoTarifa: 'Residencial Pobreza Basica',
+            bloques: [
+                { min: 1, max: 999999, precio: 42 },
+            ],
+        },
+        {
+            tipoTarifa: 'Residencial Pobreza Extrema',
+            bloques: [
+                { min: 1, max: 999999, precio: 42 },
+            ],
+        },
+    ];
+
     private async createRecursosHidricosSinSello() {
-        const NOMBRE_NUEVO = 'Tarifa Recurso Hidrico';
-
-        // Renombrar entrada legacy "Recurso Hidrico Domipre" si existe
-        const legacyDomipre = await this.recursoHidricoSinSelloRepository.findOne({
-            where: { Nombre: 'Recurso Hidrico Domipre' }
-        });
-        if (legacyDomipre) {
-            legacyDomipre.Nombre = NOMBRE_NUEVO;
-            await this.recursoHidricoSinSelloRepository.save(legacyDomipre);
-        }
-
-        // Eliminar entrada legacy "Recurso Hidrico Emprego" (incluyendo sus bloques y precios)
-        const legacyEmprego = await this.recursoHidricoSinSelloRepository.findOne({
-            where: { Nombre: 'Recurso Hidrico Emprego' }
-        });
-        if (legacyEmprego) {
-            const bloquesEmprego = await this.bloqueRecursoHidricoSinSelloRepository.find({
-                where: { Recurso_Hidrico: { Id_Recurso_Hidrico: legacyEmprego.Id_Recurso_Hidrico } }
+        // Cleanup completo: eliminar precios → bloques → recursos previos,
+        // luego re-crear según la matriz por tipo de tarifa.
+        const existentes = await this.recursoHidricoSinSelloRepository.find();
+        for (const recurso of existentes) {
+            const bloques = await this.bloqueRecursoHidricoSinSelloRepository.find({
+                where: { Recurso_Hidrico: { Id_Recurso_Hidrico: recurso.Id_Recurso_Hidrico } }
             });
-            for (const bloque of bloquesEmprego) {
+            for (const bloque of bloques) {
                 await this.precioRecursoHidricoSinSelloRepository.delete({
                     Bloque_Recurso_Hidrico: { Id_Bloque_Recurso_Hidrico: bloque.Id_Bloque_Recurso_Hidrico }
                 });
                 await this.bloqueRecursoHidricoSinSelloRepository.delete({ Id_Bloque_Recurso_Hidrico: bloque.Id_Bloque_Recurso_Hidrico });
             }
-            await this.recursoHidricoSinSelloRepository.delete({ Id_Recurso_Hidrico: legacyEmprego.Id_Recurso_Hidrico });
+            await this.recursoHidricoSinSelloRepository.delete({ Id_Recurso_Hidrico: recurso.Id_Recurso_Hidrico });
         }
 
-        const existe = await this.recursoHidricoSinSelloRepository.findOne({
-            where: { Nombre: NOMBRE_NUEVO }
-        });
-        if (!existe) {
-            const nuevo = this.recursoHidricoSinSelloRepository.create({ Nombre: NOMBRE_NUEVO, Activo: true });
+        // Crear recursos por tipo de tarifa (1:1 con tarifa por nombre)
+        for (const entrada of SeederService.MATRIZ_RECURSO_HIDRICO) {
+            const nuevo = this.recursoHidricoSinSelloRepository.create({
+                Nombre: entrada.tipoTarifa,
+                Activo: true,
+            });
             await this.recursoHidricoSinSelloRepository.save(nuevo);
         }
     }
 
     private async createBloquesRecursoHidricoSinSello() {
-        const recursoHidrico = await this.recursoHidricoSinSelloRepository.findOne({
-            where: { Nombre: 'Tarifa Recurso Hidrico' }
-        });
-
-        if (!recursoHidrico) {
-            console.log('⚠️ No se encontró Tarifa Recurso Hidrico');
-            return;
-        }
-
-        const bloques = [
-            { Recurso_Hidrico: recursoHidrico, Minimo_M3: 1, Maximo_M3: 15, Orden: 1 },
-            { Recurso_Hidrico: recursoHidrico, Minimo_M3: 16, Maximo_M3: 30, Orden: 2 },
-            { Recurso_Hidrico: recursoHidrico, Minimo_M3: 31, Maximo_M3: 60, Orden: 3 },
-            { Recurso_Hidrico: recursoHidrico, Minimo_M3: 61, Maximo_M3: 999999, Orden: 4 },
-        ];
-
-        for (const bloque of bloques) {
-            const existe = await this.bloqueRecursoHidricoSinSelloRepository.findOne({
-                where: {
-                    Recurso_Hidrico: { Id_Recurso_Hidrico: bloque.Recurso_Hidrico.Id_Recurso_Hidrico },
-                    Minimo_M3: bloque.Minimo_M3,
-                    Maximo_M3: bloque.Maximo_M3
-                }
+        for (const entrada of SeederService.MATRIZ_RECURSO_HIDRICO) {
+            const recurso = await this.recursoHidricoSinSelloRepository.findOne({
+                where: { Nombre: entrada.tipoTarifa }
             });
+            if (!recurso) {
+                console.log(`⚠️ Recurso hídrico no encontrado para tipo: ${entrada.tipoTarifa}`);
+                continue;
+            }
 
-            if (!existe) {
-                const nuevoBloque = this.bloqueRecursoHidricoSinSelloRepository.create(bloque);
-                await this.bloqueRecursoHidricoSinSelloRepository.save(nuevoBloque);
+            let orden = 1;
+            for (const bloqueItem of entrada.bloques) {
+                const existe = await this.bloqueRecursoHidricoSinSelloRepository.findOne({
+                    where: {
+                        Recurso_Hidrico: { Id_Recurso_Hidrico: recurso.Id_Recurso_Hidrico },
+                        Minimo_M3: bloqueItem.min,
+                        Maximo_M3: bloqueItem.max
+                    }
+                });
+                if (!existe) {
+                    const nuevoBloque = this.bloqueRecursoHidricoSinSelloRepository.create({
+                        Recurso_Hidrico: recurso,
+                        Minimo_M3: bloqueItem.min,
+                        Maximo_M3: bloqueItem.max,
+                        Orden: orden,
+                    });
+                    await this.bloqueRecursoHidricoSinSelloRepository.save(nuevoBloque);
+                }
+                orden++;
             }
         }
     }
 
     private async createPreciosRecursoHidricoSinSello() {
-        const recursoHidrico = await this.recursoHidricoSinSelloRepository.findOne({
-            where: { Nombre: 'Tarifa Recurso Hidrico' }
-        });
-
-        if (!recursoHidrico) {
-            console.log('⚠️ No se encontró Tarifa Recurso Hidrico');
-            return;
-        }
-
-        const preciosPorBloque: { min: number; max: number; precio: number }[] = [
-            { min: 1, max: 15, precio: 42 },
-            { min: 16, max: 30, precio: 45 },
-            { min: 31, max: 60, precio: 50 },
-            { min: 61, max: 999999, precio: 57 },
-        ];
-
-        for (const item of preciosPorBloque) {
-            const bloque = await this.bloqueRecursoHidricoSinSelloRepository.findOne({
-                where: {
-                    Recurso_Hidrico: { Id_Recurso_Hidrico: recursoHidrico.Id_Recurso_Hidrico },
-                    Minimo_M3: item.min,
-                    Maximo_M3: item.max
-                }
+        for (const entrada of SeederService.MATRIZ_RECURSO_HIDRICO) {
+            const recurso = await this.recursoHidricoSinSelloRepository.findOne({
+                where: { Nombre: entrada.tipoTarifa }
             });
-            if (!bloque) continue;
+            if (!recurso) continue;
 
-            const existe = await this.precioRecursoHidricoSinSelloRepository.findOne({
-                where: { Bloque_Recurso_Hidrico: { Id_Bloque_Recurso_Hidrico: bloque.Id_Bloque_Recurso_Hidrico } }
-            });
-
-            if (!existe) {
-                const nuevo = this.precioRecursoHidricoSinSelloRepository.create({
-                    Bloque_Recurso_Hidrico: bloque,
-                    Precio_Por_M3: item.precio,
-                    Activo: true
+            for (const bloqueItem of entrada.bloques) {
+                const bloque = await this.bloqueRecursoHidricoSinSelloRepository.findOne({
+                    where: {
+                        Recurso_Hidrico: { Id_Recurso_Hidrico: recurso.Id_Recurso_Hidrico },
+                        Minimo_M3: bloqueItem.min,
+                        Maximo_M3: bloqueItem.max
+                    }
                 });
-                await this.precioRecursoHidricoSinSelloRepository.save(nuevo);
-                console.log(`✅ Precio Tarifa Recurso Hidrico: ${item.min}-${item.max} M³ = ₡${item.precio}/M³`);
+                if (!bloque) continue;
+
+                const existe = await this.precioRecursoHidricoSinSelloRepository.findOne({
+                    where: { Bloque_Recurso_Hidrico: { Id_Bloque_Recurso_Hidrico: bloque.Id_Bloque_Recurso_Hidrico } }
+                });
+                if (!existe) {
+                    const nuevo = this.precioRecursoHidricoSinSelloRepository.create({
+                        Bloque_Recurso_Hidrico: bloque,
+                        Precio_Por_M3: bloqueItem.precio,
+                        Activo: true,
+                    });
+                    await this.precioRecursoHidricoSinSelloRepository.save(nuevo);
+                    console.log(`✅ TPRH ${entrada.tipoTarifa}: ${bloqueItem.min}-${bloqueItem.max} M³ = ₡${bloqueItem.precio}/M³`);
+                }
             }
         }
     }
@@ -869,7 +936,7 @@ export class SeederService implements OnModuleInit {
         const modulos = [
             'usuarios',
             'actas',
-            'contacto',
+            'quejasugerenciasreportes',
             'faq',
             'imagenes',
             'proyectos',
