@@ -124,7 +124,7 @@ import { PrecioRecursoHidricoSinSello } from './Modules/Tarifas/Sin Sello Calida
           ConsultaPago,
           Factura, EstadoFactura
         ],
-        synchronize: true,
+        synchronize: false,
         dropSchema: false,
       })
     }),
