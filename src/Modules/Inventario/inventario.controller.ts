@@ -320,6 +320,21 @@ export class InventarioController {
     return this.medidorService.getMedidoresDisponibles();
   }
 
+  @Get('/medidores/pendientes')
+  async getMedidoresPendientes(){
+    return this.medidorService.getMedidoresPendientes();
+  }
+
+  @Get('/medidores/pagados')
+  async getMedidoresPagados(){
+    return this.medidorService.getMedidoresPagados();
+  }
+
+  @Get('/medidores/libre')
+  async getMedidoresLibre(){
+    return this.medidorService.getMedidoresLibre();
+  }
+
   @Get('/medidores/afiliado/:idAfiliado')
   @ApiOperation({ summary: 'Obtiene todos los medidores asociados a un afiliado específico.' })
   async getMedidoresAfiliado(

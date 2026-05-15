@@ -167,6 +167,24 @@ export class AfiliadosController {
         return this.afiliadosService.updateTipoAfiliadoJuridico(id, nuevoTipoId, usuario.Id_Usuario, files);
     }
 
+    @Patch('/revertir/fisico/:id/a-afiliado')
+    @ApiOperation({ summary: 'Revierte un asociado físico de vuelta a afiliado, eliminando sus documentos de Dropbox y la BD' })
+    revertirAsociadoAAfiliadoFisico(
+        @Param('id', ParseIntPipe) id: number,
+        @GetUser() usuario: Usuario
+    ) {
+        return this.afiliadosService.revertirAsociadoAAfiliadoFisico(id, usuario.Id_Usuario);
+    }
+
+    @Patch('/revertir/juridico/:id/a-afiliado')
+    @ApiOperation({ summary: 'Revierte un asociado jurídico de vuelta a afiliado, eliminando sus documentos de Dropbox y la BD' })
+    revertirAsociadoAAfiliadoJuridico(
+        @Param('id', ParseIntPipe) id: number,
+        @GetUser() usuario: Usuario
+    ) {
+        return this.afiliadosService.revertirAsociadoAAfiliadoJuridico(id, usuario.Id_Usuario);
+    }
+
     @Post('/medidores/asignar-existente')
     @ApiOperation({ summary: 'Asigna un medidor existente a un afiliado desde el modulo de afiliados. Requiere Planos_Terreno y Certificacion_Literal.' })
     @UseInterceptors(FileFieldsInterceptor([

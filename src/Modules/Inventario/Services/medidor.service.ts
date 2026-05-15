@@ -110,6 +110,42 @@ export class MedidorService {
         return this.formatearMedidoresConRelaciones(medidores);
     }
 
+    async getMedidoresPendientes(){
+        const medidores = await this.medidorRepository.createQueryBuilder('medidor')
+        .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
+        .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+        .leftJoinAndSelect('medidor.Usuario', 'usuario')
+        .leftJoinAndSelect('usuario.Rol', 'rol')
+        .where('medidor.Estado_Pago = :estado', { estado: EstadoPagoMedidor.Pendiente })
+        .getMany();
+
+        return this.formatearMedidoresConRelaciones(medidores);
+    }
+
+    async getMedidoresPagados(){
+        const medidores = await this.medidorRepository.createQueryBuilder('medidor')
+        .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
+        .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+        .leftJoinAndSelect('medidor.Usuario', 'usuario')
+        .leftJoinAndSelect('usuario.Rol', 'rol')
+        .where('medidor.Estado_Pago = :estado', { estado: EstadoPagoMedidor.Pagado })
+        .getMany();
+
+        return this.formatearMedidoresConRelaciones(medidores);
+    }
+
+    async getMedidoresLibre(){
+        const medidores = await this.medidorRepository.createQueryBuilder('medidor')
+        .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
+        .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+        .leftJoinAndSelect('medidor.Usuario', 'usuario')
+        .leftJoinAndSelect('usuario.Rol', 'rol')
+        .where('medidor.Estado_Pago = :estado', { estado: EstadoPagoMedidor.Libre })
+        .getMany();
+
+        return this.formatearMedidoresConRelaciones(medidores);
+    }
+
     async getMedidoresConAfiliado() {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')

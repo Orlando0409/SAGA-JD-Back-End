@@ -1151,6 +1151,60 @@ export class AfiliadosService {
         return this.afiliadoFisicoRepository.save(afiliado);
     }
 
+
+    async revertirAsociadoAAfiliadoFisico(idAfiliado: number, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException(`Usuario con ID ${idUsuario} no encontrado`);
+
+        const afiliado = await this.afiliadoFisicoRepository.findOne({
+            where: { Id_Afiliado: idAfiliado },
+            relations: ['Tipo_Afiliado']
+        });
+        if (!afiliado) throw new BadRequestException(`Afiliado físico con ID ${idAfiliado} no encontrado`);
+
+        if (afiliado.Tipo_Afiliado.Id_Tipo_Afiliado !== 2) {
+            throw new BadRequestException(`El afiliado con ID ${idAfiliado} no es Asociado y no puede revertirse`);
+        }
+
+        const tipoAfiliado = await this.tipoAfiliadoRepository.findOne({ where: { Id_Tipo_Afiliado: 1 } });
+        if (!tipoAfiliado) throw new BadRequestException('Tipo "Afiliado" no configurado');
+
+        if (afiliado.Planos_Terreno || afiliado.Escrituras_Terreno) {
+            const nombreCompleto = `${afiliado.Nombre} ${afiliado.Apellido1 ?? ''} ${afiliado.Apellido2 ?? ''}`.trim();
+            try {
+                await this.dropboxFilesService.deletePath('Afiliados-Asociados', 'Fisicos', afiliado.Identificacion, nombreCompleto);
+            } catch (error) {
+                console.error(`Error al eliminar carpeta de asociado físico ID ${idAfiliado} en Dropbox:`, error);
+            }
+        }
+
+        const datosAnteriores = {
+            'Tipo_Afiliado': 'Asociado',
+            'Planos_Terreno': afiliado.Planos_Terreno ?? null,
+            'Escrituras_Terreno': afiliado.Escrituras_Terreno ?? null,
+        };
+
+        afiliado.Planos_Terreno = null;
+        afiliado.Escrituras_Terreno = null;
+        afiliado.Tipo_Afiliado = tipoAfiliado;
+
+        const afiliadoGuardado = await this.afiliadoFisicoRepository.save(afiliado);
+
+        try {
+            await this.auditoriaService.logActualizacion('Afiliado físico', idUsuario, afiliadoGuardado.Id_Afiliado, datosAnteriores, {
+                'Tipo_Afiliado': 'Afiliado',
+                'Planos_Terreno': null,
+                'Escrituras_Terreno': null,
+            });
+        } catch (error) {
+            console.error('Error al registrar auditoría de reversión a afiliado físico:', error);
+        }
+
+        return afiliadoGuardado;
+    }
+
     async cambiarAbonadoAAsociadoJuridico(cedulaJuridica: string, idUsuario: number, planosTerreno?: string, escriturasTerreno?: string) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
@@ -1173,6 +1227,58 @@ export class AfiliadosService {
         afiliado.Escrituras_Terreno = escriturasTerreno;
         afiliado.Tipo_Afiliado = tipoAsociado;
         return this.afiliadoJuridicoRepository.save(afiliado);
+    }
+
+    async revertirAsociadoAAfiliadoJuridico(idAfiliado: number, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException(`Usuario con ID ${idUsuario} no encontrado`);
+
+        const afiliado = await this.afiliadoJuridicoRepository.findOne({
+            where: { Id_Afiliado: idAfiliado },
+            relations: ['Tipo_Afiliado']
+        });
+        if (!afiliado) throw new BadRequestException(`Afiliado jurídico con ID ${idAfiliado} no encontrado`);
+
+        if (afiliado.Tipo_Afiliado.Id_Tipo_Afiliado !== 2) {
+            throw new BadRequestException(`El afiliado con ID ${idAfiliado} no es Asociado y no puede revertirse`);
+        }
+
+        const tipoAfiliado = await this.tipoAfiliadoRepository.findOne({ where: { Id_Tipo_Afiliado: 1 } });
+        if (!tipoAfiliado) throw new BadRequestException('Tipo "Afiliado" no configurado');
+
+        if (afiliado.Planos_Terreno || afiliado.Escrituras_Terreno) {
+            try {
+                await this.dropboxFilesService.deletePath('Afiliados-Asociados', 'Juridicos', afiliado.Cedula_Juridica, afiliado.Razon_Social);
+            } catch (error) {
+                console.error(`Error al eliminar carpeta de asociado jurídico ID ${idAfiliado} en Dropbox:`, error);
+            }
+        }
+
+        const datosAnteriores = {
+            'Tipo_Afiliado': 'Asociado',
+            'Planos_Terreno': afiliado.Planos_Terreno ?? null,
+            'Escrituras_Terreno': afiliado.Escrituras_Terreno ?? null,
+        };
+
+        afiliado.Planos_Terreno = null;
+        afiliado.Escrituras_Terreno = null;
+        afiliado.Tipo_Afiliado = tipoAfiliado;
+
+        const afiliadoGuardado = await this.afiliadoJuridicoRepository.save(afiliado);
+
+        try {
+            await this.auditoriaService.logActualizacion('Afiliado jurídico', idUsuario, afiliadoGuardado.Id_Afiliado, datosAnteriores, {
+                'Tipo_Afiliado': 'Afiliado',
+                'Planos_Terreno': null,
+                'Escrituras_Terreno': null,
+            });
+        } catch (error) {
+            console.error('Error al registrar auditoría de reversión a afiliado jurídico:', error);
+        }
+
+        return afiliadoGuardado;
     }
 
     // MÉTODOS DE FORMATEO POR TIPO DE ENTIDAD
