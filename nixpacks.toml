@@ -1,9 +1,11 @@
 # nixpacks.toml
 
+[variables]
+# Fuerza a Puppeteer a descargar el navegador dentro de la carpeta del proyecto
+PUPPETEER_CACHE_DIR = "/app/.puppeteer_cache"
+
 [phases.setup]
-# Lista actualizada y compatible con Ubuntu 24.04 (Noble)
 aptPkgs = [
-  "chromium-browser",
   "libatk1.0-0",
   "libatk-bridge2.0-0",
   "libcups2",
@@ -21,4 +23,8 @@ aptPkgs = [
 ]
 
 [phases.install]
-cmds = ["pnpm install", "pnpm exec puppeteer browsers install chrome"]
+# Instalamos dependencias y descargamos el navegador usando la nueva ruta de la caché
+cmds = [
+  "pnpm install", 
+  "pnpm exec puppeteer browsers install chrome --path /app/.puppeteer_cache"
+]
