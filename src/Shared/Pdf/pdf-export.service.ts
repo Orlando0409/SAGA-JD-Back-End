@@ -47,8 +47,27 @@ export class PdfExportService implements OnApplicationShutdown {
             this.browser = null;
         }
 
+        // Buscamos dinámicamente el ejecutable real de Linux dentro de nuestra carpeta local
+        const fs = require('node:fs');
+        const path = require('node:path');
+        
+        let executablePath: string | undefined = undefined;
+        const localChromeDir = path.join(process.cwd(), '_chrome/chrome');
+
+        if (fs.existsSync(localChromeDir)) {
+            // Puppeteer guarda el binario dentro de: _chrome/chrome/linux-<versión>/chrome-linux64/chrome
+            const platformDirs = fs.readdirSync(localChromeDir);
+            const linuxDir = platformDirs.find((d: string) => d.startsWith('linux-'));
+            
+            if (linuxDir) {
+                executablePath = path.join(localChromeDir, linuxDir, 'chrome-linux64/chrome');
+            }
+        }
+
         const browser = await puppeteer.launch({
             headless: true,
+            // Si lo encuentra localmente en el contenedor, lo fuerza; si no (en local), usa el default
+            executablePath: executablePath,
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
