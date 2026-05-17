@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsString, IsEmail, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive, IsOptional } from "class-validator";
+import { IsString, IsDefined, IsInt, Min, MinLength, MaxLength, Matches, IsNotEmpty, Max, IsPositive, IsOptional } from "class-validator";
 import { IsCedulaJuridicaValida } from "src/Validations/DTO Validators/CedulaJuridica.validator";
 import { IsTelefonoValido } from "src/Validations/DTO Validators/NumeroTelefono.validator";
 
@@ -35,11 +35,10 @@ export class CreateSolicitudJuridicaDto {
 
   @ApiProperty({ example: 'ejemplo@empresa.com' })
   @Transform(({ value }) => value?.trim().toLowerCase())
-  @IsEmail({}, { message: 'El correo electrónico debe tener un formato válido' })
   @IsDefined({ message: 'El correo no puede estar vacío' })
   @IsNotEmpty({ message: 'El correo no puede estar vacío' })
   @MaxLength(100, { message: 'El correo no puede tener más de 100 caracteres' })
-  @Matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, { message: 'El formato del correo electrónico no es válido' })
+  @Matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, { message: 'El formato del correo electrónico no es válido' })
   Correo: string;
 
   @ApiProperty({ example: '+506-8888-7777' })
