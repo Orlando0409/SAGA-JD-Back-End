@@ -8,6 +8,10 @@ import { MovimientoInventario } from "../InventarioEntities/Movimiento.Entity";
 import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 import { AuditoriaService } from "src/Modules/Auditoria/auditoria.service";
 import { UsuariosService } from "src/Modules/Usuarios/Services/usuarios.service";
+import { Response } from "express";
+import { PdfExportService } from "src/Shared/Pdf/pdf-export.service";
+import { TablaGenericaPDF, TablaColumna } from "src/Shared/Pdf/tabla-pdf.template";
+import { ExportMovimientosPdfDto } from "../InventarioDTO's/ExportMovimientosPdf.dto";
 
 @Injectable()
 export class MovimientosService {
@@ -26,8 +30,88 @@ export class MovimientosService {
 
         private readonly auditoriaService: AuditoriaService,
 
-        private readonly usuarioService: UsuariosService
+        private readonly usuarioService: UsuariosService,
+
+        private readonly pdfExportService: PdfExportService,
     ) { }
+
+    // ====================================
+    // EXPORTACIÓN A PDF
+    // ====================================
+
+    private static readonly MOV_COLUMNAS: Record<string, TablaColumna> = {
+        fecha:           { key: 'fecha',           label: 'Fecha',         align: 'left',   width: '120px' },
+        tipo:            { key: 'tipo',            label: 'Tipo',          align: 'center', width: '80px'  },
+        material:        { key: 'material',        label: 'Material',      align: 'left',   maxWidth: '180px' },
+        cantidad:        { key: 'cantidad',        label: 'Cantidad',      align: 'right',  width: '70px'  },
+        anterior:        { key: 'anterior',        label: 'Cant. Anterior',align: 'right',  width: '90px'  },
+        nueva:           { key: 'nueva',           label: 'Cant. Nueva',   align: 'right',  width: '90px'  },
+        usuario:         { key: 'usuario',         label: 'Usuario',       align: 'left',   width: '130px' },
+        observaciones:   { key: 'observaciones',   label: 'Observaciones', align: 'left',   maxWidth: '260px' },
+    };
+
+    private static readonly MOV_COLUMNAS_DEFAULT = ['fecha', 'tipo', 'material', 'cantidad', 'usuario'];
+
+    async generarMovimientosPdf(filtros: ExportMovimientosPdfDto, res: Response): Promise<void> {
+        const qb = this.movimientoRepository.createQueryBuilder('mov')
+            .leftJoinAndSelect('mov.Material', 'material')
+            .leftJoinAndSelect('mov.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .orderBy('mov.Fecha_Movimiento', 'DESC');
+
+        if (filtros.tipos?.length) {
+            qb.andWhere('mov.Tipo_Movimiento IN (:...tipos)', { tipos: filtros.tipos });
+        }
+
+        if (filtros.fechaInicio) {
+            qb.andWhere('mov.Fecha_Movimiento >= :inicio', { inicio: new Date(filtros.fechaInicio) });
+        }
+
+        if (filtros.fechaFin) {
+            const fin = new Date(filtros.fechaFin);
+            fin.setDate(fin.getDate() + 1);
+            qb.andWhere('mov.Fecha_Movimiento < :fin', { fin });
+        }
+
+        const movimientos = await qb.getMany();
+
+        const filas = movimientos.map(m => ({
+            fecha: m.Fecha_Movimiento ? new Date(m.Fecha_Movimiento).toLocaleString('es-CR') : '—',
+            tipo: m.Tipo_Movimiento || '—',
+            material: m.Material?.Nombre_Material || '—',
+            cantidad: m.Cantidad ?? 0,
+            anterior: m.Cantidad_Anterior ?? 0,
+            nueva: m.Cantidad_Nueva ?? 0,
+            usuario: m.Usuario?.Nombre_Usuario || '—',
+            observaciones: m.Observaciones || '—',
+        }));
+
+        const keys = (filtros.columnas?.length ? filtros.columnas : MovimientosService.MOV_COLUMNAS_DEFAULT)
+            .filter(k => k in MovimientosService.MOV_COLUMNAS);
+        const columnas = keys.map(k => MovimientosService.MOV_COLUMNAS[k]);
+
+        const filtrosAplicados: { label: string; value: string }[] = [];
+        if (filtros.tipos?.length) filtrosAplicados.push({ label: 'Tipos', value: filtros.tipos.join(', ') });
+        if (filtros.fechaInicio || filtros.fechaFin) {
+            filtrosAplicados.push({
+                label: 'Rango fechas',
+                value: `${filtros.fechaInicio || '...'} a ${filtros.fechaFin || '...'}`,
+            });
+        }
+
+        const html = TablaGenericaPDF({
+            titulo: 'Reporte de Movimientos de Inventario',
+            subtitulo: 'Ingresos y egresos de materiales',
+            filtrosAplicados,
+            columnas,
+            filas,
+            notaFooter: 'SAGA-JD · Movimientos de inventario',
+            orientacion: 'landscape',
+        });
+
+        const filename = `Movimientos_${new Date().toISOString().slice(0, 10)}.pdf`;
+        await this.pdfExportService.streamPdfToResponse(html, filename, res);
+    }
 
     async getAllMovimientos() {
         const movimientos = await this.movimientoRepository.createQueryBuilder('movimiento')

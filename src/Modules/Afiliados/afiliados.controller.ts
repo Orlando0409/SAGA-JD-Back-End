@@ -1,8 +1,10 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, UploadedFiles, UseInterceptors, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, Res, UploadedFiles, UseInterceptors, UseGuards } from "@nestjs/common";
+import { Response } from "express";
 import { AfiliadosService } from "./afiliados.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { CreateAfiliadoFisicoDto, CreateAfiliadoJuridicoDto } from "./AfiliadoDTO's/CreateAfiliado.dto";
 import { UpdateAfiliadoFisicoDto, UpdateAfiliadoJuridicoDto } from "./AfiliadoDTO's/UpdateAfiliado.dto";
+import { ExportAfiliadosPdfDto } from "./AfiliadoDTO's/ExportAfiliadosPdf.dto";
 import { FileFieldsInterceptor } from "@nestjs/platform-express/multer";
 import { JwtAuthGuard } from "../auth/Guard/JwtGuard";
 import { GetUser } from "../auth/Decorator/GetUser.decorator";
@@ -35,6 +37,15 @@ export class AfiliadosController {
     @ApiOperation({ summary: 'Obtener todos los afiliados' })
     findAll() {
         return this.afiliadosService.getAfiliados();
+    }
+
+    @Post('/pdf')
+    @ApiOperation({ summary: 'Exportar afiliados a PDF con filtros opcionales.' })
+    async exportarPdf(
+        @Body() dto: ExportAfiliadosPdfDto,
+        @Res() res: Response,
+    ) {
+        await this.afiliadosService.generarAfiliadosPdf(dto, res);
     }
 
     @Get('/fisico/all')

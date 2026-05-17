@@ -2,6 +2,10 @@ import { BadRequestException, ConflictException, Inject, Injectable, NotFoundExc
 import { InjectRepository } from '@nestjs/typeorm';
 import { Material } from '../InventarioEntities/Material.Entity';
 import { In, Repository } from 'typeorm';
+import { Response } from 'express';
+import { PdfExportService } from 'src/Shared/Pdf/pdf-export.service';
+import { TablaGenericaPDF, TablaColumna } from 'src/Shared/Pdf/tabla-pdf.template';
+import { ExportMaterialesPdfDto } from "../InventarioDTO's/ExportMaterialesPdf.dto";
 import { EstadoMaterial } from '../InventarioEntities/EstadoMaterial.Entity';
 import { CreateMaterialDto } from "../InventarioDTO's/CreateMaterial.dto";
 import { Categoria } from '../InventarioEntities/Categoria.Entity';
@@ -48,7 +52,74 @@ export class MaterialService {
         private readonly unidadesDeMedicionService: UnidadesDeMedicionService,
         private readonly categoriasService: CategoriasService,
         private readonly proveedorService: ProveedorService,
+
+        private readonly pdfExportService: PdfExportService,
     ) {}
+
+    // ====================================
+    // EXPORTACIÓN A PDF
+    // ====================================
+
+    private static readonly MAT_COLUMNAS: Record<string, TablaColumna> = {
+        nombre:     { key: 'nombre',     label: 'Nombre',           align: 'left',   maxWidth: '200px' },
+        cantidad:   { key: 'cantidad',   label: 'Cantidad',         align: 'right',  width: '80px' },
+        unidad:     { key: 'unidad',     label: 'Unidad',           align: 'left',   width: '90px' },
+        precio:     { key: 'precio',     label: 'Precio Unit.',     align: 'right',  width: '110px' },
+        estado:     { key: 'estado',     label: 'Estado',           align: 'center', width: '100px' },
+        proveedor:  { key: 'proveedor',  label: 'Proveedor',        align: 'left',   maxWidth: '180px' },
+        entrada:    { key: 'entrada',    label: 'Fecha entrada',    align: 'left',   width: '110px' },
+    };
+
+    private static readonly MAT_COLUMNAS_DEFAULT = ['nombre', 'cantidad', 'unidad', 'precio', 'estado'];
+
+    async generarMaterialesPdf(filtros: ExportMaterialesPdfDto, res: Response): Promise<void> {
+        const where = filtros.estados?.length
+            ? { Estado_Material: { Id_Estado_Material: In(filtros.estados) } }
+            : undefined;
+
+        const materiales = await this.inventarioRepository.find({
+            where,
+            relations: ['Estado_Material', 'Unidad_Medicion', 'Proveedor'],
+            order: { Nombre_Material: 'ASC' },
+        });
+
+        const filas = materiales.map(m => ({
+            nombre: m.Nombre_Material || '—',
+            cantidad: m.Cantidad ?? 0,
+            unidad: m.Unidad_Medicion?.Nombre_Unidad || '—',
+            precio: m.Precio_Unitario != null ? `₡${Number(m.Precio_Unitario).toLocaleString('es-CR', { minimumFractionDigits: 2 })}` : '—',
+            estado: m.Estado_Material?.Nombre_Estado_Material || 'Sin estado',
+            proveedor: (m.Proveedor as any)?.Nombre_Proveedor || '—',
+            entrada: m.Fecha_Entrada ? new Date(m.Fecha_Entrada).toLocaleDateString('es-CR') : '—',
+        }));
+
+        const keys = (filtros.columnas?.length ? filtros.columnas : MaterialService.MAT_COLUMNAS_DEFAULT)
+            .filter(k => k in MaterialService.MAT_COLUMNAS);
+        const columnas = keys.map(k => MaterialService.MAT_COLUMNAS[k]);
+
+        const filtrosAplicados: { label: string; value: string }[] = [];
+        if (filtros.estados?.length) {
+            const estados = await this.estadoMaterialRepository.find({
+                where: { Id_Estado_Material: In(filtros.estados) },
+            });
+            filtrosAplicados.push({
+                label: 'Estados',
+                value: estados.map(e => e.Nombre_Estado_Material).join(', ') || filtros.estados.join(', '),
+            });
+        }
+
+        const html = TablaGenericaPDF({
+            titulo: 'Reporte de Materiales',
+            subtitulo: 'Inventario de materiales del sistema',
+            filtrosAplicados,
+            columnas,
+            filas,
+            notaFooter: 'SAGA-JD · Inventario',
+        });
+
+        const filename = `Materiales_${new Date().toISOString().slice(0, 10)}.pdf`;
+        await this.pdfExportService.streamPdfToResponse(html, filename, res);
+    }
 
     async getAllMateriales() {
         const materiales = await this.inventarioRepository.createQueryBuilder('material')

@@ -1,4 +1,9 @@
 import { BadRequestException, forwardRef, Inject, Injectable } from "@nestjs/common";
+import { In } from "typeorm";
+import { Response } from "express";
+import { PdfExportService } from "src/Shared/Pdf/pdf-export.service";
+import { TablaGenericaPDF, TablaColumna } from "src/Shared/Pdf/tabla-pdf.template";
+import { ExportAfiliadosPdfDto } from "./AfiliadoDTO's/ExportAfiliadosPdf.dto";
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from "./AfiliadoEntities/Afiliado.Entity";
 import { EstadoAfiliado } from "./AfiliadoEntities/EstadoAfiliado.Entity";
 import { SolicitudAfiliacionFisica, SolicitudAfiliacionJuridica } from "src/Modules/Solicitudes/SolicitudEntities/Solicitud.Entity";
@@ -60,7 +65,108 @@ export class AfiliadosService {
         private readonly usuariosService: UsuariosService,
 
         private readonly dropboxFilesService: DropboxFilesService,
+
+        private readonly pdfExportService: PdfExportService,
     ) { }
+
+    // ====================================
+    // EXPORTACIÓN A PDF
+    // ====================================
+
+    private static readonly AF_COLUMNAS: Record<string, TablaColumna> = {
+        nombre:         { key: 'nombre',         label: 'Nombre / Razón Social', align: 'left',   maxWidth: '200px' },
+        tipo:           { key: 'tipo',           label: 'Tipo',                  align: 'center', width: '70px'   },
+        identificacion: { key: 'identificacion', label: 'Identificación',        align: 'left',   width: '120px'  },
+        correo:         { key: 'correo',         label: 'Correo',                align: 'left',   maxWidth: '180px' },
+        telefono:       { key: 'telefono',       label: 'Teléfono',              align: 'left',   width: '110px'  },
+        estado:         { key: 'estado',         label: 'Estado',                align: 'center', width: '100px'  },
+        creacion:       { key: 'creacion',       label: 'Fecha creación',        align: 'left',   width: '110px'  },
+    };
+
+    private static readonly AF_COLUMNAS_DEFAULT = ['nombre', 'tipo', 'identificacion', 'correo', 'telefono', 'estado'];
+
+    private formatCedulaFisica(raw?: string | null): string {
+        const v = (raw ?? '').replace(/\D/g, '');
+        if (v.length !== 9) return raw?.trim() || '—';
+        return `${v.slice(0, 1)}-${v.slice(1, 5)}-${v.slice(5, 9)}`;
+    }
+
+    private formatCedulaJuridica(raw?: string | null): string {
+        const v = (raw ?? '').replace(/\D/g, '');
+        if (v.length !== 10) return raw?.trim() || '—';
+        return `${v.slice(0, 1)}-${v.slice(1, 4)}-${v.slice(4, 10)}`;
+    }
+
+    async generarAfiliadosPdf(filtros: ExportAfiliadosPdfDto, res: Response): Promise<void> {
+        const baseWhere: any = {};
+        if (filtros.estados?.length) baseWhere.Estado = { Id_Estado_Afiliado: In(filtros.estados) };
+        if (filtros.tiposAfiliado?.length) baseWhere.Tipo_Afiliado = { Id_Tipo_Afiliado: In(filtros.tiposAfiliado) };
+
+        const fisicos = (!filtros.tipo || filtros.tipo === 1)
+            ? await this.afiliadoFisicoRepository.find({
+                where: Object.keys(baseWhere).length ? baseWhere : undefined,
+                relations: ['Estado', 'Tipo_Afiliado'],
+            })
+            : [];
+
+        const juridicos = (!filtros.tipo || filtros.tipo === 2)
+            ? await this.afiliadoJuridicoRepository.find({
+                where: Object.keys(baseWhere).length ? baseWhere : undefined,
+                relations: ['Estado', 'Tipo_Afiliado'],
+            })
+            : [];
+
+        const filas = [
+            ...fisicos.map((a: any) => ({
+                nombre: `${a.Nombre ?? ''} ${a.Apellido1 ?? ''} ${a.Apellido2 ?? ''}`.trim() || `Afiliado #${a.Id_Afiliado}`,
+                tipo: 'Físico',
+                identificacion: this.formatCedulaFisica(a.Identificacion),
+                correo: a.Correo || '—',
+                telefono: a.Numero_Telefono || a.Telefono || '—',
+                estado: a.Estado?.Nombre_Estado || 'Sin estado',
+                creacion: a.Fecha_Creacion ? new Date(a.Fecha_Creacion).toLocaleDateString('es-CR') : '—',
+            })),
+            ...juridicos.map((a: any) => ({
+                nombre: a.Razon_Social?.trim() || `Afiliado #${a.Id_Afiliado}`,
+                tipo: 'Jurídico',
+                identificacion: this.formatCedulaJuridica(a.Cedula_Juridica),
+                correo: a.Correo || '—',
+                telefono: a.Numero_Telefono || a.Telefono || '—',
+                estado: a.Estado?.Nombre_Estado || 'Sin estado',
+                creacion: a.Fecha_Creacion ? new Date(a.Fecha_Creacion).toLocaleDateString('es-CR') : '—',
+            })),
+        ].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+
+        const keys = (filtros.columnas?.length ? filtros.columnas : AfiliadosService.AF_COLUMNAS_DEFAULT)
+            .filter(k => k in AfiliadosService.AF_COLUMNAS);
+        const columnas = keys.map(k => AfiliadosService.AF_COLUMNAS[k]);
+
+        const filtrosAplicados: { label: string; value: string }[] = [];
+        if (filtros.tipo) {
+            filtrosAplicados.push({ label: 'Tipo', value: filtros.tipo === 1 ? 'Físico' : 'Jurídico' });
+        }
+        if (filtros.estados?.length) {
+            const estados = await this.estadoAfiliadoRepository.find({
+                where: { Id_Estado_Afiliado: In(filtros.estados) },
+            });
+            filtrosAplicados.push({
+                label: 'Estados',
+                value: estados.map((e: any) => e.Nombre_Estado).join(', ') || filtros.estados.join(', '),
+            });
+        }
+
+        const html = TablaGenericaPDF({
+            titulo: 'Reporte de Afiliados',
+            subtitulo: 'Listado de afiliados del sistema',
+            filtrosAplicados,
+            columnas,
+            filas,
+            notaFooter: 'SAGA-JD · Afiliados',
+        });
+
+        const filename = `Afiliados_${new Date().toISOString().slice(0, 10)}.pdf`;
+        await this.pdfExportService.streamPdfToResponse(html, filename, res);
+    }
 
     private async obtenerContextoCargaMedidor(idAfiliado: number, tipoEntidad: TipoEntidad) {
         if (tipoEntidad === TipoEntidad.Física) {

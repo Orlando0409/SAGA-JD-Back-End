@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Afiliado } from "src/Modules/Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { Lectura } from "src/Modules/Lecturas/LecturaEntities/Lectura.Entity";
+import { Usuario } from "src/Modules/Usuarios/UsuarioEntities/Usuario.Entity";
 import { EstadoFactura } from "./EstadoFactura.Entity";
 
 @Entity('factura')
@@ -65,4 +66,29 @@ export class Factura {
 
     @Column({ type: 'text', nullable: true, comment: 'Observaciones o notas adicionales' })
     Observaciones?: string;
+
+    // ====================================
+    // Trazabilidad del pago
+    // ====================================
+
+    @Column({ type: 'datetime', nullable: true, comment: 'Fecha y hora en que se marcó la factura como Pagada' })
+    Fecha_Pago?: Date;
+
+    @ManyToOne(() => Usuario, { nullable: true })
+    @JoinColumn({ name: 'Id_Usuario_Marco_Pagada' })
+    Usuario_Marco_Pagada?: Usuario;
+
+    // ====================================
+    // Trazabilidad de la anulación
+    // ====================================
+
+    @Column({ type: 'datetime', nullable: true, comment: 'Fecha y hora en que se anuló la factura' })
+    Fecha_Anulacion?: Date;
+
+    @ManyToOne(() => Usuario, { nullable: true })
+    @JoinColumn({ name: 'Id_Usuario_Anulo' })
+    Usuario_Anulo?: Usuario;
+
+    @Column({ type: 'varchar', length: 500, nullable: true, comment: 'Motivo de la anulación' })
+    Motivo_Anulacion?: string;
 }

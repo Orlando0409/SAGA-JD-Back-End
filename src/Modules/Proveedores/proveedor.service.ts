@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from './ProveedorEntities/Proveedor.Entity';
 import { CreateProveedorFisicoDto, CreateProveedorJuridicoDto } from './ProveedoresDTOs/CreateProveedor.dto';
 import { UpdateProveedorFisicoDto, UpdateProveedorJuridicoDto } from './ProveedoresDTOs/UpdateProveedor.dto';
@@ -10,6 +10,10 @@ import { TipoEntidad } from 'src/Common/Enums/TipoEntidad.enum';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 import { AuditoriaService } from '../Auditoria/auditoria.service';
 import { UsuariosService } from '../Usuarios/Services/usuarios.service';
+import { PdfExportService } from 'src/Shared/Pdf/pdf-export.service';
+import { TablaGenericaPDF, TablaColumna } from 'src/Shared/Pdf/tabla-pdf.template';
+import { ExportProveedoresPdfDto } from './ProveedoresDTOs/ExportProveedoresPdf.dto';
+import { Response } from 'express';
 
 @Injectable()
 export class ProveedorService {
@@ -32,7 +36,117 @@ export class ProveedorService {
     private auditoriaService: AuditoriaService,
 
     private usuariosService: UsuariosService,
+
+    private readonly pdfExportService: PdfExportService,
   ) { }
+
+  // ====================================
+  // EXPORTACIÓN A PDF
+  // ====================================
+
+  private static readonly COLUMNAS_DISPONIBLES: Record<string, TablaColumna> = {
+    id:             { key: 'id',             label: '#',                align: 'right',  width: '50px'  },
+    nombre:         { key: 'nombre',         label: 'Nombre',           align: 'left',   maxWidth: '220px' },
+    tipo:           { key: 'tipo',           label: 'Tipo',             align: 'center', width: '70px'  },
+    identificacion: { key: 'identificacion', label: 'Identificación',   align: 'left',   width: '120px' },
+    telefono:       { key: 'telefono',       label: 'Teléfono',         align: 'left',   width: '110px' },
+    estado:         { key: 'estado',         label: 'Estado',           align: 'center', width: '100px' },
+    creacion:       { key: 'creacion',       label: 'Fecha creación',   align: 'left',   width: '110px' },
+  };
+
+  private static readonly COLUMNAS_DEFAULT = ['nombre', 'tipo', 'identificacion', 'telefono', 'estado'];
+
+  /**
+   * Formato Costa Rica:
+   *   Cédula física: 9 dígitos → "x-xxxx-xxxx"
+   *   Cédula jurídica: 10 dígitos → "x-xxx-xxxxxx"
+   * Si la longitud no calza, retorna el valor original.
+   */
+  private formatCedulaFisica(raw?: string | null): string {
+    const v = (raw ?? '').replace(/\D/g, '');
+    if (v.length !== 9) return raw?.trim() || '—';
+    return `${v.slice(0, 1)}-${v.slice(1, 5)}-${v.slice(5, 9)}`;
+  }
+
+  private formatCedulaJuridica(raw?: string | null): string {
+    const v = (raw ?? '').replace(/\D/g, '');
+    if (v.length !== 10) return raw?.trim() || '—';
+    return `${v.slice(0, 1)}-${v.slice(1, 4)}-${v.slice(4, 10)}`;
+  }
+
+  async generarProveedoresPdf(filtros: ExportProveedoresPdfDto, res: Response): Promise<void> {
+    const fisicosRaw = (!filtros.tipo || filtros.tipo === 1)
+      ? await this.fisicoRepo.find({
+          where: filtros.estados?.length
+            ? { Estado_Proveedor: { Id_Estado_Proveedor: In(filtros.estados) } }
+            : undefined,
+          relations: ['Estado_Proveedor'],
+        })
+      : [];
+
+    const juridicosRaw = (!filtros.tipo || filtros.tipo === 2)
+      ? await this.juridicoRepo.find({
+          where: filtros.estados?.length
+            ? { Estado_Proveedor: { Id_Estado_Proveedor: In(filtros.estados) } }
+            : undefined,
+          relations: ['Estado_Proveedor'],
+        })
+      : [];
+
+    const filas = [
+      ...fisicosRaw.map(p => ({
+        id: p.Id_Proveedor,
+        nombre: p.Nombre_Proveedor,
+        tipo: 'Físico',
+        identificacion: this.formatCedulaFisica(p.Identificacion),
+        telefono: p.Telefono_Proveedor || '—',
+        estado: p.Estado_Proveedor?.Estado_Proveedor || 'Sin estado',
+        creacion: p.Fecha_Creacion ? new Date(p.Fecha_Creacion).toLocaleDateString('es-CR') : '—',
+      })),
+      ...juridicosRaw.map(p => ({
+        id: p.Id_Proveedor,
+        nombre: p.Nombre_Proveedor,
+        tipo: 'Jurídico',
+        identificacion: this.formatCedulaJuridica(p.Cedula_Juridica),
+        telefono: p.Telefono_Proveedor || '—',
+        estado: p.Estado_Proveedor?.Estado_Proveedor || 'Sin estado',
+        creacion: p.Fecha_Creacion ? new Date(p.Fecha_Creacion).toLocaleDateString('es-CR') : '—',
+      })),
+    ].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+
+    const keysColumnas = (filtros.columnas?.length ? filtros.columnas : ProveedorService.COLUMNAS_DEFAULT)
+      .filter(k => k in ProveedorService.COLUMNAS_DISPONIBLES);
+
+    const columnas = keysColumnas.map(k => ProveedorService.COLUMNAS_DISPONIBLES[k]);
+
+    const filtrosAplicados: { label: string; value: string }[] = [];
+
+    if (filtros.tipo) {
+      filtrosAplicados.push({ label: 'Tipo', value: filtros.tipo === 1 ? 'Físico' : 'Jurídico' });
+    }
+
+    if (filtros.estados?.length) {
+      const estados = await this.estadoRepo.find({
+        where: { Id_Estado_Proveedor: In(filtros.estados) },
+      });
+      filtrosAplicados.push({
+        label: 'Estados',
+        value: estados.map(e => e.Estado_Proveedor).join(', ') || filtros.estados.join(', '),
+      });
+    }
+
+    const html = TablaGenericaPDF({
+      titulo: 'Reporte de Proveedores',
+      subtitulo: `Listado generado desde el módulo Proveedores`,
+      filtrosAplicados,
+      columnas,
+      filas,
+      notaFooter: 'SAGA-JD · Documento generado automáticamente',
+    });
+
+    const filename = `Proveedores_${new Date().toISOString().slice(0, 10)}.pdf`;
+    await this.pdfExportService.streamPdfToResponse(html, filename, res);
+  }
 
   findAll() {
     return this.proveedorRepo.find({ relations: ['Estado_Proveedor'] });

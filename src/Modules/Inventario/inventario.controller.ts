@@ -1,6 +1,10 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, UseInterceptors, ClassSerializerInterceptor, Put, Patch, UseGuards, UploadedFiles } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Res, UseInterceptors, ClassSerializerInterceptor, Put, Patch, UseGuards, UploadedFiles } from '@nestjs/common';
+import { Response } from 'express';
 import { ApiOperation } from '@nestjs/swagger';
 import { MaterialService } from './Services/material.service';
+import { ExportMaterialesPdfDto } from "./InventarioDTO's/ExportMaterialesPdf.dto";
+import { ExportMovimientosPdfDto } from "./InventarioDTO's/ExportMovimientosPdf.dto";
+import { ExportMedidoresPdfDto } from "./InventarioDTO's/ExportMedidoresPdf.dto";
 import { CategoriasService } from './Services/categorias.service';
 import { UnidadesDeMedicionService } from './Services/unidadesDeMedicion.service';
 import { CreateMaterialDto } from "./InventarioDTO's/CreateMaterial.dto";
@@ -38,6 +42,15 @@ export class InventarioController {
   @ApiOperation({ summary: 'Obtiene todos los materiales del inventario con su estado.' })
   async getAllMaterials() {
     return this.materialService.getAllMateriales();
+  }
+
+  @Post('/materiales/pdf')
+  @ApiOperation({ summary: 'Exportar materiales a PDF con filtros opcionales.' })
+  async exportarMaterialesPdf(
+    @Body() dto: ExportMaterialesPdfDto,
+    @Res() res: Response,
+  ) {
+    await this.materialService.generarMaterialesPdf(dto, res);
   }
 
   @Get('/materiales/disponibles')
@@ -235,6 +248,15 @@ export class InventarioController {
 
 
   //ENDPOINTS PARA MOVIMIENTOS
+  @Post('/movimientos/pdf')
+  @ApiOperation({ summary: 'Exportar movimientos a PDF con filtros opcionales.' })
+  async exportarMovimientosPdf(
+    @Body() dto: ExportMovimientosPdfDto,
+    @Res() res: Response,
+  ) {
+    await this.movimientosService.generarMovimientosPdf(dto, res);
+  }
+
   @Get('/all/movimientos')
   @ApiOperation({ summary: 'Obtiene todos los movimientos de inventario.' })
   async getAllMovimientos() {
@@ -294,6 +316,15 @@ export class InventarioController {
   @ApiOperation({ summary: 'Obtiene todos los medidores con su estado.' })
   async getAllMedidores() {
     return this.medidorService.getAllMedidores();
+  }
+
+  @Post('/medidores/pdf')
+  @ApiOperation({ summary: 'Exportar medidores a PDF con filtros opcionales.' })
+  async exportarMedidoresPdf(
+    @Body() dto: ExportMedidoresPdfDto,
+    @Res() res: Response,
+  ) {
+    await this.medidorService.generarMedidoresPdf(dto, res);
   }
 
   @Get('/medidores/no-instalados')

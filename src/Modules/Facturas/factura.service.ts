@@ -1,10 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Factura } from './FacturaEntities/Factura.Entity';
 import { EstadoFactura } from './FacturaEntities/EstadoFactura.Entity';
 import { Lectura } from '../Lecturas/LecturaEntities/Lectura.Entity';
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from '../Afiliados/AfiliadoEntities/Afiliado.Entity';
+import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 import { FacturaGeneradaResponseDTO } from './FacturaDTO\'s/FacturaResponse.dto';
 import { TarifaLecturaSinSello } from '../Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/TarifaLecturaSinSello.Entity';
 import { RangoAfiliadosSinSello } from '../Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RangoAfiliadosSinSello.Entity';
@@ -67,10 +69,160 @@ export class FacturaService {
     ) { }
 
     // ====================================
+    // PAGO DE FACTURA
+    // ====================================
+
+    /**
+     * Marca una factura como Pagada. Operación idempotente — si ya estaba pagada
+     * no hace nada. No acepta facturas anuladas.
+     * @param idFactura id de la factura
+     * @param idUsuario id del usuario que marca el pago
+     */
+    /**
+     * Anula una factura. Idempotente: si ya está Anulada, devuelve sin modificar.
+     * Reglas: no permite anular facturas Pagadas (pago ya confirmado, conflict).
+     * Registra usuario, fecha y motivo de la anulación para auditoría.
+     */
+    async anularFactura(
+        idFactura: number,
+        idUsuario: number,
+        motivo?: string,
+    ): Promise<FacturaGeneradaResponseDTO> {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar el usuario que anula la factura');
+
+        const factura = await this.facturaRepository.findOne({
+            where: { Id_Factura: idFactura },
+            relations: ['Estado', 'Afiliado', 'Lectura', 'Lectura.Medidor'],
+        });
+        if (!factura) throw new NotFoundException(`No se encontró la factura con ID ${idFactura}`);
+
+        // Idempotente: ya anulada, devolver sin cambios
+        if (factura.Estado?.Nombre_Estado === 'Anulada') {
+            return this.formatearFacturaParaResponse(factura);
+        }
+
+        if (factura.Estado?.Nombre_Estado === 'Pagada') {
+            throw new ConflictException('No se puede anular una factura ya pagada. Si necesita revertir el pago, contacte soporte.');
+        }
+
+        const estadoAnulada = await this.estadoFacturaRepository.findOne({
+            where: { Nombre_Estado: 'Anulada' },
+        });
+        if (!estadoAnulada) throw new NotFoundException('No se encontró el estado "Anulada" para facturas');
+
+        factura.Estado = estadoAnulada;
+        factura.Fecha_Anulacion = new Date();
+        factura.Usuario_Anulo = { Id_Usuario: idUsuario } as Usuario;
+        if (motivo && motivo.trim()) {
+            factura.Motivo_Anulacion = motivo.trim().slice(0, 500);
+        }
+
+        const facturaActualizada = await this.facturaRepository.save(factura);
+
+        const facturaCompleta = await this.facturaRepository.findOne({
+            where: { Id_Factura: facturaActualizada.Id_Factura },
+            relations: ['Estado', 'Afiliado', 'Lectura', 'Lectura.Medidor'],
+        });
+
+        return this.formatearFacturaParaResponse(facturaCompleta ?? facturaActualizada);
+    }
+
+    async marcarComoPagada(idFactura: number, idUsuario: number): Promise<FacturaGeneradaResponseDTO> {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar el usuario que confirma el pago');
+
+        const factura = await this.facturaRepository.findOne({
+            where: { Id_Factura: idFactura },
+            relations: ['Estado', 'Afiliado', 'Lectura', 'Lectura.Medidor'],
+        });
+        if (!factura) throw new NotFoundException(`No se encontró la factura con ID ${idFactura}`);
+
+        // Idempotente: si ya está pagada, devolver la factura sin modificarla
+        if (factura.Estado?.Nombre_Estado === 'Pagada') {
+            return this.formatearFacturaParaResponse(factura);
+        }
+
+        if (factura.Estado?.Nombre_Estado === 'Anulada') {
+            throw new ConflictException('No se puede marcar como pagada una factura anulada');
+        }
+
+        const estadoPagada = await this.estadoFacturaRepository.findOne({
+            where: { Nombre_Estado: 'Pagada' }
+        });
+        if (!estadoPagada) throw new NotFoundException('No se encontró el estado "Pagada" para facturas');
+
+        factura.Estado = estadoPagada;
+        factura.Fecha_Pago = new Date();
+        factura.Usuario_Marco_Pagada = { Id_Usuario: idUsuario } as Usuario;
+
+        const facturaActualizada = await this.facturaRepository.save(factura);
+
+        // Recargar relaciones para el response
+        const facturaCompleta = await this.facturaRepository.findOne({
+            where: { Id_Factura: facturaActualizada.Id_Factura },
+            relations: ['Estado', 'Afiliado', 'Lectura', 'Lectura.Medidor'],
+        });
+
+        return this.formatearFacturaParaResponse(facturaCompleta ?? facturaActualizada);
+    }
+
+    // ====================================
+    // TRANSICIÓN DE ESTADOS — lazy bulk update
+    // ====================================
+
+    // Cache del último chequeo para evitar pegarle a la DB en cada consulta.
+    private ultimoChequeoVencidas: number = 0;
+    private static readonly INTERVALO_CHEQUEO_MS = 60 * 60 * 1000; // 1 hora
+
+    /**
+     * Actualiza facturas en estado "Disponible" cuya Fecha_Vencimiento ya pasó,
+     * marcándolas como "Pendiente". Bulk update — eficiente, una sola query.
+     * Se ejecuta como máximo 1 vez por hora cuando se llama desde una consulta.
+     * El cron diario lo invoca con `forzar=true`.
+     */
+    public async marcarFacturasVencidas(forzar = false): Promise<number> {
+        const ahora = Date.now();
+        if (!forzar && ahora - this.ultimoChequeoVencidas < FacturaService.INTERVALO_CHEQUEO_MS) {
+            return 0;
+        }
+        this.ultimoChequeoVencidas = ahora;
+
+        const estadoDisponible = await this.estadoFacturaRepository.findOne({ where: { Nombre_Estado: 'Disponible' } });
+        const estadoPendiente = await this.estadoFacturaRepository.findOne({ where: { Nombre_Estado: 'Pendiente' } });
+        if (!estadoDisponible || !estadoPendiente) return 0;
+
+        const resultado = await this.facturaRepository
+            .createQueryBuilder()
+            .update()
+            .set({ Estado: estadoPendiente })
+            .where('Id_Estado_Factura = :idDisp', { idDisp: estadoDisponible.Id_Estado_Factura })
+            .andWhere('Fecha_Vencimiento < :hoy', { hoy: new Date() })
+            .execute();
+
+        const filasActualizadas = resultado.affected ?? 0;
+        if (filasActualizadas > 0) {
+            console.log(`📋 Facturas marcadas como Pendiente por vencimiento: ${filasActualizadas}`);
+        }
+        return filasActualizadas;
+    }
+
+    /**
+     * Cron job diario que marca facturas vencidas.
+     * Se ejecuta cada día a las 01:00 hora del servidor.
+     * Independiente del chequeo lazy en consultas — garantiza actualización
+     * aunque nadie consulte facturas en el día.
+     */
+    @Cron(CronExpression.EVERY_DAY_AT_1AM, { name: 'marcar-facturas-vencidas' })
+    async cronMarcarFacturasVencidas(): Promise<void> {
+        console.log('⏰ [Cron] Ejecutando chequeo diario de facturas vencidas...');
+        await this.marcarFacturasVencidas(true);
+    }
+
+    // ====================================
     // MÉTODOS DE CONSULTA BÁSICOS
     // ====================================
 
     async getAllFacturas(): Promise<FacturaGeneradaResponseDTO[]> {
+        await this.marcarFacturasVencidas();
         const facturas = await this.facturaRepository.find({
             relations: ['Estado', 'Afiliado', 'Lectura', 'Lectura.Medidor'],
             order: { Fecha_Emision: 'DESC' }
@@ -80,6 +232,7 @@ export class FacturaService {
     }
 
     async getFacturaByAfiliado(idAfiliado: number): Promise<FacturaGeneradaResponseDTO[]> {
+        await this.marcarFacturasVencidas();
         const facturas = await this.facturaRepository.find({
             where: { Afiliado: { Id_Afiliado: idAfiliado } },
             relations: ['Estado', 'Afiliado', 'Lectura', 'Lectura.Medidor'],
@@ -90,6 +243,7 @@ export class FacturaService {
     }
 
     async getFacturasFormateadasByMedidor(numeroMedidor: number): Promise<ConsultaPagoResponseDTO[]> {
+        await this.marcarFacturasVencidas();
         const facturas = await this.facturaRepository
             .createQueryBuilder('factura')
             .leftJoinAndSelect('factura.Lectura', 'lectura')
@@ -149,7 +303,10 @@ export class FacturaService {
                 Nombre_Estado: factura.Estado.Nombre_Estado
             },
             Tipo_Tarifa_Aplicada: factura.Tipo_Tarifa_Aplicada,
-            Observaciones: factura.Observaciones
+            Observaciones: factura.Observaciones,
+            Fecha_Pago: factura.Fecha_Pago,
+            Fecha_Anulacion: factura.Fecha_Anulacion,
+            Motivo_Anulacion: factura.Motivo_Anulacion,
         };
     }
 
@@ -284,21 +441,22 @@ export class FacturaService {
     }
 
     /**
-     * Calcula el cargo por recurso hídrico usando bloques progresivos.
-     * Tarifa única para todos los tipos de tarifa.
+     * Calcula el cargo de Recurso Hídrico (TPRH) usando bloques progresivos.
+     * Modelo unificado: cada tipo de tarifa tiene su propia tabla de bloques +
+     * un único precio por bloque (no varía por rango de abonados).
      */
     private async calcularCargoRecursoHidrico(
-        consumoM3: number
+        consumoM3: number,
+        nombreTipoTarifa: string
     ): Promise<{ cargo: number; detalles: string[] }> {
         const recursoHidrico = await this.recursoHidricoSinSelloRepository.findOne({
-            where: { Nombre: 'Tarifa Recurso Hidrico', Activo: true }
+            where: { Nombre: nombreTipoTarifa, Activo: true }
         });
 
         if (!recursoHidrico) {
-            throw new NotFoundException('No se encontró Tarifa Recurso Hidrico');
+            throw new NotFoundException(`No se encontró recurso hídrico para tipo de tarifa: ${nombreTipoTarifa}`);
         }
 
-        // Obtener todos los bloques del recurso hídrico ordenados
         const bloques = await this.bloqueRecursoHidricoSinSelloRepository.find({
             where: { Recurso_Hidrico: { Id_Recurso_Hidrico: recursoHidrico.Id_Recurso_Hidrico } },
             order: { Orden: 'ASC' }
@@ -308,11 +466,9 @@ export class FacturaService {
         let consumoRestante = consumoM3;
         const detalles: string[] = [];
 
-        // Calcular cargo progresivo por bloques
         for (const bloque of bloques) {
             if (consumoRestante <= 0) break;
 
-            // Obtener el precio para este bloque
             const precioBloque = await this.precioRecursoHidricoSinSelloRepository.findOne({
                 where: {
                     Bloque_Recurso_Hidrico: { Id_Bloque_Recurso_Hidrico: bloque.Id_Bloque_Recurso_Hidrico },
@@ -322,7 +478,6 @@ export class FacturaService {
 
             if (!precioBloque) continue;
 
-            // Calcular cuántos M³ caen en este bloque
             const rangoBloque = bloque.Maximo_M3 - bloque.Minimo_M3 + 1;
             const m3EnBloque = Math.min(consumoRestante, rangoBloque);
 
@@ -330,7 +485,7 @@ export class FacturaService {
             totalCargo += cargoBloque;
             consumoRestante -= m3EnBloque;
 
-            const detalle = `  Bloque ${bloque.Minimo_M3}-${bloque.Maximo_M3} M³: ${m3EnBloque} M³ * ₡${precioBloque.Precio_Por_M3}/M³ = ₡${cargoBloque.toFixed(2)}`;
+            const detalle = `  TPRH Bloque ${bloque.Minimo_M3}-${bloque.Maximo_M3} M³: ${m3EnBloque} M³ * ₡${precioBloque.Precio_Por_M3}/M³ = ₡${cargoBloque.toFixed(2)}`;
             detalles.push(detalle);
             console.log(detalle);
         }
@@ -446,8 +601,11 @@ export class FacturaService {
             esResidencialExento
         );
 
-        // Cargo Recurso Hídrico (tarifa única para todos los tipos)
-        const resultadoRecursoHidrico = await this.calcularCargoRecursoHidrico(consumoM3);
+        // Cargo Recurso Hídrico (TPRH — bloques + precios específicos por tipo de tarifa)
+        const resultadoRecursoHidrico = await this.calcularCargoRecursoHidrico(
+            consumoM3,
+            tipoTarifa.Nombre_Tipo_Tarifa
+        );
 
         // Cargo Hidrantes
         const resultadoHidrantes = await this.calcularCargoHidrantes(consumoM3);
@@ -467,14 +625,14 @@ export class FacturaService {
         console.log(`   TOTAL:              ₡${total.toFixed(2)}`);
         console.log('====================================\n');
 
-        // 6. CREAR FACTURA
+        // 6. CREAR FACTURA — estado inicial "Disponible" (emitida, dentro del periodo de cobro)
         const numeroFactura = await this.generarNumeroFactura();
-        const estadoPendiente = await this.estadoFacturaRepository.findOne({
-            where: { Nombre_Estado: 'Pendiente' }
+        const estadoDisponible = await this.estadoFacturaRepository.findOne({
+            where: { Nombre_Estado: 'Disponible' }
         });
 
-        if (!estadoPendiente) {
-            throw new NotFoundException('No se encontró el estado "Pendiente" para facturas');
+        if (!estadoDisponible) {
+            throw new NotFoundException('No se encontró el estado "Disponible" para facturas');
         }
 
         // Fechas según calendario operativo:
@@ -528,7 +686,7 @@ export class FacturaService {
             Total: total,
             Fecha_Emision: fechaEmision,
             Fecha_Vencimiento: fechaVencimiento,
-            Estado: estadoPendiente,
+            Estado: estadoDisponible,
             Tipo_Tarifa_Aplicada: tipoTarifa.Nombre_Tipo_Tarifa,
             Observaciones: [
                 ...resultadoConsumo.detalles,
@@ -570,8 +728,8 @@ export class FacturaService {
             Fecha_Emision: fechaEmision,
             Fecha_Vencimiento: fechaVencimiento,
             Estado: {
-                Id_Estado_Factura: estadoPendiente.Id_Estado_Factura,
-                Nombre_Estado: estadoPendiente.Nombre_Estado
+                Id_Estado_Factura: estadoDisponible.Id_Estado_Factura,
+                Nombre_Estado: estadoDisponible.Nombre_Estado
             },
             Tipo_Tarifa_Aplicada: tipoTarifa.Nombre_Tipo_Tarifa,
             Observaciones: facturaSaved.Observaciones
@@ -620,7 +778,7 @@ export class FacturaService {
                 Nombre_Estado: factura.Estado.Nombre_Estado
             },
             Tipo_Tarifa_Aplicada: factura.Tipo_Tarifa_Aplicada,
-            Observaciones: factura.Observaciones
+            Observaciones: factura.Observaciones,
         };
     }
 }
