@@ -1,9 +1,11 @@
-import { Controller, Get, Param, ParseIntPipe, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Res, UseGuards } from "@nestjs/common";
+import { Response } from "express";
 import { AuditoriaService } from "./auditoria.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/Guard/JwtGuard";
 import { GetUser } from "../auth/Decorator/GetUser.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
+import { ExportAuditoriaPdfDto } from "./AuditoriaDTOs/ExportAuditoriaPdf.dto";
 
 @Controller('auditoria')
 @UseGuards(JwtAuthGuard)
@@ -32,5 +34,14 @@ export class AuditoriaController {
     @ApiOperation({ summary: 'Obtener auditorías por usuario (admin)' })
     getAuditoriasPorUsuarioAdmin(@Param('usuarioId', ParseIntPipe) usuarioId: number) {
         return this.auditoriaService.getAuditoriasPorUsuario(usuarioId);
+    }
+
+    @Post('/pdf')
+    @ApiOperation({ summary: 'Exportar auditorías a PDF con filtros opcionales' })
+    async exportarPdf(
+        @Body() dto: ExportAuditoriaPdfDto,
+        @Res() res: Response,
+    ) {
+        await this.auditoriaService.generarAuditoriasPdf(dto, res);
     }
 }
