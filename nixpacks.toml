@@ -1,0 +1,24 @@
+# nixpacks.toml
+
+[phases.setup]
+# Le dice a Nixpacks que instale estos paquetes de Linux de forma nativa
+aptPkgs = [
+  "chromium",
+  "chromium-sandbox",
+  "libatk1.0-0",
+  "libatk-bridge2.0-0",
+  "libcups2",
+  "libdrm2",
+  "libxkbcommon0",
+  "libxcomposite1",
+  "libxdamage1",
+  "libxrandr2",
+  "libgbm1",
+  "libpango-1.0-0",
+  "libcairo2",
+  "libasound2"
+]
+
+[phases.install]
+# Corre tu instalación normal junto con el navegador de puppeteer
+cmds = ["pnpm install", "pnpm exec puppeteer browsers install chrome"]
