@@ -133,9 +133,6 @@ export class AfiliadosService {
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
         if (!usuario) throw new BadRequestException(`Usuario con ID ${idUsuario} no encontrado`);
 
-        if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para asignar un medidor');
-        if (!files?.Certificacion_Literal?.[0]) throw new BadRequestException('El archivo Certificacion_Literal es obligatorio para asignar un medidor');
-
         const medidor = await this.medidorRepository.findOne({
             where: { Id_Medidor: dto.Id_Medidor },
             relations: ['Estado_Medidor', 'Afiliado']
@@ -162,23 +159,27 @@ export class AfiliadosService {
 
         const contextoCarga = await this.obtenerContextoCargaMedidor(afiliado.Id_Afiliado, afiliado.Tipo_Entidad);
 
-        const planoRes = await this.dropboxFilesService.uploadFile(
-            files.Planos_Terreno[0],
-            'Medidores',
-            contextoCarga.subcarpeta,
-            contextoCarga.identificador,
-            contextoCarga.nombreMostrar
-        );
-        const escrituraRes = await this.dropboxFilesService.uploadFile(
-            files.Certificacion_Literal[0],
-            'Medidores',
-            contextoCarga.subcarpeta,
-            contextoCarga.identificador,
-            contextoCarga.nombreMostrar
-        );
+        if (files?.Planos_Terreno?.[0]) {
+            const planoRes = await this.dropboxFilesService.uploadFile(
+                files.Planos_Terreno[0],
+                'Medidores',
+                contextoCarga.subcarpeta,
+                contextoCarga.identificador,
+                contextoCarga.nombreMostrar
+            );
+            medidor.Planos_Terreno = planoRes.url;
+        }
+        if (files?.Certificacion_Literal?.[0]) {
+            const escrituraRes = await this.dropboxFilesService.uploadFile(
+                files.Certificacion_Literal[0],
+                'Medidores',
+                contextoCarga.subcarpeta,
+                contextoCarga.identificador,
+                contextoCarga.nombreMostrar
+            );
+            medidor.Certificacion_Literal = escrituraRes.url;
+        }
 
-        medidor.Planos_Terreno = planoRes.url;
-        medidor.Certificacion_Literal = escrituraRes.url;
         medidor.Afiliado = afiliado;
         medidor.Estado_Medidor = estadoInstalado;
 
@@ -221,9 +222,6 @@ export class AfiliadosService {
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
         if (!usuario) throw new BadRequestException(`Usuario con ID ${idUsuario} no encontrado`);
 
-        if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para crear y asignar un medidor');
-        if (!files?.Certificacion_Literal?.[0]) throw new BadRequestException('El archivo Certificacion_Literal es obligatorio para crear y asignar un medidor');
-
         const medidorExistente = await this.medidorRepository.findOne({ where: { Numero_Medidor: dto.Numero_Medidor } });
         if (medidorExistente) throw new BadRequestException(`Ya existe un medidor con el numero ${dto.Numero_Medidor}`);
 
@@ -238,28 +236,37 @@ export class AfiliadosService {
 
         const contextoCarga = await this.obtenerContextoCargaMedidor(afiliado.Id_Afiliado, afiliado.Tipo_Entidad);
 
-        const planoRes = await this.dropboxFilesService.uploadFile(
-            files.Planos_Terreno[0],
-            'Medidores',
-            contextoCarga.subcarpeta,
-            contextoCarga.identificador,
-            contextoCarga.nombreMostrar
-        );
-        const escrituraRes = await this.dropboxFilesService.uploadFile(
-            files.Certificacion_Literal[0],
-            'Medidores',
-            contextoCarga.subcarpeta,
-            contextoCarga.identificador,
-            contextoCarga.nombreMostrar
-        );
+        let planoUrl: string | undefined;
+        let escrituraUrl: string | undefined;
+
+        if (files?.Planos_Terreno?.[0]) {
+            const planoRes = await this.dropboxFilesService.uploadFile(
+                files.Planos_Terreno[0],
+                'Medidores',
+                contextoCarga.subcarpeta,
+                contextoCarga.identificador,
+                contextoCarga.nombreMostrar
+            );
+            planoUrl = planoRes.url;
+        }
+        if (files?.Certificacion_Literal?.[0]) {
+            const escrituraRes = await this.dropboxFilesService.uploadFile(
+                files.Certificacion_Literal[0],
+                'Medidores',
+                contextoCarga.subcarpeta,
+                contextoCarga.identificador,
+                contextoCarga.nombreMostrar
+            );
+            escrituraUrl = escrituraRes.url;
+        }
 
         const medidorNuevo = this.medidorRepository.create({
             Numero_Medidor: dto.Numero_Medidor,
             Afiliado: afiliado,
             Estado_Medidor: estadoInstalado,
             Usuario: usuario,
-            Planos_Terreno: planoRes.url,
-            Certificacion_Literal: escrituraRes.url
+            Planos_Terreno: planoUrl,
+            Certificacion_Literal: escrituraUrl
         });
 
         const medidorGuardado = await this.medidorRepository.save(medidorNuevo);

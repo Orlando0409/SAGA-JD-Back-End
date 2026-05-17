@@ -242,9 +242,6 @@ export class MedidorService {
     ) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
-        if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para asignar un medidor a un afiliado');
-        if (!files?.Certificacion_Literal?.[0]) throw new BadRequestException('El archivo Certificacion_Literal es obligatorio para asignar un medidor a un afiliado');
-
         const medidor = await this.medidorRepository.findOne({
             where: { Id_Medidor: dto.Id_Medidor },
             relations: ['Estado_Medidor', 'Afiliado']
@@ -271,15 +268,19 @@ export class MedidorService {
 
         const contextoCarga = await this.obtenerContextoCargaMedidor(afiliado.Id_Afiliado, afiliado.Tipo_Entidad);
 
-        const planoRes = await this.dropboxFilesService.uploadFile(
-            files.Planos_Terreno[0], 'Medidores', contextoCarga.subcarpeta, contextoCarga.identificador, contextoCarga.nombreMostrar
-        );
-        const escrituraRes = await this.dropboxFilesService.uploadFile(
-            files.Certificacion_Literal[0], 'Medidores', contextoCarga.subcarpeta, contextoCarga.identificador, contextoCarga.nombreMostrar
-        );
+        if (files?.Planos_Terreno?.[0]) {
+            const planoRes = await this.dropboxFilesService.uploadFile(
+                files.Planos_Terreno[0], 'Medidores', contextoCarga.subcarpeta, contextoCarga.identificador, contextoCarga.nombreMostrar
+            );
+            medidor.Planos_Terreno = planoRes.url;
+        }
+        if (files?.Certificacion_Literal?.[0]) {
+            const escrituraRes = await this.dropboxFilesService.uploadFile(
+                files.Certificacion_Literal[0], 'Medidores', contextoCarga.subcarpeta, contextoCarga.identificador, contextoCarga.nombreMostrar
+            );
+            medidor.Certificacion_Literal = escrituraRes.url;
+        }
 
-        medidor.Planos_Terreno = planoRes.url;
-        medidor.Certificacion_Literal = escrituraRes.url;
         medidor.Afiliado = afiliado;
         medidor.Estado_Medidor = estadoInstalado;
         medidor.Estado_Pago = dto.Estado_Pago_Medidor;
