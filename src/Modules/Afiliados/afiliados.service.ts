@@ -123,7 +123,7 @@ export class AfiliadosService {
                 identificacion: this.formatCedulaFisica(a.Identificacion),
                 correo: a.Correo || '—',
                 telefono: a.Numero_Telefono || a.Telefono || '—',
-                estado: a.Estado?.Nombre_Estado_Afiliado || a.Estado?.Estado_Afiliado || 'Sin estado',
+                estado: a.Estado?.Nombre_Estado || 'Sin estado',
                 creacion: a.Fecha_Creacion ? new Date(a.Fecha_Creacion).toLocaleDateString('es-CR') : '—',
             })),
             ...juridicos.map((a: any) => ({
@@ -132,7 +132,7 @@ export class AfiliadosService {
                 identificacion: this.formatCedulaJuridica(a.Cedula_Juridica),
                 correo: a.Correo || '—',
                 telefono: a.Numero_Telefono || a.Telefono || '—',
-                estado: a.Estado?.Nombre_Estado_Afiliado || a.Estado?.Estado_Afiliado || 'Sin estado',
+                estado: a.Estado?.Nombre_Estado || 'Sin estado',
                 creacion: a.Fecha_Creacion ? new Date(a.Fecha_Creacion).toLocaleDateString('es-CR') : '—',
             })),
         ].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
@@ -151,7 +151,7 @@ export class AfiliadosService {
             });
             filtrosAplicados.push({
                 label: 'Estados',
-                value: estados.map((e: any) => e.Nombre_Estado_Afiliado || e.Estado_Afiliado).join(', ') || filtros.estados.join(', '),
+                value: estados.map((e: any) => e.Nombre_Estado).join(', ') || filtros.estados.join(', '),
             });
         }
 
