@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsDefined, IsString, Matches, MaxLength, IsOptional, IsNotEmpty, IsEmail, ValidateIf } from 'class-validator';
+import { IsDefined, IsString, Matches, MaxLength, IsOptional, IsNotEmpty, ValidateIf } from 'class-validator';
 
 const NAME_REGEX = /^[A-Za-zÁÉÍÓÚáéíóúÑñ]+$/;
 // Permite nombres compuestos con espacios simples, p.ej. 'Alondra Maria'
@@ -40,8 +40,8 @@ export class CreateQuejaDto {
   Descripcion: string;
 
   @IsDefined({ message: 'El correo electrónico es requerido' })
-  @IsEmail({}, { message: 'El correo electrónico debe tener un formato válido' })
   @IsNotEmpty({ message: 'El correo electrónico no puede estar vacío' })
   @MaxLength(100, { message: 'El correo electrónico no puede tener más de 100 caracteres' })
+  @Matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, { message: 'El correo electrónico debe tener un formato válido' })
   Correo: string;
 }

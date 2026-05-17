@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEmail, IsNumber, IsOptional, IsDefined, IsNotEmpty, MinLength, MaxLength, Matches, Min, Max, IsEnum, IsIn, } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsDefined, IsNotEmpty, MinLength, MaxLength, Matches, Min, Max, IsEnum, IsIn, } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { TipoIdentificacion } from 'src/Common/Enums/TipoIdentificacion.enum';
 import { IsIdentificacionValida } from 'src/Validations/DTO Validators/Identificacion.validator';
@@ -20,13 +20,12 @@ const capitalizarCadaPalabra = (value: string): string => {
 };
 
 export class CreateAfiliadoDto {
-  @ApiProperty({ example: 'ejemplo@gmail.com' })
+  @ApiProperty({ example: 'ejemplo@correo.com' })
   @Transform(({ value }) => value?.trim())
-  @IsEmail({}, { message: 'El correo electrónico debe tener un formato válido' })
   @IsDefined({ message: 'El correo no puede estar vacío' })
   @IsNotEmpty({ message: 'El correo no puede estar vacío' })
   @MaxLength(100, { message: 'El correo no puede tener más de 100 caracteres' })
-  @Matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, { message: 'El formato del correo electrónico no es válido' })
+  @Matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, { message: 'El formato del correo electrónico no es válido' })
   Correo: string;
 
   @ApiProperty({

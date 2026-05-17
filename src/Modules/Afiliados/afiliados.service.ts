@@ -239,9 +239,6 @@ export class AfiliadosService {
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
         if (!usuario) throw new BadRequestException(`Usuario con ID ${idUsuario} no encontrado`);
 
-        if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para asignar un medidor');
-        if (!files?.Certificacion_Literal?.[0]) throw new BadRequestException('El archivo Certificacion_Literal es obligatorio para asignar un medidor');
-
         const medidor = await this.medidorRepository.findOne({
             where: { Id_Medidor: dto.Id_Medidor },
             relations: ['Estado_Medidor', 'Afiliado']
@@ -268,23 +265,27 @@ export class AfiliadosService {
 
         const contextoCarga = await this.obtenerContextoCargaMedidor(afiliado.Id_Afiliado, afiliado.Tipo_Entidad);
 
-        const planoRes = await this.dropboxFilesService.uploadFile(
-            files.Planos_Terreno[0],
-            'Medidores',
-            contextoCarga.subcarpeta,
-            contextoCarga.identificador,
-            contextoCarga.nombreMostrar
-        );
-        const escrituraRes = await this.dropboxFilesService.uploadFile(
-            files.Certificacion_Literal[0],
-            'Medidores',
-            contextoCarga.subcarpeta,
-            contextoCarga.identificador,
-            contextoCarga.nombreMostrar
-        );
+        if (files?.Planos_Terreno?.[0]) {
+            const planoRes = await this.dropboxFilesService.uploadFile(
+                files.Planos_Terreno[0],
+                'Medidores',
+                contextoCarga.subcarpeta,
+                contextoCarga.identificador,
+                contextoCarga.nombreMostrar
+            );
+            medidor.Planos_Terreno = planoRes.url;
+        }
+        if (files?.Certificacion_Literal?.[0]) {
+            const escrituraRes = await this.dropboxFilesService.uploadFile(
+                files.Certificacion_Literal[0],
+                'Medidores',
+                contextoCarga.subcarpeta,
+                contextoCarga.identificador,
+                contextoCarga.nombreMostrar
+            );
+            medidor.Certificacion_Literal = escrituraRes.url;
+        }
 
-        medidor.Planos_Terreno = planoRes.url;
-        medidor.Certificacion_Literal = escrituraRes.url;
         medidor.Afiliado = afiliado;
         medidor.Estado_Medidor = estadoInstalado;
 
@@ -327,9 +328,6 @@ export class AfiliadosService {
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario }, relations: ['Rol'] });
         if (!usuario) throw new BadRequestException(`Usuario con ID ${idUsuario} no encontrado`);
 
-        if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para crear y asignar un medidor');
-        if (!files?.Certificacion_Literal?.[0]) throw new BadRequestException('El archivo Certificacion_Literal es obligatorio para crear y asignar un medidor');
-
         const medidorExistente = await this.medidorRepository.findOne({ where: { Numero_Medidor: dto.Numero_Medidor } });
         if (medidorExistente) throw new BadRequestException(`Ya existe un medidor con el numero ${dto.Numero_Medidor}`);
 
@@ -344,28 +342,37 @@ export class AfiliadosService {
 
         const contextoCarga = await this.obtenerContextoCargaMedidor(afiliado.Id_Afiliado, afiliado.Tipo_Entidad);
 
-        const planoRes = await this.dropboxFilesService.uploadFile(
-            files.Planos_Terreno[0],
-            'Medidores',
-            contextoCarga.subcarpeta,
-            contextoCarga.identificador,
-            contextoCarga.nombreMostrar
-        );
-        const escrituraRes = await this.dropboxFilesService.uploadFile(
-            files.Certificacion_Literal[0],
-            'Medidores',
-            contextoCarga.subcarpeta,
-            contextoCarga.identificador,
-            contextoCarga.nombreMostrar
-        );
+        let planoUrl: string | undefined;
+        let escrituraUrl: string | undefined;
+
+        if (files?.Planos_Terreno?.[0]) {
+            const planoRes = await this.dropboxFilesService.uploadFile(
+                files.Planos_Terreno[0],
+                'Medidores',
+                contextoCarga.subcarpeta,
+                contextoCarga.identificador,
+                contextoCarga.nombreMostrar
+            );
+            planoUrl = planoRes.url;
+        }
+        if (files?.Certificacion_Literal?.[0]) {
+            const escrituraRes = await this.dropboxFilesService.uploadFile(
+                files.Certificacion_Literal[0],
+                'Medidores',
+                contextoCarga.subcarpeta,
+                contextoCarga.identificador,
+                contextoCarga.nombreMostrar
+            );
+            escrituraUrl = escrituraRes.url;
+        }
 
         const medidorNuevo = this.medidorRepository.create({
             Numero_Medidor: dto.Numero_Medidor,
             Afiliado: afiliado,
             Estado_Medidor: estadoInstalado,
             Usuario: usuario,
-            Planos_Terreno: planoRes.url,
-            Certificacion_Literal: escrituraRes.url
+            Planos_Terreno: planoUrl,
+            Certificacion_Literal: escrituraUrl
         });
 
         const medidorGuardado = await this.medidorRepository.save(medidorNuevo);
@@ -394,6 +401,75 @@ export class AfiliadosService {
                 Tipo_Entidad: afiliado.Tipo_Entidad,
                 Estado_Actualizado_A_Activo: estadoActualizadoAActivo
             }
+        };
+    }
+
+    async asignarArchivosAMedidor(
+        idMedidor: number,
+        idUsuario: number,
+        files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[] }
+    ) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario valido para realizar esta accion');
+
+        const medidor = await this.medidorRepository.findOne({
+            where: { Id_Medidor: idMedidor },
+            relations: ['Estado_Medidor', 'Afiliado', 'Afiliado.Tipo_Afiliado']
+        });
+        if (!medidor) throw new BadRequestException(`Medidor con ID ${idMedidor} no encontrado`);
+
+        if (medidor.Estado_Medidor?.Id_Estado_Medidor !== 2) {
+            throw new BadRequestException(
+                `Solo se pueden asignar archivos a medidores con estado Instalado. Estado actual: ${medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? 'desconocido'}`
+            );
+        }
+        if (!medidor.Afiliado) {
+            throw new BadRequestException(`El medidor con ID ${idMedidor} no tiene un afiliado asignado`);
+        }
+
+        if (medidor.Planos_Terreno || medidor.Certificacion_Literal) {
+            throw new BadRequestException(
+                `El medidor con ID ${idMedidor} ya posee archivos asignados. Use el endpoint de actualización de archivos.`
+            );
+        }
+
+        const planoFile = files?.Planos_Terreno?.[0];
+        const escrituraFile = files?.Certificacion_Literal?.[0];
+
+        if (!planoFile && !escrituraFile) {
+            throw new BadRequestException('Debe proporcionar al menos un archivo (Planos_Terreno o Certificacion_Literal)');
+        }
+
+        const contextoCarga = await this.obtenerContextoCargaMedidor(medidor.Afiliado.Id_Afiliado, medidor.Afiliado.Tipo_Entidad);
+
+        if (planoFile) {
+            const planoRes = await this.dropboxFilesService.uploadFile(
+                planoFile, 'Medidores', contextoCarga.subcarpeta, contextoCarga.identificador, contextoCarga.nombreMostrar
+            );
+            medidor.Planos_Terreno = planoRes?.url ?? null;
+        }
+        if (escrituraFile) {
+            const escrituraRes = await this.dropboxFilesService.uploadFile(
+                escrituraFile, 'Medidores', contextoCarga.subcarpeta, contextoCarga.identificador, contextoCarga.nombreMostrar
+            );
+            medidor.Certificacion_Literal = escrituraRes?.url ?? null;
+        }
+
+        const medidorActualizado = await this.medidorRepository.save(medidor);
+
+        try {
+            await this.auditoriaService.logActualizacion('Medidores', idUsuario, idMedidor,
+                { Planos_Terreno: null, Certificacion_Literal: null },
+                { Planos_Terreno: medidorActualizado.Planos_Terreno, Certificacion_Literal: medidorActualizado.Certificacion_Literal }
+            );
+        } catch (error) {
+            console.error('Error al registrar auditoria de asignacion de archivos al medidor:', error);
+        }
+
+        return {
+            Id_Medidor: medidorActualizado.Id_Medidor,
+            Numero_Medidor: medidorActualizado.Numero_Medidor,
+            Planos_Terreno: medidorActualizado.Planos_Terreno,
+            Certificacion_Literal: medidorActualizado.Certificacion_Literal
         };
     }
 
@@ -1257,6 +1333,60 @@ export class AfiliadosService {
         return this.afiliadoFisicoRepository.save(afiliado);
     }
 
+
+    async revertirAsociadoAAfiliadoFisico(idAfiliado: number, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException(`Usuario con ID ${idUsuario} no encontrado`);
+
+        const afiliado = await this.afiliadoFisicoRepository.findOne({
+            where: { Id_Afiliado: idAfiliado },
+            relations: ['Tipo_Afiliado']
+        });
+        if (!afiliado) throw new BadRequestException(`Afiliado físico con ID ${idAfiliado} no encontrado`);
+
+        if (afiliado.Tipo_Afiliado.Id_Tipo_Afiliado !== 2) {
+            throw new BadRequestException(`El afiliado con ID ${idAfiliado} no es Asociado y no puede revertirse`);
+        }
+
+        const tipoAfiliado = await this.tipoAfiliadoRepository.findOne({ where: { Id_Tipo_Afiliado: 1 } });
+        if (!tipoAfiliado) throw new BadRequestException('Tipo "Afiliado" no configurado');
+
+        if (afiliado.Planos_Terreno || afiliado.Escrituras_Terreno) {
+            const nombreCompleto = `${afiliado.Nombre} ${afiliado.Apellido1 ?? ''} ${afiliado.Apellido2 ?? ''}`.trim();
+            try {
+                await this.dropboxFilesService.deletePath('Afiliados-Asociados', 'Fisicos', afiliado.Identificacion, nombreCompleto);
+            } catch (error) {
+                console.error(`Error al eliminar carpeta de asociado físico ID ${idAfiliado} en Dropbox:`, error);
+            }
+        }
+
+        const datosAnteriores = {
+            'Tipo_Afiliado': 'Asociado',
+            'Planos_Terreno': afiliado.Planos_Terreno ?? null,
+            'Escrituras_Terreno': afiliado.Escrituras_Terreno ?? null,
+        };
+
+        afiliado.Planos_Terreno = null;
+        afiliado.Escrituras_Terreno = null;
+        afiliado.Tipo_Afiliado = tipoAfiliado;
+
+        const afiliadoGuardado = await this.afiliadoFisicoRepository.save(afiliado);
+
+        try {
+            await this.auditoriaService.logActualizacion('Afiliado físico', idUsuario, afiliadoGuardado.Id_Afiliado, datosAnteriores, {
+                'Tipo_Afiliado': 'Afiliado',
+                'Planos_Terreno': null,
+                'Escrituras_Terreno': null,
+            });
+        } catch (error) {
+            console.error('Error al registrar auditoría de reversión a afiliado físico:', error);
+        }
+
+        return afiliadoGuardado;
+    }
+
     async cambiarAbonadoAAsociadoJuridico(cedulaJuridica: string, idUsuario: number, planosTerreno?: string, escriturasTerreno?: string) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
@@ -1279,6 +1409,58 @@ export class AfiliadosService {
         afiliado.Escrituras_Terreno = escriturasTerreno;
         afiliado.Tipo_Afiliado = tipoAsociado;
         return this.afiliadoJuridicoRepository.save(afiliado);
+    }
+
+    async revertirAsociadoAAfiliadoJuridico(idAfiliado: number, idUsuario: number) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
+        if (!usuario) throw new BadRequestException(`Usuario con ID ${idUsuario} no encontrado`);
+
+        const afiliado = await this.afiliadoJuridicoRepository.findOne({
+            where: { Id_Afiliado: idAfiliado },
+            relations: ['Tipo_Afiliado']
+        });
+        if (!afiliado) throw new BadRequestException(`Afiliado jurídico con ID ${idAfiliado} no encontrado`);
+
+        if (afiliado.Tipo_Afiliado.Id_Tipo_Afiliado !== 2) {
+            throw new BadRequestException(`El afiliado con ID ${idAfiliado} no es Asociado y no puede revertirse`);
+        }
+
+        const tipoAfiliado = await this.tipoAfiliadoRepository.findOne({ where: { Id_Tipo_Afiliado: 1 } });
+        if (!tipoAfiliado) throw new BadRequestException('Tipo "Afiliado" no configurado');
+
+        if (afiliado.Planos_Terreno || afiliado.Escrituras_Terreno) {
+            try {
+                await this.dropboxFilesService.deletePath('Afiliados-Asociados', 'Juridicos', afiliado.Cedula_Juridica, afiliado.Razon_Social);
+            } catch (error) {
+                console.error(`Error al eliminar carpeta de asociado jurídico ID ${idAfiliado} en Dropbox:`, error);
+            }
+        }
+
+        const datosAnteriores = {
+            'Tipo_Afiliado': 'Asociado',
+            'Planos_Terreno': afiliado.Planos_Terreno ?? null,
+            'Escrituras_Terreno': afiliado.Escrituras_Terreno ?? null,
+        };
+
+        afiliado.Planos_Terreno = null;
+        afiliado.Escrituras_Terreno = null;
+        afiliado.Tipo_Afiliado = tipoAfiliado;
+
+        const afiliadoGuardado = await this.afiliadoJuridicoRepository.save(afiliado);
+
+        try {
+            await this.auditoriaService.logActualizacion('Afiliado jurídico', idUsuario, afiliadoGuardado.Id_Afiliado, datosAnteriores, {
+                'Tipo_Afiliado': 'Afiliado',
+                'Planos_Terreno': null,
+                'Escrituras_Terreno': null,
+            });
+        } catch (error) {
+            console.error('Error al registrar auditoría de reversión a afiliado jurídico:', error);
+        }
+
+        return afiliadoGuardado;
     }
 
     // MÉTODOS DE FORMATEO POR TIPO DE ENTIDAD

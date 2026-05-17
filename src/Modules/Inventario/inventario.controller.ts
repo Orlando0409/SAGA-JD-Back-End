@@ -351,6 +351,21 @@ export class InventarioController {
     return this.medidorService.getMedidoresDisponibles();
   }
 
+  @Get('/medidores/pendientes')
+  async getMedidoresPendientes(){
+    return this.medidorService.getMedidoresPendientes();
+  }
+
+  @Get('/medidores/pagados')
+  async getMedidoresPagados(){
+    return this.medidorService.getMedidoresPagados();
+  }
+
+  @Get('/medidores/libre')
+  async getMedidoresLibre(){
+    return this.medidorService.getMedidoresLibre();
+  }
+
   @Get('/medidores/afiliado/:idAfiliado')
   @ApiOperation({ summary: 'Obtiene todos los medidores asociados a un afiliado específico.' })
   async getMedidoresAfiliado(
@@ -423,5 +438,19 @@ export class InventarioController {
     @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[] }
   ) {
     return this.medidorService.updateMedidorFiles(id, usuario.Id_Usuario, files);
+  }
+
+  @Post('/medidor/:id/archivos')
+  @ApiOperation({ summary: 'Asigna archivos (Planos y/o Certificacion) a un medidor que aún no posee ningún archivo.' })
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'Planos_Terreno', maxCount: 1 },
+    { name: 'Certificacion_Literal', maxCount: 1 },
+  ]))
+  async asignarArchivosAMedidor(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() usuario: Usuario,
+    @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[] }
+  ) {
+    return this.medidorService.asignarArchivosAMedidor(id, usuario.Id_Usuario, files);
   }
 }

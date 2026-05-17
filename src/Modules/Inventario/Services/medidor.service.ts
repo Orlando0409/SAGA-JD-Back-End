@@ -193,6 +193,42 @@ export class MedidorService {
         return this.formatearMedidoresConRelaciones(medidores);
     }
 
+    async getMedidoresPendientes(){
+        const medidores = await this.medidorRepository.createQueryBuilder('medidor')
+        .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
+        .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+        .leftJoinAndSelect('medidor.Usuario', 'usuario')
+        .leftJoinAndSelect('usuario.Rol', 'rol')
+        .where('medidor.Estado_Pago = :estado', { estado: EstadoPagoMedidor.Pendiente })
+        .getMany();
+
+        return this.formatearMedidoresConRelaciones(medidores);
+    }
+
+    async getMedidoresPagados(){
+        const medidores = await this.medidorRepository.createQueryBuilder('medidor')
+        .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
+        .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+        .leftJoinAndSelect('medidor.Usuario', 'usuario')
+        .leftJoinAndSelect('usuario.Rol', 'rol')
+        .where('medidor.Estado_Pago = :estado', { estado: EstadoPagoMedidor.Pagado })
+        .getMany();
+
+        return this.formatearMedidoresConRelaciones(medidores);
+    }
+
+    async getMedidoresLibre(){
+        const medidores = await this.medidorRepository.createQueryBuilder('medidor')
+        .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
+        .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+        .leftJoinAndSelect('medidor.Usuario', 'usuario')
+        .leftJoinAndSelect('usuario.Rol', 'rol')
+        .where('medidor.Estado_Pago = :estado', { estado: EstadoPagoMedidor.Libre })
+        .getMany();
+
+        return this.formatearMedidoresConRelaciones(medidores);
+    }
+
     async getMedidoresConAfiliado() {
         const medidores = await this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
@@ -289,9 +325,6 @@ export class MedidorService {
     ) {
         if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
 
-        if (!files?.Planos_Terreno?.[0]) throw new BadRequestException('El archivo Planos_Terreno es obligatorio para asignar un medidor a un afiliado');
-        if (!files?.Certificacion_Literal?.[0]) throw new BadRequestException('El archivo Certificacion_Literal es obligatorio para asignar un medidor a un afiliado');
-
         const medidor = await this.medidorRepository.findOne({
             where: { Id_Medidor: dto.Id_Medidor },
             relations: ['Estado_Medidor', 'Afiliado']
@@ -318,15 +351,19 @@ export class MedidorService {
 
         const contextoCarga = await this.obtenerContextoCargaMedidor(afiliado.Id_Afiliado, afiliado.Tipo_Entidad);
 
-        const planoRes = await this.dropboxFilesService.uploadFile(
-            files.Planos_Terreno[0], 'Medidores', contextoCarga.subcarpeta, contextoCarga.identificador, contextoCarga.nombreMostrar
-        );
-        const escrituraRes = await this.dropboxFilesService.uploadFile(
-            files.Certificacion_Literal[0], 'Medidores', contextoCarga.subcarpeta, contextoCarga.identificador, contextoCarga.nombreMostrar
-        );
+        if (files?.Planos_Terreno?.[0]) {
+            const planoRes = await this.dropboxFilesService.uploadFile(
+                files.Planos_Terreno[0], 'Medidores', contextoCarga.subcarpeta, contextoCarga.identificador, contextoCarga.nombreMostrar
+            );
+            medidor.Planos_Terreno = planoRes.url;
+        }
+        if (files?.Certificacion_Literal?.[0]) {
+            const escrituraRes = await this.dropboxFilesService.uploadFile(
+                files.Certificacion_Literal[0], 'Medidores', contextoCarga.subcarpeta, contextoCarga.identificador, contextoCarga.nombreMostrar
+            );
+            medidor.Certificacion_Literal = escrituraRes.url;
+        }
 
-        medidor.Planos_Terreno = planoRes.url;
-        medidor.Certificacion_Literal = escrituraRes.url;
         medidor.Afiliado = afiliado;
         medidor.Estado_Medidor = estadoInstalado;
         medidor.Estado_Pago = dto.Estado_Pago_Medidor;
@@ -622,6 +659,69 @@ export class MedidorService {
             );
         } catch (error) {
             console.error('Error al registrar auditoría de actualización de archivos del medidor:', error);
+        }
+
+        return {
+            Id_Medidor: medidorActualizado.Id_Medidor,
+            Numero_Medidor: medidorActualizado.Numero_Medidor,
+            Planos_Terreno: medidorActualizado.Planos_Terreno,
+            Certificacion_Literal: medidorActualizado.Certificacion_Literal
+        };
+    }
+
+    async asignarArchivosAMedidor(
+        idMedidor: number,
+        idUsuario: number,
+        files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[] }
+    ) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const medidor = await this.medidorRepository.findOne({
+            where: { Id_Medidor: idMedidor },
+            relations: ['Estado_Medidor', 'Afiliado']
+        });
+        if (!medidor) throw new BadRequestException(`Medidor con ID ${idMedidor} no encontrado`);
+
+        if (medidor.Estado_Medidor?.Id_Estado_Medidor !== 2) {
+            throw new BadRequestException(
+                `Solo se pueden asignar archivos a medidores con estado Instalado. Estado actual: ${medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? 'desconocido'}`
+            );
+        }
+        if (!medidor.Afiliado) {
+            throw new BadRequestException(`El medidor con ID ${idMedidor} no tiene un afiliado asignado`);
+        }
+
+        if (medidor.Planos_Terreno || medidor.Certificacion_Literal) {
+            throw new BadRequestException(
+                `El medidor con ID ${idMedidor} ya posee archivos asignados. Use el endpoint de actualización de archivos.`
+            );
+        }
+
+        const planoFile = files?.Planos_Terreno?.[0];
+        const escrituraFile = files?.Certificacion_Literal?.[0];
+
+        if (!planoFile && !escrituraFile) {
+            throw new BadRequestException('Debe proporcionar al menos un archivo (Planos_Terreno o Certificacion_Literal)');
+        }
+
+        if (planoFile) {
+            const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Medidores', 'Archivos', String(idMedidor));
+            medidor.Planos_Terreno = planoRes?.url ?? null;
+        }
+        if (escrituraFile) {
+            const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Archivos', String(idMedidor));
+            medidor.Certificacion_Literal = escrituraRes?.url ?? null;
+        }
+
+        const medidorActualizado = await this.medidorRepository.save(medidor);
+
+        try {
+            await this.auditoriaService.logActualizacion('Medidores', idUsuario, idMedidor,
+                { Planos_Terreno: null, Certificacion_Literal: null },
+                { Planos_Terreno: medidorActualizado.Planos_Terreno, Certificacion_Literal: medidorActualizado.Certificacion_Literal }
+            );
+        } catch (error) {
+            console.error('Error al registrar auditoría de asignación de archivos al medidor:', error);
         }
 
         return {

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsEmail, IsNotEmpty, IsString, IsNumber, MinLength, IsDefined } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, MinLength, IsDefined, Matches, MaxLength } from 'class-validator';
 
 export class UsuarioDTO {
   @ApiProperty({ example: 'Nombre Apellido' })
@@ -10,11 +10,12 @@ export class UsuarioDTO {
   @IsNotEmpty({ message: 'El nombre no puede estar vacío' })
   Nombre_Usuario: string;
 
-  @ApiProperty({ example: 'correo@gmail.com' })
-  @IsEmail({}, { message: 'El correo electrónico debe ser válido' })
+  @ApiProperty({ example: 'correo@dominio.com' })
   @IsDefined({ message: 'El correo electrónico es obligatorio' })
   @Transform(({ value }) => value?.trim().toLowerCase())
   @IsNotEmpty({ message: 'El correo electrónico no puede estar vacío' })
+  @MaxLength(50, { message: 'El correo no puede tener más de 50 caracteres' })
+  @Matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, { message: 'El correo electrónico debe ser válido' })
   Correo_Electronico: string;
 
   @ApiProperty({ example: 1 })

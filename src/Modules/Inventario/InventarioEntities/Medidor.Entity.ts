@@ -18,10 +18,10 @@ export class Medidor {
     Id_Solicitud: number; // ID de la solicitud asociada (se asigna antes de crear el afiliado)
 
     @Column({ nullable: true, type: 'varchar', length: 500 })
-    Planos_Terreno: string | null;
+    Planos_Terreno?: string | null;
 
     @Column({ name: 'Escritura_Terreno', nullable: true, type: 'varchar', length: 500 })
-    Certificacion_Literal: string | null;
+    Certificacion_Literal?: string | null;
 
     @Column({
         type: 'enum',

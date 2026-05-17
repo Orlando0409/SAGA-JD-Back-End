@@ -431,11 +431,11 @@ export class SolicitudesFisicasService {
         const usuario = await this.usuarioRepository.findOne({ where: { Id_Usuario: idUsuario } });
         if (!usuario) throw new BadRequestException(`Usuario con id ${idUsuario} no encontrado`);
 
-        // 1. Verificar que la solicitud existe en la tabla padre
+      
         const solicitudBase = await this.solicitudRepository.findOne({ where: { Id_Solicitud: idSolicitud } });
         if (!solicitudBase) throw new BadRequestException(`Solicitud con id ${idSolicitud} no encontrada`);
 
-        // 2. Verificar que es una solicitud de afiliación física (Id_Tipo_Solicitud = 1, Tipo_Entidad = 1)
+      
         if (solicitudBase.Id_Tipo_Solicitud !== 1) throw new BadRequestException(`La solicitud con id ${idSolicitud} no es una solicitud de afiliación`);
         if (solicitudBase.Tipo_Entidad !== 1) throw new BadRequestException(`La solicitud con id ${idSolicitud} no es una solicitud física`);
 
@@ -455,15 +455,10 @@ export class SolicitudesFisicasService {
         };
 
         // 4. Actualizar campos específicos de SolicitudAfiliacionFisica
-        solicitudAfiliacion.Nombre = dto.Nombre ?? solicitudAfiliacion.Nombre;
-        solicitudAfiliacion.Apellido1 = dto.Apellido1 ?? solicitudAfiliacion.Apellido1;
-        solicitudAfiliacion.Apellido2 = dto.Apellido2 ?? solicitudAfiliacion.Apellido2;
+        
         solicitudAfiliacion.Numero_Telefono = dto.Numero_Telefono ?? solicitudAfiliacion.Numero_Telefono;
         solicitudAfiliacion.Correo = dto.Correo ?? solicitudAfiliacion.Correo;
-        solicitudAfiliacion.Direccion_Exacta = dto.Direccion_Exacta ?? solicitudAfiliacion.Direccion_Exacta;
-        solicitudAfiliacion.Edad = dto.Edad ?? solicitudAfiliacion.Edad;
-
-        // 5. Guardar cambios
+       
         const resultado = await this.solicitudAfiliacionFisicaRepository.save(solicitudAfiliacion);
 
         // 6. Registrar en auditoría

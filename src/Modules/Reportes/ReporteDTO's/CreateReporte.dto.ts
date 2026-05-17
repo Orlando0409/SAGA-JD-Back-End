@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsDefined, IsString, Matches, MaxLength, IsNotEmpty, IsEmail, IsOptional, ValidateIf } from 'class-validator';
+import { IsDefined, IsString, Matches, MaxLength, IsNotEmpty, IsOptional, ValidateIf } from 'class-validator';
 
 const NAME_REGEX = /^[A-Za-zÁÉÍÓÚáéíóúÑñ]+$/;
 // Permite nombres compuestos con espacios simples, p.ej. 'Alondra Maria'
@@ -37,7 +37,7 @@ export class CreateReporteDto {
     @IsString()
     @IsNotEmpty({ message: 'El correo no puede estar vacío' })
     @MaxLength(100, { message: 'El correo no puede tener más de 100 caracteres' })
-    @IsEmail({}, { message: 'El correo electrónico debe ser válido' })
+    @Matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, { message: 'El correo electrónico debe ser válido' })
     Correo: string;
 
     @IsDefined({ message: 'La ubicación es requerida' })
