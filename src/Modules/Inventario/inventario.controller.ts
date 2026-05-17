@@ -408,4 +408,18 @@ export class InventarioController {
   ) {
     return this.medidorService.updateMedidorFiles(id, usuario.Id_Usuario, files);
   }
+
+  @Post('/medidor/:id/archivos')
+  @ApiOperation({ summary: 'Asigna archivos (Planos y/o Certificacion) a un medidor que aún no posee ningún archivo.' })
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'Planos_Terreno', maxCount: 1 },
+    { name: 'Certificacion_Literal', maxCount: 1 },
+  ]))
+  async asignarArchivosAMedidor(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() usuario: Usuario,
+    @UploadedFiles() files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[] }
+  ) {
+    return this.medidorService.asignarArchivosAMedidor(id, usuario.Id_Usuario, files);
+  }
 }

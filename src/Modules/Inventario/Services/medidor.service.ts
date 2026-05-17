@@ -585,4 +585,67 @@ export class MedidorService {
             Certificacion_Literal: medidorActualizado.Certificacion_Literal
         };
     }
+
+    async asignarArchivosAMedidor(
+        idMedidor: number,
+        idUsuario: number,
+        files: { Planos_Terreno?: Express.Multer.File[]; Certificacion_Literal?: Express.Multer.File[] }
+    ) {
+        if (!idUsuario) throw new BadRequestException('Debe proporcionar un ID de usuario válido para realizar esta acción');
+
+        const medidor = await this.medidorRepository.findOne({
+            where: { Id_Medidor: idMedidor },
+            relations: ['Estado_Medidor', 'Afiliado']
+        });
+        if (!medidor) throw new BadRequestException(`Medidor con ID ${idMedidor} no encontrado`);
+
+        if (medidor.Estado_Medidor?.Id_Estado_Medidor !== 2) {
+            throw new BadRequestException(
+                `Solo se pueden asignar archivos a medidores con estado Instalado. Estado actual: ${medidor.Estado_Medidor?.Nombre_Estado_Medidor ?? 'desconocido'}`
+            );
+        }
+        if (!medidor.Afiliado) {
+            throw new BadRequestException(`El medidor con ID ${idMedidor} no tiene un afiliado asignado`);
+        }
+
+        if (medidor.Planos_Terreno || medidor.Certificacion_Literal) {
+            throw new BadRequestException(
+                `El medidor con ID ${idMedidor} ya posee archivos asignados. Use el endpoint de actualización de archivos.`
+            );
+        }
+
+        const planoFile = files?.Planos_Terreno?.[0];
+        const escrituraFile = files?.Certificacion_Literal?.[0];
+
+        if (!planoFile && !escrituraFile) {
+            throw new BadRequestException('Debe proporcionar al menos un archivo (Planos_Terreno o Certificacion_Literal)');
+        }
+
+        if (planoFile) {
+            const planoRes = await this.dropboxFilesService.uploadFile(planoFile, 'Medidores', 'Archivos', String(idMedidor));
+            medidor.Planos_Terreno = planoRes?.url ?? null;
+        }
+        if (escrituraFile) {
+            const escrituraRes = await this.dropboxFilesService.uploadFile(escrituraFile, 'Medidores', 'Archivos', String(idMedidor));
+            medidor.Certificacion_Literal = escrituraRes?.url ?? null;
+        }
+
+        const medidorActualizado = await this.medidorRepository.save(medidor);
+
+        try {
+            await this.auditoriaService.logActualizacion('Medidores', idUsuario, idMedidor,
+                { Planos_Terreno: null, Certificacion_Literal: null },
+                { Planos_Terreno: medidorActualizado.Planos_Terreno, Certificacion_Literal: medidorActualizado.Certificacion_Literal }
+            );
+        } catch (error) {
+            console.error('Error al registrar auditoría de asignación de archivos al medidor:', error);
+        }
+
+        return {
+            Id_Medidor: medidorActualizado.Id_Medidor,
+            Numero_Medidor: medidorActualizado.Numero_Medidor,
+            Planos_Terreno: medidorActualizado.Planos_Terreno,
+            Certificacion_Literal: medidorActualizado.Certificacion_Literal
+        };
+    }
 }
