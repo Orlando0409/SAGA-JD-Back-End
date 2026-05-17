@@ -1,6 +1,10 @@
 import { Injectable, BadRequestException, Inject, forwardRef } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DataSource, Repository } from "typeorm";
+import { DataSource, In, Repository } from "typeorm";
+import { Response } from "express";
+import { PdfExportService } from "src/Shared/Pdf/pdf-export.service";
+import { TablaGenericaPDF, TablaColumna } from "src/Shared/Pdf/tabla-pdf.template";
+import { ExportAuditoriaPdfDto } from "./AuditoriaDTOs/ExportAuditoriaPdf.dto";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { Auditoria } from "./AuditoriaEntities/Auditoria.Entities";
 import { Categoria } from "../Inventario/InventarioEntities/Categoria.Entity";
@@ -36,7 +40,81 @@ export class AuditoriaService {
         private readonly usuariosService: UsuariosService,
 
         private readonly dataSource: DataSource,
+
+        private readonly pdfExportService: PdfExportService,
     ) { }
+
+    // ====================================
+    // EXPORTACIÓN A PDF
+    // ====================================
+
+    private static readonly AUDITORIA_COLUMNAS: Record<string, TablaColumna> = {
+        fecha:    { key: 'fecha',    label: 'Fecha',           align: 'left',   width: '110px' },
+        modulo:   { key: 'modulo',   label: 'Módulo',          align: 'left',   width: '110px' },
+        accion:   { key: 'accion',   label: 'Acción',          align: 'center', width: '90px'  },
+        registro: { key: 'registro', label: 'Registro',        align: 'left',   maxWidth: '260px' },
+        usuario:  { key: 'usuario',  label: 'Usuario',         align: 'left',   width: '130px' },
+        rol:      { key: 'rol',      label: 'Rol',             align: 'left',   width: '110px' },
+    };
+
+    private static readonly AUDITORIA_COLUMNAS_DEFAULT = ['fecha', 'modulo', 'accion', 'registro', 'usuario'];
+
+    async generarAuditoriasPdf(filtros: ExportAuditoriaPdfDto, res: Response): Promise<void> {
+        const qb = this.auditoriaRepository.createQueryBuilder('auditoria')
+            .leftJoinAndSelect('auditoria.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .orderBy('auditoria.Fecha_Accion', 'DESC');
+
+        if (filtros.modulos?.length) {
+            qb.andWhere('auditoria.Modulo IN (:...modulos)', { modulos: filtros.modulos });
+        }
+
+        if (filtros.acciones?.length) {
+            qb.andWhere('auditoria.Accion IN (:...acciones)', { acciones: filtros.acciones });
+        }
+
+        if (filtros.idUsuario) {
+            qb.andWhere('usuario.Id_Usuario = :idUsuario', { idUsuario: filtros.idUsuario });
+        }
+
+        const auditorias = await qb.getMany();
+
+        const filas = await Promise.all(auditorias.map(async (a) => {
+            const nombreReg = await this.obtenerNombreRegistro(
+                a.Modulo, a.Id_Registro, a.Datos_Anteriores, a.Datos_Nuevos, a.Accion
+            );
+            return {
+                fecha: a.Fecha_Accion ? new Date(a.Fecha_Accion).toLocaleString('es-CR') : '—',
+                modulo: a.Modulo || '—',
+                accion: a.Accion || '—',
+                registro: nombreReg || `#${a.Id_Registro}`,
+                usuario: a.Usuario?.Nombre_Usuario || '—',
+                rol: a.Usuario?.Rol?.Nombre_Rol || '—',
+            };
+        }));
+
+        const keys = (filtros.columnas?.length ? filtros.columnas : AuditoriaService.AUDITORIA_COLUMNAS_DEFAULT)
+            .filter(k => k in AuditoriaService.AUDITORIA_COLUMNAS);
+        const columnas = keys.map(k => AuditoriaService.AUDITORIA_COLUMNAS[k]);
+
+        const filtrosAplicados: { label: string; value: string }[] = [];
+        if (filtros.modulos?.length) filtrosAplicados.push({ label: 'Módulos', value: filtros.modulos.join(', ') });
+        if (filtros.acciones?.length) filtrosAplicados.push({ label: 'Acciones', value: filtros.acciones.join(', ') });
+        if (filtros.idUsuario) filtrosAplicados.push({ label: 'Usuario ID', value: String(filtros.idUsuario) });
+
+        const html = TablaGenericaPDF({
+            titulo: 'Reporte de Auditoría',
+            subtitulo: 'Registro de acciones del sistema',
+            filtrosAplicados,
+            columnas,
+            filas,
+            notaFooter: 'SAGA-JD · Bitácora de auditoría',
+            orientacion: 'landscape',
+        });
+
+        const filename = `Auditoria_${new Date().toISOString().slice(0, 10)}.pdf`;
+        await this.pdfExportService.streamPdfToResponse(html, filename, res);
+    }
 
     /*
         Obtiene el nombre del registro según el módulo y los datos

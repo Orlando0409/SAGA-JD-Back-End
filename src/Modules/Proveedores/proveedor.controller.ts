@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, ParseIntPipe, Patch, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, ParseIntPipe, Patch, Request, Res, UseGuards } from '@nestjs/common';
+import { Response } from 'express';
 import { ProveedorService } from './proveedor.service';
 import { CreateProveedorFisicoDto, CreateProveedorJuridicoDto } from './ProveedoresDTOs/CreateProveedor.dto';
 import { UpdateProveedorFisicoDto, UpdateProveedorJuridicoDto } from './ProveedoresDTOs/UpdateProveedor.dto';
 import { UpdateEstadoProveedorDto } from './ProveedoresDTOs/UpdateEstadoProveedor.dto';
+import { ExportProveedoresPdfDto } from './ProveedoresDTOs/ExportProveedoresPdf.dto';
 import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
 
 @Controller('Proveedores')
@@ -15,6 +17,14 @@ export class ProveedorController {
     @Get('All')
     findAll() {
         return this.proveedorService.findAll();
+    }
+
+    @Post('pdf')
+    async exportarPdf(
+        @Body() dto: ExportProveedoresPdfDto,
+        @Res() res: Response,
+    ) {
+        await this.proveedorService.generarProveedoresPdf(dto, res);
     }
 
     @Post('fisico/create')

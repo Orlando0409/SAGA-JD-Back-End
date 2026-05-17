@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ProyectoModule } from './Modules/Proyectos/proyecto.module';
+import { PdfModule } from './Shared/Pdf/pdf.module';
 import { FacturaModule } from './Modules/Facturas/factura.module';
 import { InventarioModule } from './Modules/Inventario/inventario.module';
 import { ProveedorModule } from './Modules/Proveedores/proveedor.module';
@@ -148,7 +149,8 @@ import { PrecioRecursoHidricoSinSello } from './Modules/Tarifas/Sin Sello Calida
     QuejasModule,
     ImagenesModule,
     ManualModule,
-    PagosModule
+    PagosModule,
+    PdfModule
   ],
   controllers: [],
   providers: [

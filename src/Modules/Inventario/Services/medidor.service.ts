@@ -1,6 +1,10 @@
 import { BadRequestException, forwardRef, Inject, Injectable } from "@nestjs/common";
 import { Medidor } from "../InventarioEntities/Medidor.Entity";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
+import { Response } from "express";
+import { PdfExportService } from "src/Shared/Pdf/pdf-export.service";
+import { TablaGenericaPDF, TablaColumna } from "src/Shared/Pdf/tabla-pdf.template";
+import { ExportMedidoresPdfDto } from "../InventarioDTO's/ExportMedidoresPdf.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { EstadoMedidor } from "../InventarioEntities/EstadoMedidor.Entity";
 import { CreateMedidorDTO } from "../InventarioDTO's/CreateMedidor.dto";
@@ -51,7 +55,86 @@ export class MedidorService {
         private readonly usuariosService: UsuariosService,
 
         private readonly dropboxFilesService: DropboxFilesService,
+
+        private readonly pdfExportService: PdfExportService,
     ) { }
+
+    // ====================================
+    // EXPORTACIÓN A PDF
+    // ====================================
+
+    private static readonly MED_COLUMNAS: Record<string, TablaColumna> = {
+        numero:    { key: 'numero',    label: 'N° Medidor',     align: 'left',   width: '110px' },
+        estado:    { key: 'estado',    label: 'Estado',         align: 'center', width: '110px' },
+        afiliado:  { key: 'afiliado',  label: 'Afiliado',       align: 'left',   maxWidth: '220px' },
+        pago:      { key: 'pago',      label: 'Estado Pago',    align: 'center', width: '110px' },
+        creacion:  { key: 'creacion',  label: 'Fecha creación', align: 'left',   width: '110px' },
+    };
+
+    private static readonly MED_COLUMNAS_DEFAULT = ['numero', 'estado', 'afiliado', 'pago'];
+
+    async generarMedidoresPdf(filtros: ExportMedidoresPdfDto, res: Response): Promise<void> {
+        const qb = this.medidorRepository.createQueryBuilder('medidor')
+            .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+            .orderBy('medidor.Numero_Medidor', 'ASC');
+
+        if (filtros.estados?.length) {
+            qb.andWhere('estado.Id_Estado_Medidor IN (:...estados)', { estados: filtros.estados });
+        }
+
+        const medidores = await qb.getMany();
+
+        const filas = await Promise.all(medidores.map(async (m) => {
+            const afiliadoInfo = m.Afiliado
+                ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(m.Afiliado)
+                : null;
+            const nombreAf = afiliadoInfo
+                ? ((afiliadoInfo as any).Razon_Social
+                    || ((afiliadoInfo as any).Nombre
+                        ? `${(afiliadoInfo as any).Nombre} ${(afiliadoInfo as any).Primer_Apellido ?? ''} ${(afiliadoInfo as any).Segundo_Apellido ?? ''}`.trim()
+                        : null)
+                    || (afiliadoInfo as any).Identificacion
+                    || (afiliadoInfo as any).Cedula_Juridica
+                    || '—')
+                : 'Sin asignar';
+
+            return {
+                numero: m.Numero_Medidor || '—',
+                estado: m.Estado_Medidor?.Nombre_Estado_Medidor || 'Sin estado',
+                afiliado: nombreAf,
+                pago: m.Estado_Pago || '—',
+                creacion: m.Fecha_Creacion ? new Date(m.Fecha_Creacion).toLocaleDateString('es-CR') : '—',
+            };
+        }));
+
+        const keys = (filtros.columnas?.length ? filtros.columnas : MedidorService.MED_COLUMNAS_DEFAULT)
+            .filter(k => k in MedidorService.MED_COLUMNAS);
+        const columnas = keys.map(k => MedidorService.MED_COLUMNAS[k]);
+
+        const filtrosAplicados: { label: string; value: string }[] = [];
+        if (filtros.estados?.length) {
+            const estados = await this.estadoMedidorRepository.find({
+                where: { Id_Estado_Medidor: In(filtros.estados) },
+            });
+            filtrosAplicados.push({
+                label: 'Estados',
+                value: estados.map((e: any) => e.Nombre_Estado_Medidor).join(', ') || filtros.estados.join(', '),
+            });
+        }
+
+        const html = TablaGenericaPDF({
+            titulo: 'Reporte de Medidores',
+            subtitulo: 'Inventario de medidores',
+            filtrosAplicados,
+            columnas,
+            filas,
+            notaFooter: 'SAGA-JD · Medidores',
+        });
+
+        const filename = `Medidores_${new Date().toISOString().slice(0, 10)}.pdf`;
+        await this.pdfExportService.streamPdfToResponse(html, filename, res);
+    }
 
     private async formatearMedidoresConRelaciones(medidores: Medidor[]) {
         return Promise.all(
