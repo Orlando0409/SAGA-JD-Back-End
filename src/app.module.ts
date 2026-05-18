@@ -23,6 +23,7 @@ import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity';
 import { EstadoReporte } from './Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
 import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
 import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
+import { MetricsModule } from './metrics/metrics.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -62,6 +63,7 @@ import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
     ReportesModule,
     SugerenciaModule,
     QuejasModule,
+    MetricsModule
   ],
   controllers: [],
   providers: [
