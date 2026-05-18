@@ -16,6 +16,10 @@ import { Readable } from "stream";
 import * as csvParser from "csv-parser";
 import { TarifaLecturaSinSello } from "../Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/TarifaLecturaSinSello.Entity";
 import { FacturaService } from "../Facturas/factura.service";
+import { Response } from "express";
+import { PdfExportService } from "src/Shared/Pdf/pdf-export.service";
+import { TablaGenericaPDF, TablaColumna } from "src/Shared/Pdf/tabla-pdf.template";
+import { ExportLecturasPdfDto } from "./LecturaDTO'S/ExportLecturasPdf.dto";
 
 @Injectable()
 export class LecturaService {
@@ -52,7 +56,94 @@ export class LecturaService {
 
         @Inject(forwardRef(() => FacturaService))
         private readonly facturaService: FacturaService,
+
+        private readonly pdfExportService: PdfExportService,
     ) { }
+
+    // ====================================
+    // EXPORTACIÓN PDF
+    // ====================================
+
+    private static readonly LEC_COLUMNAS: Record<string, TablaColumna> = {
+        fecha:      { key: 'fecha',      label: 'Fecha',         align: 'left',   width: '110px' },
+        medidor:    { key: 'medidor',    label: 'Medidor',       align: 'left',   width: '110px' },
+        afiliado:   { key: 'afiliado',   label: 'Afiliado',      align: 'left',   maxWidth: '200px' },
+        anterior:   { key: 'anterior',   label: 'Lect. Anterior',align: 'right',  width: '90px'  },
+        actual:     { key: 'actual',     label: 'Lect. Actual',  align: 'right',  width: '90px'  },
+        consumo:    { key: 'consumo',    label: 'Consumo (m³)',  align: 'right',  width: '90px'  },
+        tarifa:     { key: 'tarifa',     label: 'Tarifa',        align: 'left',   width: '120px' },
+        usuario:    { key: 'usuario',    label: 'Registrado por',align: 'left',   width: '120px' },
+    };
+
+    private static readonly LEC_COLUMNAS_DEFAULT = ['fecha', 'medidor', 'afiliado', 'anterior', 'actual', 'consumo', 'tarifa'];
+
+    async generarLecturasPdf(filtros: ExportLecturasPdfDto, res: Response): Promise<void> {
+        const qb = this.lecturaRepository.createQueryBuilder('lectura')
+            .leftJoinAndSelect('lectura.Medidor', 'medidor')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+            .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
+            .leftJoinAndSelect('lectura.Usuario', 'usuario')
+            .orderBy('lectura.Fecha_Lectura', 'DESC');
+
+        if (filtros.ids?.length) qb.andWhere('lectura.Id_Lectura IN (:...ids)', { ids: filtros.ids });
+        if (filtros.tiposTarifa?.length) qb.andWhere('tipoTarifa.Id_Tarifa_Lectura IN (:...tt)', { tt: filtros.tiposTarifa });
+        if (filtros.fechaInicio) qb.andWhere('lectura.Fecha_Lectura >= :fi', { fi: new Date(filtros.fechaInicio + 'T00:00:00') });
+        if (filtros.fechaFin) qb.andWhere('lectura.Fecha_Lectura <= :ff', { ff: new Date(filtros.fechaFin + 'T23:59:59') });
+
+        const lecturas = await qb.getMany();
+
+        const filas = lecturas.map((l: any) => {
+            const af = l.Medidor?.Afiliado;
+            let afNombre = 'Sin asignar';
+            if (af) {
+                afNombre = af.Razon_Social?.trim()
+                    || `${af.Nombre ?? ''} ${af.Apellido1 ?? ''} ${af.Apellido2 ?? ''}`.trim()
+                    || af.Identificacion
+                    || af.Cedula_Juridica
+                    || `Afiliado #${af.Id_Afiliado}`;
+            }
+            return {
+                fecha: l.Fecha_Lectura ? new Date(l.Fecha_Lectura).toLocaleDateString('es-CR') : '—',
+                medidor: l.Medidor?.Numero_Medidor ?? '—',
+                afiliado: afNombre,
+                anterior: l.Valor_Lectura_Anterior ?? 0,
+                actual: l.Valor_Lectura_Actual ?? 0,
+                consumo: l.Consumo_Calculado_M3 ?? 0,
+                tarifa: l.Tipo_Tarifa?.Nombre_Tipo_Tarifa || '—',
+                usuario: l.Usuario?.Nombre_Usuario || '—',
+            };
+        });
+
+        const keys = (filtros.columnas?.length ? filtros.columnas : LecturaService.LEC_COLUMNAS_DEFAULT)
+            .filter(k => k in LecturaService.LEC_COLUMNAS);
+        const columnas = keys.map(k => LecturaService.LEC_COLUMNAS[k]);
+
+        const filtrosAplicados: { label: string; value: string }[] = [];
+        if (filtros.fechaInicio || filtros.fechaFin) {
+            filtrosAplicados.push({
+                label: 'Rango fechas',
+                value: `${filtros.fechaInicio || '...'} a ${filtros.fechaFin || '...'}`,
+            });
+        }
+        if (filtros.tiposTarifa?.length) {
+            filtrosAplicados.push({ label: 'Tipos tarifa (IDs)', value: filtros.tiposTarifa.join(', ') });
+        }
+
+        const html = TablaGenericaPDF({
+            titulo: filtros.ids?.length === 1 ? 'Detalle de Lectura' : 'Reporte de Lecturas',
+            subtitulo: 'Lecturas de medidores',
+            filtrosAplicados,
+            columnas,
+            filas,
+            notaFooter: 'SAGA-JD · Lecturas',
+            orientacion: 'landscape',
+        });
+
+        const filename = filtros.ids?.length === 1
+            ? `Lectura_${filtros.ids[0]}_${new Date().toISOString().slice(0, 10)}.pdf`
+            : `Lecturas_${new Date().toISOString().slice(0, 10)}.pdf`;
+        await this.pdfExportService.streamPdfToResponse(html, filename, res);
+    }
 
     async getAllLecturas() {
         const lecturas = await this.lecturaRepository.createQueryBuilder('lectura')

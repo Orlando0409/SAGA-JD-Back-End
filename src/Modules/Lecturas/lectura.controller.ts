@@ -1,7 +1,9 @@
-import { Body, Controller, Get, Param, Post, Put, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Put, Res, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Response } from "express";
 import { LecturaService } from "./lectura.service";
 import { CreateLecturaDTO } from "./LecturaDTO'S/CreateLectura.dto";
 import { UpdateLecturaDTO } from "./LecturaDTO'S/UpdateLectura.dto";
+import { ExportLecturasPdfDto } from "./LecturaDTO'S/ExportLecturasPdf.dto";
 import { JwtAuthGuard } from "../auth/Guard/JwtGuard";
 import { RequierePermisos } from '../auth/Decorator/Permiso.decorator';
 import { GetUser } from "../auth/Decorator/GetUser.decorator";
@@ -21,6 +23,16 @@ export class LecturaController {
     @ApiProperty({ description: 'Obtiene todas las lecturas registradas en el sistema.' })
     getAllLecturas() {
         return this.lecturaService.getAllLecturas();
+    }
+
+    @Post('/pdf')
+    @RequierePermisos('abonados', 'editar')
+    @ApiProperty({ description: 'Exportar lecturas a PDF con filtros opcionales.' })
+    async exportarPdf(
+        @Body() dto: ExportLecturasPdfDto,
+        @Res() res: Response,
+    ) {
+        await this.lecturaService.generarLecturasPdf(dto, res);
     }
 
     @Get('/tarifas-lecturas')
