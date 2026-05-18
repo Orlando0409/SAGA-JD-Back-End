@@ -59,7 +59,6 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 
-  
   if (process.env.NODE_ENV === 'development') {
     console.log('Entorno actual:', process.env.NODE_ENV);
     console.log('Base de datos:', process.env.DB_DATABASE);

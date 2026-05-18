@@ -19,11 +19,10 @@ import { AuditoriaModule } from './Modules/Auditoria/auditoria.module';
 import { ReportesModule } from './Modules/Reportes/reportes.module';
 import { Reporte } from './Modules/Reportes/ReporteEntities/Reportes.Entity';
 import { Sugerencia } from './Modules/Sugerencias/SugerenciaEntities/Sugerencia.Entity';
-import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity'; 
+import { Queja } from './Modules/Quejas/QuejaEntities/QuejasEntity';
 import { EstadoReporte } from './Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
 import { EstadoSugerencia } from './Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
 import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -49,10 +48,10 @@ import { EstadoQueja } from './Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
           Reporte, EstadoReporte,
           Sugerencia, EstadoSugerencia,
           Queja, EstadoQueja,
-          Auditoria,
+          Auditoria
         ],
-        synchronize: true,
-        dropSchema: true,
+        synchronize: false,
+        dropSchema: false,
       })
     }),
     SeederModule,

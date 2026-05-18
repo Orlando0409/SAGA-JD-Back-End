@@ -1,14 +1,4 @@
 import { Min } from 'class-validator';
-import { TipoTarifaServiciosFijosConSello } from '../Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaServiciosFijos.Entity';
-import { TarifaLecturaSinSello } from '../Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/TarifaLecturaSinSello.Entity';
-import { RangoAfiliadosSinSello } from '../Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RangoAfiliadosSinSello.Entity';
-import { RangoConsumoSinSello } from '../Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RangoConsumoSinSello.Entity';
-import { CargoFijoTarifasSinSello } from '../Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/CargoFijoTarifasSinSello.Entity';
-import { PrecioBloqueConsumoSinSello } from '../Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/PrecioBloqueConsumoSinSello.Entity';
-import { RecursoHidricoSinSello } from '../Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/RecursoHidricoSinSello.Entity';
-import { BloqueRecursoHidricoSinSello } from '../Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/BloqueRecursoHidricoSinSello.Entity';
-import { PrecioRecursoHidricoSinSello } from '../Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/PrecioRecursoHidricoSinSello.Entity';
-import { TarifaHidranteSinSello } from '../Modules/Tarifas/Sin Sello Calidad/TarifaSinSelloEntities/TarifaHidranteSinSello.Entity';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -16,29 +6,9 @@ import * as bcrypt from 'bcrypt';
 import { Permiso } from 'src/Modules/Usuarios/UsuarioEntities/Permiso.Entity';
 import { Usuario } from 'src/Modules/Usuarios/UsuarioEntities/Usuario.Entity';
 import { UsuarioRol } from 'src/Modules/Usuarios/UsuarioEntities/UsuarioRol.Entity';
-import { EstadoProveedor } from 'src/Modules/Proveedores/ProveedorEntities/EstadoProveedor.Entity';
-import { EstadoProyecto } from 'src/Modules/Proyectos/ProyectoEntities/EstadoProyecto.Entity';
-import { EstadoSolicitud } from 'src/Modules/Solicitudes/SolicitudEntities/EstadoSolicitud.Entity';
-import { EstadoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/EstadoAfiliado.Entity';
-import { TipoAfiliado } from 'src/Modules/Afiliados/AfiliadoEntities/TipoAfiliado.Entity';
-import { EstadoMaterial } from 'src/Modules/Inventario/InventarioEntities/EstadoMaterial.Entity';
-import { Categoria } from 'src/Modules/Inventario/InventarioEntities/Categoria.Entity';
-import { EstadoUnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/EstadoUnidadMedicion.Entity';
-import { UnidadMedicion } from 'src/Modules/Inventario/InventarioEntities/UnidadMedicion.Entity';
-import { EstadoCategoria } from 'src/Modules/Inventario/InventarioEntities/EstadoCategoria.Entity';
-import { EstadoMedidor } from 'src/Modules/Inventario/InventarioEntities/EstadoMedidor.Entity';
-import { RangoAfiliados } from 'src/Modules/Lecturas/LecturaEntities/RangoAfiliados.Entity';
-import { RangoConsumo } from 'src/Modules/Lecturas/LecturaEntities/RangoConsumo.Entity';
 import { EstadoReporte } from 'src/Modules/Reportes/ReporteEntities/EstadoReporte.Entity';
 import { EstadoSugerencia } from 'src/Modules/Sugerencias/SugerenciaEntities/EstadoSugerencia.Entity';
 import { EstadoQueja } from 'src/Modules/Quejas/QuejaEntities/EstadoQueja.Entity';
-import { EstadoFactura } from 'src/Modules/Facturas/FacturaEntities/EstadoFactura.Entity';
-import { AplicarSelloCalidad } from 'src/Modules/Lecturas/LecturaEntities/AplicarSelloCalidad.Entity';
-import { TarifaLecturaConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaLecturaConSello.Entity';
-import { CargoFijoTarifasConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/CargoFijoTarifasConSello.Entity';
-import { TipoTarifaCargoFijoConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TipoTarifaCargoFijoConSello.Entity';
-import { TipoTarifaVentaAguaConSello } from 'src/Modules/Tarifas/Con Sello Calidad/TarifaConSelloEntities/TarifaVentaAgua.Entity';
-
 @Injectable()
 export class SeederService implements OnModuleInit {
     constructor(
@@ -51,36 +21,6 @@ export class SeederService implements OnModuleInit {
         @InjectRepository(Usuario)
         private readonly userRepository: Repository<Usuario>,
 
-        @InjectRepository(EstadoProveedor)
-        private readonly estadoProveedorRepo: Repository<EstadoProveedor>,
-
-        @InjectRepository(EstadoProyecto)
-        private readonly proyectoEstadoRepository: Repository<EstadoProyecto>,
-
-        @InjectRepository(EstadoSolicitud)
-        private readonly solicitudEstadoRepository: Repository<EstadoSolicitud>,
-
-        @InjectRepository(EstadoAfiliado)
-        private readonly afiliadoEstadoRepository: Repository<EstadoAfiliado>,
-
-        @InjectRepository(TipoAfiliado)
-        private readonly tipoAfiliadoRepository: Repository<TipoAfiliado>,
-
-        @InjectRepository(EstadoMaterial)
-        private readonly estadoMaterialRepository: Repository<EstadoMaterial>,
-
-        @InjectRepository(Categoria)
-        private readonly categoriaMaterialRepository: Repository<Categoria>,
-
-        @InjectRepository(EstadoCategoria)
-        private readonly estadoCategoriaRepository: Repository<EstadoCategoria>,
-
-        @InjectRepository(EstadoUnidadMedicion)
-        private readonly estadoUnidadMedicionRepository: Repository<EstadoUnidadMedicion>,
-
-        @InjectRepository(UnidadMedicion)
-        private readonly unidadMedicionRepository: Repository<UnidadMedicion>,
-
         @InjectRepository(EstadoReporte)
         private readonly estadoReporteRepository: Repository<EstadoReporte>,
 
@@ -89,64 +29,6 @@ export class SeederService implements OnModuleInit {
 
         @InjectRepository(EstadoQueja)
         private readonly estadoQuejaRepository: Repository<EstadoQueja>,
-
-        @InjectRepository(EstadoFactura)
-        private readonly estadoFacturaRepository: Repository<EstadoFactura>,
-
-        @InjectRepository(EstadoMedidor)
-        private readonly estadoMedidorRepository: Repository<EstadoMedidor>,
-
-        @InjectRepository(TarifaLecturaConSello)
-        private readonly tipoTarifaLecturaRepository: Repository<TarifaLecturaConSello>,
-
-        @InjectRepository(TipoTarifaServiciosFijosConSello)
-        private readonly tipoTarifaServiciosFijosRepository: Repository<TipoTarifaServiciosFijosConSello>,
-
-        @InjectRepository(CargoFijoTarifasConSello)
-        private readonly cargoFijoTarifasRepository: Repository<CargoFijoTarifasConSello>,
-
-        @InjectRepository(TipoTarifaCargoFijoConSello)
-        private readonly tipoTarifaCargoFijoRepository: Repository<TipoTarifaCargoFijoConSello>,
-
-        @InjectRepository(TipoTarifaVentaAguaConSello)
-        private readonly tipoTarifaVentaAguaRepository: Repository<TipoTarifaVentaAguaConSello>,
-
-        @InjectRepository(RangoAfiliados)
-        private readonly rangoAfiliadosRepository: Repository<RangoAfiliados>,
-
-        @InjectRepository(RangoConsumo)
-        private readonly rangoConsumoRepository: Repository<RangoConsumo>,
-
-        @InjectRepository(AplicarSelloCalidad)
-        private readonly aplicarSelloCalidadRepository: Repository<AplicarSelloCalidad>,
-
-        // Repositorios para entidades Sin Sello
-        @InjectRepository(TarifaLecturaSinSello)
-        private readonly tarifaLecturaSinSelloRepository: Repository<TarifaLecturaSinSello>,
-
-        @InjectRepository(RangoAfiliadosSinSello)
-        private readonly rangoAfiliadosSinSelloRepository: Repository<RangoAfiliadosSinSello>,
-
-        @InjectRepository(RangoConsumoSinSello)
-        private readonly rangoConsumoSinSelloRepository: Repository<RangoConsumoSinSello>,
-
-        @InjectRepository(CargoFijoTarifasSinSello)
-        private readonly cargoFijoTarifasSinSelloRepository: Repository<CargoFijoTarifasSinSello>,
-
-        @InjectRepository(PrecioBloqueConsumoSinSello)
-        private readonly precioBloqueConsumoSinSelloRepository: Repository<PrecioBloqueConsumoSinSello>,
-
-        @InjectRepository(RecursoHidricoSinSello)
-        private readonly recursoHidricoSinSelloRepository: Repository<RecursoHidricoSinSello>,
-
-        @InjectRepository(BloqueRecursoHidricoSinSello)
-        private readonly bloqueRecursoHidricoSinSelloRepository: Repository<BloqueRecursoHidricoSinSello>,
-
-        @InjectRepository(PrecioRecursoHidricoSinSello)
-        private readonly precioRecursoHidricoSinSelloRepository: Repository<PrecioRecursoHidricoSinSello>,
-
-        @InjectRepository(TarifaHidranteSinSello)
-        private readonly tarifaHidranteSinSelloRepository: Repository<TarifaHidranteSinSello>,
     ) { }
 
     async onModuleInit() {

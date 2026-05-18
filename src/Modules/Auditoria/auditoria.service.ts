@@ -3,20 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { Auditoria } from "./AuditoriaEntities/Auditoria.Entities";
-import { Categoria } from "../Inventario/InventarioEntities/Categoria.Entity";
-import { UnidadMedicion } from "../Inventario/InventarioEntities/UnidadMedicion.Entity";
-import { Material } from "../Inventario/InventarioEntities/Material.Entity";
-import { Proveedor } from "../Proveedores/ProveedorEntities/Proveedor.Entity";
-import { CalidadAgua } from "../CalidadAgua/CalidadAguaEntities/CalidadAgua.Entity";
 import { UsuariosService } from "../Usuarios/Services/usuarios.service";
-import { Proyecto } from "../Proyectos/ProyectoEntities/Proyecto.Entity";
-import { Lectura } from "../Lecturas/LecturaEntities/Lectura.Entity";
-import { Medidor } from "../Inventario/InventarioEntities/Medidor.Entity";
-import { Solicitud } from "../Solicitudes/SolicitudEntities/Solicitud.Entity";
-import { MovimientoInventario } from "../Inventario/InventarioEntities/Movimiento.Entity";
-import { AfiliadoFisico, AfiliadoJuridico } from "../Afiliados/AfiliadoEntities/Afiliado.Entity";
-import { ImagenEntity } from "../Imagenes/ImagenesEntity/Imagen.Entity";
-import { ManualEntity } from "../ManualdeUsuario/ManualEntities/Manual.Entity";
 import { Reporte } from "../Reportes/ReporteEntities/Reportes.Entity";
 import { Queja } from "../Quejas/QuejaEntities/QuejasEntity";
 import { Sugerencia } from "../Sugerencias/SugerenciaEntities/Sugerencia.Entity";
@@ -253,37 +240,7 @@ export class AuditoriaService {
 
             // Si no se pudo obtener de los datos JSON, hacer query a la base de datos como fallback
             switch (modulo.toLowerCase()) {
-                case 'categoria':
-                    const categoria = await this.dataSource.getRepository(Categoria).findOne({
-                        where: { Id_Categoria: idRegistro }
-                    });
-                    return categoria?.Nombre_Categoria || `Categoría ID: ${idRegistro}`;
-
-                case 'unidad de medicion':
-                    const unidad = await this.dataSource.getRepository(UnidadMedicion).findOne({
-                        where: { Id_Unidad_Medicion: idRegistro }
-                    });
-                    return unidad?.Nombre_Unidad || `Unidad ID: ${idRegistro}`;
-
-                case 'material':
-                    const material = await this.dataSource.getRepository(Material).findOne({
-                        where: { Id_Material: idRegistro }
-                    });
-                    return material?.Nombre_Material || `Material ID: ${idRegistro}`;
-
-                case 'movimientos':
-                    const movimiento = await this.dataSource.getRepository(MovimientoInventario).findOne({
-                        where: { Id_Movimiento: idRegistro },
-                        relations: ['Material']
-                    });
-                    return movimiento?.Material?.Nombre_Material || `Movimiento ID: ${idRegistro}`;
-
-                case 'proveedores':
-                    const proveedor = await this.dataSource.getRepository(Proveedor).findOne({
-                        where: { Id_Proveedor: idRegistro }
-                    });
-                    return proveedor?.Nombre_Proveedor || `Proveedor ID: ${idRegistro}`;
-
+                
                 case 'usuario':
                     const usuario = await this.usuarioRepository.findOne({
                         where: { Id_Usuario: idRegistro }
@@ -291,52 +248,11 @@ export class AuditoriaService {
                     return usuario?.Nombre_Usuario || `Usuario ID: ${idRegistro}`;
 
                 case 'calidad de agua':
-                    const calidadAgua = await this.dataSource.getRepository(CalidadAgua).findOne({
-                        where: { Id_Calidad_Agua: idRegistro }
-                    });
-                    return calidadAgua?.Titulo || `Calidad de Agua ID: ${idRegistro}`;
-
-                case 'proyectos':
-                    const proyecto = await this.dataSource.getRepository(Proyecto).findOne({
-                        where: { Id_Proyecto: idRegistro }
-                    });
-                    return proyecto?.Titulo || `Proyecto ID: ${idRegistro}`;
-
-                case 'solicitudes':
-                    const solicitud = await this.dataSource.getRepository(Solicitud).findOne({
-                        where: { Id_Solicitud: idRegistro }
-                    });
-                    return solicitud?.Correo || `Solicitud ID: ${idRegistro}`;
-
-                case 'medidores':
-                    const medidor = await this.dataSource.getRepository(Medidor).findOne({
-                        where: { Id_Medidor: idRegistro }
-                    });
-                    return medidor?.Numero_Medidor.toString() || `Medidor ID: ${idRegistro}`;   // Modificación aquí
-
-                case 'lecturas':
-                    const lectura = await this.dataSource.getRepository(Lectura).findOne({
-                        where: { Id_Lectura: idRegistro }
-                    });
-                    return lectura?.Id_Lectura.toString() || `Lectura ID: ${idRegistro}`;       // Modificación aquí
-
                 case 'faq':
                     const faq = await this.dataSource.getRepository('FAQEntity').findOne({
                         where: { Id_FAQ: idRegistro }
                     });
                     return faq?.Pregunta || `FAQ ID: ${idRegistro}`;
-
-                case 'edicion de imagenes':
-                    const imagen = await this.dataSource.getRepository(ImagenEntity).findOne({
-                        where: { Id_Imagen: idRegistro }
-                    });
-                    return imagen?.Nombre_Imagen || `Imagen ID: ${idRegistro}`;
-
-                case 'manuales de usuario':
-                    const manual = await this.dataSource.getRepository(ManualEntity).findOne({
-                        where: { Id_Manual: idRegistro }
-                    });
-                    return manual?.Nombre_Manual || `Manual ID: ${idRegistro}`;
 
                 case 'reportes':
                     const reporte = await this.dataSource.getRepository(Reporte).findOne({
@@ -361,22 +277,6 @@ export class AuditoriaService {
                         where: { Id_Usuario: idRegistro }
                     });
                     return usuarioAuth?.Nombre_Usuario || `Usuario ID: ${idRegistro}`;
-
-                case 'afiliado físico':
-                    const afiliadoFisico = await this.dataSource.getRepository(AfiliadoFisico).findOne({
-                        where: { Id_Afiliado: idRegistro }
-                    });
-                    if (afiliadoFisico) {
-                        if (afiliadoFisico.Identificacion) return afiliadoFisico.Identificacion;
-                    }
-
-                case 'afiliado jurídico':
-                    const afiliadoJuridico = await this.dataSource.getRepository(AfiliadoJuridico).findOne({
-                        where: { Id_Afiliado: idRegistro }
-                    });
-                    if (afiliadoJuridico) {
-                        if (afiliadoJuridico.Cedula_Juridica) return afiliadoJuridico.Cedula_Juridica;
-                    }
 
                 default:
                     return `Registro ID: ${idRegistro}`;
