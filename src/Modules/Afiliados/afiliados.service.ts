@@ -1,5 +1,5 @@
 import { BadRequestException, forwardRef, Inject, Injectable } from "@nestjs/common";
-import { In } from "typeorm";
+import { Between, In, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 import { Response } from "express";
 import { PdfExportService } from "src/Shared/Pdf/pdf-export.service";
 import { TablaGenericaPDF, TablaColumna } from "src/Shared/Pdf/tabla-pdf.template";
@@ -101,6 +101,14 @@ export class AfiliadosService {
         const baseWhere: any = {};
         if (filtros.estados?.length) baseWhere.Estado = { Id_Estado_Afiliado: In(filtros.estados) };
         if (filtros.tiposAfiliado?.length) baseWhere.Tipo_Afiliado = { Id_Tipo_Afiliado: In(filtros.tiposAfiliado) };
+        if (filtros.ids?.length) baseWhere.Id_Afiliado = In(filtros.ids);
+        if (filtros.fechaInicio || filtros.fechaFin) {
+            const ini = filtros.fechaInicio ? new Date(filtros.fechaInicio + 'T00:00:00') : null;
+            const fin = filtros.fechaFin ? new Date(filtros.fechaFin + 'T23:59:59') : null;
+            if (ini && fin) baseWhere.Fecha_Creacion = Between(ini, fin);
+            else if (ini) baseWhere.Fecha_Creacion = MoreThanOrEqual(ini);
+            else if (fin) baseWhere.Fecha_Creacion = LessThanOrEqual(fin);
+        }
 
         const fisicos = (!filtros.tipo || filtros.tipo === 1)
             ? await this.afiliadoFisicoRepository.find({
@@ -152,6 +160,13 @@ export class AfiliadosService {
             filtrosAplicados.push({
                 label: 'Estados',
                 value: estados.map((e: any) => e.Nombre_Estado).join(', ') || filtros.estados.join(', '),
+            });
+        }
+
+        if (filtros.fechaInicio || filtros.fechaFin) {
+            filtrosAplicados.push({
+                label: 'Rango fechas',
+                value: `${filtros.fechaInicio || '...'} a ${filtros.fechaFin || '...'}`,
             });
         }
 

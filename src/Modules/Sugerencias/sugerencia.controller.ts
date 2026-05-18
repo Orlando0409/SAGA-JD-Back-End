@@ -1,3 +1,4 @@
+import { RequierePermisos } from "src/Modules/auth/Decorator/Permiso.decorator";
 import { Body, Controller, Get, Param, Post, Patch, UploadedFiles, UseInterceptors, Request } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { SugerenciaService } from './sugerencia.service';
@@ -14,26 +15,31 @@ export class SugerenciaController {
   ) { }
 
   @Get()
+  @RequierePermisos('quejasugerenciasreportes', 'ver')
   getAll() { 
     return this.sugerenciaService.getAll();
   }
 
   @Get('archivados')
+  @RequierePermisos('quejasugerenciasreportes', 'ver')
   getArchivados() {
     return this.sugerenciaService.getAllArchivados();
   }
 
   @Get('pendientes')
+  @RequierePermisos('quejasugerenciasreportes', 'ver')
   getPendientes() {
     return this.sugerenciaService.getAllPendientes();
   }
 
   @Get('contestadas')
+  @RequierePermisos('quejasugerenciasreportes', 'ver')
   getContestadas() {
     return this.sugerenciaService.getAllContestadas();
   }
 
   @Get(':id')
+  @RequierePermisos('quejasugerenciasreportes', 'ver')
   getOne(
     @Param('id', NumericParamPipe) id: number
   ) {
@@ -53,6 +59,7 @@ export class SugerenciaController {
   }
 
   @Patch(':id/estado')
+  @RequierePermisos('quejasugerenciasreportes', 'editar')
   updateEstado(
     @Param('id') id: number,
     @Body() body: UpdateSugerenciaEstadoDto,
@@ -63,6 +70,7 @@ export class SugerenciaController {
   }
 
   @Patch(':id/responder')
+  @RequierePermisos('quejasugerenciasreportes', 'editar')
   responder(
     @Param('id') id: number,
     @Body() body: ResponderSugerenciaDto,

@@ -2,22 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsDateString, IsInt, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class ExportAfiliadosPdfDto {
-    @ApiProperty({ required: false, type: [Number] })
+export class ExportLecturasPdfDto {
+    @ApiProperty({ required: false, type: [Number], description: 'IDs de tipo de tarifa.' })
     @IsOptional() @IsArray() @IsInt({ each: true }) @Type(() => Number)
-    estados?: number[];
-
-    @ApiProperty({ required: false, enum: [1, 2] })
-    @IsOptional() @IsInt() @Type(() => Number)
-    tipo?: 1 | 2;
-
-    @ApiProperty({ required: false, type: [Number] })
-    @IsOptional() @IsArray() @IsInt({ each: true }) @Type(() => Number)
-    tiposAfiliado?: number[];
-
-    @ApiProperty({ required: false, type: [String] })
-    @IsOptional() @IsArray() @IsString({ each: true })
-    columnas?: string[];
+    tiposTarifa?: number[];
 
     @ApiProperty({ required: false })
     @IsOptional() @IsDateString()
@@ -26,6 +14,10 @@ export class ExportAfiliadosPdfDto {
     @ApiProperty({ required: false })
     @IsOptional() @IsDateString()
     fechaFin?: string;
+
+    @ApiProperty({ required: false, type: [String] })
+    @IsOptional() @IsArray() @IsString({ each: true })
+    columnas?: string[];
 
     @ApiProperty({ required: false, type: [Number] })
     @IsOptional() @IsArray() @IsInt({ each: true }) @Type(() => Number)

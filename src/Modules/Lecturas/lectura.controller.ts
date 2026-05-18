@@ -3,6 +3,7 @@ import { LecturaService } from "./lectura.service";
 import { CreateLecturaDTO } from "./LecturaDTO'S/CreateLectura.dto";
 import { UpdateLecturaDTO } from "./LecturaDTO'S/UpdateLectura.dto";
 import { JwtAuthGuard } from "../auth/Guard/JwtGuard";
+import { RequierePermisos } from '../auth/Decorator/Permiso.decorator';
 import { GetUser } from "../auth/Decorator/GetUser.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { FileInterceptor } from "@nestjs/platform-express";
@@ -16,36 +17,42 @@ export class LecturaController {
     ) { }
 
     @Get('/all')
+    @RequierePermisos('abonados', 'ver')
     @ApiProperty({ description: 'Obtiene todas las lecturas registradas en el sistema.' })
     getAllLecturas() {
         return this.lecturaService.getAllLecturas();
     }
 
     @Get('/tarifas-lecturas')
+    @RequierePermisos('abonados', 'ver')
     @ApiProperty({ description: 'Obtiene todas las tarifas de lecturas registradas en el sistema.' })
     getAllTarifas() {
         return this.lecturaService.getTarifasLecturas();
     }
 
     @Get('/usuario/:idUsuario')
+    @RequierePermisos('abonados', 'ver')
     @ApiProperty({ description: 'Obtiene todas las lecturas registradas por un usuario específico.' })
     getLecturasByUsuario(@Param('idUsuario') idUsuario: number) {
         return this.lecturaService.getLecturasByUsuario(idUsuario);
     }
 
     @Get('/medidor/:idMedidor')
+    @RequierePermisos('abonados', 'ver')
     @ApiProperty({ description: 'Obtiene todas las lecturas registradas por un medidor específico.' })
     getLecturasByMedidor(@Param('idMedidor') idMedidor: number) {
         return this.lecturaService.getLecturasByMedidor(idMedidor);
     }
 
     @Get('/afiliado/:idAfiliado')
+    @RequierePermisos('abonados', 'ver')
     @ApiProperty({ description: 'Obtiene todas las lecturas registradas por un afiliado específico.' })
     getLecturasByAfiliado(@Param('idAfiliado') idAfiliado: number) {
         return this.lecturaService.getLecturasByAfiliado(idAfiliado);
     }
 
     @Get('/entre-fechas/:fechaInicio/:fechaFin')
+    @RequierePermisos('abonados', 'ver')
     @ApiProperty({ description: 'Obtiene todas las lecturas registradas entre dos fechas específicas.' })
     getLecturasEntreFechas(
         @Param('fechaInicio') fechaInicio: string,
@@ -54,6 +61,7 @@ export class LecturaController {
         return this.lecturaService.getLecturasEntreFechas(fechaInicio, fechaFin);
     }
     @Post('/cargar-csv')
+    @RequierePermisos('abonados', 'editar')
     @ApiProperty({ description: 'Carga un archivo CSV con las lecturas.' })
     @UseInterceptors(FileInterceptor('CSV'))
     async uploadCSV(
@@ -64,6 +72,7 @@ export class LecturaController {
     }
 
     @Post('/create')
+    @RequierePermisos('abonados', 'editar')
     @ApiProperty({ description: 'Crea una nueva lectura.' })
     createLectura(
         @Body() dto: CreateLecturaDTO,
@@ -73,6 +82,7 @@ export class LecturaController {
     }
 
     @Put('/update/:idLectura')
+    @RequierePermisos('abonados', 'editar')
     @ApiProperty({ description: 'Actualiza una lectura existente.' })
     updateLectura(
         @Body() dto: UpdateLecturaDTO,

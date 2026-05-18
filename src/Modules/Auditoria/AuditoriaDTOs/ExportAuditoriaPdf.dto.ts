@@ -1,29 +1,33 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsDateString, IsInt, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class ExportAuditoriaPdfDto {
-    @ApiProperty({ required: false, type: [String], description: 'Módulos a incluir. Vacío = todos.' })
-    @IsOptional()
-    @IsArray()
-    @IsString({ each: true })
+    @ApiProperty({ required: false, type: [String] })
+    @IsOptional() @IsArray() @IsString({ each: true })
     modulos?: string[];
 
-    @ApiProperty({ required: false, type: [String], description: 'Acciones a incluir (Creación, Actualización, Eliminación). Vacío = todas.' })
-    @IsOptional()
-    @IsArray()
-    @IsString({ each: true })
+    @ApiProperty({ required: false, type: [String] })
+    @IsOptional() @IsArray() @IsString({ each: true })
     acciones?: string[];
 
-    @ApiProperty({ required: false, description: 'ID de usuario para filtrar. Omitido = todos.' })
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
+    @ApiProperty({ required: false })
+    @IsOptional() @IsInt() @Type(() => Number)
     idUsuario?: number;
 
-    @ApiProperty({ required: false, type: [String], description: 'Columnas a incluir.' })
-    @IsOptional()
-    @IsArray()
-    @IsString({ each: true })
+    @ApiProperty({ required: false, type: [String] })
+    @IsOptional() @IsArray() @IsString({ each: true })
     columnas?: string[];
+
+    @ApiProperty({ required: false })
+    @IsOptional() @IsDateString()
+    fechaInicio?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional() @IsDateString()
+    fechaFin?: string;
+
+    @ApiProperty({ required: false, type: [Number] })
+    @IsOptional() @IsArray() @IsInt({ each: true }) @Type(() => Number)
+    ids?: number[];
 }

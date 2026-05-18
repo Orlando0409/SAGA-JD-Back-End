@@ -3,6 +3,7 @@ import { Response } from "express";
 import { AuditoriaService } from "./auditoria.service";
 import { ApiOperation } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/Guard/JwtGuard";
+import { RequierePermisos } from '../auth/Decorator/Permiso.decorator';
 import { GetUser } from "../auth/Decorator/GetUser.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { ExportAuditoriaPdfDto } from "./AuditoriaDTOs/ExportAuditoriaPdf.dto";
@@ -13,30 +14,35 @@ export class AuditoriaController {
     constructor(private readonly auditoriaService: AuditoriaService) {}
 
     @Get('/all')
+    @RequierePermisos('auditoria', 'ver')
     @ApiOperation({ summary: 'Obtener todas las auditorías' })
     getAll() {
         return this.auditoriaService.getAuditorias();
     }
 
     @Get('/modulo/:modulo')
+    @RequierePermisos('auditoria', 'ver')
     @ApiOperation({ summary: 'Obtener auditorías por módulo' })
     getAuditoriasPorModulo(@Param('modulo') modulo: string) {
         return this.auditoriaService.getAuditoriasPorModulo(modulo);
     }
 
     @Get('/mis-auditorias')
+    @RequierePermisos('auditoria', 'ver')
     @ApiOperation({ summary: 'Obtener auditorías del usuario autenticado' })
     getAuditoriasPorUsuario(@GetUser() usuario: Usuario) {
         return this.auditoriaService.getAuditoriasPorUsuario(usuario.Id_Usuario);
     }
 
     @Get('/usuario/:usuarioId')
+    @RequierePermisos('auditoria', 'ver')
     @ApiOperation({ summary: 'Obtener auditorías por usuario (admin)' })
     getAuditoriasPorUsuarioAdmin(@Param('usuarioId', ParseIntPipe) usuarioId: number) {
         return this.auditoriaService.getAuditoriasPorUsuario(usuarioId);
     }
 
     @Post('/pdf')
+    @RequierePermisos('auditoria', 'editar')
     @ApiOperation({ summary: 'Exportar auditorías a PDF con filtros opcionales' })
     async exportarPdf(
         @Body() dto: ExportAuditoriaPdfDto,

@@ -6,6 +6,7 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { Public } from "../auth/Decorator/Public.decorator";
 import { UpdateCalidadAguaDto } from "./CalidadAguaDTO's/UpdateCalidadAgua.dto";
 import { JwtAuthGuard } from "../auth/Guard/JwtGuard";
+import { RequierePermisos } from '../auth/Decorator/Permiso.decorator';
 import { GetUser } from "../auth/Decorator/GetUser.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 
@@ -24,12 +25,14 @@ export class CalidadAguaController {
     }
 
     @Get('/all')
+    @RequierePermisos('calidadAgua', 'ver')
     @ApiOperation({ summary: 'Obtener todos los registros de calidad de agua' })
     getCalidadAgua() {
         return this.calidadAguaService.getCalidadAgua();
     }
 
     @Post('/create')
+    @RequierePermisos('calidadAgua', 'editar')
     @UseInterceptors(FileInterceptor("Archivo_Calidad_Agua"))
     @ApiOperation({ summary: "Crear un nuevo registro de calidad de agua" })
     CreateCalidadAgua(
@@ -41,6 +44,7 @@ export class CalidadAguaController {
     }
 
     @Put('/update/:id')
+    @RequierePermisos('calidadAgua', 'editar')
     @UseInterceptors(FileInterceptor('Archivo_Calidad_Agua'))
     @ApiOperation({ summary: 'Actualizar un registro de calidad de agua' })
     updateCalidadAgua(
@@ -53,6 +57,7 @@ export class CalidadAguaController {
     }
 
     @Patch('/update/visibilidad/:id')
+    @RequierePermisos('calidadAgua', 'editar')
     @ApiOperation({ summary: 'Actualizar visibilidad de un registro de calidad de agua' })
     updateVisibilidadCalidadAgua(
         @Param('id', ParseIntPipe) id: number,

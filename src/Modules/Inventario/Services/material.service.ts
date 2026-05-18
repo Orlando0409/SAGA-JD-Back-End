@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Material } from '../InventarioEntities/Material.Entity';
-import { In, Repository } from 'typeorm';
+import { Between, In, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { Response } from 'express';
 import { PdfExportService } from 'src/Shared/Pdf/pdf-export.service';
 import { TablaGenericaPDF, TablaColumna } from 'src/Shared/Pdf/tabla-pdf.template';
@@ -73,12 +73,19 @@ export class MaterialService {
     private static readonly MAT_COLUMNAS_DEFAULT = ['nombre', 'cantidad', 'unidad', 'precio', 'estado'];
 
     async generarMaterialesPdf(filtros: ExportMaterialesPdfDto, res: Response): Promise<void> {
-        const where = filtros.estados?.length
-            ? { Estado_Material: { Id_Estado_Material: In(filtros.estados) } }
-            : undefined;
+        const where: any = {};
+        if (filtros.estados?.length) where.Estado_Material = { Id_Estado_Material: In(filtros.estados) };
+        if (filtros.ids?.length) where.Id_Material = In(filtros.ids);
+        if (filtros.fechaInicio || filtros.fechaFin) {
+            const ini = filtros.fechaInicio ? new Date(filtros.fechaInicio + 'T00:00:00') : null;
+            const fin = filtros.fechaFin ? new Date(filtros.fechaFin + 'T23:59:59') : null;
+            if (ini && fin) where.Fecha_Entrada = Between(ini, fin);
+            else if (ini) where.Fecha_Entrada = MoreThanOrEqual(ini);
+            else if (fin) where.Fecha_Entrada = LessThanOrEqual(fin);
+        }
 
         const materiales = await this.inventarioRepository.find({
-            where,
+            where: Object.keys(where).length ? where : undefined,
             relations: ['Estado_Material', 'Unidad_Medicion', 'Proveedor'],
             order: { Nombre_Material: 'ASC' },
         });
@@ -105,6 +112,13 @@ export class MaterialService {
             filtrosAplicados.push({
                 label: 'Estados',
                 value: estados.map(e => e.Nombre_Estado_Material).join(', ') || filtros.estados.join(', '),
+            });
+        }
+
+        if (filtros.fechaInicio || filtros.fechaFin) {
+            filtrosAplicados.push({
+                label: 'Rango fechas',
+                value: `${filtros.fechaInicio || '...'} a ${filtros.fechaFin || '...'}`,
             });
         }
 

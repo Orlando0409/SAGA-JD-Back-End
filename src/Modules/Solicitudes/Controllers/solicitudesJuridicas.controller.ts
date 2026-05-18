@@ -1,3 +1,4 @@
+import { RequierePermisos } from "src/Modules/auth/Decorator/Permiso.decorator";
 import { Body, Controller, Get, Param, Patch, Post, Put, Request, UploadedFiles, UseInterceptors } from "@nestjs/common";
 import { SolicitudesJuridicasService } from "../Services/solicitudesJuridicas.service";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
@@ -15,42 +16,49 @@ export class SolicitudesJuridicasController {
     ) { }
 
     @Get('/all')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener todas las solicitudes jurídicas' })
     getAllSolicitudesJuridicas() {
         return this.solicitudesJuridicasService.getAllSolicitudesJuridicas();
     }
 
     @Get('/afiliacion')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener todas las solicitudes de afiliación jurídica' })
     getAllSolicitudesAfiliacion() {
         return this.solicitudesJuridicasService.getAllSolicitudesAfiliacion();
     }
 
     @Get('/desconexion')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener todas las solicitudes de desconexión jurídica' })
     getAllSolicitudesDesconexion() {
         return this.solicitudesJuridicasService.getAllSolicitudesDesconexion();
     }
 
     @Get('/desconexion/medidores')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener medidores de solicitudes de desconexión jurídicas' })
     getMedidoresDesconexion() {
         return this.solicitudesJuridicasService.getMedidoresDesconexion();
     }
 
     @Get('/cambio-medidor')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener todas las solicitudes de cambio de medidor jurídica' })
     getAllSolicitudesCambioMedidor() {
         return this.solicitudesJuridicasService.getAllSolicitudesCambioMedidor();
     }
 
     @Get('/cambio-medidor/:id')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener el detalle de una solicitud de cambio de medidor jurídica por ID' })
     getSolicitudCambioMedidorById(@Param('id') id: number) {
         return this.solicitudesJuridicasService.getSolicitudCambioMedidorById(id);
     }
 
     @Get('/asociado')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener todas las solicitudes de asociado jurídica' })
     getAllSolicitudesAsociado() {
         return this.solicitudesJuridicasService.getAllSolicitudesAsociado();
@@ -108,6 +116,7 @@ export class SolicitudesJuridicasController {
     }
 
     @Put('/update/afiliacion/:id')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar una solicitud de afiliación jurídica' })
     async updateSolicitudAfiliacion(
         @Param('id') id: number,
@@ -119,6 +128,7 @@ export class SolicitudesJuridicasController {
     }
 
     @Put('/update/desconexion/:id')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar una solicitud de desconexión jurídica' })
     async updateSolicitudDesconexion(
         @Param('id') id: number,
@@ -130,6 +140,7 @@ export class SolicitudesJuridicasController {
     }
 
     @Put('/update/cambio-medidor/:id')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar una solicitud de cambio de medidor jurídica' })
     async updateSolicitudCambioMedidor(
         @Param('id') id: number,
@@ -141,6 +152,7 @@ export class SolicitudesJuridicasController {
     }
 
     @Put('/update/asociado/:id')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar una solicitud de asociado jurídica' })
     async updateSolicitudAsociado(
         @Param('id') id: number,
@@ -152,6 +164,7 @@ export class SolicitudesJuridicasController {
     }
 
     @Patch('/update/estado/afiliacion/:idSolicitud/:idNuevoEstado')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar el estado de una solicitud de afiliación jurídica' })
     async updateEstadoSolicitudAfiliacion(
         @Param('idSolicitud') idSolicitud: number,
@@ -164,6 +177,7 @@ export class SolicitudesJuridicasController {
     }
 
     @Patch('/update/estado/desconexion/:idSolicitud/:idNuevoEstado')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar el estado de una solicitud de desconexión jurídica' })
     async updateEstadoSolicitudDesconexion(
         @Param('idSolicitud') idSolicitud: number,
@@ -175,6 +189,7 @@ export class SolicitudesJuridicasController {
     }
 
     @Patch('/update/estado/cambio-medidor/:idSolicitud/:idNuevoEstado')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar el estado de una solicitud de cambio de medidor jurídica' })
     async updateEstadoSolicitudCambioMedidor(
     @Param('idSolicitud') idSolicitud: number,
@@ -187,6 +202,7 @@ export class SolicitudesJuridicasController {
         }
 
     @Patch('/update/estado/asociado/:idSolicitud/:idNuevoEstado')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar el estado de una solicitud de asociado jurídica' })
     async updateEstadoSolicitudAsociado(
         @Param('idSolicitud') idSolicitud: number,
@@ -200,12 +216,14 @@ export class SolicitudesJuridicasController {
     // ─── AGREGAR MEDIDOR ───────────────────────────────────────────────────────────────────
 
     @Get('/agregar-medidor')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener todas las solicitudes de agregar medidor jurídicas' })
     getAllSolicitudesAgregarMedidor() {
         return this.solicitudesJuridicasService.getAllSolicitudesAgregarMedidor();
     }
 
     @Get('/agregar-medidor/:id')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener el detalle de una solicitud de agregar medidor jurídica por ID' })
     getSolicitudAgregarMedidorById(@Param('id') id: number) {
         return this.solicitudesJuridicasService.getSolicitudAgregarMedidorById(id);
@@ -226,6 +244,7 @@ export class SolicitudesJuridicasController {
     }
 
     @Put('/update/agregar-medidor/:id')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar una solicitud de agregar medidor jurídica' })
     async updateSolicitudAgregarMedidor(
         @Param('id') id: number,
@@ -237,6 +256,7 @@ export class SolicitudesJuridicasController {
     }
 
     @Patch('/update/estado/agregar-medidor/:idSolicitud/:idNuevoEstado')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar el estado de una solicitud de agregar medidor jurídica' })
     async updateEstadoSolicitudAgregarMedidor(
         @Param('idSolicitud') idSolicitud: number,

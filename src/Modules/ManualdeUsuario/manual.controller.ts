@@ -1,3 +1,4 @@
+import { RequierePermisos } from "src/Modules/auth/Decorator/Permiso.decorator";
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ManualService } from './manual.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -11,11 +12,13 @@ export class ManualController {
     ) { }
 
     @Get()
+    @RequierePermisos('manuales', 'ver')
     getManuales() {
         return this.manualService.getManuales();
     }
 
     @Post()
+    @RequierePermisos('manuales', 'editar')
     @UseInterceptors(FileInterceptor('PDF_Manual'))
     createManual(
         @Body() createManualDto: CreateManualDto,
@@ -27,6 +30,7 @@ export class ManualController {
     }
 
     @Delete(':id')
+    @RequierePermisos('manuales', 'editar')
     deleteManual(
         @Param('id', ParseIntPipe) id: number,
         @Req() req: any
