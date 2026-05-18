@@ -1,3 +1,4 @@
+import { RequierePermisos } from "src/Modules/auth/Decorator/Permiso.decorator";
 import {
   Controller,
   Get,
@@ -28,6 +29,7 @@ export class ImagenesController {
   }
 
   @Get(':id')
+  @RequierePermisos('imagenes', 'ver')
   async findOne(
     @Param('id', ParseIntPipe) id: number
   ) {
@@ -35,6 +37,7 @@ export class ImagenesController {
   }
 
   @Post()
+  @RequierePermisos('imagenes', 'editar')
   @UseInterceptors(FileInterceptor('Imagen'))
   async create(
     @Body() createImagenDto: CreateImagenDto,
@@ -46,6 +49,7 @@ export class ImagenesController {
   }
 
   @Put(':id')
+  @RequierePermisos('imagenes', 'editar')
   @UseInterceptors(FileInterceptor('Imagen'))
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -58,6 +62,7 @@ export class ImagenesController {
   }
 
   @Delete(':id')
+  @RequierePermisos('imagenes', 'editar')
   async remove(
     @Param('id', ParseIntPipe) id: number,
     @Request() req: any,

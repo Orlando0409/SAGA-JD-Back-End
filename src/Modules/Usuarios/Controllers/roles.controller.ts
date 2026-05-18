@@ -1,3 +1,4 @@
+import { RequierePermisos } from "src/Modules/auth/Decorator/Permiso.decorator";
 import { Controller, Get, Post, Body, Param, Delete, Put, ParseIntPipe, Patch, Request } from '@nestjs/common';
 import { RequiereRoles } from 'src/Modules/auth/Decorator/Rol.decorator';
 import { RolesService } from "../Services/roles.service";
@@ -11,21 +12,25 @@ export class RolesController {
     ) { }
 
     @Get('allRoles')
+    @RequierePermisos('usuarios', 'ver')
     AllRoles() {
         return this.rolesService.AllRoles();
     }
 
     @Get('allPermissions')
+    @RequierePermisos('usuarios', 'ver')
     AllPermission() {
         return this.rolesService.AllPermission();
     }
 
     @Get(':id')
+    @RequierePermisos('usuarios', 'ver')
     FindRoles(@Param('id', ParseIntPipe) id: number) {
         return this.rolesService.findOneRoles(id);
     }
 
     @Post()
+    @RequierePermisos('usuarios', 'editar')
     @RequiereRoles('Administrador')
     CreateRoles(
         @Body() createRolesDto: CreateRolesDto,
@@ -35,6 +40,7 @@ export class RolesController {
     }
 
     @Put(':id')
+    @RequierePermisos('usuarios', 'editar')
     UpdateRoles(
         @Param('id') id: string,
         @Body() updateRolesDto: UpdateRolesDto,
@@ -45,6 +51,7 @@ export class RolesController {
     }
 
     @Patch('restore/:id')
+    @RequierePermisos('usuarios', 'editar')
     RestoreRoles(
         @Param('id', ParseIntPipe) id: number,
         @Request() req: any
@@ -54,6 +61,7 @@ export class RolesController {
     }
 
     @Delete(':id')
+    @RequierePermisos('usuarios', 'editar')
     DeleteRoles(
         @Param('id', ParseIntPipe) id: number,
         @Request() req: any

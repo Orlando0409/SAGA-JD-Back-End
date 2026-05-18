@@ -77,6 +77,17 @@ export class AuditoriaService {
             qb.andWhere('usuario.Id_Usuario = :idUsuario', { idUsuario: filtros.idUsuario });
         }
 
+        if (filtros.ids?.length) {
+            qb.andWhere('auditoria.Id_Auditoria IN (:...ids)', { ids: filtros.ids });
+        }
+
+        if (filtros.fechaInicio) {
+            qb.andWhere('auditoria.Fecha_Accion >= :fInicio', { fInicio: new Date(filtros.fechaInicio + 'T00:00:00') });
+        }
+        if (filtros.fechaFin) {
+            qb.andWhere('auditoria.Fecha_Accion <= :fFin', { fFin: new Date(filtros.fechaFin + 'T23:59:59') });
+        }
+
         const auditorias = await qb.getMany();
 
         const filas = await Promise.all(auditorias.map(async (a) => {
@@ -101,6 +112,12 @@ export class AuditoriaService {
         if (filtros.modulos?.length) filtrosAplicados.push({ label: 'Módulos', value: filtros.modulos.join(', ') });
         if (filtros.acciones?.length) filtrosAplicados.push({ label: 'Acciones', value: filtros.acciones.join(', ') });
         if (filtros.idUsuario) filtrosAplicados.push({ label: 'Usuario ID', value: String(filtros.idUsuario) });
+        if (filtros.fechaInicio || filtros.fechaFin) {
+            filtrosAplicados.push({
+                label: 'Rango fechas',
+                value: `${filtros.fechaInicio || '...'} a ${filtros.fechaFin || '...'}`,
+            });
+        }
 
         const html = TablaGenericaPDF({
             titulo: 'Reporte de Auditoría',
@@ -129,10 +146,12 @@ export class AuditoriaService {
 
                     // Buscar el campo de nombre según el módulo
                     switch (modulo.toLowerCase()) {
+                        case 'usuario':
                         case 'usuarios':
                             if (anteriores.Nombre_Usuario) return anteriores.Nombre_Usuario;
                             break;
 
+                        case 'rol':
                         case 'roles':
                             if (anteriores.Nombre_Rol) return anteriores.Nombre_Rol;
                             break;
@@ -234,9 +253,11 @@ export class AuditoriaService {
 
                     switch (modulo.toLowerCase()) {
                         case 'usuario':
+                        case 'usuarios':
                             if (nuevos.Nombre_Usuario) return nuevos.Nombre_Usuario;
                             break;
 
+                        case 'rol':
                         case 'roles':
                             if (nuevos.Nombre_Rol) return nuevos.Nombre_Rol;
                             break;

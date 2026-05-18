@@ -7,6 +7,7 @@ import { UpdateAfiliadoFisicoDto, UpdateAfiliadoJuridicoDto } from "./AfiliadoDT
 import { ExportAfiliadosPdfDto } from "./AfiliadoDTO's/ExportAfiliadosPdf.dto";
 import { FileFieldsInterceptor } from "@nestjs/platform-express/multer";
 import { JwtAuthGuard } from "../auth/Guard/JwtGuard";
+import { RequierePermisos } from '../auth/Decorator/Permiso.decorator';
 import { GetUser } from "../auth/Decorator/GetUser.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { Public } from "../auth/Decorator/Public.decorator";
@@ -34,12 +35,14 @@ export class AfiliadosController {
 
 
     @Get('/all')
+    @RequierePermisos('abonados', 'ver')
     @ApiOperation({ summary: 'Obtener todos los afiliados' })
     findAll() {
         return this.afiliadosService.getAfiliados();
     }
 
     @Post('/pdf')
+    @RequierePermisos('abonados', 'editar')
     @ApiOperation({ summary: 'Exportar afiliados a PDF con filtros opcionales.' })
     async exportarPdf(
         @Body() dto: ExportAfiliadosPdfDto,
@@ -49,30 +52,35 @@ export class AfiliadosController {
     }
 
     @Get('/fisico/all')
+    @RequierePermisos('abonados', 'ver')
     @ApiOperation({ summary: 'Obtener todos los afiliados físicos' })
     findAllFisicos() {
         return this.afiliadosService.getAfiliadosFisicos();
     }
 
     @Get('/juridico/all')
+    @RequierePermisos('abonados', 'ver')
     @ApiOperation({ summary: 'Obtener todos los afiliados jurídicos' })
     findAllJuridicos() {
         return this.afiliadosService.getAfiliadosJuridicos();
     }
 
     @Get('/fisico/info/:identificacion')
+    @RequierePermisos('abonados', 'ver')
     @ApiOperation({ summary: 'Obtener información completa de un afiliado físico por su cédula (para panel administrativo)' })
     getInfoAfiliadoFisicoByCedula(@Param('identificacion') identificacion: string) {
         return this.afiliadosService.getInfoAfiliadoFisicoByCedula(identificacion);
     }
 
     @Get('/juridico/info/:cedulaJuridica')
+    @RequierePermisos('abonados', 'ver')
     @ApiOperation({ summary: 'Obtener información completa de un afiliado jurídico por su cédula jurídica (para panel administrativo)' })
     getInfoAfiliadoJuridicoByCedula(@Param('cedulaJuridica') cedulaJuridica: string) {
         return this.afiliadosService.getInfoAfiliadoJuridicoByCedula(cedulaJuridica);
     }
 
     @Get('/fisico/detail/:id')
+    @RequierePermisos('abonados', 'ver')
     @ApiOperation({ summary: 'Obtener detalle completo de un afiliado físico incluyendo todos sus medidores' })
     getDetalleAfiliadoFisico(
         @Param('id', ParseIntPipe) id: number
@@ -81,6 +89,7 @@ export class AfiliadosController {
     }
 
     @Get('/juridico/detail/:id')
+    @RequierePermisos('abonados', 'ver')
     @ApiOperation({ summary: 'Obtener detalle completo de un afiliado jurídico incluyendo todos sus medidores' })
     getDetalleAfiliadoJuridico(
         @Param('id', ParseIntPipe) id: number
@@ -89,6 +98,7 @@ export class AfiliadosController {
     }
 
     @Post('/fisico/create')
+    @RequierePermisos('abonados', 'editar')
     @ApiOperation({ summary: 'Crear un nuevo afiliado físico' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
@@ -102,6 +112,7 @@ export class AfiliadosController {
     }
 
     @Post('/juridico/create')
+    @RequierePermisos('abonados', 'editar')
     @ApiOperation({ summary: 'Crear un nuevo afiliado jurídico' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
@@ -115,6 +126,7 @@ export class AfiliadosController {
     }
 
     @Put('/update/fisico/:cedula')
+    @RequierePermisos('abonados', 'editar')
     @ApiOperation({ summary: 'Actualizar datos de un afiliado físico' })
     updateAfiliadoFisico(
         @Param('cedula') cedula: string,
@@ -124,6 +136,7 @@ export class AfiliadosController {
     }
 
     @Put('/update/juridico/:cedulaJuridica')
+    @RequierePermisos('abonados', 'editar')
     @ApiOperation({ summary: 'Actualizar datos de un afiliado jurídico' })
     updateAfiliadoJuridico(
         @Param('cedulaJuridica') cedulaJuridica: string,
@@ -133,6 +146,7 @@ export class AfiliadosController {
     }
 
     @Patch('/fisico/:id/update/estado/:nuevoEstadoId')
+    @RequierePermisos('abonados', 'editar')
     @ApiOperation({ summary: 'Actualizar estado de un afiliado físico' })
     updateEstadoAfiliado(
         @Param('id') id: number,
@@ -142,6 +156,7 @@ export class AfiliadosController {
     }
 
     @Patch('/juridico/:id/update/estado/:nuevoEstadoId')
+    @RequierePermisos('abonados', 'editar')
     @ApiOperation({ summary: 'Actualizar estado de un afiliado jurídico' })
     updateEstadoAfiliadoJuridico(
         @Param('id') id: number,
@@ -151,6 +166,7 @@ export class AfiliadosController {
     }
 
     @Patch('/update/tipo/fisico/:id/tipo/:nuevoTipoId')
+    @RequierePermisos('abonados', 'editar')
     @ApiOperation({ summary: 'Actualizar tipo de un afiliado físico' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
@@ -165,6 +181,7 @@ export class AfiliadosController {
     }
 
     @Patch('/update/tipo/juridico/:id/tipo/:nuevoTipoId')
+    @RequierePermisos('abonados', 'editar')
     @ApiOperation({ summary: 'Actualizar tipo de un afiliado jurídico' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
@@ -179,6 +196,7 @@ export class AfiliadosController {
     }
 
     @Patch('/revertir/fisico/:id/a-afiliado')
+    @RequierePermisos('abonados', 'editar')
     @ApiOperation({ summary: 'Revierte un asociado físico de vuelta a afiliado, eliminando sus documentos de Dropbox y la BD' })
     revertirAsociadoAAfiliadoFisico(
         @Param('id', ParseIntPipe) id: number,
@@ -188,6 +206,7 @@ export class AfiliadosController {
     }
 
     @Patch('/revertir/juridico/:id/a-afiliado')
+    @RequierePermisos('abonados', 'editar')
     @ApiOperation({ summary: 'Revierte un asociado jurídico de vuelta a afiliado, eliminando sus documentos de Dropbox y la BD' })
     revertirAsociadoAAfiliadoJuridico(
         @Param('id', ParseIntPipe) id: number,
@@ -197,6 +216,7 @@ export class AfiliadosController {
     }
 
     @Post('/medidores/asignar-existente')
+    @RequierePermisos('abonados', 'editar')
     @ApiOperation({ summary: 'Asigna un medidor existente a un afiliado desde el modulo de afiliados. Requiere Planos_Terreno y Certificacion_Literal.' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
@@ -211,6 +231,7 @@ export class AfiliadosController {
     }
 
     @Post('/medidores/crear-y-asignar')
+    @RequierePermisos('abonados', 'editar')
     @ApiOperation({ summary: 'Crea un medidor nuevo y lo asigna a un afiliado desde el modulo de afiliados. Requiere Planos_Terreno y Certificacion_Literal.' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },
@@ -225,6 +246,7 @@ export class AfiliadosController {
     }
 
     @Post('/medidores/:id/archivos')
+    @RequierePermisos('abonados', 'editar')
     @ApiOperation({ summary: 'Asigna archivos (Planos y/o Certificacion) a un medidor que aún no posee ningún archivo.' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Planos_Terreno', maxCount: 1 },

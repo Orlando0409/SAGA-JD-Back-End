@@ -73,6 +73,10 @@ export class MovimientosService {
             qb.andWhere('mov.Fecha_Movimiento < :fin', { fin });
         }
 
+        if (filtros.ids?.length) {
+            qb.andWhere('mov.Id_Movimiento IN (:...ids)', { ids: filtros.ids });
+        }
+
         const movimientos = await qb.getMany();
 
         const filas = movimientos.map(m => ({

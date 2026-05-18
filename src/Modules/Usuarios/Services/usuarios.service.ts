@@ -163,7 +163,7 @@ export class UsuariosService {
 
         // Registrar en auditoría
         try {
-            await this.auditoriaService.logActualizacion('Usuario', id, id, datosAnteriores, {
+            await this.auditoriaService.logActualizacion('Usuario', idUsuario, id, datosAnteriores, {
                 Nombre_Usuario: updatedUser.Nombre_Usuario,
                 Correo_Electronico: updatedUser.Correo_Electronico,
                 Id_Rol: updatedUser.Id_Rol,
@@ -213,7 +213,7 @@ export class UsuariosService {
 
         // Registrar en auditoría
         try {
-            await this.auditoriaService.logActualizacion('Usuario', id, id, datosAnteriores, {
+            await this.auditoriaService.logActualizacion('Usuario', idUsuario, id, datosAnteriores, {
                 Estado: 'Inactivo',
                 Accion: 'Desactivación de usuario'
             });
@@ -256,7 +256,7 @@ export class UsuariosService {
 
         // Registrar en auditoría
         try {
-            await this.auditoriaService.logActualizacion('Usuario', id, id, datosAnteriores, {
+            await this.auditoriaService.logActualizacion('Usuario', idUsuario, id, datosAnteriores, {
                 Estado: 'Activo',
                 Accion: 'Restauración de usuario'
             });

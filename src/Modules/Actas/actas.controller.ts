@@ -7,6 +7,7 @@ import { UpdateActaDto } from "./ActaDTO's/UpdateActa.dto";
 import { JwtAuthGuard } from "../auth/Guard/JwtGuard";
 import { GetUser } from "../auth/Decorator/GetUser.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
+import { RequierePermisos } from "../auth/Decorator/Permiso.decorator";
 
 @Controller('Actas')
 @UseGuards(JwtAuthGuard)
@@ -14,12 +15,14 @@ export class ActaController {
     constructor(private readonly actasService: ActasService) { }
 
     @Get('/all')
+    @RequierePermisos('actas', 'ver')
     @ApiOperation({ summary: 'Obtener todas las actas' })
     findAll() {
         return this.actasService.getAllActas();
     }
 
     @Post('/create')
+    @RequierePermisos('actas', 'editar')
     @ApiOperation({ summary: 'Crear una nueva acta' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Archivo', maxCount: 10 },
@@ -32,6 +35,7 @@ export class ActaController {
     }
 
     @Put('/update/:idActa')
+    @RequierePermisos('actas', 'editar')
     @ApiOperation({ summary: 'Actualizar una acta existente' })
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'Archivo', maxCount: 10 },
@@ -45,6 +49,7 @@ export class ActaController {
     }
 
     @Delete('/:idActa/archivo/:idArchivo')
+    @RequierePermisos('actas', 'editar')
     @ApiOperation({ summary: 'Eliminar un archivo individual de un acta' })
     deleteArchivoDeActa(
         @Param('idActa') idActa: number,
@@ -55,6 +60,7 @@ export class ActaController {
     }
 
     @Delete('/delete/:idActa')
+    @RequierePermisos('actas', 'editar')
     @ApiOperation({ summary: 'Eliminar una acta existente' })
     deleteActa(@Param('idActa') id: number, @GetUser() usuario: Usuario) {
         return this.actasService.deleteActa(id, usuario.Id_Usuario);

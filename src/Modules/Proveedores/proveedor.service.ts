@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Between, In, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { Proveedor, ProveedorFisico, ProveedorJuridico } from './ProveedorEntities/Proveedor.Entity';
 import { CreateProveedorFisicoDto, CreateProveedorJuridicoDto } from './ProveedoresDTOs/CreateProveedor.dto';
 import { UpdateProveedorFisicoDto, UpdateProveedorJuridicoDto } from './ProveedoresDTOs/UpdateProveedor.dto';
@@ -75,20 +75,30 @@ export class ProveedorService {
   }
 
   async generarProveedoresPdf(filtros: ExportProveedoresPdfDto, res: Response): Promise<void> {
+    const buildWhere = () => {
+      const w: any = {};
+      if (filtros.estados?.length) w.Estado_Proveedor = { Id_Estado_Proveedor: In(filtros.estados) };
+      if (filtros.ids?.length) w.Id_Proveedor = In(filtros.ids);
+      if (filtros.fechaInicio || filtros.fechaFin) {
+        const ini = filtros.fechaInicio ? new Date(filtros.fechaInicio + 'T00:00:00') : null;
+        const fin = filtros.fechaFin ? new Date(filtros.fechaFin + 'T23:59:59') : null;
+        if (ini && fin) w.Fecha_Creacion = Between(ini, fin);
+        else if (ini) w.Fecha_Creacion = MoreThanOrEqual(ini);
+        else if (fin) w.Fecha_Creacion = LessThanOrEqual(fin);
+      }
+      return Object.keys(w).length ? w : undefined;
+    };
+
     const fisicosRaw = (!filtros.tipo || filtros.tipo === 1)
       ? await this.fisicoRepo.find({
-          where: filtros.estados?.length
-            ? { Estado_Proveedor: { Id_Estado_Proveedor: In(filtros.estados) } }
-            : undefined,
+          where: buildWhere(),
           relations: ['Estado_Proveedor'],
         })
       : [];
 
     const juridicosRaw = (!filtros.tipo || filtros.tipo === 2)
       ? await this.juridicoRepo.find({
-          where: filtros.estados?.length
-            ? { Estado_Proveedor: { Id_Estado_Proveedor: In(filtros.estados) } }
-            : undefined,
+          where: buildWhere(),
           relations: ['Estado_Proveedor'],
         })
       : [];
@@ -132,6 +142,13 @@ export class ProveedorService {
       filtrosAplicados.push({
         label: 'Estados',
         value: estados.map(e => e.Estado_Proveedor).join(', ') || filtros.estados.join(', '),
+      });
+    }
+
+    if (filtros.fechaInicio || filtros.fechaFin) {
+      filtrosAplicados.push({
+        label: 'Rango fechas',
+        value: `${filtros.fechaInicio || '...'} a ${filtros.fechaFin || '...'}`,
       });
     }
 

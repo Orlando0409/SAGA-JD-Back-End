@@ -83,6 +83,17 @@ export class MedidorService {
             qb.andWhere('estado.Id_Estado_Medidor IN (:...estados)', { estados: filtros.estados });
         }
 
+        if (filtros.ids?.length) {
+            qb.andWhere('medidor.Id_Medidor IN (:...ids)', { ids: filtros.ids });
+        }
+
+        if (filtros.fechaInicio) {
+            qb.andWhere('medidor.Fecha_Creacion >= :fInicio', { fInicio: new Date(filtros.fechaInicio + 'T00:00:00') });
+        }
+        if (filtros.fechaFin) {
+            qb.andWhere('medidor.Fecha_Creacion <= :fFin', { fFin: new Date(filtros.fechaFin + 'T23:59:59') });
+        }
+
         const medidores = await qb.getMany();
 
         const filas = await Promise.all(medidores.map(async (m) => {
@@ -120,6 +131,13 @@ export class MedidorService {
             filtrosAplicados.push({
                 label: 'Estados',
                 value: estados.map((e: any) => e.Nombre_Estado_Medidor).join(', ') || filtros.estados.join(', '),
+            });
+        }
+
+        if (filtros.fechaInicio || filtros.fechaFin) {
+            filtrosAplicados.push({
+                label: 'Rango fechas',
+                value: `${filtros.fechaInicio || '...'} a ${filtros.fechaFin || '...'}`,
             });
         }
 

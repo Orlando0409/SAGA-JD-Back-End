@@ -6,6 +6,7 @@ import { UpdateProveedorFisicoDto, UpdateProveedorJuridicoDto } from './Proveedo
 import { UpdateEstadoProveedorDto } from './ProveedoresDTOs/UpdateEstadoProveedor.dto';
 import { ExportProveedoresPdfDto } from './ProveedoresDTOs/ExportProveedoresPdf.dto';
 import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
+import { RequierePermisos } from '../auth/Decorator/Permiso.decorator';
 
 @Controller('Proveedores')
 @UseGuards(JwtAuthGuard)
@@ -28,6 +29,7 @@ export class ProveedorController {
     }
 
     @Post('fisico/create')
+    @RequierePermisos('proveedores', 'editar')
     createFisico(
         @Body() dto: CreateProveedorFisicoDto,
         @Request() req: any
@@ -49,6 +51,7 @@ export class ProveedorController {
     }
 
     @Put('fisico/:id')
+    @RequierePermisos('proveedores', 'editar')
     updateFisico(
         @Param('id', ParseIntPipe) id: number,
         @Body() dto: UpdateProveedorFisicoDto,
@@ -59,6 +62,7 @@ export class ProveedorController {
     }
 
     @Delete('fisico/:id')
+    @RequierePermisos('proveedores', 'editar')
     removeFisico(
         @Param('id', ParseIntPipe) id: number,
         @Request() req: any
@@ -68,6 +72,7 @@ export class ProveedorController {
     }
 
     @Post('juridico/create')
+    @RequierePermisos('proveedores', 'editar')
     createJuridico(
         @Body() dto: CreateProveedorJuridicoDto,
         @Request() req: any
@@ -89,6 +94,7 @@ export class ProveedorController {
     }
 
     @Put('juridico/:id')
+    @RequierePermisos('proveedores', 'editar')
     updateJuridico(
         @Param('id', ParseIntPipe) id: number,
         @Body() dto: UpdateProveedorJuridicoDto,
@@ -99,6 +105,7 @@ export class ProveedorController {
     }
 
     @Delete('juridico/:id')
+    @RequierePermisos('proveedores', 'editar')
     removeJuridico(
         @Param('id', ParseIntPipe) id: number,
         @Request() req: any
@@ -108,6 +115,7 @@ export class ProveedorController {
     }
 
     @Patch('Fisico/:id/estado')
+    @RequierePermisos('proveedores', 'editar')
     updateEstadoFisico(
         @Param('id', ParseIntPipe) id: number,
         @Body() dto: UpdateEstadoProveedorDto,
@@ -118,6 +126,7 @@ export class ProveedorController {
     }
 
     @Patch('Juridico/:id/estado')
+    @RequierePermisos('proveedores', 'editar')
     updateEstadoJuridico(
         @Param('id', ParseIntPipe) id: number,
         @Body() dto: UpdateEstadoProveedorDto,

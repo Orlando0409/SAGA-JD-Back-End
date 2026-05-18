@@ -1,3 +1,4 @@
+import { RequierePermisos } from "src/Modules/auth/Decorator/Permiso.decorator";
 import { CreateSolicitudAfiliacionFisicaDto, CreateSolicitudAgregarMedidorFisicaDto, CreateSolicitudAsociadoFisicaDto, CreateSolicitudCambioMedidorFisicaDto, CreateSolicitudDesconexionFisicaDto } from "../SolicitudDTO's/CreateSolicitudFisica.dto"; import { Body, Controller, Get, Param, Patch, Post, UploadedFiles, UseInterceptors, Request, Put } from "@nestjs/common";
 import { SolicitudesFisicasService } from "../Services/solicitudesFisicas.service";
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
@@ -15,42 +16,49 @@ export class SolicitudesFisicasController {
     ) { }
 
     @Get('/all')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener todas las solicitudes físicas' })
     getAllSolicitudesFisicas() {
         return this.solicitudesFisicasService.getAllSolicitudesFisicas();
     }
     
     @Get('/afiliacion')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener todas las solicitudes de afiliación' })
     getAllSolicitudesAfiliacion() {
         return this.solicitudesFisicasService.getAllSolicitudesAfiliacion();
     }
 
     @Get('/desconexion')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener todas las solicitudes de desconexión' })
     getAllSolicitudesDesconexion() {
         return this.solicitudesFisicasService.getAllSolicitudesDesconexion();
     }
 
     @Get('/desconexion/medidores')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener medidores de solicitudes de desconexión físicas' })
     getMedidoresDesconexion() {
         return this.solicitudesFisicasService.getMedidoresDesconexion();
     }
 
     @Get('/cambio-medidor')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener todas las solicitudes de cambio de medidor' })
     getAllSolicitudesCambioMedidor() {
         return this.solicitudesFisicasService.getAllSolicitudesCambioMedidor();
     }
 
     @Get('/cambio-medidor/:id')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener el detalle de una solicitud de cambio de medidor física por ID' })
     getSolicitudCambioMedidorById(@Param('id') id: number) {
         return this.solicitudesFisicasService.getSolicitudCambioMedidorById(id);
     }
 
     @Get('/asociado')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener todas las solicitudes de asociado' })
     getAllSolicitudesAsociado() {
         return this.solicitudesFisicasService.getAllSolicitudesAsociado();
@@ -108,6 +116,7 @@ export class SolicitudesFisicasController {
     }
 
     @Put('/update/afiliacion/:id')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar una solicitud de afiliación fisica' })
     async updateSolicitudAfiliacion(
         @Param('id') id: number,
@@ -119,6 +128,7 @@ export class SolicitudesFisicasController {
     }
 
     @Put('/update/desconexion/:id')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar una solicitud de desconexión fisica' })
     async updateSolicitudDesconexion(
         @Param('id') id: number,
@@ -130,6 +140,7 @@ export class SolicitudesFisicasController {
     }
 
     @Put('/update/cambio-medidor/:id')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar una solicitud de cambio de medidor fisica' })
     async updateSolicitudCambioMedidor(
         @Param('id') id: number,
@@ -141,6 +152,7 @@ export class SolicitudesFisicasController {
     }
 
     @Put('/update/asociado/:id')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar una solicitud de asociado fisica' })
     async updateSolicitudAsociado(
         @Param('id') id: number,
@@ -152,6 +164,7 @@ export class SolicitudesFisicasController {
     }
 
     @Patch('/update/estado/afiliacion/:idSolicitud/:idNuevoEstado')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar el estado de una solicitud de afiliación fisica' })
     async updateEstadoSolicitudAfiliacion(
         @Param('idSolicitud') idSolicitud: number,
@@ -164,6 +177,7 @@ export class SolicitudesFisicasController {
     }
 
     @Patch('/update/estado/desconexion/:idSolicitud/:idNuevoEstado')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar el estado de una solicitud de desconexión fisica' })
     async updateEstadoSolicitudDesconexion(
         @Param('idSolicitud') idSolicitud: number,
@@ -176,6 +190,7 @@ export class SolicitudesFisicasController {
     }
 
     @Patch('/update/estado/cambio-medidor/:idSolicitud/:idNuevoEstado')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar el estado de una solicitud de cambio de medidor fisica' })
     async updateEstadoSolicitudCambioMedidor(
         @Param('idSolicitud') idSolicitud: number,
@@ -188,6 +203,7 @@ export class SolicitudesFisicasController {
     }
 
     @Patch('/update/estado/asociado/:idSolicitud/:idNuevoEstado')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar el estado de una solicitud de asociado fisica' })
     async updateEstadoSolicitudAsociado(
         @Param('idSolicitud') idSolicitud: number,
@@ -202,12 +218,14 @@ export class SolicitudesFisicasController {
     // ─── AGREGAR MEDIDOR ──────────────────────────────────────────────────────────
 
     @Get('/agregar-medidor')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener todas las solicitudes de agregar medidor fisicas' })
     getAllSolicitudesAgregarMedidor() {
         return this.solicitudesFisicasService.getAllSolicitudesAgregarMedidor();
     }
 
     @Get('/agregar-medidor/:id')
+    @RequierePermisos('solicitudes', 'ver')
     @ApiOperation({ summary: 'Obtener el detalle de una solicitud de agregar medidor fisica por ID' })
     getSolicitudAgregarMedidorById(@Param('id') id: number) {
         return this.solicitudesFisicasService.getSolicitudAgregarMedidorById(id);
@@ -228,6 +246,7 @@ export class SolicitudesFisicasController {
     }
 
     @Put('/update/agregar-medidor/:id')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar una solicitud de agregar medidor fisica' })
     async updateSolicitudAgregarMedidor(
         @Param('id') id: number,
@@ -239,6 +258,7 @@ export class SolicitudesFisicasController {
     }
 
     @Patch('/update/estado/agregar-medidor/:idSolicitud/:idNuevoEstado')
+    @RequierePermisos('solicitudes', 'editar')
     @ApiOperation({ summary: 'Actualizar el estado de una solicitud de agregar medidor fisica' })
     async updateEstadoSolicitudAgregarMedidor(
         @Param('idSolicitud') idSolicitud: number,

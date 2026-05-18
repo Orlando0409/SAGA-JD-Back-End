@@ -19,12 +19,14 @@ export class UsuariosController {
   }
 
   @Get(':id')
+  @RequierePermisos('usuarios', 'ver')
   FindUsuario(
     @Param('id', ParseIntPipe) id: number) {
     return this.usuariosService.findOneUser(id);
   }
 
   @Post()
+  @RequierePermisos('usuarios', 'editar')
   @RequiereRoles('Administrador')
   CreateUsuario(
     @Body() createUsuarioDto: CreateUsuarioDto,
@@ -35,6 +37,7 @@ export class UsuariosController {
   }
 
   @Put(':id')
+  @RequierePermisos('usuarios', 'editar')
   @RequiereRoles('Administrador')
   UpdateUsuario(
     @Param('id', ParseIntPipe) id: number,
@@ -46,6 +49,7 @@ export class UsuariosController {
   }
 
   @Patch('restaurar/:id')
+  @RequierePermisos('usuarios', 'editar')
   @RequiereRoles('Administrador')
   RestoreUsuario(
     @Param('id', ParseIntPipe) id: number,
@@ -56,6 +60,7 @@ export class UsuariosController {
   }
 
   @Delete(':id')
+  @RequierePermisos('usuarios', 'editar')
   @RequiereRoles('Administrador')
   SoftDeleteUsuario(
     @Param('id', ParseIntPipe) id: number,

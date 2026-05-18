@@ -21,6 +21,7 @@ import { AsignarMedidorDTO } from './InventarioDTO\'s/AsignarMedidor.dto';
 import { AsignarMedidorExistenteAAfiliado } from './InventarioDTO\'s/AsignarMedidorExistenteAAfiliado.dto';
 import { UpdateEstadoPagoMedidorDTO } from './InventarioDTO\'s/UpdateEstadoPagoMedidor.dto';
 import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
+import { RequierePermisos } from '../auth/Decorator/Permiso.decorator';
 import { GetUser } from '../auth/Decorator/GetUser.decorator';
 import { Usuario } from '../Usuarios/UsuarioEntities/Usuario.Entity';
 import { FileFieldsInterceptor } from '@nestjs/platform-express/multer';
@@ -39,12 +40,14 @@ export class InventarioController {
 
   // ENDPOINTS PARA MATERIALES
   @Get('/all/materiales')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene todos los materiales del inventario con su estado.' })
   async getAllMaterials() {
     return this.materialService.getAllMateriales();
   }
 
   @Post('/materiales/pdf')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Exportar materiales a PDF con filtros opcionales.' })
   async exportarMaterialesPdf(
     @Body() dto: ExportMaterialesPdfDto,
@@ -54,54 +57,63 @@ export class InventarioController {
   }
 
   @Get('/materiales/disponibles')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene materiales que están disponibles.' })
   async getMaterialesDisponibles() {
     return this.materialService.getMaterialesDisponibles();
   }
 
   @Get('/materiales/agotados')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene materiales que están agotados.' })
   async getMaterialesAgotados() {
     return this.materialService.getMaterialesAgotados();
   }
 
   @Get('/materiales/de-baja')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene materiales que están de baja.' })
   async getMaterialesDeBaja() {
     return this.materialService.getMaterialesDeBaja();
   }
 
   @Get('/materiales/agotados-de-baja')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene materiales que están agotados y de baja.' })
   async getMaterialesAgotadosDeBaja() {
     return this.materialService.getMaterialesAgotadosYDeBaja();
   }
 
   @Get('/materiales/with/categorias')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene materiales que tienen categorías asignadas' })
   async getMaterialesConCategorias() {
     return this.materialService.getMaterialesConCategorias();
   }
 
   @Get('/materiales/without/categorias')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene materiales que no tienen categorías' })
   async getMaterialesSinCategorias() {
     return this.materialService.getMaterialesSinCategorias();
   }
 
   @Get('/materiales/above/stock/:threshold')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene materiales con cantidad por encima de un umbral dado, ordenados de mayor a menor.' })
   async getMaterialesPorEncimaDeStock(@Param('threshold', ParseIntPipe) threshold: number) {
     return this.materialService.getMaterialesPorEncimaDeStock(threshold);
   }
 
   @Get('/materiales/below/stock/:threshold')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene materiales con cantidad por debajo de un umbral dado, ordenados de menor a mayor.' })
   async getMaterialesPorDebajoDeStock(@Param('threshold', ParseIntPipe) threshold: number) {
     return this.materialService.getMaterialesPorDebajoDeStock(threshold);
   }
 
   @Get('/materiales/between/priceRange/:min/:max')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene materiales cuyo precio está entre un rango dado.' })
   async getMaterialesEntreRangoDePrecio(
     @Param('min', ParseIntPipe) min: number,
@@ -111,6 +123,7 @@ export class InventarioController {
   }
 
   @Post('/create/material')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Crea un nuevo material en el inventario.' })
   async createMaterial(
     @Body() dto: CreateMaterialDto,
@@ -120,6 +133,7 @@ export class InventarioController {
   }
 
   @Put('/update/material/:materialId')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Actualiza un material existente en el inventario.' })
   async updateMaterial(
     @Param('materialId', ParseIntPipe) materialId: number,
@@ -130,6 +144,7 @@ export class InventarioController {
   }
 
   @Patch('/update/estado/material/:materialId/:estadoMaterialId')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Cambia el estado de un material. Si el estado es "De baja" (3), actualiza automáticamente la fecha de baja.' })
   async cambiarEstadoMaterial(
     @Param('materialId', ParseIntPipe) materialId: number,
@@ -143,24 +158,28 @@ export class InventarioController {
 
   //ENDPOINTS PARA CATEGORIAS
   @Get('/all/categorias')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene todas las categorías de materiales.' })
   async getAllCategorias() {
     return this.categoriasService.getAllCategorias();
   }
 
   @Get('/categorias/activas')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene todas las categorías activas.' })
   async getCategoriasActivas() {
     return this.categoriasService.getCategoriasActivas();
   }
 
   @Get('/categorias/inactivas')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene todas las categorías inactivas.' })
   async getCategoriasInactivas() {
     return this.categoriasService.getCategoriasInactivas();
   }
 
   @Post('/create/categoria')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Crea una nueva categoría de material.' })
   async createCategoria(
     @Body() dto: CreateCategoriaDto,
@@ -170,6 +189,7 @@ export class InventarioController {
   }
 
   @Put('/update/categoria/:categoriaId')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Actualiza una categoría existente.' })
   async updateCategoria(
     @Param('categoriaId', ParseIntPipe) categoriaId: number,
@@ -180,6 +200,7 @@ export class InventarioController {
   }
 
   @Patch('/update/estado/categoria/:categoriaId/:estadoCategoriaId')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Cambia el estado de una categoría al estado especificado.' })
   async cambiarEstadoCategoria(
     @Param('categoriaId', ParseIntPipe) categoriaId: number,
@@ -193,30 +214,35 @@ export class InventarioController {
 
   //ENDPOINTS PARA UNIDADES DE MEDICION
   @Get('/all/unidades-medicion')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene todas las unidades de medición activas.' })
   async getAllUnidadesMedicion() {
     return this.unidadesDeMedicionService.getAllUnidadesMedicion();
   }
 
   @Get('/all/unidades-medicion/simple')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene todas las unidades de medición (solo Id y Nombre).' })
   async getAllUnidadesMedicionSimple() {
     return this.unidadesDeMedicionService.getUnidadMedicionSimple();
   }
 
   @Get('/unidades-medicion/activas')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene todas las unidades de medición activas.' })
   async getUnidadesMedicionActivas() {
     return this.unidadesDeMedicionService.getUnidadesMedicionActivas();
   }
 
   @Get('/unidades-medicion/inactivas')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene todas las unidades de medición inactivas.' })
   async getUnidadesMedicionInactivas() {
     return this.unidadesDeMedicionService.getUnidadesMedicionInactivas();
   }
 
   @Post('/create/unidad-medicion')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Crea una nueva unidad de medición.' })
   async createUnidadMedicion(
     @Body() dto: CreateUnidadMedicionDto,
@@ -226,6 +252,7 @@ export class InventarioController {
   }
 
   @Put('/update/unidad-medicion/:unidadId')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Actualiza una unidad de medición existente.' })
   async updateUnidadMedicion(
     @Param('unidadId', ParseIntPipe) unidadId: number,
@@ -236,6 +263,7 @@ export class InventarioController {
   }
 
   @Patch('/update/estado/unidad-medicion/:unidadId/:estadoUnidadId')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Cambia el estado de una unidad de medición al estado especificado.' })
   async cambiarEstadoUnidadMedicion(
     @Param('unidadId', ParseIntPipe) unidadId: number,
@@ -249,6 +277,7 @@ export class InventarioController {
 
   //ENDPOINTS PARA MOVIMIENTOS
   @Post('/movimientos/pdf')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Exportar movimientos a PDF con filtros opcionales.' })
   async exportarMovimientosPdf(
     @Body() dto: ExportMovimientosPdfDto,
@@ -258,24 +287,28 @@ export class InventarioController {
   }
 
   @Get('/all/movimientos')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene todos los movimientos de inventario.' })
   async getAllMovimientos() {
     return this.movimientosService.getAllMovimientos();
   }
 
   @Get('/movimientos/entradas')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene todos los ingresos de un material específico.' })
   async getIngresosPorMaterial() {
     return this.movimientosService.getMovimientosEntradas();
   }
 
   @Get('/movimientos/salidas')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene todos los egresos de un material específico.' })
   async getEgresosPorMaterial() {
     return this.movimientosService.getMovimientosSalidas();
   }
 
   @Get('/movimientos/entre/fechas/:startDate/:endDate')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene todos los movimientos entre dos fechas específicas.' })
   async getMovimientosEntreFechas(
     @Param('startDate') startDate: string,
@@ -285,6 +318,7 @@ export class InventarioController {
   }
 
   @Get('/mis-movimientos')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene los movimientos del usuario autenticado.' })
   async getMisMovimientos(
     @GetUser() usuario: Usuario) {
@@ -292,6 +326,7 @@ export class InventarioController {
   }
 
   @Post('/ingreso/material')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Registra el ingreso de una cantidad específica de un material al inventario.' })
   async ingresoMaterial(
     @Body() dto: MovimientoMaterialDto,
@@ -301,6 +336,7 @@ export class InventarioController {
   }
 
   @Post('/egreso/material')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Registra el egreso de una cantidad específica de un material del inventario.' })
   async egresoMaterial(
     @Body() dto: MovimientoMaterialDto,
@@ -313,12 +349,14 @@ export class InventarioController {
 
   // ENDPOINTS PARA MEDIDORES
   @Get('/all/medidores')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene todos los medidores con su estado.' })
   async getAllMedidores() {
     return this.medidorService.getAllMedidores();
   }
 
   @Post('/medidores/pdf')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Exportar medidores a PDF con filtros opcionales.' })
   async exportarMedidoresPdf(
     @Body() dto: ExportMedidoresPdfDto,
@@ -328,45 +366,53 @@ export class InventarioController {
   }
 
   @Get('/medidores/no-instalados')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene todos los medidores que no están instalados.' })
   async getMedidoresNoInstalados() {
     return this.medidorService.getMedidoresNoInstalados();
   }
 
   @Get('/medidores/instalados')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene todos los medidores que están instalados.' })
   async getMedidoresInstalados() {
     return this.medidorService.getMedidoresInstalados();
   }
 
   @Get('/medidores/averiados')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene todos los medidores que están averiados.' })
   async getMedidoresAveriados() {
     return this.medidorService.getMedidoresAveriados();
   }
 
   @Get('/medidores/disponibles')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene medidores sin dueño y sin averías (disponibles para asignar a un afiliado).' })
   async getMedidoresDisponibles() {
     return this.medidorService.getMedidoresDisponibles();
   }
 
   @Get('/medidores/pendientes')
+  @RequierePermisos('inventario', 'ver')
   async getMedidoresPendientes(){
     return this.medidorService.getMedidoresPendientes();
   }
 
   @Get('/medidores/pagados')
+  @RequierePermisos('inventario', 'ver')
   async getMedidoresPagados(){
     return this.medidorService.getMedidoresPagados();
   }
 
   @Get('/medidores/libre')
+  @RequierePermisos('inventario', 'ver')
   async getMedidoresLibre(){
     return this.medidorService.getMedidoresLibre();
   }
 
   @Get('/medidores/afiliado/:idAfiliado')
+  @RequierePermisos('inventario', 'ver')
   @ApiOperation({ summary: 'Obtiene todos los medidores asociados a un afiliado específico.' })
   async getMedidoresAfiliado(
     @Param('idAfiliado', ParseIntPipe) idAfiliado: number
@@ -375,6 +421,7 @@ export class InventarioController {
   }
 
   @Post('/create/medidor')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Crea un nuevo medidor en el sistema (sin asignar a ningún afiliado).' })
   async createMedidor(
     @Body() dto: CreateMedidorDTO,
@@ -384,6 +431,7 @@ export class InventarioController {
   }
 
   @Post('/asignar/medidor')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Asigna un medidor a una solicitud (flujo de aprobación de solicitudes).' })
   async asignarMedidor(
     @Body() dto: AsignarMedidorDTO,
@@ -393,6 +441,7 @@ export class InventarioController {
   }
 
   @Post('/asignar/medidor/afiliado')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Asigna un medidor ya existente y disponible directamente a un afiliado. Requiere Planos_Terreno y Certificacion_Literal.' })
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'Planos_Terreno', maxCount: 1 },
@@ -407,6 +456,7 @@ export class InventarioController {
   }
 
   @Patch('/update/estado/medidor/:idMedidor/:nuevoEstadoId')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Actualiza el estado de un medidor específico.' })
   async updateEstadoMedidor(
     @Param('idMedidor', ParseIntPipe) idMedidor: number,
@@ -417,6 +467,7 @@ export class InventarioController {
   }
 
   @Patch('/update/estado-pago/medidor/:idMedidor')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Actualiza el estado de pago de un medidor específico.' })
   async updateEstadoPagoMedidor(
     @Param('idMedidor', ParseIntPipe) idMedidor: number,
@@ -427,6 +478,7 @@ export class InventarioController {
   }
 
   @Patch('/medidor/:id/files')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Actualiza los archivos (Planos y/o Escritura) de un Medidor existente.' })
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'Planos_Terreno', maxCount: 1 },
@@ -441,6 +493,7 @@ export class InventarioController {
   }
 
   @Post('/medidor/:id/archivos')
+  @RequierePermisos('inventario', 'editar')
   @ApiOperation({ summary: 'Asigna archivos (Planos y/o Certificacion) a un medidor que aún no posee ningún archivo.' })
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'Planos_Terreno', maxCount: 1 },

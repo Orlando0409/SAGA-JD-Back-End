@@ -6,6 +6,7 @@ import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 import { CreateProyectoDto } from "./ProyectoDTO's/CreateProyecto.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { JwtAuthGuard } from "../auth/Guard/JwtGuard";
+import { RequierePermisos } from '../auth/Decorator/Permiso.decorator';
 import { GetUser } from "../auth/Decorator/GetUser.decorator";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 
@@ -24,12 +25,14 @@ export class ProyectoController {
   }
 
   @Get('/all')
+  @RequierePermisos('proyectos', 'ver')
   @ApiOperation({ summary: 'Obtener todos los proyectos' })
   getProyectos() {
     return this.proyectoService.getProyectos();
   }
 
   @Get(':id')
+  @RequierePermisos('proyectos', 'ver')
   @ApiOperation({ summary: 'Obtener proyecto por ID' })
   findProyectobyId(
     @Param('id', ParseIntPipe) id: number
@@ -38,6 +41,7 @@ export class ProyectoController {
   }
 
   @Post('/create')
+  @RequierePermisos('proyectos', 'editar')
   @ApiOperation({ summary: "Crear un nuevo proyecto" })
   @UseInterceptors(FileInterceptor("Imagen_Url"))
   CreateProyecto(
@@ -49,6 +53,7 @@ export class ProyectoController {
   }
 
   @Put('/update/:idProyecto')
+  @RequierePermisos('proyectos', 'editar')
   @ApiOperation({ summary: 'Actualizar un proyecto por ID' })
   @UseInterceptors(FileInterceptor("Imagen_Url"))
   updateProyecto(
@@ -61,6 +66,7 @@ export class ProyectoController {
   }
 
   @Patch(':idProyecto/update/estado/:idEstadoProyecto')
+  @RequierePermisos('proyectos', 'editar')
   @ApiOperation({ summary: 'Actualizar el estado de proyecto por ID' })
   updateEstadoProyecto(
     @Param('idProyecto', ParseIntPipe) idProyecto: number,
@@ -71,6 +77,7 @@ export class ProyectoController {
   }
 
   @Patch('/update/visibilidad/:idProyecto')
+  @RequierePermisos('proyectos', 'editar')
   @ApiOperation({ summary: 'Actualizar la visibilidad del proyecto por ID' })
   updateVisibilidadProyecto(
     @Param('idProyecto', ParseIntPipe) idProyecto: number,

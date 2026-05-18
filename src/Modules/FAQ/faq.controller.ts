@@ -1,6 +1,7 @@
 import { Controller, Post, Body, UseGuards, Request, Get, Param, Put, Delete, ParseIntPipe, Patch, } from '@nestjs/common';
 import { FAQService } from './faq.service';
 import { JwtAuthGuard } from '../auth/Guard/JwtGuard';
+import { RequierePermisos } from '../auth/Decorator/Permiso.decorator';
 import { Public } from "src/Modules/auth/Decorator/Public.decorator";
 import { ApiTags } from '@nestjs/swagger';
 import { CreateFAQDto } from './FAQDTO\'s/CreateFAQ.dto';
@@ -15,6 +16,7 @@ export class FAQController {
     ) { }
 
     @Patch(':id/visible')
+    @RequierePermisos('faq', 'editar')
     async toggleVisible(
         @Param('id', ParseIntPipe) id: number,
         @Request() req: any
@@ -24,6 +26,7 @@ export class FAQController {
     }
 
     @Post()
+    @RequierePermisos('faq', 'editar')
     async create(
         @Body() createDto: CreateFAQDto,
         @Request() req: any
@@ -40,16 +43,19 @@ export class FAQController {
 
     // get del admin 
     @Get('admin')
+    @RequierePermisos('faq', 'ver')
     async findAllAdmin() {
         return this.faqService.findAllAdmin();
     }
 
     @Get(':id')
+    @RequierePermisos('faq', 'ver')
     async findOne(@Param('id', ParseIntPipe) id: number) {
         return this.faqService.findOne(id);
     }
 
     @Put(':id')
+    @RequierePermisos('faq', 'editar')
     async update(
         @Param('id', ParseIntPipe) id: number,
         @Body() updateDto: UpdateFAQDto,
@@ -60,6 +66,7 @@ export class FAQController {
     }
 
     @Delete(':id')
+    @RequierePermisos('faq', 'editar')
     async remove(
         @Param('id', ParseIntPipe) id: number,
         @Request() req: any

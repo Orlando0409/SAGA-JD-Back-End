@@ -1,137 +1,37 @@
-import { BadRequestException, Injectable, OnApplicationShutdown } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Response } from 'express';
-import * as puppeteer from 'puppeteer';
-import type { Browser } from 'puppeteer';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { FacturaPDF, type FacturaInput } from './Template/FacturaPDF';
+import { PdfExportService } from 'src/Shared/Pdf/pdf-export.service';
 
 @Injectable()
-export class ConsultaPagosPdfService implements OnApplicationShutdown {
-    private browser: Browser | null = null;
+export class ConsultaPagosPdfService {
     private logoDataUri: string | null = null;
 
-    //  CONTROL DE CONCURRENCIA PARA EVITAR SOBRECARGA DE PUPPETEER
-    private activeTasks = 0;
-    private queue: (() => void)[] = [];
-    private readonly MAX_CONCURRENT = 2;
-
-    private async runLimited<T>(task: () => Promise<T>): Promise<T> {
-        if (this.activeTasks >= this.MAX_CONCURRENT) {
-            await new Promise<void>((resolve) => this.queue.push(resolve));
-        }
-
-        this.activeTasks++;
-
-        try {
-            return await task();
-        } finally {
-            this.activeTasks--;
-
-            const next = this.queue.shift();
-            if (next) next();
-        }
-    }
-
-    private async getBrowser(): Promise<Browser> {
-        if (this.browser && this.browser.connected) {
-            return this.browser;
-        }
-
-        if (this.browser) {
-            await this.browser.close().catch(() => {});
-            this.browser = null;
-        }
-
-        const browser = await puppeteer.launch({
-            headless: true,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-gpu',
-            ],
-        });
-
-        browser.on('disconnected', () => {
-            if (this.browser === browser) {
-                this.browser = null;
-            }
-        });
-
-        this.browser = browser;
-        return browser;
-    }
+    constructor(private readonly pdfExportService: PdfExportService) {}
 
     async generarFacturasDesdeConsultas(
         inputs: FacturaInput[],
         res: Response,
     ): Promise<void> {
+        if (!Array.isArray(inputs) || inputs.length === 0) {
+            throw new BadRequestException('No hay datos para generar la factura.');
+        }
 
-        return this.runLimited(async () => {
-
-            if (!Array.isArray(inputs) || inputs.length === 0) {
-                throw new BadRequestException('No hay datos para generar la factura.');
+        inputs.forEach((input) => {
+            if (!input.numeroMedidor) {
+                throw new BadRequestException('No se pudo determinar el numero de medidor para generar la factura.');
             }
-
-            inputs.forEach((input) => {
-                if (!input.numeroMedidor) {
-                    throw new BadRequestException('No se pudo determinar el numero de medidor para generar la factura.');
-                }
-            });
-
-            const html = FacturaPDF(inputs, this.getLogoDataUri());
-
-            const generarPdf = async (): Promise<Buffer> => {
-                const browser = await this.getBrowser();
-                const page = await browser.newPage();
-                try {
-                    await page.setContent(html, {
-                        waitUntil: 'domcontentloaded',
-                        timeout: 30000
-                    });
-
-                    return Buffer.from(await page.pdf({
-                        format: 'A4',
-                        printBackground: true,
-                        margin: {
-                            top: '20px',
-                            right: '20px',
-                            bottom: '20px',
-                            left: '20px'
-                        },
-                    }));
-                } finally {
-                    await page.close().catch(() => {});
-                }
-            };
-
-            let pdfBuffer: Buffer;
-            try {
-                pdfBuffer = await generarPdf();
-            } catch (err: any) {
-                const isTargetClosed = err?.name === 'TargetCloseError' || /Target closed|Protocol error/i.test(err?.message ?? '');
-                if (!isTargetClosed) throw err;
-
-                if (this.browser) {
-                    await this.browser.close().catch(() => {});
-                    this.browser = null;
-                }
-                pdfBuffer = await generarPdf();
-            }
-
-            const filename = inputs.length === 1
-                ? `Factura_${inputs[0].numeroMedidor}_${Date.now()}.pdf`
-                : `Facturas_${Date.now()}.pdf`;
-
-            res.set({
-                'Content-Type': 'application/pdf',
-                'Content-Disposition': `attachment; filename="${filename}"`,
-                'Content-Length': String(pdfBuffer.length),
-            });
-
-            res.send(pdfBuffer);
         });
+
+        const html = FacturaPDF(inputs, this.getLogoDataUri());
+
+        const filename = inputs.length === 1
+            ? `Factura_${inputs[0].numeroMedidor}_${Date.now()}.pdf`
+            : `Facturas_${Date.now()}.pdf`;
+
+        await this.pdfExportService.streamPdfToResponse(html, filename, res);
     }
 
     private getLogoDataUri(): string | null {
@@ -156,12 +56,5 @@ export class ConsultaPagosPdfService implements OnApplicationShutdown {
         this.logoDataUri = `data:image/jpeg;base64,${image.toString('base64')}`;
 
         return this.logoDataUri;
-    }
-
-    async onApplicationShutdown(): Promise<void> {
-        if (this.browser) {
-            await this.browser.close().catch(() => {});
-            this.browser = null;
-        }
     }
 }
