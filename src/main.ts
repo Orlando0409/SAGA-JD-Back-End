@@ -1,9 +1,11 @@
 import { NestFactory } from '@nestjs/core';
-import { SwaggerModule, DocumentBuilder, SwaggerDocumentOptions } from '@nestjs/swagger';
+import { DocumentBuilder, SwaggerDocumentOptions } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 import 'dotenv/config';
+import { MetricsInterceptor } from './Common/interceptor/metrics.interceptor';
+
 
 export interface SwaggerCustomOptions {
   customSiteTitle?: string;
@@ -15,7 +17,7 @@ async function bootstrap() {
 
   // Configurar CORS correctamente para cookies
   app.enableCors({
-    origin: [process.env.FRONTEND_URL_ADMIN, process.env.FRONTEND_URL_INFO], // URLs del frontend
+    origin: true, // URLs del frontend
     credentials: true, //  IMPORTANTE: Permitir cookies
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'cookie']
@@ -36,6 +38,7 @@ async function bootstrap() {
     .setTitle('API SAGA-JD')
     .setDescription('API documentation for the SAGA-JD project')
     .setVersion('1.0')
+    .addServer('http://tu ip de radminvpn:3000')
     .build();
 
     const options: SwaggerDocumentOptions =  {
@@ -46,18 +49,17 @@ async function bootstrap() {
           methodKey: string
         ) => methodKey
       };
-  const documentFactory = () => SwaggerModule.createDocument(app, config, options);
 
-  SwaggerModule.setup('api', app, documentFactory, {
-    swaggerOptions: {
-      operationsSorter: (a: any, b: any) => {
-        const order = { get: 1, post: 2, put: 3, patch: 4, delete: 5 };
-        return order[a.get("method")] - order[b.get("method")];
-      }
-    }, 
+  app.useGlobalInterceptors(new MetricsInterceptor());
+
+
+  app.useGlobalInterceptors(new MetricsInterceptor());
+
+  app.setGlobalPrefix('api', {
+    exclude: ['metrics'],
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen( 3000, '0.0.0.0');
 
   if (process.env.NODE_ENV === 'development') {
     console.log('Entorno actual:', process.env.NODE_ENV);
