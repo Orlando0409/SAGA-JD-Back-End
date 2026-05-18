@@ -12,10 +12,8 @@ import { UsuariosService } from "../Usuarios/Services/usuarios.service";
 import { Proyecto } from "../Proyectos/ProyectoEntities/Proyecto.Entity";
 import { Lectura } from "../Lecturas/LecturaEntities/Lectura.Entity";
 import { Medidor } from "../Inventario/InventarioEntities/Medidor.Entity";
-import { Acta } from "../Actas/ActaEntities/Actas.Entity";
 import { Solicitud } from "../Solicitudes/SolicitudEntities/Solicitud.Entity";
 import { MovimientoInventario } from "../Inventario/InventarioEntities/Movimiento.Entity";
-import { ArchivoActa } from "../Actas/ActaEntities/ArchivoActa.Entity";
 import { AfiliadoFisico, AfiliadoJuridico } from "../Afiliados/AfiliadoEntities/Afiliado.Entity";
 import { ImagenEntity } from "../Imagenes/ImagenesEntity/Imagen.Entity";
 import { ManualEntity } from "../ManualdeUsuario/ManualEntities/Manual.Entity";
@@ -291,18 +289,6 @@ export class AuditoriaService {
                         where: { Id_Usuario: idRegistro }
                     });
                     return usuario?.Nombre_Usuario || `Usuario ID: ${idRegistro}`;
-
-                case 'actas':
-                    const acta = await this.dataSource.getRepository(Acta).findOne({
-                        where: { Id_Acta: idRegistro }
-                    });
-                    return acta?.Titulo || `Acta ID: ${idRegistro}`;
-
-                case 'actas-archivo':
-                    const archivoActa = await this.dataSource.getRepository(ArchivoActa).findOne({
-                        where: { Id_Archivo_Acta: idRegistro }
-                    });
-                    return archivoActa?.Acta.Titulo || `Archivo Acta ID: ${idRegistro}`;
 
                 case 'calidad de agua':
                     const calidadAgua = await this.dataSource.getRepository(CalidadAgua).findOne({
