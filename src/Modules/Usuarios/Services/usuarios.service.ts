@@ -113,6 +113,9 @@ export class UsuariosService {
         const user = await this.usuarioRepository.findOne({ where: { Id_Usuario: id }, relations: ['Rol', 'Rol.Permisos'] });
         if (!user) throw new NotFoundException('Usuario no encontrado');
 
+        if (user.Fecha_Eliminacion) throw new BadRequestException('No se puede actualizar un usuario inactivo. Por favor, restaure el usuario antes de actualizarlo.');
+        if (user.Id_Usuario === 1) throw new BadRequestException('El usuario administrador no puede ser modificado.');
+
         // Validar nombre de usuario único (si se está cambiando)
         if (updateUserDto.Nombre_Usuario !== undefined && updateUserDto.Nombre_Usuario !== user.Nombre_Usuario) {
             const nombreUsuarioExistente = await this.usuarioRepository.findOne({

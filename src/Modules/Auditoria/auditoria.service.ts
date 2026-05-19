@@ -73,14 +73,46 @@ export class AuditoriaService {
             a.Modulo, a.Id_Registro, a.Datos_Anteriores, a.Datos_Nuevos, a.Accion
         );
 
-        const formatJson = (raw: string | null | undefined): string => {
-            if (!raw) return '—';
+        const tryParse = (raw: string | null | undefined): any => {
+            if (!raw || raw === '') return null;
             try {
-                return JSON.stringify(JSON.parse(raw), null, 2);
+                return JSON.parse(raw);
             } catch {
                 return raw;
             }
         };
+
+        const stringifyValor = (v: any): string => {
+            if (v === null || v === undefined || v === '') return '—';
+            if (typeof v === 'object') return JSON.stringify(v, null, 2);
+            return String(v);
+        };
+
+        const buildCamposDesdeData = (data: any): { label: string; valor: string; fullWidth?: boolean; monospace?: boolean }[] => {
+            if (data === null || data === undefined) {
+                return [{ label: 'Sin información', valor: '—', fullWidth: true }];
+            }
+            if (typeof data !== 'object' || Array.isArray(data)) {
+                return [{ label: 'Valor', valor: stringifyValor(data), fullWidth: true, monospace: typeof data === 'string' && data.length > 80 }];
+            }
+            const entries = Object.entries(data);
+            if (entries.length === 0) {
+                return [{ label: 'Sin información', valor: '—', fullWidth: true }];
+            }
+            return entries.map(([key, value]) => {
+                const valorStr = stringifyValor(value);
+                const esLargo = valorStr.length > 60 || valorStr.includes('\n');
+                return {
+                    label: key,
+                    valor: valorStr,
+                    fullWidth: esLargo,
+                    monospace: typeof value === 'object' && value !== null,
+                };
+            });
+        };
+
+        const datosAnteriores = tryParse(a.Datos_Anteriores);
+        const datosNuevos = tryParse(a.Datos_Nuevos);
 
         const secciones: SeccionDetalle[] = [
             {
@@ -99,21 +131,19 @@ export class AuditoriaService {
                     { label: 'Rol', valor: a.Usuario?.Rol?.Nombre_Rol || '—' },
                 ],
             },
-        ];
-
-        if (a.Datos_Anteriores) {
-            secciones.push({
+            {
                 titulo: 'Datos anteriores',
-                campos: [{ label: 'JSON', valor: formatJson(a.Datos_Anteriores), fullWidth: true, monospace: true }],
-            });
-        }
-
-        if (a.Datos_Nuevos) {
-            secciones.push({
+                campos: datosAnteriores !== null
+                    ? buildCamposDesdeData(datosAnteriores)
+                    : [{ label: 'Sin información', valor: '—', fullWidth: true }],
+            },
+            {
                 titulo: 'Datos nuevos',
-                campos: [{ label: 'JSON', valor: formatJson(a.Datos_Nuevos), fullWidth: true, monospace: true }],
-            });
-        }
+                campos: datosNuevos !== null
+                    ? buildCamposDesdeData(datosNuevos)
+                    : [{ label: 'Sin información', valor: '—', fullWidth: true }],
+            },
+        ];
 
         const html = DetalleRegistroPDF({
             titulo: 'Detalle de Auditoría',

@@ -3,6 +3,7 @@ import { Between, In, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 import { Response } from "express";
 import { PdfExportService } from "src/Shared/Pdf/pdf-export.service";
 import { TablaGenericaPDF, TablaColumna } from "src/Shared/Pdf/tabla-pdf.template";
+import { DetalleRegistroPDF, SeccionDetalle } from "src/Shared/Pdf/detalle-pdf.template";
 import { ExportAfiliadosPdfDto } from "./AfiliadoDTO's/ExportAfiliadosPdf.dto";
 import { Afiliado, AfiliadoFisico, AfiliadoJuridico } from "./AfiliadoEntities/Afiliado.Entity";
 import { EstadoAfiliado } from "./AfiliadoEntities/EstadoAfiliado.Entity";
@@ -75,15 +76,16 @@ export class AfiliadosService {
 
     private static readonly AF_COLUMNAS: Record<string, TablaColumna> = {
         nombre:         { key: 'nombre',         label: 'Nombre / Razón Social', align: 'left',   maxWidth: '200px' },
-        tipo:           { key: 'tipo',           label: 'Tipo',                  align: 'center', width: '70px'   },
-        identificacion: { key: 'identificacion', label: 'Identificación',        align: 'left',   width: '120px'  },
+        tipo:           { key: 'tipo',           label: 'Tipo Persona',          align: 'center', width: '90px'   },
+        identificacion: { key: 'identificacion', label: 'Cédula / Documento',    align: 'left',   width: '130px'  },
+        estado:         { key: 'estado',         label: 'Estado',                align: 'center', width: '100px'  },
+        tipoAfiliado:   { key: 'tipoAfiliado',   label: 'Tipo Afiliado',         align: 'center', width: '110px'  },
         correo:         { key: 'correo',         label: 'Correo',                align: 'left',   maxWidth: '180px' },
         telefono:       { key: 'telefono',       label: 'Teléfono',              align: 'left',   width: '110px'  },
-        estado:         { key: 'estado',         label: 'Estado',                align: 'center', width: '100px'  },
         creacion:       { key: 'creacion',       label: 'Fecha creación',        align: 'left',   width: '110px'  },
     };
 
-    private static readonly AF_COLUMNAS_DEFAULT = ['nombre', 'tipo', 'identificacion', 'correo', 'telefono', 'estado'];
+    private static readonly AF_COLUMNAS_DEFAULT = ['nombre', 'tipo', 'identificacion', 'estado', 'tipoAfiliado'];
 
     private formatCedulaFisica(raw?: string | null): string {
         const v = (raw ?? '').replace(/\D/g, '');
@@ -97,7 +99,96 @@ export class AfiliadosService {
         return `${v.slice(0, 1)}-${v.slice(1, 4)}-${v.slice(4, 10)}`;
     }
 
+    private async generarDetalleAfiliadoPdf(id: number, res: Response): Promise<void> {
+        const fisico = await this.afiliadoFisicoRepository.findOne({
+            where: { Id_Afiliado: id },
+            relations: ['Estado', 'Tipo_Afiliado', 'Medidores', 'Medidores.Estado_Medidor'],
+        });
+
+        const juridico = !fisico ? await this.afiliadoJuridicoRepository.findOne({
+            where: { Id_Afiliado: id },
+            relations: ['Estado', 'Tipo_Afiliado', 'Medidores', 'Medidores.Estado_Medidor'],
+        }) : null;
+
+        const a: any = fisico || juridico;
+        if (!a) throw new BadRequestException(`Afiliado ${id} no encontrado`);
+
+        const esFisico = !!fisico;
+        const nombre = esFisico
+            ? `${a.Nombre ?? ''} ${a.Apellido1 ?? ''} ${a.Apellido2 ?? ''}`.trim() || `Afiliado #${a.Id_Afiliado}`
+            : a.Razon_Social?.trim() || `Afiliado #${a.Id_Afiliado}`;
+        const identificacion = esFisico
+            ? this.formatCedulaFisica(a.Identificacion)
+            : this.formatCedulaJuridica(a.Cedula_Juridica);
+
+        const secciones: SeccionDetalle[] = [
+            {
+                titulo: esFisico ? 'Información personal' : 'Información de la entidad',
+                campos: [
+                    { label: esFisico ? 'Nombre completo' : 'Razón social', valor: nombre, fullWidth: true },
+                    { label: esFisico ? 'Identificación' : 'Cédula jurídica', valor: identificacion },
+                    { label: 'Tipo de persona', valor: esFisico ? 'Físico' : 'Jurídico' },
+                    { label: 'Tipo de afiliado', valor: a.Tipo_Afiliado?.Nombre_Tipo_Afiliado || '—' },
+                    ...(esFisico && a.Edad ? [{ label: 'Edad', valor: `${a.Edad} años` }] : []),
+                    { label: 'Estado', valor: a.Estado?.Nombre_Estado || 'Sin estado' },
+                ],
+            },
+            {
+                titulo: 'Contacto',
+                campos: [
+                    { label: 'Correo electrónico', valor: a.Correo || '—' },
+                    { label: 'Teléfono', valor: a.Numero_Telefono || '—' },
+                    { label: 'Dirección exacta', valor: a.Direccion_Exacta || '—', fullWidth: true },
+                ],
+            },
+        ];
+
+        const medidores: any[] = a.Medidores || [];
+        if (medidores.length > 0) {
+            const camposMedidores = medidores.flatMap((m: any, idx: number) => {
+                const sep = idx > 0 ? [{ label: '', valor: '', fullWidth: true }] : [];
+                return [
+                    ...sep,
+                    { label: `Medidor ${idx + 1} · N°`, valor: m.Numero_Medidor || '—' },
+                    { label: 'Estado', valor: m.Estado_Medidor?.Nombre_Estado_Medidor || '—' },
+                ];
+            });
+            secciones.push({
+                titulo: `Medidores asignados (${medidores.length})`,
+                campos: camposMedidores,
+            });
+        } else {
+            secciones.push({
+                titulo: 'Medidores asignados',
+                campos: [{ label: 'Estado', valor: 'Sin medidores asignados', fullWidth: true }],
+            });
+        }
+
+        secciones.push({
+            titulo: 'Fechas',
+            campos: [
+                { label: 'Fecha de creación', valor: a.Fecha_Creacion ? new Date(a.Fecha_Creacion).toLocaleString('es-CR') : '—' },
+                { label: 'Última actualización', valor: a.Fecha_Actualizacion ? new Date(a.Fecha_Actualizacion).toLocaleString('es-CR') : '—' },
+            ],
+        });
+
+        const html = DetalleRegistroPDF({
+            titulo: esFisico ? 'Detalle del Afiliado Físico' : 'Detalle del Afiliado Jurídico',
+            subtitulo: nombre,
+            numeroRegistro: `Afiliado #${a.Id_Afiliado}`,
+            estado: a.Estado?.Nombre_Estado,
+            secciones,
+            notaFooter: 'SAGA-JD · Afiliados',
+        });
+
+        const filename = `Afiliado_${a.Id_Afiliado}_${new Date().toISOString().slice(0, 10)}.pdf`;
+        await this.pdfExportService.streamPdfToResponse(html, filename, res);
+    }
+
     async generarAfiliadosPdf(filtros: ExportAfiliadosPdfDto, res: Response): Promise<void> {
+        if (filtros.ids?.length === 1) {
+            return this.generarDetalleAfiliadoPdf(filtros.ids[0], res);
+        }
         const baseWhere: any = {};
         if (filtros.estados?.length) baseWhere.Estado = { Id_Estado_Afiliado: In(filtros.estados) };
         if (filtros.tiposAfiliado?.length) baseWhere.Tipo_Afiliado = { Id_Tipo_Afiliado: In(filtros.tiposAfiliado) };
@@ -132,6 +223,7 @@ export class AfiliadosService {
                 correo: a.Correo || '—',
                 telefono: a.Numero_Telefono || a.Telefono || '—',
                 estado: a.Estado?.Nombre_Estado || 'Sin estado',
+                tipoAfiliado: a.Tipo_Afiliado?.Nombre_Tipo_Afiliado || '—',
                 creacion: a.Fecha_Creacion ? new Date(a.Fecha_Creacion).toLocaleDateString('es-CR') : '—',
             })),
             ...juridicos.map((a: any) => ({
@@ -141,6 +233,7 @@ export class AfiliadosService {
                 correo: a.Correo || '—',
                 telefono: a.Numero_Telefono || a.Telefono || '—',
                 estado: a.Estado?.Nombre_Estado || 'Sin estado',
+                tipoAfiliado: a.Tipo_Afiliado?.Nombre_Tipo_Afiliado || '—',
                 creacion: a.Fecha_Creacion ? new Date(a.Fecha_Creacion).toLocaleDateString('es-CR') : '—',
             })),
         ].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));

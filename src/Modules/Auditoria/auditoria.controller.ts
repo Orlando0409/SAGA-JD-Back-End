@@ -42,7 +42,7 @@ export class AuditoriaController {
     }
 
     @Post('/pdf')
-    @RequierePermisos('auditoria', 'editar')
+    @RequierePermisos('auditoria', 'ver')
     @ApiOperation({ summary: 'Exportar auditorías a PDF con filtros opcionales' })
     async exportarPdf(
         @Body() dto: ExportAuditoriaPdfDto,

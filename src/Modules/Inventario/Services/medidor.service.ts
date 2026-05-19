@@ -77,21 +77,22 @@ export class MedidorService {
     private async generarDetalleMedidorPdf(id: number, res: Response): Promise<void> {
         const medidor = await this.medidorRepository.findOne({
             where: { Id_Medidor: id },
-            relations: ['Estado_Medidor', 'Afiliado', 'Usuario'],
+            relations: ['Estado_Medidor', 'Afiliado', 'Afiliado.Tipo_Afiliado', 'Usuario'],
         });
         if (!medidor) throw new BadRequestException(`Medidor ${id} no encontrado`);
 
-        const afiliadoInfo = medidor.Afiliado
-            ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado)
-            : null;
-        const af: any = afiliadoInfo;
+        const af: any = medidor.Afiliado || null;
         const nombreAfiliado = af
             ? (af.Razon_Social
-                || (af.Nombre ? `${af.Nombre} ${af.Primer_Apellido ?? ''} ${af.Segundo_Apellido ?? ''}`.trim() : null)
-                || af.Identificacion
-                || af.Cedula_Juridica
+                || (af.Nombre ? `${af.Nombre} ${af.Apellido1 ?? ''} ${af.Apellido2 ?? ''}`.trim() : null)
                 || `Afiliado #${af.Id_Afiliado}`)
             : 'Sin asignar';
+        const identificacionAfiliado = af
+            ? (af.Identificacion || af.Cedula_Juridica || '—')
+            : '—';
+        const correoAfiliado = af?.Correo || '—';
+        const telefonoAfiliado = af?.Numero_Telefono || '—';
+        const tipoAfiliado = af?.Tipo_Afiliado?.Nombre_Tipo_Afiliado || af?.Tipo_Entidad || '—';
 
         const secciones: SeccionDetalle[] = [
             {
@@ -104,9 +105,14 @@ export class MedidorService {
             },
             {
                 titulo: 'Afiliado asignado',
-                campos: [
+                campos: af ? [
                     { label: 'Afiliado', valor: nombreAfiliado, fullWidth: true },
-                    { label: 'ID Afiliado', valor: af ? String(af.Id_Afiliado) : '—' },
+                    { label: 'Identificación', valor: identificacionAfiliado },
+                    { label: 'Tipo de afiliado', valor: tipoAfiliado },
+                    { label: 'Correo', valor: correoAfiliado },
+                    { label: 'Teléfono', valor: telefonoAfiliado },
+                ] : [
+                    { label: 'Afiliado', valor: 'Sin asignar', fullWidth: true },
                 ],
             },
             {

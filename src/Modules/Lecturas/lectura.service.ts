@@ -76,7 +76,7 @@ export class LecturaService {
         usuario:    { key: 'usuario',    label: 'Registrado por',align: 'left',   width: '120px' },
     };
 
-    private static readonly LEC_COLUMNAS_DEFAULT = ['fecha', 'medidor', 'afiliado', 'anterior', 'actual', 'consumo', 'tarifa'];
+    private static readonly LEC_COLUMNAS_DEFAULT = ['fecha', 'medidor', 'afiliado', 'anterior', 'actual', 'consumo'];
 
     private async generarDetalleLecturaPdf(id: number, res: Response): Promise<void> {
         const lectura = await this.lecturaRepository.createQueryBuilder('lectura')
@@ -92,6 +92,7 @@ export class LecturaService {
         if (!lectura) throw new BadRequestException(`Lectura ${id} no encontrada`);
 
         const af: any = lectura.Medidor?.Afiliado;
+        const esJuridico = af?.Tipo_Entidad === 'Jurídica' || !!af?.Cedula_Juridica;
         const nombreAfiliado = af
             ? (af.Razon_Social
                 || `${af.Nombre ?? ''} ${af.Apellido1 ?? ''} ${af.Apellido2 ?? ''}`.trim()
@@ -99,6 +100,10 @@ export class LecturaService {
                 || af.Cedula_Juridica
                 || `Afiliado #${af.Id_Afiliado}`)
             : 'Sin asignar';
+        const identificacionAfiliado = af
+            ? (af.Identificacion || af.Cedula_Juridica || '—')
+            : '—';
+        const correoAfiliado = af?.Correo || '—';
 
         const consumo = lectura.Consumo_Calculado_M3 ?? 0;
 
@@ -116,6 +121,8 @@ export class LecturaService {
                     { label: 'Número de medidor', valor: lectura.Medidor?.Numero_Medidor ?? '—' },
                     { label: 'Estado del medidor', valor: (lectura.Medidor as any)?.Estado_Medidor?.Nombre_Estado_Medidor || '—' },
                     { label: 'Afiliado', valor: nombreAfiliado, fullWidth: true },
+                    { label: esJuridico ? 'Cédula jurídica' : 'Identificación', valor: identificacionAfiliado },
+                    { label: 'Correo', valor: correoAfiliado },
                 ],
             },
             {

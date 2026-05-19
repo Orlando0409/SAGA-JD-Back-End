@@ -83,6 +83,7 @@ export class RolesService {
 
         const usuario = await this.userRepository.findOne({ where: { Id_Usuario: idUsuario }, withDeleted: true });
         if (!usuario) throw new NotFoundException('Usuario no encontrado');
+        if (id === 1) throw new BadRequestException('El rol de Administrador no puede ser modificado.');
 
         const { IDS_Permisos, ...rolData } = updateRolesDto;
 

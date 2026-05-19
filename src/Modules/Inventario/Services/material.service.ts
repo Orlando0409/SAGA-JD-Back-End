@@ -62,21 +62,24 @@ export class MaterialService {
     // ====================================
 
     private static readonly MAT_COLUMNAS: Record<string, TablaColumna> = {
-        nombre:     { key: 'nombre',     label: 'Nombre',           align: 'left',   maxWidth: '200px' },
-        cantidad:   { key: 'cantidad',   label: 'Cantidad',         align: 'right',  width: '80px' },
-        unidad:     { key: 'unidad',     label: 'Unidad',           align: 'left',   width: '90px' },
-        precio:     { key: 'precio',     label: 'Precio Unit.',     align: 'right',  width: '110px' },
-        estado:     { key: 'estado',     label: 'Estado',           align: 'center', width: '100px' },
-        proveedor:  { key: 'proveedor',  label: 'Proveedor',        align: 'left',   maxWidth: '180px' },
-        entrada:    { key: 'entrada',    label: 'Fecha entrada',    align: 'left',   width: '110px' },
+        nombre:      { key: 'nombre',      label: 'Material',           align: 'left',   maxWidth: '180px' },
+        descripcion: { key: 'descripcion', label: 'Descripción',        align: 'left',   maxWidth: '200px' },
+        cantidad:    { key: 'cantidad',    label: 'Cantidad',           align: 'right',  width: '80px' },
+        unidad:      { key: 'unidad',      label: 'U. Medida',          align: 'left',   width: '90px' },
+        precio:      { key: 'precio',      label: 'Precio Unit.',       align: 'right',  width: '110px' },
+        estado:      { key: 'estado',      label: 'Estado',             align: 'center', width: '100px' },
+        categorias:  { key: 'categorias',  label: 'Categorías',         align: 'left',   maxWidth: '180px' },
+        numero:      { key: 'numero',      label: 'Número estantería',  align: 'center', width: '120px' },
+        proveedor:   { key: 'proveedor',   label: 'Proveedor',          align: 'left',   maxWidth: '180px' },
+        entrada:     { key: 'entrada',     label: 'Fecha entrada',      align: 'left',   width: '110px' },
     };
 
-    private static readonly MAT_COLUMNAS_DEFAULT = ['nombre', 'cantidad', 'unidad', 'precio', 'estado'];
+    private static readonly MAT_COLUMNAS_DEFAULT = ['nombre', 'descripcion', 'cantidad', 'unidad', 'precio', 'estado', 'categorias'];
 
     private async generarDetalleMaterialPdf(id: number, res: Response): Promise<void> {
         const material = await this.inventarioRepository.findOne({
             where: { Id_Material: id },
-            relations: ['Estado_Material', 'Unidad_Medicion', 'Proveedor', 'materialCategorias', 'materialCategorias.Categoria'],
+            relations: ['Estado_Material', 'Unidad_Medicion', 'Proveedor', 'Usuario', 'Usuario.Rol', 'materialCategorias', 'materialCategorias.Categoria'],
         });
         if (!material) throw new NotFoundException(`Material ${id} no encontrado`);
 
@@ -86,6 +89,9 @@ export class MaterialService {
             .join(', ') || 'Sin categorías';
 
         const proveedorNombre = (material.Proveedor as any)?.Nombre_Proveedor || '—';
+        const tipoProveedor = (material.Proveedor as any)?.Tipo_Entidad || '—';
+        const usuarioCreador = material.Usuario?.Nombre_Usuario || '—';
+        const rolUsuarioCreador = material.Usuario?.Rol?.Nombre_Rol || '—';
 
         const secciones: SeccionDetalle[] = [
             {
@@ -103,7 +109,21 @@ export class MaterialService {
                     { label: 'Cantidad disponible', valor: `${material.Cantidad ?? 0} ${material.Unidad_Medicion?.Nombre_Unidad || ''}`.trim() },
                     { label: 'Unidad de medición', valor: material.Unidad_Medicion?.Nombre_Unidad || '—' },
                     { label: 'Precio unitario', valor: material.Precio_Unitario != null ? `₡${Number(material.Precio_Unitario).toLocaleString('es-CR', { minimumFractionDigits: 2 })}` : '—' },
-                    { label: 'Proveedor', valor: proveedorNombre },
+                    { label: 'Número de estantería', valor: material.Numero_Estanteria != null ? String(material.Numero_Estanteria) : '—' },
+                ],
+            },
+            {
+                titulo: 'Proveedor',
+                campos: [
+                    { label: 'Nombre del proveedor', valor: proveedorNombre },
+                    { label: 'Tipo de proveedor', valor: tipoProveedor },
+                ],
+            },
+            {
+                titulo: 'Usuario creador',
+                campos: [
+                    { label: 'Usuario', valor: usuarioCreador },
+                    { label: 'Rol', valor: rolUsuarioCreador },
                 ],
             },
             {
@@ -146,16 +166,19 @@ export class MaterialService {
 
         const materiales = await this.inventarioRepository.find({
             where: Object.keys(where).length ? where : undefined,
-            relations: ['Estado_Material', 'Unidad_Medicion', 'Proveedor'],
+            relations: ['Estado_Material', 'Unidad_Medicion', 'Proveedor', 'materialCategorias', 'materialCategorias.Categoria'],
             order: { Nombre_Material: 'ASC' },
         });
 
         const filas = materiales.map(m => ({
             nombre: m.Nombre_Material || '—',
+            descripcion: m.Descripcion || '—',
             cantidad: m.Cantidad ?? 0,
             unidad: m.Unidad_Medicion?.Nombre_Unidad || '—',
             precio: m.Precio_Unitario != null ? `₡${Number(m.Precio_Unitario).toLocaleString('es-CR', { minimumFractionDigits: 2 })}` : '—',
+            numero: m.Numero_Estanteria || '—',
             estado: m.Estado_Material?.Nombre_Estado_Material || 'Sin estado',
+            categorias: (m.materialCategorias ?? []).map((mc: any) => mc.Categoria?.Nombre_Categoria || '').filter(Boolean).join(', ') || '—',
             proveedor: (m.Proveedor as any)?.Nombre_Proveedor || '—',
             entrada: m.Fecha_Entrada ? new Date(m.Fecha_Entrada).toLocaleDateString('es-CR') : '—',
         }));

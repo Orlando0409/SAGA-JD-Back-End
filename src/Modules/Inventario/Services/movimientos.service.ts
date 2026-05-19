@@ -48,10 +48,9 @@ export class MovimientosService {
         anterior:        { key: 'anterior',        label: 'Cant. Anterior',align: 'right',  width: '90px'  },
         nueva:           { key: 'nueva',           label: 'Cant. Nueva',   align: 'right',  width: '90px'  },
         usuario:         { key: 'usuario',         label: 'Usuario',       align: 'left',   width: '130px' },
-        observaciones:   { key: 'observaciones',   label: 'Observaciones', align: 'left',   maxWidth: '260px' },
     };
 
-    private static readonly MOV_COLUMNAS_DEFAULT = ['fecha', 'tipo', 'material', 'cantidad', 'usuario'];
+    private static readonly MOV_COLUMNAS_DEFAULT = ['fecha', 'tipo', 'material', 'cantidad', 'anterior', 'nueva', 'usuario'];
 
     private async generarDetalleMovimientoPdf(id: number, res: Response): Promise<void> {
         const mov = await this.movimientoRepository.findOne({
@@ -144,7 +143,6 @@ export class MovimientosService {
             anterior: m.Cantidad_Anterior ?? 0,
             nueva: m.Cantidad_Nueva ?? 0,
             usuario: m.Usuario?.Nombre_Usuario || '—',
-            observaciones: m.Observaciones || '—',
         }));
 
         const keys = (filtros.columnas?.length ? filtros.columnas : MovimientosService.MOV_COLUMNAS_DEFAULT)
