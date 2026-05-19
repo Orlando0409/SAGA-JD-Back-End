@@ -19,6 +19,7 @@ import { FacturaService } from "../Facturas/factura.service";
 import { Response } from "express";
 import { PdfExportService } from "src/Shared/Pdf/pdf-export.service";
 import { TablaGenericaPDF, TablaColumna } from "src/Shared/Pdf/tabla-pdf.template";
+import { DetalleRegistroPDF, SeccionDetalle } from "src/Shared/Pdf/detalle-pdf.template";
 import { ExportLecturasPdfDto } from "./LecturaDTO'S/ExportLecturasPdf.dto";
 
 @Injectable()
@@ -77,7 +78,79 @@ export class LecturaService {
 
     private static readonly LEC_COLUMNAS_DEFAULT = ['fecha', 'medidor', 'afiliado', 'anterior', 'actual', 'consumo', 'tarifa'];
 
+    private async generarDetalleLecturaPdf(id: number, res: Response): Promise<void> {
+        const lectura = await this.lecturaRepository.createQueryBuilder('lectura')
+            .leftJoinAndSelect('lectura.Medidor', 'medidor')
+            .leftJoinAndSelect('medidor.Estado_Medidor', 'estadoMedidor')
+            .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
+            .leftJoinAndSelect('lectura.Tipo_Tarifa', 'tipoTarifa')
+            .leftJoinAndSelect('lectura.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('lectura.Id_Lectura = :id', { id })
+            .getOne();
+
+        if (!lectura) throw new BadRequestException(`Lectura ${id} no encontrada`);
+
+        const af: any = lectura.Medidor?.Afiliado;
+        const nombreAfiliado = af
+            ? (af.Razon_Social
+                || `${af.Nombre ?? ''} ${af.Apellido1 ?? ''} ${af.Apellido2 ?? ''}`.trim()
+                || af.Identificacion
+                || af.Cedula_Juridica
+                || `Afiliado #${af.Id_Afiliado}`)
+            : 'Sin asignar';
+
+        const consumo = lectura.Consumo_Calculado_M3 ?? 0;
+
+        const secciones: SeccionDetalle[] = [
+            {
+                titulo: 'Información de la lectura',
+                campos: [
+                    { label: 'Fecha de lectura', valor: lectura.Fecha_Lectura ? new Date(lectura.Fecha_Lectura).toLocaleString('es-CR') : '—' },
+                    { label: 'Tipo de tarifa', valor: lectura.Tipo_Tarifa?.Nombre_Tipo_Tarifa || '—' },
+                ],
+            },
+            {
+                titulo: 'Medidor y afiliado',
+                campos: [
+                    { label: 'Número de medidor', valor: lectura.Medidor?.Numero_Medidor ?? '—' },
+                    { label: 'Estado del medidor', valor: (lectura.Medidor as any)?.Estado_Medidor?.Nombre_Estado_Medidor || '—' },
+                    { label: 'Afiliado', valor: nombreAfiliado, fullWidth: true },
+                ],
+            },
+            {
+                titulo: 'Valores',
+                campos: [
+                    { label: 'Lectura anterior', valor: `${lectura.Valor_Lectura_Anterior ?? 0} m³` },
+                    { label: 'Lectura actual', valor: `${lectura.Valor_Lectura_Actual ?? 0} m³` },
+                    { label: 'Consumo calculado', valor: `${consumo} m³` },
+                ],
+            },
+            {
+                titulo: 'Registro',
+                campos: [
+                    { label: 'Registrado por', valor: lectura.Usuario?.Nombre_Usuario || '—' },
+                    { label: 'Rol del usuario', valor: (lectura.Usuario as any)?.Rol?.Nombre_Rol || '—' },
+                ],
+            },
+        ];
+
+        const html = DetalleRegistroPDF({
+            titulo: 'Detalle de Lectura',
+            subtitulo: `Medidor ${lectura.Medidor?.Numero_Medidor ?? '—'}`,
+            numeroRegistro: `Lectura #${lectura.Id_Lectura}`,
+            secciones,
+            notaFooter: 'SAGA-JD · Lecturas',
+        });
+
+        const filename = `Lectura_${lectura.Id_Lectura}_${new Date().toISOString().slice(0, 10)}.pdf`;
+        await this.pdfExportService.streamPdfToResponse(html, filename, res);
+    }
+
     async generarLecturasPdf(filtros: ExportLecturasPdfDto, res: Response): Promise<void> {
+        if (filtros.ids?.length === 1) {
+            return this.generarDetalleLecturaPdf(filtros.ids[0], res);
+        }
         const qb = this.lecturaRepository.createQueryBuilder('lectura')
             .leftJoinAndSelect('lectura.Medidor', 'medidor')
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')

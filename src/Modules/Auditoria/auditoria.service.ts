@@ -4,6 +4,7 @@ import { DataSource, In, Repository } from "typeorm";
 import { Response } from "express";
 import { PdfExportService } from "src/Shared/Pdf/pdf-export.service";
 import { TablaGenericaPDF, TablaColumna } from "src/Shared/Pdf/tabla-pdf.template";
+import { DetalleRegistroPDF, SeccionDetalle } from "src/Shared/Pdf/detalle-pdf.template";
 import { ExportAuditoriaPdfDto } from "./AuditoriaDTOs/ExportAuditoriaPdf.dto";
 import { Usuario } from "../Usuarios/UsuarioEntities/Usuario.Entity";
 import { Auditoria } from "./AuditoriaEntities/Auditoria.Entities";
@@ -59,7 +60,77 @@ export class AuditoriaService {
 
     private static readonly AUDITORIA_COLUMNAS_DEFAULT = ['fecha', 'modulo', 'accion', 'registro', 'usuario'];
 
+    private async generarDetalleAuditoriaPdf(id: number, res: Response): Promise<void> {
+        const a = await this.auditoriaRepository.createQueryBuilder('auditoria')
+            .leftJoinAndSelect('auditoria.Usuario', 'usuario')
+            .leftJoinAndSelect('usuario.Rol', 'rol')
+            .where('auditoria.Id_Auditoria = :id', { id })
+            .getOne();
+
+        if (!a) throw new BadRequestException(`Auditoría ${id} no encontrada`);
+
+        const nombreRegistro = await this.obtenerNombreRegistro(
+            a.Modulo, a.Id_Registro, a.Datos_Anteriores, a.Datos_Nuevos, a.Accion
+        );
+
+        const formatJson = (raw: string | null | undefined): string => {
+            if (!raw) return '—';
+            try {
+                return JSON.stringify(JSON.parse(raw), null, 2);
+            } catch {
+                return raw;
+            }
+        };
+
+        const secciones: SeccionDetalle[] = [
+            {
+                titulo: 'Información del evento',
+                campos: [
+                    { label: 'Módulo', valor: a.Modulo || '—' },
+                    { label: 'Acción', valor: a.Accion || '—' },
+                    { label: 'Fecha', valor: a.Fecha_Accion ? new Date(a.Fecha_Accion).toLocaleString('es-CR') : '—' },
+                    { label: 'Registro afectado', valor: nombreRegistro || `#${a.Id_Registro}` },
+                ],
+            },
+            {
+                titulo: 'Responsable',
+                campos: [
+                    { label: 'Usuario', valor: a.Usuario?.Nombre_Usuario || '—' },
+                    { label: 'Rol', valor: a.Usuario?.Rol?.Nombre_Rol || '—' },
+                ],
+            },
+        ];
+
+        if (a.Datos_Anteriores) {
+            secciones.push({
+                titulo: 'Datos anteriores',
+                campos: [{ label: 'JSON', valor: formatJson(a.Datos_Anteriores), fullWidth: true, monospace: true }],
+            });
+        }
+
+        if (a.Datos_Nuevos) {
+            secciones.push({
+                titulo: 'Datos nuevos',
+                campos: [{ label: 'JSON', valor: formatJson(a.Datos_Nuevos), fullWidth: true, monospace: true }],
+            });
+        }
+
+        const html = DetalleRegistroPDF({
+            titulo: 'Detalle de Auditoría',
+            subtitulo: `${a.Accion} · ${a.Modulo}`,
+            numeroRegistro: `Auditoría #${a.Id_Auditoria}`,
+            secciones,
+            notaFooter: 'SAGA-JD · Bitácora de auditoría',
+        });
+
+        const filename = `Auditoria_${a.Id_Auditoria}_${new Date().toISOString().slice(0, 10)}.pdf`;
+        await this.pdfExportService.streamPdfToResponse(html, filename, res);
+    }
+
     async generarAuditoriasPdf(filtros: ExportAuditoriaPdfDto, res: Response): Promise<void> {
+        if (filtros.ids?.length === 1) {
+            return this.generarDetalleAuditoriaPdf(filtros.ids[0], res);
+        }
         const qb = this.auditoriaRepository.createQueryBuilder('auditoria')
             .leftJoinAndSelect('auditoria.Usuario', 'usuario')
             .leftJoinAndSelect('usuario.Rol', 'rol')

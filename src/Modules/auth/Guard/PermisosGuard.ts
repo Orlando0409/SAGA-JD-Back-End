@@ -2,12 +2,35 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@
 import { Reflector } from '@nestjs/core';
 import { PERMISOS_KEY } from '../Decorator/Permiso.decorator';
 
+interface PermisoRequerido {
+    modulo: string;
+    accion: string;
+}
+
+interface Permiso {
+    Modulo: string;
+    Ver?: boolean;
+    Editar?: boolean;
+}
+
+interface Rol {
+    Permisos?: Permiso[];
+}
+
+interface Usuario {
+    Rol?: Rol;
+}
+
+interface RequestConUsuario {
+    user?: Usuario;
+}
+
 @Injectable()
 export class PermisosGuard implements CanActivate {
     constructor(private readonly reflector: Reflector) {}
 
     canActivate(context: ExecutionContext): boolean {
-        const permisoRequerido = this.reflector.getAllAndOverride<{modulo: string, accion: string}>(
+        const permisoRequerido = this.reflector.getAllAndOverride<PermisoRequerido>(
             PERMISOS_KEY,
             [context.getHandler(), context.getClass()]
         );
@@ -16,7 +39,7 @@ export class PermisosGuard implements CanActivate {
             return true;
         }
 
-        const request = context.switchToHttp().getRequest();
+        const request = context.switchToHttp().getRequest<RequestConUsuario>();
         const usuario = request.user;
 
         if (!usuario) {
@@ -29,7 +52,7 @@ export class PermisosGuard implements CanActivate {
 
         // usar datos ya cargados
         const permisoDelModulo = usuario.Rol.Permisos.find(
-            permiso => permiso.Modulo === permisoRequerido.modulo
+            (permiso: Permiso) => permiso.Modulo === permisoRequerido.modulo
         );
 
         if (!permisoDelModulo) {
@@ -42,7 +65,7 @@ export class PermisosGuard implements CanActivate {
                 tienePermiso = permisoDelModulo.Ver === true;
                 break;
             case 'editar':
-                tienePermiso = permisoDelModulo.ver === true && permisoDelModulo.Editar === true;
+                tienePermiso = permisoDelModulo.Ver === true && permisoDelModulo.Editar === true;
                 break;
         }
 

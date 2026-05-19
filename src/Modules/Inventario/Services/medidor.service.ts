@@ -4,6 +4,7 @@ import { In, Repository } from "typeorm";
 import { Response } from "express";
 import { PdfExportService } from "src/Shared/Pdf/pdf-export.service";
 import { TablaGenericaPDF, TablaColumna } from "src/Shared/Pdf/tabla-pdf.template";
+import { DetalleRegistroPDF, SeccionDetalle } from "src/Shared/Pdf/detalle-pdf.template";
 import { ExportMedidoresPdfDto } from "../InventarioDTO's/ExportMedidoresPdf.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { EstadoMedidor } from "../InventarioEntities/EstadoMedidor.Entity";
@@ -73,7 +74,68 @@ export class MedidorService {
 
     private static readonly MED_COLUMNAS_DEFAULT = ['numero', 'estado', 'afiliado', 'pago'];
 
+    private async generarDetalleMedidorPdf(id: number, res: Response): Promise<void> {
+        const medidor = await this.medidorRepository.findOne({
+            where: { Id_Medidor: id },
+            relations: ['Estado_Medidor', 'Afiliado', 'Usuario'],
+        });
+        if (!medidor) throw new BadRequestException(`Medidor ${id} no encontrado`);
+
+        const afiliadoInfo = medidor.Afiliado
+            ? await this.afiliadoService.FormatearAfiliadoParaResponseSimple(medidor.Afiliado)
+            : null;
+        const af: any = afiliadoInfo;
+        const nombreAfiliado = af
+            ? (af.Razon_Social
+                || (af.Nombre ? `${af.Nombre} ${af.Primer_Apellido ?? ''} ${af.Segundo_Apellido ?? ''}`.trim() : null)
+                || af.Identificacion
+                || af.Cedula_Juridica
+                || `Afiliado #${af.Id_Afiliado}`)
+            : 'Sin asignar';
+
+        const secciones: SeccionDetalle[] = [
+            {
+                titulo: 'Información del medidor',
+                campos: [
+                    { label: 'Número de medidor', valor: medidor.Numero_Medidor },
+                    { label: 'Estado', valor: medidor.Estado_Medidor?.Nombre_Estado_Medidor || 'Sin estado' },
+                    { label: 'Estado de pago', valor: medidor.Estado_Pago || '—' },
+                ],
+            },
+            {
+                titulo: 'Afiliado asignado',
+                campos: [
+                    { label: 'Afiliado', valor: nombreAfiliado, fullWidth: true },
+                    { label: 'ID Afiliado', valor: af ? String(af.Id_Afiliado) : '—' },
+                ],
+            },
+            {
+                titulo: 'Fechas',
+                campos: [
+                    { label: 'Fecha de creación', valor: medidor.Fecha_Creacion ? new Date(medidor.Fecha_Creacion).toLocaleString('es-CR') : '—' },
+                    { label: 'Última actualización', valor: medidor.Fecha_Actualizacion ? new Date(medidor.Fecha_Actualizacion).toLocaleString('es-CR') : '—' },
+                    { label: 'Registrado por', valor: medidor.Usuario?.Nombre_Usuario || '—' },
+                ],
+            },
+        ];
+
+        const html = DetalleRegistroPDF({
+            titulo: 'Detalle del Medidor',
+            subtitulo: `N° ${medidor.Numero_Medidor}`,
+            numeroRegistro: `Medidor #${medidor.Id_Medidor}`,
+            estado: medidor.Estado_Medidor?.Nombre_Estado_Medidor,
+            secciones,
+            notaFooter: 'SAGA-JD · Inventario',
+        });
+
+        const filename = `Medidor_${medidor.Id_Medidor}_${new Date().toISOString().slice(0, 10)}.pdf`;
+        await this.pdfExportService.streamPdfToResponse(html, filename, res);
+    }
+
     async generarMedidoresPdf(filtros: ExportMedidoresPdfDto, res: Response): Promise<void> {
+        if (filtros.ids?.length === 1) {
+            return this.generarDetalleMedidorPdf(filtros.ids[0], res);
+        }
         const qb = this.medidorRepository.createQueryBuilder('medidor')
             .leftJoinAndSelect('medidor.Estado_Medidor', 'estado')
             .leftJoinAndSelect('medidor.Afiliado', 'afiliado')
