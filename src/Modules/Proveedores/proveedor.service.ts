@@ -12,6 +12,7 @@ import { AuditoriaService } from '../Auditoria/auditoria.service';
 import { UsuariosService } from '../Usuarios/Services/usuarios.service';
 import { PdfExportService } from 'src/Shared/Pdf/pdf-export.service';
 import { TablaGenericaPDF, TablaColumna } from 'src/Shared/Pdf/tabla-pdf.template';
+import { DetalleRegistroPDF, SeccionDetalle } from 'src/Shared/Pdf/detalle-pdf.template';
 import { ExportProveedoresPdfDto } from './ProveedoresDTOs/ExportProveedoresPdf.dto';
 import { Response } from 'express';
 
@@ -74,7 +75,78 @@ export class ProveedorService {
     return `${v.slice(0, 1)}-${v.slice(1, 4)}-${v.slice(4, 10)}`;
   }
 
+  private async generarDetalleProveedorPdf(id: number, tipo: 1 | 2 | undefined, res: Response): Promise<void> {
+    let proveedor: any = null;
+    let tipoStr = '';
+
+    if (!tipo || tipo === 1) {
+      proveedor = await this.fisicoRepo.findOne({
+        where: { Id_Proveedor: id },
+        relations: ['Estado_Proveedor'],
+      });
+      if (proveedor) tipoStr = 'Físico';
+    }
+    if (!proveedor && (!tipo || tipo === 2)) {
+      proveedor = await this.juridicoRepo.findOne({
+        where: { Id_Proveedor: id },
+        relations: ['Estado_Proveedor'],
+      });
+      if (proveedor) tipoStr = 'Jurídico';
+    }
+
+    if (!proveedor) {
+      throw new NotFoundException(`Proveedor ${id} no encontrado`);
+    }
+
+    const secciones: SeccionDetalle[] = [
+      {
+        titulo: 'Información general',
+        campos: [
+          { label: 'Nombre del proveedor', valor: proveedor.Nombre_Proveedor, fullWidth: true },
+          { label: 'Tipo de entidad', valor: tipoStr },
+          { label: 'Estado', valor: proveedor.Estado_Proveedor?.Estado_Proveedor || 'Sin estado' },
+          { label: 'Teléfono', valor: proveedor.Telefono_Proveedor || '—' },
+        ],
+      },
+      {
+        titulo: 'Identificación',
+        campos: tipoStr === 'Físico'
+          ? [
+              { label: 'Tipo de identificación', valor: proveedor.Tipo_Identificacion || '—' },
+              { label: 'Identificación', valor: this.formatCedulaFisica(proveedor.Identificacion) },
+            ]
+          : [
+              { label: 'Razón social', valor: proveedor.Razon_Social || '—', fullWidth: true },
+              { label: 'Cédula jurídica', valor: this.formatCedulaJuridica(proveedor.Cedula_Juridica) },
+            ],
+      },
+      {
+        titulo: 'Fechas',
+        campos: [
+          { label: 'Fecha de creación', valor: proveedor.Fecha_Creacion ? new Date(proveedor.Fecha_Creacion).toLocaleString('es-CR') : '—' },
+          { label: 'Última actualización', valor: proveedor.Fecha_Actualizacion ? new Date(proveedor.Fecha_Actualizacion).toLocaleString('es-CR') : '—' },
+        ],
+      },
+    ];
+
+    const html = DetalleRegistroPDF({
+      titulo: `Detalle del Proveedor ${tipoStr}`,
+      subtitulo: proveedor.Nombre_Proveedor,
+      numeroRegistro: `Proveedor #${proveedor.Id_Proveedor}`,
+      estado: proveedor.Estado_Proveedor?.Estado_Proveedor,
+      secciones,
+      notaFooter: 'SAGA-JD · Documento generado automáticamente',
+    });
+
+    const filename = `Proveedor_${tipoStr}_${proveedor.Id_Proveedor}_${new Date().toISOString().slice(0, 10)}.pdf`;
+    await this.pdfExportService.streamPdfToResponse(html, filename, res);
+  }
+
   async generarProveedoresPdf(filtros: ExportProveedoresPdfDto, res: Response): Promise<void> {
+    // Si pide un único ID → PDF de detalle completo
+    if (filtros.ids?.length === 1) {
+      return this.generarDetalleProveedorPdf(filtros.ids[0], filtros.tipo, res);
+    }
     const buildWhere = () => {
       const w: any = {};
       if (filtros.estados?.length) w.Estado_Proveedor = { Id_Estado_Proveedor: In(filtros.estados) };

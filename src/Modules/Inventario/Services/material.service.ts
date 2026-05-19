@@ -5,6 +5,7 @@ import { Between, In, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeo
 import { Response } from 'express';
 import { PdfExportService } from 'src/Shared/Pdf/pdf-export.service';
 import { TablaGenericaPDF, TablaColumna } from 'src/Shared/Pdf/tabla-pdf.template';
+import { DetalleRegistroPDF, SeccionDetalle } from 'src/Shared/Pdf/detalle-pdf.template';
 import { ExportMaterialesPdfDto } from "../InventarioDTO's/ExportMaterialesPdf.dto";
 import { EstadoMaterial } from '../InventarioEntities/EstadoMaterial.Entity';
 import { CreateMaterialDto } from "../InventarioDTO's/CreateMaterial.dto";
@@ -72,7 +73,66 @@ export class MaterialService {
 
     private static readonly MAT_COLUMNAS_DEFAULT = ['nombre', 'cantidad', 'unidad', 'precio', 'estado'];
 
+    private async generarDetalleMaterialPdf(id: number, res: Response): Promise<void> {
+        const material = await this.inventarioRepository.findOne({
+            where: { Id_Material: id },
+            relations: ['Estado_Material', 'Unidad_Medicion', 'Proveedor', 'materialCategorias', 'materialCategorias.Categoria'],
+        });
+        if (!material) throw new NotFoundException(`Material ${id} no encontrado`);
+
+        const categorias = (material.materialCategorias ?? [])
+            .map((mc: any) => mc.Categoria?.Nombre_Categoria || '')
+            .filter(Boolean)
+            .join(', ') || 'Sin categorías';
+
+        const proveedorNombre = (material.Proveedor as any)?.Nombre_Proveedor || '—';
+
+        const secciones: SeccionDetalle[] = [
+            {
+                titulo: 'Información general',
+                campos: [
+                    { label: 'Nombre del material', valor: material.Nombre_Material, fullWidth: true },
+                    { label: 'Descripción', valor: material.Descripcion || '—', fullWidth: true },
+                    { label: 'Estado', valor: material.Estado_Material?.Nombre_Estado_Material || 'Sin estado' },
+                    { label: 'Categorías', valor: categorias },
+                ],
+            },
+            {
+                titulo: 'Stock y precio',
+                campos: [
+                    { label: 'Cantidad disponible', valor: `${material.Cantidad ?? 0} ${material.Unidad_Medicion?.Nombre_Unidad || ''}`.trim() },
+                    { label: 'Unidad de medición', valor: material.Unidad_Medicion?.Nombre_Unidad || '—' },
+                    { label: 'Precio unitario', valor: material.Precio_Unitario != null ? `₡${Number(material.Precio_Unitario).toLocaleString('es-CR', { minimumFractionDigits: 2 })}` : '—' },
+                    { label: 'Proveedor', valor: proveedorNombre },
+                ],
+            },
+            {
+                titulo: 'Fechas',
+                campos: [
+                    { label: 'Fecha de entrada', valor: material.Fecha_Entrada ? new Date(material.Fecha_Entrada).toLocaleString('es-CR') : '—' },
+                    { label: 'Última actualización', valor: material.Fecha_Actualizacion ? new Date(material.Fecha_Actualizacion).toLocaleString('es-CR') : '—' },
+                    { label: 'Última fecha de baja', valor: material.Ultima_Fecha_Baja ? new Date(material.Ultima_Fecha_Baja).toLocaleString('es-CR') : '—' },
+                ],
+            },
+        ];
+
+        const html = DetalleRegistroPDF({
+            titulo: 'Detalle del Material',
+            subtitulo: material.Nombre_Material,
+            numeroRegistro: `Material #${material.Id_Material}`,
+            estado: material.Estado_Material?.Nombre_Estado_Material,
+            secciones,
+            notaFooter: 'SAGA-JD · Inventario',
+        });
+
+        const filename = `Material_${material.Id_Material}_${new Date().toISOString().slice(0, 10)}.pdf`;
+        await this.pdfExportService.streamPdfToResponse(html, filename, res);
+    }
+
     async generarMaterialesPdf(filtros: ExportMaterialesPdfDto, res: Response): Promise<void> {
+        if (filtros.ids?.length === 1) {
+            return this.generarDetalleMaterialPdf(filtros.ids[0], res);
+        }
         const where: any = {};
         if (filtros.estados?.length) where.Estado_Material = { Id_Estado_Material: In(filtros.estados) };
         if (filtros.ids?.length) where.Id_Material = In(filtros.ids);

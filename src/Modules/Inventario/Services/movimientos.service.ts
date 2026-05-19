@@ -11,6 +11,7 @@ import { UsuariosService } from "src/Modules/Usuarios/Services/usuarios.service"
 import { Response } from "express";
 import { PdfExportService } from "src/Shared/Pdf/pdf-export.service";
 import { TablaGenericaPDF, TablaColumna } from "src/Shared/Pdf/tabla-pdf.template";
+import { DetalleRegistroPDF, SeccionDetalle } from "src/Shared/Pdf/detalle-pdf.template";
 import { ExportMovimientosPdfDto } from "../InventarioDTO's/ExportMovimientosPdf.dto";
 
 @Injectable()
@@ -52,7 +53,63 @@ export class MovimientosService {
 
     private static readonly MOV_COLUMNAS_DEFAULT = ['fecha', 'tipo', 'material', 'cantidad', 'usuario'];
 
+    private async generarDetalleMovimientoPdf(id: number, res: Response): Promise<void> {
+        const mov = await this.movimientoRepository.findOne({
+            where: { Id_Movimiento: id },
+            relations: ['Material', 'Material.Estado_Material', 'Usuario', 'Usuario.Rol'],
+        });
+        if (!mov) throw new NotFoundException(`Movimiento ${id} no encontrado`);
+
+        const secciones: SeccionDetalle[] = [
+            {
+                titulo: 'Movimiento',
+                campos: [
+                    { label: 'Tipo', valor: mov.Tipo_Movimiento || '—' },
+                    { label: 'Fecha', valor: mov.Fecha_Movimiento ? new Date(mov.Fecha_Movimiento).toLocaleString('es-CR') : '—' },
+                    { label: 'Cantidad', valor: String(mov.Cantidad ?? 0) },
+                    { label: 'Material', valor: mov.Material?.Nombre_Material || '—' },
+                ],
+            },
+            {
+                titulo: 'Stock',
+                campos: [
+                    { label: 'Cantidad anterior', valor: String(mov.Cantidad_Anterior ?? 0) },
+                    { label: 'Cantidad nueva', valor: String(mov.Cantidad_Nueva ?? 0) },
+                    { label: 'Estado del material', valor: mov.Material?.Estado_Material?.Nombre_Estado_Material || '—' },
+                ],
+            },
+            {
+                titulo: 'Responsable',
+                campos: [
+                    { label: 'Usuario', valor: mov.Usuario?.Nombre_Usuario || '—' },
+                    { label: 'Rol', valor: mov.Usuario?.Rol?.Nombre_Rol || '—' },
+                ],
+            },
+        ];
+
+        if (mov.Observaciones) {
+            secciones.push({
+                titulo: 'Observaciones',
+                campos: [{ label: 'Notas', valor: mov.Observaciones, fullWidth: true, monospace: false }],
+            });
+        }
+
+        const html = DetalleRegistroPDF({
+            titulo: 'Detalle de Movimiento',
+            subtitulo: `${mov.Tipo_Movimiento} · ${mov.Material?.Nombre_Material || ''}`,
+            numeroRegistro: `Movimiento #${mov.Id_Movimiento}`,
+            secciones,
+            notaFooter: 'SAGA-JD · Movimientos de inventario',
+        });
+
+        const filename = `Movimiento_${mov.Id_Movimiento}_${new Date().toISOString().slice(0, 10)}.pdf`;
+        await this.pdfExportService.streamPdfToResponse(html, filename, res);
+    }
+
     async generarMovimientosPdf(filtros: ExportMovimientosPdfDto, res: Response): Promise<void> {
+        if (filtros.ids?.length === 1) {
+            return this.generarDetalleMovimientoPdf(filtros.ids[0], res);
+        }
         const qb = this.movimientoRepository.createQueryBuilder('mov')
             .leftJoinAndSelect('mov.Material', 'material')
             .leftJoinAndSelect('mov.Usuario', 'usuario')
